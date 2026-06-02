@@ -1,0 +1,510 @@
+/* ── Content Generator ────────────────────────────────────────────────────── */
+
+.twt-aeo-cg-controls {
+	margin-bottom: 24px;
+	padding: 20px 24px;
+}
+
+.twt-aeo-cg-controls__row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: flex-end;
+}
+
+.twt-aeo-cg-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex: 1;
+	min-width: 180px;
+}
+
+.twt-aeo-cg-field--action {
+	flex: 0 0 auto;
+	min-width: 0;
+}
+
+.twt-aeo-cg-field__label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #374151;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.twt-aeo-cg-select {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #111827;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,.05);
+	height: 36px;
+}
+
+.twt-aeo-cg-select:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+.twt-aeo-cg-btn {
+	height: 36px;
+	padding: 0 18px;
+	white-space: nowrap;
+}
+
+.twt-aeo-cg-controls__row + .twt-aeo-cg-controls__row {
+	margin-top: 12px;
+}
+
+/* ── New-post create fields ───────────────────────────────────────────────── */
+
+.twt-aeo-cg-new-fields {
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid rgba(0,0,0,.07);
+}
+
+.twt-aeo-cg-new-fields .twt-aeo-cg-controls__row {
+	margin-top: 10px;
+}
+
+.twt-aeo-cg-new-fields .twt-aeo-cg-controls__row:first-child {
+	margin-top: 0;
+}
+
+.twt-aeo-cg-input {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #111827;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,.05);
+	height: 36px;
+	box-sizing: border-box;
+}
+
+.twt-aeo-cg-input:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ── Save-as-Draft / Saved state ─────────────────────────────────────────── */
+
+.twt-aeo-cg-save {
+	white-space: nowrap;
+}
+
+.twt-aeo-cg-saved {
+	display: inline-block;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+.twt-aeo-cg-controls__divider {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 18px 0 14px;
+	color: #9ca3af;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+}
+
+.twt-aeo-cg-controls__divider::before,
+.twt-aeo-cg-controls__divider::after {
+	content: '';
+	flex: 1;
+	height: 1px;
+	background: #e5e7eb;
+}
+
+.twt-aeo-cg-field--full {
+	flex: 1 1 100%;
+	min-width: 0;
+}
+
+.twt-aeo-cg-field__hint {
+	display: block;
+	font-size: 11px;
+	font-weight: 400;
+	color: #9ca3af;
+	text-transform: none;
+	letter-spacing: 0;
+	margin-top: 2px;
+}
+
+.twt-aeo-cg-notes {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #111827;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,.05);
+	font-family: inherit;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.twt-aeo-cg-notes:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+.twt-aeo-cg-checks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 20px;
+	margin-top: 2px;
+}
+
+.twt-aeo-cg-check {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13px;
+	color: #374151;
+	cursor: pointer;
+	user-select: none;
+}
+
+.twt-aeo-cg-check input[type="checkbox"] {
+	margin: 0;
+	width: 15px;
+	height: 15px;
+	accent-color: #2563eb;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.twt-aeo-cg-title-preview {
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid rgba(0,0,0,.07);
+	font-size: 13px;
+	color: #6b7280;
+}
+
+.twt-aeo-cg-title-preview__label {
+	margin-right: 6px;
+}
+
+/* ── Result Panels ────────────────────────────────────────────────────────── */
+
+.twt-aeo-cg-results {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 20px;
+}
+
+@media (max-width: 1100px) {
+	.twt-aeo-cg-results {
+		grid-template-columns: 1fr;
+	}
+}
+
+.twt-aeo-cg-panel {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+.twt-aeo-cg-panel__head {
+	padding: 14px 16px 12px;
+	border-bottom: 1px solid #f3f4f6;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.twt-aeo-cg-panel__provider {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #111827;
+}
+
+.twt-aeo-cg-panel__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.twt-aeo-cg-panel__dot--claude {
+	background: #d97706;
+}
+
+.twt-aeo-cg-panel__dot--openai {
+	background: #16a34a;
+}
+
+.twt-aeo-cg-panel__dot--perplexity {
+	background: #2563eb;
+}
+
+.twt-aeo-cg-panel__strength {
+	font-size: 11px;
+	font-weight: 500;
+	color: #6b7280;
+	background: #f3f4f6;
+	padding: 1px 7px;
+	border-radius: 20px;
+}
+
+.twt-aeo-cg-panel__task {
+	font-size: 12px;
+	color: #6b7280;
+	font-weight: 400;
+	padding-left: 15px;
+}
+
+.twt-aeo-cg-panel__body {
+	flex: 1;
+	padding: 14px 16px;
+	display: flex;
+	flex-direction: column;
+}
+
+.twt-aeo-cg-panel__spinner {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #6b7280;
+	font-size: 13px;
+	padding: 24px 0;
+}
+
+.twt-aeo-cg-spinner {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border: 2px solid #e5e7eb;
+	border-top-color: #2563eb;
+	border-radius: 50%;
+	animation: twt-aeo-spin .7s linear infinite;
+	flex-shrink: 0;
+}
+
+@keyframes twt-aeo-spin {
+	to { transform: rotate(360deg); }
+}
+
+.twt-aeo-cg-panel__textarea {
+	width: 100%;
+	box-sizing: border-box;
+	resize: vertical;
+	border: 1px solid #e5e7eb;
+	border-radius: 5px;
+	font-size: 13px;
+	line-height: 1.6;
+	color: #111827;
+	padding: 10px 12px;
+	background: #fafafa;
+	font-family: inherit;
+}
+
+.twt-aeo-cg-panel__textarea:focus {
+	outline: none;
+	border-color: #2563eb;
+	background: #fff;
+}
+
+.twt-aeo-cg-panel__error {
+	color: #dc2626;
+	font-size: 13px;
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: 5px;
+	padding: 10px 12px;
+}
+
+.twt-aeo-cg-panel__foot {
+	padding: 10px 16px 14px;
+	border-top: 1px solid #f3f4f6;
+	display: flex;
+	gap: 8px;
+}
+
+/* ── Notice (no API keys) ─────────────────────────────────────────────────── */
+
+.twt-aeo-notice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 18px;
+	border-radius: 7px;
+	font-size: 13px;
+	margin-bottom: 20px;
+	border: 1px solid transparent;
+}
+
+.twt-aeo-notice--warn {
+	background: #fffbeb;
+	border-color: #fde68a;
+	color: #92400e;
+}
+
+.twt-aeo-notice .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+/* ── Settings page — API provider blocks ─────────────────────────────────── */
+
+.twt-aeo-api-provider-block {
+	border: 1px solid #e5e7eb;
+	border-radius: 7px;
+	margin-bottom: 16px;
+	overflow: hidden;
+}
+
+.twt-aeo-api-provider-block:last-child {
+	margin-bottom: 0;
+}
+
+.twt-aeo-api-provider-block__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	background: #f9fafb;
+	border-bottom: 1px solid #e5e7eb;
+	font-size: 13px;
+}
+
+.twt-aeo-api-provider-block__head strong {
+	color: #111827;
+}
+
+.twt-aeo-api-provider-block__role {
+	font-size: 12px;
+	color: #6b7280;
+	margin-left: 4px;
+}
+
+.twt-aeo-api-provider-block__instructions {
+	padding: 12px 16px;
+	background: #fff;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.twt-aeo-api-provider-block__instructions ol {
+	margin: 0;
+	padding-left: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.twt-aeo-api-provider-block__instructions li {
+	font-size: 13px;
+	color: #374151;
+	line-height: 1.5;
+}
+
+.twt-aeo-api-provider-block__instructions a {
+	color: #2563eb;
+	text-decoration: none;
+}
+
+.twt-aeo-api-provider-block__instructions a:hover {
+	text-decoration: underline;
+}
+
+.twt-aeo-api-provider-block__instructions code {
+	background: #f3f4f6;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.twt-aeo-api-provider-block .twt-aeo-api-key-row {
+	padding: 12px 16px;
+	margin: 0;
+}
+
+.twt-aeo-api-configured {
+	font-size: 12px;
+	font-weight: 600;
+	color: #16a34a;
+	white-space: nowrap;
+}
+
+/* ── Settings page — API keys ─────────────────────────────────────────────── */
+
+.twt-aeo-api-keys {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.twt-aeo-api-key-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.twt-aeo-api-key-row__label {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-weight: 600;
+	font-size: 13px;
+	color: #374151;
+	min-width: 130px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-api-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.twt-aeo-api-dot--claude     { background: #d97706; }
+.twt-aeo-api-dot--openai     { background: #16a34a; }
+.twt-aeo-api-dot--perplexity { background: #2563eb; }
+
+.twt-aeo-api-key-row input[type="password"],
+.twt-aeo-api-key-row input[type="text"] {
+	flex: 1;
+	max-width: 480px;
+}
+
+.twt-aeo-api-key-row__hint {
+	font-size: 11px;
+	color: #6b7280;
+	white-space: nowrap;
+}
+
+/* ── Header sub-line ─────────────────────────────────────────────────────── */
+
+.twt-aeo-header__sub {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: rgba(255,255,255,.75);
+}

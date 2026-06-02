@@ -1,0 +1,116 @@
+<!--
+  TWT AEO Ultimate – Privacy Policy
+  Version 2.1.1 | By Tampa Web Technologies
+
+  HOW TO USE THIS FILE:
+  1. Publish this at https://tampawebtech.com/plugin-privacy-policies/ (the URL the plugin links to).
+  2. Edit the page, add a "Custom HTML" block (Gutenberg) or switch to the HTML editor (Classic).
+  3. Paste everything below into that block and save.
+  4. Replace the [BRACKETED] placeholders (effective date, contact email, legal entity) before publishing.
+  5. (Optional) Delete this comment block before pasting.
+
+  NOTE: The data described here reflects what the plugin code in
+  class-pro-transmitter.php and class-content-generator.php actually
+  transmits as of v2.1.1. If you change what the plugin sends, update
+  this page to match.
+-->
+
+<div style="max-width:860px;font-family:inherit;line-height:1.7;color:inherit;">
+
+  <h1>TWT AEO Ultimate – Privacy Policy</h1>
+  <p><strong>Plugin:</strong> TWT AEO Ultimate &nbsp;|&nbsp; <strong>Version:</strong> 2.1.1 &nbsp;|&nbsp; <strong>Publisher:</strong> Tampa Web Technologies</p>
+  <p><strong>Effective date:</strong> June 1, 2026 &nbsp;|&nbsp; <strong>Contact:</strong> <a href="mailto:david@tampawebtech.com">david@tampawebtech.com</a></p>
+
+  <hr />
+
+  <h2>Summary</h2>
+  <p>TWT AEO Ultimate is a self-hosted WordPress plugin. By default it stores all data on <em>your own</em> WordPress site and transmits nothing to Tampa Web Technologies or any third party. Three optional features send data off your site, and each one is off until you explicitly turn it on:</p>
+  <ul>
+    <li><strong>TWT Agency sync</strong> — sends site metrics and content/schema activity to a TWT Agency dashboard account you control.</li>
+    <li><strong>Token telemetry</strong> — sends anonymous AI token-usage counts to Tampa Web Technologies.</li>
+    <li><strong>AI content generation</strong> — sends the prompts you generate to the AI provider whose API key you supply (Anthropic, OpenAI, or Perplexity).</li>
+  </ul>
+  <p>None of these transmit your site <em>visitors'</em> personal data (names, emails, IP addresses). What they do send is described in full below.</p>
+
+  <hr />
+
+  <h2>1. Data the plugin stores on your own site</h2>
+  <p>The following is saved only in your WordPress database and never leaves your server unless you enable one of the optional features in the next sections:</p>
+  <ul>
+    <li>AEO scan results and per-page scores.</li>
+    <li>Schema, author (E-E-A-T), company, and local-business settings you enter.</li>
+    <li>AI crawler log entries — the bot name, the URL it requested, and a timestamp — recorded when a known AI crawler (e.g. GPTBot, ClaudeBot, PerplexityBot) visits your site.</li>
+    <li>Your AI provider API keys and your TWT Agency credentials, stored as WordPress options.</li>
+  </ul>
+
+  <hr />
+
+  <h2>2. TWT Agency sync (optional)</h2>
+  <p><strong>Status:</strong> Disabled until you enable it and enter a TWT Agency API key and Dashboard URL in <strong>Settings → TWT Agency</strong>. If no key is configured, nothing in this section is sent.</p>
+  <p><strong>Where it goes:</strong> The Dashboard URL <em>you</em> configure. Your TWT Agency API key is sent with each request in the <code>X-TWT-API-Key</code> header to authenticate your account.</p>
+  <p><strong>What is sent.</strong> Once connected, the plugin transmits the following events to your Dashboard. This is the complete list as implemented in the plugin:</p>
+  <ul>
+    <li><strong>Daily site snapshot:</strong> your site URL, site name, plugin version, WordPress version, and the list of active modules.</li>
+    <li><strong>Google Analytics 4 snapshot</strong> (only if you have connected Google): sessions, users, pageviews, bounce rate, average session duration, and a per-source breakdown of referrals from AI platforms, press-release wire services, and Bing.</li>
+    <li><strong>Search Console snapshot</strong> (only if you have connected Google): clicks, impressions, click-through rate, and average position.</li>
+    <li><strong>Content changes:</strong> on every publish or update of a public post, the post ID, post type, title, URL, and the word count before and after the change.</li>
+    <li><strong>Schema events:</strong> schema added, changed, or conflicting — including the schema type, the affected post's ID, title, and URL, and any detected conflicting plugin.</li>
+    <li><strong>AI crawler events:</strong> the bot name and company, the URL it accessed, a timestamp, and — if the URL maps to a post — that post's ID, type, title, and days since publication.</li>
+    <li><strong>IndexNow submissions:</strong> the submitted URLs, the search engine endpoint, and the response status.</li>
+    <li><strong>De-index reports:</strong> URLs the plugin has detected as no longer indexed.</li>
+    <li><strong>Press-release distribution records:</strong> the post title and URL, distribution tier, wire-service provider, and distribution URL.</li>
+    <li><strong>Micro-conversions:</strong> the event type, the page URL, and a coarse device type (desktop/mobile/unknown).</li>
+  </ul>
+  <p>These payloads contain information about your <em>site and its content</em> (page titles, URLs, traffic totals). They do not include the personal data of your individual site visitors.</p>
+  <p><strong>How to stop it:</strong> Disable TWT Agency sync in <strong>Settings → TWT Agency</strong>, or remove the API key. Transmission stops immediately.</p>
+
+  <hr />
+
+  <h2>3. Token telemetry (optional)</h2>
+  <p><strong>Status:</strong> Disabled until you enable "Token Telemetry" in Settings. It only fires when the Content Generator makes an AI API call.</p>
+  <p><strong>Where it goes:</strong> <code>https://tampawebtech.com/wp-json/twt-aeo/v1/token-telemetry</code> (Tampa Web Technologies).</p>
+  <p><strong>What is sent:</strong> the AI provider name (e.g. <code>claude</code>, <code>openai</code>, <code>perplexity</code>), the model slug, the plugin version, and token counts (input, output, and — for Claude — cache-creation and cache-read tokens).</p>
+  <p><strong>What is <em>not</em> sent:</strong> no prompt content, generated text, page titles, URLs, API keys, or any visitor data. The request is sent fire-and-forget; we do not receive anything that identifies your site or its users.</p>
+  <p><strong>Why:</strong> aggregate token counts help us understand cost and usage patterns to improve the plugin.</p>
+  <p><strong>How to stop it:</strong> Turn off "Token Telemetry" in Settings.</p>
+
+  <hr />
+
+  <h2>4. AI content generation (optional)</h2>
+  <p><strong>Status:</strong> Active only when you use the Content Generator and have supplied your own AI provider API key.</p>
+  <p><strong>Where it goes:</strong> directly to the provider whose key you entered — Anthropic (<code>api.anthropic.com</code>), OpenAI (<code>api.openai.com</code>), or Perplexity (<code>api.perplexity.ai</code>). Tampa Web Technologies is not in this path.</p>
+  <p><strong>What is sent:</strong> the generation prompt the plugin builds from your inputs, plus your API key for authentication. The provider's own privacy policy and data-handling terms govern this data. Review them:</p>
+  <ul>
+    <li>Anthropic: <a href="https://www.anthropic.com/legal/privacy">anthropic.com/legal/privacy</a></li>
+    <li>OpenAI: <a href="https://openai.com/policies/privacy-policy/">openai.com/policies/privacy-policy</a></li>
+    <li>Perplexity: <a href="https://www.perplexity.ai/hub/legal/privacy-policy">perplexity.ai/hub/legal/privacy-policy</a></li>
+  </ul>
+
+  <hr />
+
+  <h2>5. Third-party integrations you connect</h2>
+  <p>If you connect Google (Analytics 4 / Search Console), Bing Webmaster Tools, or merchant-center accounts, the plugin uses the OAuth credentials and tokens you authorize to read your own data from those services. Those services' privacy terms apply to the data they hold.</p>
+
+  <hr />
+
+  <h2>6. Data retention and deletion</h2>
+  <p>Data stored on your own site persists until you delete it or uninstall the plugin. Token telemetry received by Tampa Web Technologies is anonymous and aggregated. To request information about, or deletion of, data associated with your TWT Agency account, contact us at <a href="mailto:david@tampawebtech.com">david@tampawebtech.com</a>.</p>
+
+  <hr />
+
+  <h2>7. Children</h2>
+  <p>TWT AEO Ultimate is a tool for website administrators and is not directed to children. It does not knowingly collect data from children.</p>
+
+  <hr />
+
+  <h2>8. Changes to this policy</h2>
+  <p>We may update this policy as the plugin evolves. Material changes to what data is transmitted will be reflected here and dated at the top of the page.</p>
+
+  <hr />
+
+  <h2>9. Contact</h2>
+  <p>Tampa Web Technologies Inc<br />
+  <a href="https://tampawebtech.com">tampawebtech.com</a><br />
+  <a href="mailto:david@tampawebtech.com">david@tampawebtech.com</a></p>
+
+</div>

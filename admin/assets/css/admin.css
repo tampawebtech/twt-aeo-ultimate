@@ -1,0 +1,1580 @@
+/* ============================================================
+   TWT AEO Ultimate — Admin Styles
+   ============================================================ */
+
+:root {
+	--aeo-primary:       #1a1a2e;
+	--aeo-accent:        #0ea5e9;
+	--aeo-accent-hover:  #0284c7;
+	--aeo-success:       #16a34a;
+	--aeo-warning:       #d97706;
+	--aeo-danger:        #dc2626;
+	--aeo-neutral:       #6b7280;
+	--aeo-bg:            #f8fafc;
+	--aeo-card-bg:       #ffffff;
+	--aeo-border:        #e2e8f0;
+	--aeo-text:          #1e293b;
+	--aeo-text-muted:    #64748b;
+	--aeo-radius:        8px;
+	--aeo-shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+	--aeo-shadow-md:     0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+}
+
+/* ── Wrap ── */
+.twt-aeo-wrap {
+	max-width: 1200px;
+	padding: 0 0 40px;
+	color: var(--aeo-text);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ── Header ── */
+.twt-aeo-header {
+	background: var(--aeo-primary);
+	margin: 0 -20px 32px;
+	padding: 28px 32px;
+}
+
+.twt-aeo-header__inner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.twt-aeo-header__title {
+	color: #fff !important;
+	font-size: 22px !important;
+	font-weight: 700 !important;
+	margin: 0 !important;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.twt-aeo-header__sub {
+	color: #94a3b8;
+	margin: 6px 0 0;
+	font-size: 13px;
+}
+
+.twt-aeo-header__meta {
+	margin-left: auto;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.twt-aeo-logo {
+	background: var(--aeo-accent);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: .05em;
+	padding: 3px 7px;
+	border-radius: 4px;
+}
+
+/* ── Badges ── */
+.twt-aeo-badge {
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 10px;
+	border-radius: 20px;
+	white-space: nowrap;
+}
+
+.twt-aeo-badge--plugin {
+	background: rgba(14,165,233,.2);
+	color: #7dd3fc;
+}
+
+.twt-aeo-badge--page {
+	background: rgba(255,255,255,.1);
+	color: #cbd5e1;
+}
+
+.twt-aeo-badge--pro {
+	background: #f59e0b;
+	color: #fff;
+	margin-left: 10px;
+	vertical-align: middle;
+}
+
+/* ── Shared module page wrapper ── */
+.twt-aeo-page {
+	max-width: 1100px;
+	padding-bottom: 40px;
+	color: var(--aeo-text);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ── Shared card block used by module pages ── */
+.twt-aeo-panel {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 24px 28px;
+	margin-bottom: 24px;
+	box-shadow: var(--aeo-shadow);
+}
+
+.twt-aeo-panel__title {
+	font-size: 15px !important;
+	font-weight: 700 !important;
+	color: var(--aeo-text) !important;
+	margin: 0 0 6px !important;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.twt-aeo-panel__desc {
+	font-size: 13px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 20px;
+	line-height: 1.5;
+}
+
+/* ── Sections ── */
+.twt-aeo-section {
+	margin-bottom: 36px;
+}
+
+.twt-aeo-section__title {
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	color: var(--aeo-text) !important;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	margin: 0 0 14px !important;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid var(--aeo-border);
+}
+
+/* ── Count pill ── */
+.twt-aeo-count {
+	font-size: 11px;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 20px;
+}
+
+.twt-aeo-count--alert {
+	background: var(--aeo-danger);
+	color: #fff;
+}
+
+/* ── Priority Cards ── */
+.twt-aeo-priority-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+
+.twt-aeo-priority-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 16px 20px;
+	display: flex;
+	gap: 14px;
+	align-items: flex-start;
+	box-shadow: var(--aeo-shadow);
+	border-left-width: 4px;
+}
+
+.twt-aeo-priority-card--high {
+	border-left-color: var(--aeo-danger);
+}
+
+.twt-aeo-priority-card--medium {
+	border-left-color: var(--aeo-warning);
+}
+
+.twt-aeo-priority-card--low {
+	border-left-color: var(--aeo-accent);
+}
+
+.twt-aeo-priority-card__icon .dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	margin-top: 2px;
+}
+
+.twt-aeo-priority-card--high .twt-aeo-priority-card__icon .dashicons {
+	color: var(--aeo-danger);
+}
+
+.twt-aeo-priority-card--medium .twt-aeo-priority-card__icon .dashicons {
+	color: var(--aeo-warning);
+}
+
+.twt-aeo-priority-card--low .twt-aeo-priority-card__icon .dashicons {
+	color: var(--aeo-accent);
+}
+
+.twt-aeo-priority-card__title {
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	margin: 0 0 4px !important;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-priority-card__desc {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0;
+	line-height: 1.5;
+}
+
+/* ── Generic Cards ── */
+.twt-aeo-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 16px;
+}
+
+.twt-aeo-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 20px;
+	box-shadow: var(--aeo-shadow);
+}
+
+.twt-aeo-card__title {
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	margin: 0 0 12px !important;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-card__note {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 12px;
+	line-height: 1.5;
+}
+
+.twt-aeo-card__meta {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 14px;
+}
+
+/* ── Checklists ── */
+.twt-aeo-checklist {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.twt-aeo-checklist__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 0;
+	font-size: 13px;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-checklist__item:last-child {
+	border-bottom: none;
+}
+
+.twt-aeo-checklist__item .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-checklist__item--pass .dashicons { color: var(--aeo-success); }
+.twt-aeo-checklist__item--fail .dashicons { color: var(--aeo-danger); }
+.twt-aeo-checklist__item--warn .dashicons { color: var(--aeo-warning); }
+.twt-aeo-checklist__item--neutral .dashicons { color: var(--aeo-neutral); }
+
+/* ── Tag list ── */
+.twt-aeo-tag-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.twt-aeo-tag {
+	background: #e0f2fe;
+	color: #0369a1;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 10px;
+	border-radius: 20px;
+}
+
+/* ── Empty states ── */
+.twt-aeo-empty {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	font-style: italic;
+	margin: 0;
+}
+
+.twt-aeo-empty--good {
+	color: var(--aeo-success);
+	font-style: normal;
+	font-weight: 600;
+}
+
+/* ── Module Grid ── */
+.twt-aeo-module-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 16px;
+}
+
+.twt-aeo-module-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 20px;
+	box-shadow: var(--aeo-shadow);
+	transition: box-shadow .15s ease, border-color .15s ease;
+	position: relative;
+}
+
+.twt-aeo-module-card:hover {
+	box-shadow: var(--aeo-shadow-md);
+}
+
+.twt-aeo-module-card--active {
+	border-color: var(--aeo-accent);
+}
+
+.twt-aeo-module-card--locked {
+	opacity: .7;
+}
+
+.twt-aeo-module-card__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	margin-bottom: 14px;
+}
+
+.twt-aeo-module-card__icon .dashicons {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: var(--aeo-accent);
+}
+
+.twt-aeo-module-card--locked .twt-aeo-module-card__icon .dashicons {
+	color: var(--aeo-neutral);
+}
+
+.twt-aeo-module-card__title {
+	font-size: 15px !important;
+	font-weight: 700 !important;
+	margin: 0 0 8px !important;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-module-card__desc {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0;
+	line-height: 1.6;
+}
+
+.twt-aeo-module-card__location {
+	font-size: 11px;
+	color: var(--aeo-accent);
+	margin: 10px 0 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.twt-aeo-module-card__location .dashicons {
+	font-size: 13px;
+	width: 13px;
+	height: 13px;
+}
+
+/* ── Toggle Switch ── */
+.twt-aeo-toggle {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	width: 44px;
+	height: 24px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-toggle__input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+	position: absolute;
+}
+
+.twt-aeo-toggle__track {
+	position: absolute;
+	inset: 0;
+	background: #cbd5e1;
+	border-radius: 12px;
+	transition: background .2s ease;
+}
+
+.twt-aeo-toggle__thumb {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0,0,0,.2);
+	transition: transform .2s ease;
+}
+
+.twt-aeo-toggle__input:checked ~ .twt-aeo-toggle__track {
+	background: var(--aeo-accent);
+}
+
+.twt-aeo-toggle__input:checked ~ .twt-aeo-toggle__thumb {
+	transform: translateX(20px);
+}
+
+.twt-aeo-toggle__input:focus ~ .twt-aeo-toggle__track {
+	outline: 2px solid var(--aeo-accent);
+	outline-offset: 2px;
+}
+
+/* ── Lock badge ── */
+.twt-aeo-lock-badge {
+	background: #f59e0b;
+	color: #fff;
+	font-size: 10px;
+	font-weight: 800;
+	padding: 3px 8px;
+	border-radius: 4px;
+	letter-spacing: .05em;
+}
+
+/* ── Radio group (Settings) ── */
+.twt-aeo-radio-group {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.twt-aeo-radio {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	cursor: pointer;
+}
+
+.twt-aeo-radio input[type="radio"] {
+	margin-top: 4px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-radio__label {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.twt-aeo-radio__label strong {
+	font-size: 13px;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-radio__label span {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+}
+
+/* ── Saving state ── */
+.twt-aeo-module-card.is-saving {
+	opacity: .6;
+	pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media ( max-width: 782px ) {
+	.twt-aeo-header {
+		margin: 0 -10px 24px;
+		padding: 20px 16px;
+	}
+
+	.twt-aeo-priority-grid,
+	.twt-aeo-card-grid,
+	.twt-aeo-module-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Conflict Banner ── */
+.twt-aeo-conflict-banner {
+	background: #fff5f5;
+	border: 2px solid var(--aeo-danger);
+	border-radius: var(--aeo-radius);
+	padding: 20px 24px;
+	display: flex;
+	gap: 16px;
+	align-items: flex-start;
+	margin-bottom: 8px;
+}
+
+.twt-aeo-conflict-banner__icon .dashicons {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: var(--aeo-danger);
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.twt-aeo-conflict-banner__title {
+	font-size: 16px !important;
+	font-weight: 700 !important;
+	color: var(--aeo-danger) !important;
+	margin: 0 0 8px !important;
+}
+
+.twt-aeo-conflict-banner__message {
+	font-size: 13px;
+	color: var(--aeo-text);
+	margin: 0 0 10px;
+	line-height: 1.6;
+}
+
+.twt-aeo-conflict-banner__action {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 12px;
+	line-height: 1.5;
+	font-style: italic;
+}
+
+.twt-aeo-conflict-banner__types {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+}
+
+.twt-aeo-badge--source {
+	background: rgba(255,255,255,.1);
+	color: #94a3b8;
+	font-size: 10px;
+}
+
+/* ── Conflict tag variant ── */
+.twt-aeo-tag--conflict {
+	background: #fee2e2;
+	color: var(--aeo-danger);
+}
+
+/* ── Critical priority card ── */
+.twt-aeo-priority-card--critical {
+	border-left-color: var(--aeo-danger);
+	background: #fff5f5;
+}
+
+.twt-aeo-priority-card--critical .twt-aeo-priority-card__icon .dashicons {
+	color: var(--aeo-danger);
+}
+
+/* ── Intent Card ── */
+.twt-aeo-intent-card__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+.twt-aeo-intent-card__label {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 15px;
+}
+
+.twt-aeo-intent-confidence {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+
+.twt-aeo-intent-signals {
+	border-top: 1px solid var(--aeo-border);
+	padding-top: 12px;
+	margin-top: 4px;
+}
+
+.twt-aeo-signal-list {
+	list-style: none !important;
+	margin: 4px 0 0 !important;
+	padding: 0 !important;
+}
+
+.twt-aeo-signal-list li {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	padding: 3px 0;
+	padding-left: 16px;
+	position: relative;
+}
+
+.twt-aeo-signal-list li::before {
+	content: '→';
+	position: absolute;
+	left: 0;
+	color: var(--aeo-accent);
+}
+
+/* ── Summary Cards ── */
+.twt-aeo-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 16px;
+	margin-bottom: 8px;
+}
+
+.twt-aeo-summary-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 20px 24px;
+	text-align: center;
+}
+
+.twt-aeo-summary-card--alert {
+	border-color: var(--aeo-danger);
+	background: #fff5f5;
+}
+
+.twt-aeo-summary-card--warn {
+	border-color: var(--aeo-warning);
+	background: #fffbeb;
+}
+
+.twt-aeo-summary-card--good {
+	border-color: var(--aeo-success);
+}
+
+.twt-aeo-summary-card__number {
+	font-size: 36px;
+	font-weight: 700;
+	color: var(--aeo-text);
+	line-height: 1;
+	margin-bottom: 6px;
+}
+
+.twt-aeo-summary-card--alert .twt-aeo-summary-card__number { color: var(--aeo-danger); }
+.twt-aeo-summary-card--warn .twt-aeo-summary-card__number  { color: var(--aeo-warning); }
+.twt-aeo-summary-card--good .twt-aeo-summary-card__number  { color: var(--aeo-success); }
+
+.twt-aeo-summary-card__label {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+
+/* ── Page Table ── */
+.twt-aeo-page-table-wrap {
+	overflow-x: auto;
+	border-radius: var(--aeo-radius);
+	border: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-page-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+	background: var(--aeo-card-bg);
+}
+
+.twt-aeo-page-table thead th {
+	background: #f1f5f9;
+	color: #475569;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	padding: 10px 14px;
+	text-align: left;
+	border-bottom: 2px solid var(--aeo-border);
+}
+
+.twt-aeo-page-table tbody tr {
+	border-bottom: 1px solid var(--aeo-border);
+	transition: background .1s;
+}
+
+.twt-aeo-page-table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.twt-aeo-page-table tbody tr:hover {
+	background: #f8fafc;
+}
+
+.twt-aeo-page-table td {
+	padding: 12px 14px;
+	vertical-align: middle;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-page-row--issues td:first-child {
+	border-left: 3px solid var(--aeo-danger);
+}
+
+.twt-aeo-page-row--ok td:first-child {
+	border-left: 3px solid var(--aeo-success);
+}
+
+.twt-aeo-page-row--unscanned td:first-child {
+	border-left: 3px solid var(--aeo-border);
+}
+
+.twt-aeo-page-row__title a {
+	color: var(--aeo-text);
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.twt-aeo-page-row__title a:hover {
+	color: var(--aeo-accent);
+}
+
+.twt-aeo-page-row__type {
+	display: inline-block;
+	font-size: 10px;
+	color: var(--aeo-text-muted);
+	background: #f1f5f9;
+	border: 1px solid var(--aeo-border);
+	border-radius: 4px;
+	padding: 1px 6px;
+	margin-left: 6px;
+}
+
+/* ── Intent Pill ── */
+.twt-aeo-intent-pill {
+	display: inline-block;
+	font-size: 11px;
+	background: #ede9fe;
+	color: #5b21b6;
+	border-radius: 12px;
+	padding: 2px 10px;
+	white-space: nowrap;
+	font-weight: 600;
+}
+
+/* ── Confidence ── */
+.twt-aeo-confidence {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+.twt-aeo-confidence--good    { color: #15803d; }
+.twt-aeo-confidence--warn    { color: #b45309; }
+.twt-aeo-confidence--neutral { color: var(--aeo-text-muted); }
+
+/* ── Tag variants ── */
+.twt-aeo-tag-list--compact { gap: 4px; }
+
+.twt-aeo-tag--present {
+	background: #dcfce7;
+	color: #15803d;
+}
+
+.twt-aeo-tag--missing {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+.twt-aeo-badge--warn {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+/* ── Status ok ── */
+.twt-aeo-status-ok {
+	color: #15803d;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+/* ── Muted ── */
+.twt-aeo-muted {
+	color: var(--aeo-text-muted);
+	font-size: 12px;
+}
+
+/* ── Hint line ── */
+.twt-aeo-hint {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin-top: 12px;
+}
+
+.twt-aeo-hint .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: var(--aeo-warning);
+}
+
+/* ── Link ── */
+.twt-aeo-link {
+	color: var(--aeo-accent);
+	text-decoration: none;
+	font-size: 12px;
+}
+.twt-aeo-link:hover { text-decoration: underline; }
+
+/* ── Metabox ── */
+.twt-aeo-metabox {
+	font-size: 12px;
+	color: #1e293b;
+	line-height: 1.5;
+}
+
+.twt-aeo-metabox__intent {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 0 10px;
+	border-bottom: 1px solid #e2e8f0;
+	margin-bottom: 10px;
+}
+
+.twt-aeo-metabox__label {
+	font-weight: 600;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+.twt-aeo-metabox__confidence {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+
+.twt-aeo-metabox__alert {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: 6px;
+	padding: 7px 10px;
+	color: #dc2626;
+	font-weight: 500;
+	margin-bottom: 10px;
+}
+
+.twt-aeo-metabox__alert .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-metabox__ok {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #f0fdf4;
+	border: 1px solid #bbf7d0;
+	border-radius: 6px;
+	padding: 7px 10px;
+	color: #16a34a;
+	font-weight: 500;
+	margin-bottom: 10px;
+}
+
+.twt-aeo-metabox__ok .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-metabox__notice {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 7px 10px;
+	color: #64748b;
+	margin-bottom: 10px;
+}
+
+.twt-aeo-metabox__notice .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+	color: #94a3b8;
+}
+
+.twt-aeo-metabox__section {
+	margin-bottom: 10px;
+}
+
+.twt-aeo-metabox__section-title {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	color: #94a3b8;
+	margin-bottom: 5px;
+}
+
+.twt-aeo-metabox__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.twt-aeo-metabox__tag {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	padding: 2px 8px;
+	border-radius: 10px;
+}
+
+.twt-aeo-metabox__tag--present {
+	background: #dcfce7;
+	color: #15803d;
+}
+
+.twt-aeo-metabox__tag--missing {
+	background: #fee2e2;
+	color: #dc2626;
+}
+
+.twt-aeo-metabox__tag--warn {
+	background: #fef9c3;
+	color: #a16207;
+}
+
+.twt-aeo-metabox__footer {
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px solid #e2e8f0;
+	color: #94a3b8;
+	font-size: 11px;
+}
+
+.twt-aeo-metabox__link {
+	color: #6366f1;
+	text-decoration: none;
+}
+
+.twt-aeo-metabox__link:hover {
+	text-decoration: underline;
+}
+/* ── Buttons ── */
+.twt-aeo-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 6px 14px;
+	border-radius: var(--aeo-radius);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	border: none;
+	transition: background .15s, opacity .15s;
+}
+
+.twt-aeo-btn--primary {
+	background: var(--aeo-accent);
+	color: #fff;
+}
+
+.twt-aeo-btn--primary:hover {
+	background: var(--aeo-accent-hover);
+	color: #fff;
+}
+
+.twt-aeo-btn:disabled {
+	cursor: not-allowed;
+}
+
+/* ── Scan All Progress Bar ── */
+.twt-aeo-progress-bar-wrap {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 12px 18px;
+	box-shadow: var(--aeo-shadow);
+}
+
+.twt-aeo-progress-bar {
+	flex: 1;
+	height: 8px;
+	background: #e2e8f0;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.twt-aeo-progress-bar__fill {
+	height: 100%;
+	background: var(--aeo-accent);
+	border-radius: 4px;
+	transition: width .2s ease;
+}
+
+.twt-aeo-progress-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--aeo-text-muted);
+	white-space: nowrap;
+	min-width: 160px;
+}
+
+/* ── Badge conflict colour ── */
+.twt-aeo-badge--conflict {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+
+/* ── Badge warn ── */
+.twt-aeo-badge--warn {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+/* ============================================================
+   Author Entity Styles
+   ============================================================ */
+
+/* ── Author card grid ── */
+.twt-aeo-author-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 20px;
+}
+
+.twt-aeo-author-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	box-shadow: var(--aeo-shadow);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ── Author card header ── */
+.twt-aeo-author-card__header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 16px 18px 14px;
+	border-bottom: 1px solid var(--aeo-border);
+	background: #f8fafc;
+}
+
+.twt-aeo-author-card__avatar {
+	border-radius: 50%;
+	width: 48px;
+	height: 48px;
+	object-fit: cover;
+	border: 2px solid var(--aeo-border);
+	flex-shrink: 0;
+}
+
+.twt-aeo-author-card__info {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.twt-aeo-author-card__name {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--aeo-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.twt-aeo-author-card__title {
+	font-size: 12px;
+	color: var(--aeo-accent);
+	font-weight: 500;
+}
+
+.twt-aeo-author-card__credentials {
+	font-size: 11px;
+	color: var(--aeo-text-muted);
+}
+
+/* ── Completeness bar ── */
+.twt-aeo-author-card__score-wrap {
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-author-card__score-label {
+	display: flex;
+	justify-content: space-between;
+	font-size: 11px;
+	color: var(--aeo-text-muted);
+	text-transform: uppercase;
+	letter-spacing: .04em;
+	margin-bottom: 6px;
+}
+
+.twt-aeo-progress-track {
+	height: 7px;
+	background: var(--aeo-border);
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+.twt-aeo-progress-fill {
+	height: 100%;
+	border-radius: 4px;
+	transition: width .3s ease;
+}
+
+.twt-aeo-author-card__missing {
+	font-size: 11px;
+	color: var(--aeo-text-muted);
+	margin: 6px 0 0;
+	line-height: 1.4;
+}
+
+/* ── Quick stats row ── */
+.twt-aeo-author-card__stats {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+	padding: 10px 18px;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-author-stat {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 8px;
+	border-radius: 12px;
+	background: #f1f5f9;
+	color: var(--aeo-text-muted);
+}
+
+.twt-aeo-author-stat .dashicons {
+	font-size: 13px;
+	width: 13px;
+	height: 13px;
+}
+
+.twt-aeo-author-stat--pass {
+	background: rgba(22,163,74,.1);
+	color: var(--aeo-success);
+}
+
+.twt-aeo-author-stat--fail {
+	background: rgba(220,38,38,.08);
+	color: var(--aeo-danger);
+}
+
+/* ── Certifications list ── */
+.twt-aeo-author-card__certs,
+.twt-aeo-author-card__socials {
+	padding: 12px 18px;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-author-card__section-title {
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	color: var(--aeo-text-muted);
+	margin: 0 0 8px;
+}
+
+.twt-aeo-cert-list {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.twt-aeo-cert-list__item {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--aeo-text);
+	padding: 3px 0;
+}
+
+.twt-aeo-cert-list__item .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	color: var(--aeo-accent);
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+/* ── Social chip strip ── */
+.twt-aeo-author-card__social-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.twt-aeo-social-chip {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 10px;
+	border-radius: 20px;
+	background: rgba(14,165,233,.1);
+	color: var(--aeo-accent);
+	text-decoration: none;
+	transition: background .1s;
+}
+
+.twt-aeo-social-chip:hover {
+	background: var(--aeo-accent);
+	color: #fff;
+}
+
+/* ── Author card footer ── */
+.twt-aeo-author-card__footer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 18px;
+	margin-top: auto;
+}
+
+/* ── Schema preview ── */
+.twt-aeo-schema-preview {
+	border-top: 1px solid var(--aeo-border);
+	background: #0f172a;
+}
+
+.twt-aeo-schema-pre {
+	margin: 0 !important;
+	padding: 14px 16px !important;
+	font-size: 11px !important;
+	line-height: 1.6 !important;
+	color: #94a3b8 !important;
+	white-space: pre-wrap !important;
+	word-break: break-all !important;
+	overflow-x: auto;
+	max-height: 280px;
+	overflow-y: auto;
+}
+
+.twt-aeo-schema-toggle {
+	background: #1e293b !important;
+	color: #94a3b8 !important;
+	border: 1px solid #334155 !important;
+	font-size: 11px !important;
+	padding: 4px 10px !important;
+	cursor: pointer;
+	border-radius: var(--aeo-radius) !important;
+}
+
+.twt-aeo-schema-toggle:hover {
+	color: #e2e8f0 !important;
+	border-color: #475569 !important;
+}
+
+/* ── Responsive ── */
+@media ( max-width: 900px ) {
+	.twt-aeo-author-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Schema create buttons & tags ── */
+.twt-aeo-missing-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.twt-aeo-schema-create-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	font-size: 13px;
+	line-height: 1;
+	background: rgba(14,165,233,.15);
+	color: var(--aeo-accent);
+	border: 1px solid rgba(14,165,233,.3);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: background .15s, color .15s;
+	flex-shrink: 0;
+}
+
+.twt-aeo-schema-create-btn:hover {
+	background: var(--aeo-accent);
+	color: #fff;
+}
+
+.twt-aeo-tag--saved {
+	background: rgba(16,185,129,.15) !important;
+	color: #059669 !important;
+	border-color: rgba(16,185,129,.35) !important;
+}
+
+/* ── Schema dialog tweaks ── */
+#twt-aeo-schema-dialog {
+	overflow-y: auto;
+	max-height: 72vh;
+	padding: 16px 20px 8px;
+	box-sizing: border-box;
+}
+
+#twt-aeo-schema-dialog .twt-aeo-dialog-desc {
+	margin: 0 0 16px;
+	padding: 10px 14px;
+	background: #f0f6fc;
+	border-left: 3px solid #2271b1;
+	border-radius: 3px;
+	color: #3c434a;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+#twt-aeo-schema-dialog .form-table {
+	width: 100%;
+	table-layout: fixed;
+	margin-top: 0;
+}
+
+#twt-aeo-schema-dialog .form-table th {
+	width: 150px;
+	padding: 8px 14px 8px 0;
+	font-size: 13px;
+	font-weight: 600;
+	vertical-align: middle;
+	white-space: nowrap;
+	color: #3c434a;
+}
+
+#twt-aeo-schema-dialog .form-table td {
+	padding: 6px 0;
+}
+
+#twt-aeo-schema-dialog .form-table input.regular-text,
+#twt-aeo-schema-dialog .form-table textarea.large-text,
+#twt-aeo-schema-dialog .form-table select.regular-text {
+	width: 100%;
+	box-sizing: border-box;
+	max-width: 100%;
+}
+
+.ui-dialog #twt-aeo-dlg-delete {
+	margin-right: auto;
+}
+
+/* keep the WP dialog from clipping on small screens */
+.ui-dialog.ui-widget {
+	max-width: calc( 100vw - 40px );
+}
+
+/* FAQ & breadcrumb repeater rows inside dialog */
+#twt-aeo-schema-dialog .twt-faq-pair,
+#twt-aeo-schema-dialog .twt-crumb-row {
+	margin-bottom: 10px;
+}
+
+/* status/feedback message */
+#twt-aeo-dialog-msg {
+	margin: 12px 0 4px;
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+/* ── WooCommerce Detector page ── */
+.twt-aeo-wc-table th,
+.twt-aeo-wc-table td {
+	vertical-align: top;
+}
+
+.twt-aeo-wc-missing-cell {
+	min-width: 200px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.twt-aeo-wc-missing-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.twt-aeo-wc-missing-item {
+	margin-bottom: 5px;
+	color: #3c434a;
+}
+
+.twt-aeo-wc-actions-cell {
+	white-space: nowrap;
+}
+
+/* WC dialog */
+#twt-aeo-wc-dialog {
+	overflow-y: auto;
+	max-height: 72vh;
+	padding: 16px 20px 8px;
+	box-sizing: border-box;
+}
+
+#twt-aeo-wc-dialog-desc {
+	margin: 0 0 16px;
+	padding: 10px 14px;
+	background: #fff8f0;
+	border-left: 3px solid #d97706;
+	border-radius: 3px;
+	color: #3c434a;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+#twt-aeo-wc-dialog .form-table {
+	width: 100%;
+	table-layout: fixed;
+	margin-top: 0;
+}
+
+#twt-aeo-wc-dialog .form-table th {
+	width: 150px;
+	padding: 8px 14px 8px 0;
+	font-size: 13px;
+	font-weight: 600;
+	vertical-align: middle;
+	white-space: nowrap;
+	color: #3c434a;
+}
+
+#twt-aeo-wc-dialog .form-table td {
+	padding: 6px 0;
+}
+
+#twt-aeo-wc-dialog .form-table input,
+#twt-aeo-wc-dialog .form-table textarea,
+#twt-aeo-wc-dialog .form-table select {
+	width: 100%;
+	box-sizing: border-box;
+	max-width: 100%;
+}
+
+.ui-dialog #twt-aeo-wc-dlg-delete {
+	margin-right: auto;
+}
+
+#twt-aeo-wc-dialog-msg {
+	margin: 12px 0 4px;
+	border-radius: 4px;
+	font-size: 13px;
+	padding: 8px 12px;
+}
+
+/* ── Pill Tabs (shared across all pages) ── */
+.twt-aeo-tabs {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	background: #f1f5f9;
+	padding: 5px;
+	border-radius: 12px;
+	margin-bottom: 24px;
+	border: 1px solid #e2e8f0;
+	width: fit-content;
+	flex-wrap: wrap;
+}
+
+.twt-aeo-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 18px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #64748b;
+	text-decoration: none !important;
+	transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+	border: 1px solid transparent;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.twt-aeo-tab:hover {
+	color: #334155;
+	background: rgba(255,255,255,0.7);
+	text-decoration: none !important;
+}
+
+.twt-aeo-tab--active {
+	background: #ffffff;
+	color: #1d4ed8;
+	border-color: #dbeafe;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.twt-aeo-tab--active:hover {
+	background: #ffffff;
+	color: #1d4ed8;
+}
+
+.twt-aeo-tab .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	line-height: 14px;
+	margin-top: 0;
+}
+
+.twt-aeo-tab--conflicts.twt-aeo-tab--active {
+	color: #b91c1c;
+	border-color: #fee2e2;
+}
+
+.twt-aeo-tab--conflicts.twt-aeo-tab--active .dashicons {
+	color: #b91c1c;
+}

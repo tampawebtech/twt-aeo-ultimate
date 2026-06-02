@@ -1,0 +1,550 @@
+/* ============================================================
+   TWT AEO Ultimate — AI Ready Page Styles
+   ============================================================ */
+
+/* ── Section description ── */
+.twt-aeo-air-section-desc {
+	font-size: 13px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 20px;
+	line-height: 1.6;
+	max-width: 780px;
+}
+
+/* ── Section badges ── */
+.twt-aeo-air-badge {
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 10px;
+	border-radius: 20px;
+	white-space: nowrap;
+}
+
+.twt-aeo-air-badge--green {
+	background: rgba(22, 163, 74, .12);
+	color: #15803d;
+	border: 1px solid rgba(22, 163, 74, .25);
+}
+
+.twt-aeo-air-badge--yellow {
+	background: rgba(217, 119, 6, .12);
+	color: #b45309;
+	border: 1px solid rgba(217, 119, 6, .25);
+}
+
+.twt-aeo-air-badge--red {
+	background: rgba(220, 38, 38, .1);
+	color: #b91c1c;
+	border: 1px solid rgba(220, 38, 38, .2);
+}
+
+.twt-aeo-air-badge--blue {
+	background: rgba(14, 165, 233, .12);
+	color: #0369a1;
+	border: 1px solid rgba(14, 165, 233, .2);
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 10px;
+	border-radius: 20px;
+	white-space: nowrap;
+}
+
+/* ── Feature list ── */
+.twt-aeo-air-feature-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+/* ── Feature card ── */
+.twt-aeo-air-feature-card {
+	background: var(--aeo-card-bg);
+	border: 1px solid var(--aeo-border);
+	border-radius: var(--aeo-radius);
+	padding: 20px 24px;
+	box-shadow: var(--aeo-shadow);
+	transition: box-shadow .15s ease;
+}
+
+.twt-aeo-air-feature-card:hover {
+	box-shadow: var(--aeo-shadow-md);
+}
+
+.twt-aeo-air-feature-card--danger {
+	border-color: rgba(220, 38, 38, .35);
+	background: #fff9f9;
+}
+
+/* ── Feature card header ── */
+.twt-aeo-air-feature-card__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+}
+
+.twt-aeo-air-feature-card__info {
+	flex: 1;
+	min-width: 0;
+}
+
+.twt-aeo-air-feature-card__title {
+	font-size: 14px !important;
+	font-weight: 700 !important;
+	margin: 0 0 6px !important;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-air-feature-card__desc {
+	font-size: 13px;
+	color: var(--aeo-text-muted);
+	margin: 0 0 6px;
+	line-height: 1.6;
+}
+
+.twt-aeo-air-feature-card__endpoint {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	color: var(--aeo-accent);
+	margin: 8px 0 0;
+}
+
+.twt-aeo-air-feature-card__endpoint .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-air-feature-card__endpoint a {
+	color: var(--aeo-accent);
+	text-decoration: none;
+	word-break: break-all;
+}
+
+.twt-aeo-air-feature-card__endpoint a:hover {
+	text-decoration: underline;
+}
+
+.twt-aeo-air-feature-card__endpoint code {
+	font-size: 11px;
+	background: #f1f5f9;
+	border: 1px solid var(--aeo-border);
+	padding: 2px 6px;
+	border-radius: 4px;
+	color: #1e293b;
+	word-break: break-all;
+}
+
+/* ── Sub-section (dependent options) ── */
+.twt-aeo-air-feature-card__sub {
+	border-top: 1px solid var(--aeo-border);
+	margin-top: 16px;
+	padding-top: 14px;
+}
+
+.twt-aeo-air-sub-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	font-size: 13px;
+	color: var(--aeo-text);
+	margin-bottom: 6px;
+}
+
+.twt-aeo-air-sub-toggle input[type="checkbox"] {
+	flex-shrink: 0;
+}
+
+.twt-aeo-air-sub-toggle code {
+	font-size: 11px;
+	background: #f1f5f9;
+	border: 1px solid var(--aeo-border);
+	padding: 2px 6px;
+	border-radius: 4px;
+}
+
+.twt-aeo-air-sub-desc {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0;
+	line-height: 1.5;
+	padding-left: 22px;
+}
+
+.twt-aeo-air-sub-label {
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 6px;
+	color: var(--aeo-text);
+}
+
+/* ── Physical robots.txt notice ── */
+.twt-aeo-air-robots-notice {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 10px;
+	margin-top: 14px;
+	padding: 14px 16px;
+	background: #fff8e6;
+	border: 1px solid #f0c040;
+	border-radius: 6px;
+}
+
+.twt-aeo-air-robots-notice__icon {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.twt-aeo-air-robots-notice__body {
+	flex: 1;
+	min-width: 200px;
+}
+
+.twt-aeo-air-robots-notice__body strong {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+
+.twt-aeo-air-robots-notice__body p {
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	margin: 0;
+	line-height: 1.5;
+}
+
+.twt-aeo-air-robots-notice__actions {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+/* ── Number row ── */
+.twt-aeo-air-number-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-air-number-row input[type="number"] {
+	width: 80px;
+}
+
+/* ── Content-Signal grid ── */
+.twt-aeo-air-signal-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	border: 1px solid var(--aeo-border);
+	border-radius: 6px;
+	overflow: hidden;
+	margin-top: 16px;
+}
+
+.twt-aeo-air-signal-row {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	padding: 14px 16px;
+	background: #f8fafc;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-air-signal-row:last-child {
+	border-bottom: none;
+	background: var(--aeo-card-bg);
+}
+
+.twt-aeo-air-signal-row__label {
+	flex: 0 0 240px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.twt-aeo-air-signal-row__label strong {
+	font-size: 13px;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-air-signal-row__label span {
+	font-size: 11px;
+	color: var(--aeo-text-muted);
+	line-height: 1.4;
+}
+
+.twt-aeo-air-signal-row__options {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.twt-aeo-air-signal-option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	font-size: 13px;
+	color: var(--aeo-text);
+}
+
+.twt-aeo-air-signal-option input[type="radio"] {
+	flex-shrink: 0;
+}
+
+/* ── Danger banner ── */
+.twt-aeo-air-danger-banner {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	background: rgba(220, 38, 38, .07);
+	border: 1px solid rgba(220, 38, 38, .2);
+	border-radius: 6px;
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	color: #7f1d1d;
+	line-height: 1.5;
+}
+
+.twt-aeo-air-danger-banner .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	color: var(--aeo-danger);
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+/* ── OAuth info row ── */
+.twt-aeo-air-oauth-info-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--aeo-border);
+	font-size: 13px;
+}
+
+.twt-aeo-air-oauth-info-row:last-of-type {
+	border-bottom: none;
+}
+
+.twt-aeo-air-oauth-info-label {
+	flex: 0 0 140px;
+	font-weight: 600;
+	color: var(--aeo-text-muted);
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.twt-aeo-air-oauth-info-row code {
+	flex: 1;
+	font-size: 12px;
+	background: #f1f5f9;
+	border: 1px solid var(--aeo-border);
+	padding: 3px 8px;
+	border-radius: 4px;
+	word-break: break-all;
+}
+
+/* ── OAuth client table ── */
+.twt-aeo-oauth-client-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+	font-size: 13px;
+}
+
+.twt-aeo-oauth-client-table th,
+.twt-aeo-oauth-client-table td {
+	padding: 8px 12px;
+	text-align: left;
+	border-bottom: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-oauth-client-table th {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: var(--aeo-text-muted);
+	background: #f8fafc;
+}
+
+.twt-aeo-oauth-client-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.twt-aeo-oauth-client-table code {
+	font-size: 11px;
+	background: #f1f5f9;
+	border: 1px solid var(--aeo-border);
+	padding: 2px 6px;
+	border-radius: 4px;
+}
+
+/* ── OAuth create form ── */
+.twt-aeo-oauth-create-form {
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: 1px solid var(--aeo-border);
+}
+
+/* ── Benchmark badge ── */
+.twt-aeo-air-benchmark {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 8px;
+	border-radius: 20px;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	margin-left: 8px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.twt-aeo-air-benchmark--purple {
+	background: rgba(124, 58, 237, .10);
+	color: #6d28d9;
+	border: 1px solid rgba(124, 58, 237, .22);
+}
+
+.twt-aeo-air-benchmark--blue {
+	background: rgba(14, 165, 233, .10);
+	color: #0369a1;
+	border: 1px solid rgba(14, 165, 233, .22);
+}
+
+.twt-aeo-air-benchmark--teal {
+	background: rgba(20, 184, 166, .10);
+	color: #0f766e;
+	border: 1px solid rgba(20, 184, 166, .22);
+}
+
+.twt-aeo-air-benchmark--orange {
+	background: rgba(249, 115, 22, .10);
+	color: #c2410c;
+	border: 1px solid rgba(249, 115, 22, .22);
+}
+
+/* ── "Why this matters" expandable block ── */
+.twt-aeo-air-why {
+	margin-top: 10px;
+	border: 1px solid var(--aeo-border);
+	border-radius: 6px;
+	background: #f8fafc;
+	overflow: hidden;
+}
+
+.twt-aeo-air-why summary {
+	cursor: pointer;
+	padding: 8px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--aeo-accent);
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	user-select: none;
+}
+
+.twt-aeo-air-why summary::-webkit-details-marker { display: none; }
+
+.twt-aeo-air-why summary::before {
+	content: "▶";
+	font-size: 9px;
+	transition: transform .15s ease;
+	display: inline-block;
+}
+
+.twt-aeo-air-why[open] summary::before {
+	transform: rotate(90deg);
+}
+
+.twt-aeo-air-why__body {
+	padding: 2px 14px 12px;
+	font-size: 12px;
+	color: var(--aeo-text-muted);
+	line-height: 1.65;
+	border-top: 1px solid var(--aeo-border);
+}
+
+.twt-aeo-air-why__body p {
+	margin: 8px 0 0;
+}
+
+.twt-aeo-air-why__body p:first-child {
+	margin-top: 0;
+}
+
+/* ── Security callout ── */
+.twt-aeo-air-security-callout {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	background: #fff8e6;
+	border: 1px solid #f0c040;
+	border-left: 4px solid #d97706;
+	border-radius: 6px;
+	padding: 14px 18px;
+	margin-bottom: 20px;
+	font-size: 13px;
+	line-height: 1.6;
+	color: #78350f;
+}
+
+.twt-aeo-air-security-callout .dashicons {
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	color: #d97706;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.twt-aeo-air-security-callout strong {
+	display: block;
+	margin-bottom: 4px;
+	color: #92400e;
+}
+
+.twt-aeo-air-security-callout a {
+	color: #92400e;
+	font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 782px) {
+	.twt-aeo-air-signal-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.twt-aeo-air-signal-row__label {
+		flex: none;
+	}
+
+	.twt-aeo-air-feature-card__header {
+		flex-direction: column;
+	}
+}
