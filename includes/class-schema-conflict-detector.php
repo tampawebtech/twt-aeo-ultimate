@@ -260,7 +260,7 @@ class TWTAEO_Schema_Conflict_Detector {
 
 	/**
 	 * Extract all JSON-LD blocks from HTML, capturing the HTML comment
-	 * immediately before each <script> tag for source attribution.
+	 * immediately before each JSON-LD script tag for source attribution.
 	 *
 	 * @param string $html
 	 * @return array[]  Each: { plugin, schema[] }
@@ -268,7 +268,7 @@ class TWTAEO_Schema_Conflict_Detector {
 	private static function parse_attributed_blocks( $html ) {
 		// Capture optional HTML comment immediately before each JSON-LD script.
 		preg_match_all(
-			'/(<!--[^>]*?-->\s*)?<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/is',
+			'/(<!--[^>]*?-->\s*)?<scr[i]pt[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/scr[i]pt>/is',
 			$html,
 			$matches,
 			PREG_SET_ORDER

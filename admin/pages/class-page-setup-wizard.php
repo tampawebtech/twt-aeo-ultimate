@@ -134,8 +134,8 @@ class TWTAEO_Page_Setup_Wizard {
 					<ul class="twt-aeo-wizard__mode-features">
 						<li><?php esc_html_e( 'Business name & contact info', 'twt-aeo-ultimate' ); ?></li>
 						<li><?php esc_html_e( 'Social profile URLs', 'twt-aeo-ultimate' ); ?></li>
-						<li><?php esc_html_e( 'Google Analytics setup', 'twt-aeo-ultimate' ); ?></li>
-						<li><?php esc_html_e( 'IndexNow / Webmaster Tools', 'twt-aeo-ultimate' ); ?></li>
+						<li><?php esc_html_e( 'Google Analytics 4 Measurement ID', 'twt-aeo-ultimate' ); ?></li>
+						<li><?php esc_html_e( 'IndexNow & XML sitemap', 'twt-aeo-ultimate' ); ?></li>
 					</ul>
 				</div>
 				<span class="twt-aeo-wizard__mode-cta"><?php esc_html_e( 'Start basics →', 'twt-aeo-ultimate' ); ?></span>
@@ -393,7 +393,7 @@ class TWTAEO_Page_Setup_Wizard {
 					</label>
 					<div class="twt-aeo-wizard__toggle-body">
 						<strong><?php esc_html_e( 'XML Sitemap Generator', 'twt-aeo-ultimate' ); ?></strong>
-						<p><?php esc_html_e( 'Generate and serve an XML sitemap at /sitemap.xml for search engine crawlers.', 'twt-aeo-ultimate' ); ?></p>
+						<p><?php esc_html_e( 'Generate and serve an XML sitemap at /aeo-sitemap.xml for search engine crawlers.', 'twt-aeo-ultimate' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -669,7 +669,7 @@ class TWTAEO_Page_Setup_Wizard {
 			),
 			'sitemap'             => array(
 				'title' => __( 'XML Sitemap', 'twt-aeo-ultimate' ),
-				'desc'  => __( 'Generates a /sitemap.xml for search engine crawlers.', 'twt-aeo-ultimate' ),
+				'desc'  => __( 'Generates a /aeo-sitemap.xml for search engine crawlers.', 'twt-aeo-ultimate' ),
 			),
 		);
 		?>
@@ -695,11 +695,10 @@ class TWTAEO_Page_Setup_Wizard {
 	}
 
 	private static function render_expert_api_keys( array $settings, array $active ) {
-		// WordPress 7.0+ ships the Connectors API — API keys for AI providers
-		// are managed centrally at Settings > Connectors rather than per-plugin.
-		$wp7_connectors  = function_exists( 'wp_is_connector_registered' );
-		$wp7_claude_key  = $wp7_connectors ? trim( (string) get_option( 'connectors_ai_anthropic_api_key', '' ) ) : '';
-		$wp7_openai_key  = $wp7_connectors ? trim( (string) get_option( 'connectors_ai_openai_api_key', '' ) ) : '';
+		// WordPress 7.0+ ships the AI Client API — when present, Claude and
+		// OpenAI requests are routed through the user's configured connection and
+		// this plugin never reads the connector API keys.
+		$ai_client = function_exists( 'wp_ai_client_prompt' );
 		?>
 		<p class="twt-aeo-wizard__subtitle"><?php esc_html_e( 'API keys are optional. Add only the services you use.', 'twt-aeo-ultimate' ); ?></p>
 		<div class="twt-aeo-wizard__fields">
@@ -713,7 +712,7 @@ class TWTAEO_Page_Setup_Wizard {
 
 			<div class="twt-aeo-wizard__section-label"><?php esc_html_e( 'AI Content Generation (Optional)', 'twt-aeo-ultimate' ); ?></div>
 
-			<?php if ( $wp7_connectors ) : ?>
+			<?php if ( $ai_client ) : ?>
 			<div class="twt-aeo-wizard__wp7-notice">
 				<div class="twt-aeo-wizard__wp7-notice-icon">
 					<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -727,7 +726,7 @@ class TWTAEO_Page_Setup_Wizard {
 						<?php printf(
 							wp_kses(
 								/* translators: %s: URL to Settings > Connectors */
-								__( 'AI provider keys (Claude, OpenAI) are now managed centrally at <a href="%s">Settings &rsaquo; Connectors</a>. Keys configured there take priority. You can still enter keys below as a fallback for older setups.', 'twt-aeo-ultimate' ),
+								__( 'Leave the Claude and OpenAI fields blank to generate content using the AI providers you connect at <a href="%s">Settings &rsaquo; Connectors</a>. A key entered below overrides the connected provider for that service.', 'twt-aeo-ultimate' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
 							esc_url( admin_url( 'options-general.php?page=connectors' ) )
@@ -736,34 +735,26 @@ class TWTAEO_Page_Setup_Wizard {
 				</div>
 			</div>
 			<?php else : ?>
-			<p class="twt-aeo-wizard__hint"><?php esc_html_e( 'Used by the Content Generator module. Only providers with a key will generate content.', 'twt-aeo-ultimate' ); ?></p>
+			<p class="twt-aeo-wizard__hint"><?php esc_html_e( 'Used by the plugin\'s AI features (meta descriptions, PR Bridge, product enrichment, image analysis). Only providers with a key will be used.', 'twt-aeo-ultimate' ); ?></p>
 			<?php endif; ?>
 
 			<div class="twt-aeo-wizard__field-row">
 				<div class="twt-aeo-wizard__field">
 					<label for="e5_claude">
 						<?php esc_html_e( 'Claude (Anthropic)', 'twt-aeo-ultimate' ); ?>
-						<?php if ( $wp7_claude_key ) : ?>
-						<span class="twt-aeo-wizard__key-source"><?php esc_html_e( '— set via Connectors', 'twt-aeo-ultimate' ); ?></span>
-						<?php endif; ?>
 					</label>
 					<input type="password" id="e5_claude" name="settings[api_claude]"
-					       value="<?php echo esc_attr( $settings['api_claude'] ?? '' ); ?>"
-					       placeholder="<?php echo $wp7_claude_key ? esc_attr__( '— managed via Settings › Connectors —', 'twt-aeo-ultimate' ) : 'sk-ant-…'; ?>"
-					       <?php echo $wp7_claude_key ? 'disabled aria-disabled="true"' : ''; ?>
+					       value="<?php echo esc_attr( TWTAEO_Crypt::decrypt( $settings['api_claude'] ?? '' ) ); ?>"
+					       placeholder="<?php echo $ai_client ? esc_attr__( '— blank: use connected provider —', 'twt-aeo-ultimate' ) : 'sk-ant-…'; ?>"
 					       autocomplete="new-password">
 				</div>
 				<div class="twt-aeo-wizard__field">
 					<label for="e5_openai">
 						<?php esc_html_e( 'OpenAI (ChatGPT)', 'twt-aeo-ultimate' ); ?>
-						<?php if ( $wp7_openai_key ) : ?>
-						<span class="twt-aeo-wizard__key-source"><?php esc_html_e( '— set via Connectors', 'twt-aeo-ultimate' ); ?></span>
-						<?php endif; ?>
 					</label>
 					<input type="password" id="e5_openai" name="settings[api_openai]"
-					       value="<?php echo esc_attr( $settings['api_openai'] ?? '' ); ?>"
-					       placeholder="<?php echo $wp7_openai_key ? esc_attr__( '— managed via Settings › Connectors —', 'twt-aeo-ultimate' ) : 'sk-…'; ?>"
-					       <?php echo $wp7_openai_key ? 'disabled aria-disabled="true"' : ''; ?>
+					       value="<?php echo esc_attr( TWTAEO_Crypt::decrypt( $settings['api_openai'] ?? '' ) ); ?>"
+					       placeholder="<?php echo $ai_client ? esc_attr__( '— blank: use connected provider —', 'twt-aeo-ultimate' ) : 'sk-…'; ?>"
 					       autocomplete="new-password">
 				</div>
 			</div>
@@ -788,6 +779,11 @@ class TWTAEO_Page_Setup_Wizard {
 			</p>
 
 			<div class="twt-aeo-wizard__next-steps">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo-command-center' ) ); ?>"
+				   class="twt-aeo-wizard__next-step">
+					<strong><?php esc_html_e( 'Command Center', 'twt-aeo-ultimate' ); ?></strong>
+					<span><?php esc_html_e( 'Track Analytics, Search Console, Bing, AI traffic, and index status — and run inline fixes.', 'twt-aeo-ultimate' ); ?></span>
+				</a>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo' ) ); ?>"
 				   class="twt-aeo-wizard__next-step">
 					<strong><?php esc_html_e( 'Dashboard', 'twt-aeo-ultimate' ); ?></strong>
@@ -952,12 +948,14 @@ class TWTAEO_Page_Setup_Wizard {
 			update_user_meta( $user_id, 'twtaeo_years_experience', absint( $posted['years_experience'] ) );
 		}
 		if ( ! empty( $posted['social'] ) && is_array( $posted['social'] ) ) {
-			$existing = get_user_meta( $user_id, 'twtaeo_social', true );
-			$existing = is_array( $existing ) ? $existing : array();
+			// Merge into the existing value and store as JSON — the same format
+			// the profile page writes. (Earlier wizard versions stored a raw
+			// array here, which fataled the JSON-expecting readers on PHP 8.)
+			$existing = TWTAEO_Author_Meta::get_social( $user_id );
 			foreach ( $posted['social'] as $net => $url ) {
 				$existing[ sanitize_key( $net ) ] = esc_url_raw( (string) $url );
 			}
-			update_user_meta( $user_id, 'twtaeo_social', $existing );
+			update_user_meta( $user_id, 'twtaeo_social', wp_json_encode( $existing ) );
 		}
 	}
 
@@ -996,7 +994,7 @@ class TWTAEO_Page_Setup_Wizard {
 			if ( isset( $_POST['settings'][ $field ] ) ) {
 				$val = sanitize_text_field( wp_unslash( $_POST['settings'][ $field ] ) );
 				if ( '' !== $val ) {
-					$settings[ $field ] = $val;
+					$settings[ $field ] = TWTAEO_Crypt::encrypt( $val );
 				}
 			}
 		}

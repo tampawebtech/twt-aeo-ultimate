@@ -1,4 +1,4 @@
-﻿/* WP.org compliance: extracted from admin/pages/class-page-woocommerce-detector.php inline <script> blocks */
+﻿/* WP.org compliance: extracted from admin/pages/class-page-woocommerce-detector.php inline script blocks */
 /* global twtAeoWC, ajaxurl */
 ( function ( $ ) {
 	'use strict';

@@ -8,7 +8,7 @@
  * Merchant Center admin tab.
  *
  * Postmeta stored per product:
- *   _twt_gmc_sync  — serialized comparison snapshot (see run_sync())
+ *   _twtaeo_gmc_sync  — serialized comparison snapshot (see run_sync())
  *
  * Options:
  *   twtaeo_gmc_last_sync  — Unix timestamp of the most recent full sync
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TWTAEO_GMC_Sync_Engine {
 
-	const META_SYNC    = '_twt_gmc_sync';
+	const META_SYNC    = '_twtaeo_gmc_sync';
 	const OPTION_LAST  = 'twtaeo_gmc_last_sync';
 	const NONCE_SYNC   = 'twtaeo_gmc_sync_nonce';
 	const NONCE_SAVE   = 'twtaeo_gmc_save_nonce';
@@ -83,8 +83,28 @@ class TWTAEO_GMC_Sync_Engine {
 			'fields'         => 'ids',
 		) );
 
+		$summary = self::diff_chunk( $wc_posts, $gmc_by_sku, $gmc_by_gtin, $gmc_statuses );
+
+		update_option( self::OPTION_LAST, time() );
+		delete_transient( 'twtaeo_gmc_integrity_score' );
+
+		return $summary;
+	}
+
+	/**
+	 * Diff a batch of WC products against pre-built GMC lookup maps and persist
+	 * the per-product snapshots. Used by run_sync() for the full catalog and by
+	 * the merchant sync queue one chunk at a time.
+	 *
+	 * @param int[] $post_ids
+	 * @param array $by_sku   GMC products keyed by lowercase offerId.
+	 * @param array $by_gtin  GMC products keyed by GTIN.
+	 * @param array $statuses GMC product statuses keyed by GMC product ID.
+	 * @return array Summary counters for this batch.
+	 */
+	public static function diff_chunk( array $post_ids, array $by_sku, array $by_gtin, array $statuses ) {
 		$summary = array(
-			'total'          => count( $wc_posts ),
+			'total'          => count( $post_ids ),
 			'matched'        => 0,
 			'unmatched'      => 0,
 			'price_mismatch' => 0,
@@ -93,13 +113,13 @@ class TWTAEO_GMC_Sync_Engine {
 			'schema_issues'  => 0,
 		);
 
-		foreach ( $wc_posts as $post_id ) {
+		foreach ( $post_ids as $post_id ) {
 			$wc_product = wc_get_product( $post_id );
 			if ( ! $wc_product ) {
 				continue;
 			}
 
-			$snapshot = self::build_product_snapshot( $post_id, $wc_product, $gmc_by_sku, $gmc_by_gtin, $gmc_statuses );
+			$snapshot = self::build_product_snapshot( $post_id, $wc_product, $by_sku, $by_gtin, $statuses );
 			update_post_meta( $post_id, self::META_SYNC, $snapshot );
 
 			if ( $snapshot['matched'] ) {
@@ -113,36 +133,31 @@ class TWTAEO_GMC_Sync_Engine {
 			if ( $snapshot['schema_discrepancy'] ) $summary['schema_issues']++;
 		}
 
-		update_option( self::OPTION_LAST, time() );
-		delete_transient( 'twtaeo_gmc_integrity_score' );
-
 		return $summary;
 	}
 
 	/**
 	 * Calculate and cache the E-Commerce Integrity Score (0–100).
 	 *
+	 * @param array|null $rows Optional pre-fetched get_product_snapshots() rows,
+	 *                         so render paths can share one catalog pass.
 	 * @return array { score: int, label: string, counts: array }
 	 */
-	public static function get_integrity_score() {
-		$cached = get_transient( 'twtaeo_gmc_integrity_score' );
-		if ( $cached !== false ) {
-			return $cached;
+	public static function get_integrity_score( $rows = null ) {
+		if ( null === $rows ) {
+			$cached = get_transient( 'twtaeo_gmc_integrity_score' );
+			if ( $cached !== false ) {
+				return $cached;
+			}
+			$rows = self::get_product_snapshots();
 		}
 
-		$wc_posts = get_posts( array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		) );
-
-		if ( empty( $wc_posts ) ) {
+		if ( empty( $rows ) ) {
 			return array( 'score' => 100, 'label' => 'Excellent', 'counts' => array(), 'synced' => false );
 		}
 
 		$counts = array(
-			'total'          => count( $wc_posts ),
+			'total'          => count( $rows ),
 			'synced'         => 0,
 			'matched'        => 0,
 			'unmatched'      => 0,
@@ -152,8 +167,8 @@ class TWTAEO_GMC_Sync_Engine {
 			'schema_issues'  => 0,
 		);
 
-		foreach ( $wc_posts as $post_id ) {
-			$snap = get_post_meta( $post_id, self::META_SYNC, true );
+		foreach ( $rows as $row ) {
+			$snap = $row['snap'];
 			if ( ! is_array( $snap ) ) {
 				continue;
 			}
@@ -205,6 +220,9 @@ class TWTAEO_GMC_Sync_Engine {
 			'fields'         => 'ids',
 		) );
 
+		// One query for posts + meta instead of two per product below.
+		_prime_post_caches( $wc_posts, false, true );
+
 		$rows = array();
 		foreach ( $wc_posts as $post_id ) {
 			$snap = get_post_meta( $post_id, self::META_SYNC, true );
@@ -222,27 +240,24 @@ class TWTAEO_GMC_Sync_Engine {
 	/**
 	 * Get all products that have rejection codes, for the Rejection Log section.
 	 *
+	 * @param array|null $rows Optional pre-fetched get_product_snapshots() rows.
 	 * @return array[]
 	 */
-	public static function get_rejection_log() {
-		$wc_posts = get_posts( array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		) );
+	public static function get_rejection_log( $rows = null ) {
+		if ( null === $rows ) {
+			$rows = self::get_product_snapshots();
+		}
 
 		$log = array();
-		foreach ( $wc_posts as $post_id ) {
-			$snap = get_post_meta( $post_id, self::META_SYNC, true );
-			if ( ! is_array( $snap ) || empty( $snap['rejection_codes'] ) ) {
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row['snap'] ) || empty( $row['snap']['rejection_codes'] ) ) {
 				continue;
 			}
 			$log[] = array(
-				'post_id'         => $post_id,
-				'title'           => get_the_title( $post_id ),
-				'edit_url'        => get_edit_post_link( $post_id, 'raw' ),
-				'rejection_codes' => $snap['rejection_codes'],
+				'post_id'         => $row['post_id'],
+				'title'           => $row['title'],
+				'edit_url'        => $row['edit_url'],
+				'rejection_codes' => $row['snap']['rejection_codes'],
 			);
 		}
 

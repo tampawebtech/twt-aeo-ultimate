@@ -1,4 +1,4 @@
-﻿/* WP.org compliance: extracted from admin/pages/class-page-eeat.php inline <script> */
+﻿/* WP.org compliance: extracted from admin/pages/class-page-eeat.php inline script block */
 /* global twtAeoEeat, ajaxurl */
 jQuery( document ).ready( function ( $ ) {
 	'use strict';

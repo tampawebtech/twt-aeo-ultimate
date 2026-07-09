@@ -19,6 +19,40 @@ class TWTAEO_Hub_Metabox {
 
 	public static function register_hooks() {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
+	}
+
+	/**
+	 * Enqueue the metabox stylesheet and copy-to-clipboard script on the
+	 * Hub CPT editor only.
+	 */
+	public static function enqueue( $hook ) {
+		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+			return;
+		}
+		$screen = get_current_screen();
+		if ( ! $screen || 'twtaeo_hub' !== $screen->post_type ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'twt-aeo-hub-metabox',
+			TWTAEO_PLUGIN_URL . 'admin/assets/css/hub-metabox.css',
+			array(),
+			TWTAEO_VERSION
+		);
+		wp_enqueue_script(
+			'twt-aeo-hub-metabox',
+			TWTAEO_PLUGIN_URL . 'admin/assets/js/hub-metabox.js',
+			array(),
+			TWTAEO_VERSION,
+			true
+		);
+		wp_localize_script( 'twt-aeo-hub-metabox', 'twtAeoHubMetabox', array(
+			'i18n' => array(
+				'copied' => __( 'Copied!', 'twt-aeo-ultimate' ),
+			),
+		) );
 	}
 
 	public static function add() {
@@ -122,43 +156,6 @@ class TWTAEO_Hub_Metabox {
 
 		</div>
 
-		<style>
-		.twt-hub-mb { font-size: 13px; }
-		.twt-hub-mb__label { font-weight: 600; color: #374151; margin: 0 0 6px; }
-		.twt-hub-mb__label--section { text-transform: uppercase; font-size: 11px; color: #9ca3af; letter-spacing: .04em; }
-		.twt-hub-mb__parent { margin: 0 0 12px; color: #6b7280; }
-		.twt-hub-mb__parent a { color: #2563eb; }
-		.twt-hub-mb__children { margin: 0 0 10px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
-		.twt-hub-mb__children a { color: #2563eb; text-decoration: none; }
-		.twt-hub-mb__children a:hover { text-decoration: underline; }
-		.twt-hub-mb__draft { font-size: 10px; background: #fef3c7; color: #92400e; padding: 1px 5px; border-radius: 3px; margin-left: 5px; }
-		.twt-hub-mb__empty { color: #9ca3af; font-style: italic; margin: 0 0 10px; }
-		.twt-hub-mb__add-sub { margin-bottom: 12px !important; }
-		.twt-hub-mb__divider { margin: 12px 0; border: none; border-top: 1px solid #e5e7eb; }
-		.twt-hub-mb__sc-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
-		.twt-hub-mb__sc { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-		.twt-hub-mb__hint { font-size: 11px; color: #9ca3af; margin: 0 0 8px; }
-		</style>
-
 		<?php
-		ob_start();
-		?>
-		( function () {
-			document.querySelectorAll( '.twt-hub-copy-sc' ).forEach( function ( btn ) {
-				btn.addEventListener( 'click', function () {
-					var sc  = btn.getAttribute( 'data-sc' );
-					var orig = btn.textContent;
-					if ( navigator.clipboard ) {
-						navigator.clipboard.writeText( sc ).then( function () {
-							btn.textContent = '<?php echo esc_js( __( 'Copied!', 'twt-aeo-ultimate' ) ); ?>';
-							setTimeout( function () { btn.textContent = orig; }, 1800 );
-						} );
-					}
-				} );
-			} );
-		} )();
-		<?php
-		$js = ob_get_clean();
-		wp_add_inline_script( 'twt-aeo-admin', $js );
 	}
 }

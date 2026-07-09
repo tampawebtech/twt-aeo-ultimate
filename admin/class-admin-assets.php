@@ -104,30 +104,41 @@ class TWTAEO_Admin_Assets {
 			);
 		}
 
-		// Content Generator assets — only on the content generator page.
-		if ( strpos( $hook, 'twt-aeo-content-generator' ) !== false ) {
+		// Settings page — AI provider API-key row styles.
+		if ( strpos( $hook, 'twt-aeo-settings' ) !== false ) {
 			wp_enqueue_style(
-				'twt-aeo-content-generator',
-				TWTAEO_PLUGIN_URL . 'admin/assets/css/content-generator.css',
+				'twt-aeo-settings-api-keys',
+				TWTAEO_PLUGIN_URL . 'admin/assets/css/settings-api-keys.css',
 				array( 'twt-aeo-admin' ),
 				TWTAEO_VERSION
 			);
-
-			wp_enqueue_script(
-				'twt-aeo-content-generator',
-				TWTAEO_PLUGIN_URL . 'admin/assets/js/content-generator.js',
-				array( 'jquery', 'wp-i18n' ),
-				TWTAEO_VERSION,
-				true
-			);
-			wp_set_script_translations( 'twt-aeo-content-generator', 'twt-aeo-ultimate', TWTAEO_PLUGIN_DIR . 'languages' );
 		}
 
-		// Settings page also needs content-generator CSS for the API key rows.
-		if ( strpos( $hook, 'twt-aeo-settings' ) !== false ) {
+		// Modules page — Pro Plugins promo-grid styles.
+		if ( strpos( $hook, 'twt-aeo-modules' ) !== false ) {
 			wp_enqueue_style(
-				'twt-aeo-content-generator',
-				TWTAEO_PLUGIN_URL . 'admin/assets/css/content-generator.css',
+				'twt-aeo-modules',
+				TWTAEO_PLUGIN_URL . 'admin/assets/css/modules.css',
+				array( 'twt-aeo-admin' ),
+				TWTAEO_VERSION
+			);
+		}
+
+		// Social Graph page styles.
+		if ( strpos( $hook, 'twt-aeo-social-graph' ) !== false ) {
+			wp_enqueue_style(
+				'twt-aeo-social-graph',
+				TWTAEO_PLUGIN_URL . 'admin/assets/css/social-graph.css',
+				array( 'twt-aeo-admin' ),
+				TWTAEO_VERSION
+			);
+		}
+
+		// Schema Detector page — conflict-scan tab styles.
+		if ( strpos( $hook, 'twt-aeo-schema-detector' ) !== false ) {
+			wp_enqueue_style(
+				'twt-aeo-schema-conflicts',
+				TWTAEO_PLUGIN_URL . 'admin/assets/css/schema-conflicts.css',
 				array( 'twt-aeo-admin' ),
 				TWTAEO_VERSION
 			);
@@ -180,10 +191,17 @@ class TWTAEO_Admin_Assets {
 			wp_set_script_translations( 'twt-aeo-command-center', 'twt-aeo-ultimate', TWTAEO_PLUGIN_DIR . 'languages' );
 
 			// DataViews live-feed component (WP 7.0+, degrades gracefully on older WP).
+			// `wp-dataviews` isn't registered on every WP build, so only declare it as
+			// a dependency when present — otherwise WP 6.9.1+ throws a _doing_it_wrong
+			// notice for the unregistered handle.
+			$dataviews_deps = array( 'wp-element', 'wp-i18n' );
+			if ( wp_script_is( 'wp-dataviews', 'registered' ) ) {
+				$dataviews_deps[] = 'wp-dataviews';
+			}
 			wp_enqueue_script(
 				'twt-aeo-crawler-dataviews',
 				TWTAEO_PLUGIN_URL . 'admin/assets/js/crawler-dataviews.js',
-				array( 'wp-element', 'wp-dataviews', 'wp-i18n' ),
+				$dataviews_deps,
 				TWTAEO_VERSION,
 				true
 			);

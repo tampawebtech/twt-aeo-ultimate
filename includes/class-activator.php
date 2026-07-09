@@ -23,5 +23,10 @@ class TWTAEO_Activator {
 		if ( ! get_option( 'twtaeo_setup_complete' ) ) {
 			set_transient( 'twtaeo_redirect_to_wizard', true, 60 );
 		}
+
+		// Kick off the historical & baseline crawl in the background.
+		if ( class_exists( 'TWTAEO_Baseline_Crawl' ) ) {
+			TWTAEO_Baseline_Crawl::maybe_schedule();
+		}
 	}
 }

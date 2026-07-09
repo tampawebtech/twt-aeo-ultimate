@@ -233,14 +233,14 @@ class TWTAEO_Page_News {
 				</a>
 			</div>
 			<p style="margin:0 0 20px;color:#646970;font-size:13px;">
-				<?php esc_html_e( 'Only posts published within the last 48 hours qualify. This is a Google News requirement — older posts are intentionally excluded.', 'twt-aeo-ultimate' ); ?>
+				<?php esc_html_e( 'A post appears here only when it is marked as a Google News article (in the post\'s "Google News" box) AND was published within the last 48 hours — Google\'s freshness requirement.', 'twt-aeo-ultimate' ); ?>
 			</p>
 
 			<?php if ( empty( $posts ) ) : ?>
 				<div style="text-align:center;padding:40px 0;color:#646970;">
 					<p style="font-size:28px;margin:0 0 8px;">📰</p>
-					<p style="margin:0;font-size:14px;"><?php esc_html_e( 'No posts published in the last 48 hours.', 'twt-aeo-ultimate' ); ?></p>
-					<p style="margin:6px 0 0;font-size:12px;color:#999;"><?php esc_html_e( 'Publish a new post and it will appear here within minutes.', 'twt-aeo-ultimate' ); ?></p>
+					<p style="margin:0;font-size:14px;"><?php esc_html_e( 'No news articles in the last 48 hours.', 'twt-aeo-ultimate' ); ?></p>
+					<p style="margin:6px 0 0;font-size:12px;color:#999;"><?php esc_html_e( 'Mark a recent post as a Google News article in its "Google News" box and it will appear here.', 'twt-aeo-ultimate' ); ?></p>
 				</div>
 			<?php else : ?>
 				<table class="widefat striped" style="border-radius:4px;overflow:hidden;">

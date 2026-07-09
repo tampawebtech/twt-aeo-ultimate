@@ -72,6 +72,22 @@ class TWTAEO_Metabox {
 			'faqModuleOn'    => $modules && $modules->is_active( 'faq-detector' ),
 			'svcModuleOn'    => $modules && $modules->is_active( 'service-detector' ),
 		) );
+
+		// One-click schema-generate button handler (delegated; no-ops when the
+		// button is not rendered). Reuses the dashboard's AJAX endpoints.
+		wp_enqueue_script(
+			'twt-aeo-metabox-gen',
+			TWTAEO_PLUGIN_URL . 'admin/assets/js/metabox-gen.js',
+			array(),
+			TWTAEO_VERSION,
+			true
+		);
+		wp_localize_script( 'twt-aeo-metabox-gen', 'twtAeoMetaboxGen', array(
+			'generating'    => __( 'Generating…', 'twt-aeo-ultimate' ),
+			'added'         => __( '✓ Added — reload to refresh status.', 'twt-aeo-ultimate' ),
+			'failed'        => __( 'Could not add schema.', 'twt-aeo-ultimate' ),
+			'requestFailed' => __( 'Request failed.', 'twt-aeo-ultimate' ),
+		) );
 	}
 
 	public static function render( $post ) {
@@ -167,7 +183,7 @@ class TWTAEO_Metabox {
 				<div class="twt-aeo-metabox__section-title"><?php esc_html_e( 'Missing', 'twt-aeo-ultimate' ); ?></div>
 				<div class="twt-aeo-metabox__tags">
 					<?php foreach ( $missing as $type ) : ?>
-						<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php echo esc_html( $type ); ?></span>
+						<?php self::tag_with_fix( $type, 'twt-aeo-metabox__tag--missing' ); ?>
 					<?php endforeach; ?>
 				</div>
 			</div>
@@ -178,7 +194,7 @@ class TWTAEO_Metabox {
 				<div class="twt-aeo-metabox__section-title"><?php esc_html_e( 'Recommended', 'twt-aeo-ultimate' ); ?></div>
 				<div class="twt-aeo-metabox__tags">
 					<?php foreach ( $recommended as $type ) : ?>
-						<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--warn"><?php echo esc_html( $type ); ?></span>
+						<?php self::tag_with_fix( $type, 'twt-aeo-metabox__tag--warn' ); ?>
 					<?php endforeach; ?>
 				</div>
 			</div>
@@ -198,6 +214,7 @@ class TWTAEO_Metabox {
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing">
 						<?php esc_html_e( 'FAQPage Schema Missing', 'twt-aeo-ultimate' ); ?>
 					</span>
+					<?php self::gen_button( 'twtaeo_faq_generate_one', TWTAEO_FAQ_Detector::NONCE_GENERATE, __( 'Add FAQ Schema', 'twt-aeo-ultimate' ), $post->ID ); ?>
 				<?php endif; ?>
 			</div>
 			<?php endif; ?>
@@ -216,6 +233,7 @@ class TWTAEO_Metabox {
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing">
 						<?php esc_html_e( 'Service Schema Missing', 'twt-aeo-ultimate' ); ?>
 					</span>
+					<?php self::gen_button( 'twtaeo_service_generate_one', 'twtaeo_service_schema_nonce', __( 'Add Service Schema', 'twt-aeo-ultimate' ), $post->ID ); ?>
 				<?php endif; ?>
 			</div>
 			<?php endif; ?>
@@ -237,6 +255,58 @@ class TWTAEO_Metabox {
 
 		</div>
 		<?php
+	}
+
+	/**
+	 * One-click "Add FAQ Schema" button — reuses the FAQ detector's generator
+	 * (extracts the page's Q&A and writes FAQPage JSON-LD to the custom store).
+	 * Admins only, since the AJAX endpoint requires manage_options.
+	 *
+	 * @param int $post_id
+	 */
+	private static function gen_button( $action, $nonce_action, $label, $post_id ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		?>
+		<div style="margin-top:6px;">
+			<button type="button" class="button button-small twt-aeo-gen-btn"
+					data-action="<?php echo esc_attr( $action ); ?>"
+					data-nonce="<?php echo esc_attr( wp_create_nonce( $nonce_action ) ); ?>"
+					data-post="<?php echo esc_attr( $post_id ); ?>">
+				<?php echo esc_html( $label ); ?>
+			</button>
+			<span class="twt-aeo-gen-msg" style="display:block;font-size:11px;margin-top:4px;"></span>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Admin URL of the existing tool that handles a given (site-wide or entity)
+	 * schema type, for a "Fix" deep-link. Empty when no tool applies (e.g. WebPage
+	 * is emitted by the SEO plugin, not us).
+	 *
+	 * @param string $type
+	 * @return string
+	 */
+	private static function fix_link_for_type( $type ) {
+		$map = array(
+			'Organization'  => 'twt-aeo-schema-detector', // Contact/Organization schema tool.
+			'ContactPage'   => 'twt-aeo-schema-detector',
+			'PostalAddress' => 'twt-aeo-local-pack',
+			'LocalBusiness' => 'twt-aeo-local-pack',
+			'Person'        => 'twt-aeo-eeat',
+		);
+		return empty( $map[ $type ] ) ? '' : admin_url( 'admin.php?page=' . $map[ $type ] );
+	}
+
+	/** Render a missing/recommended tag, with a "Fix" deep-link when a tool handles it. */
+	private static function tag_with_fix( $type, $tag_class ) {
+		$link = self::fix_link_for_type( $type );
+		echo '<span class="twt-aeo-metabox__tag ' . esc_attr( $tag_class ) . '">' . esc_html( $type ) . '</span>';
+		if ( $link && current_user_can( 'manage_options' ) ) {
+			echo ' <a href="' . esc_url( $link ) . '" class="twt-aeo-metabox__link" style="font-size:11px;">' . esc_html__( 'Fix', 'twt-aeo-ultimate' ) . '</a>';
+		}
 	}
 
 	private static function render_unscanned( $post ) {
@@ -273,7 +343,7 @@ class TWTAEO_Metabox {
 				<?php if ( $faq_scan['has_faq_schema'] ) : ?>
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--present">✓ <?php esc_html_e( 'FAQPage Schema Present', 'twt-aeo-ultimate' ); ?></span>
 				<?php else : ?>
-					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php esc_html_e( 'FAQPage Schema Missing', 'twt-aeo-ultimate' ); ?></span>
+					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php esc_html_e( 'FAQPage Schema Missing', 'twt-aeo-ultimate' ); ?></span><?php self::gen_button( 'twtaeo_faq_generate_one', TWTAEO_FAQ_Detector::NONCE_GENERATE, __( 'Add FAQ Schema', 'twt-aeo-ultimate' ), $post->ID ); ?>
 				<?php endif; ?>
 			</div>
 			<?php endif; ?>
@@ -284,7 +354,7 @@ class TWTAEO_Metabox {
 				<?php if ( $service_scan['has_service_schema'] ) : ?>
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--present">✓ <?php esc_html_e( 'Service Schema Present', 'twt-aeo-ultimate' ); ?></span>
 				<?php else : ?>
-					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php esc_html_e( 'Service Schema Missing', 'twt-aeo-ultimate' ); ?></span>
+					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php esc_html_e( 'Service Schema Missing', 'twt-aeo-ultimate' ); ?></span><?php self::gen_button( 'twtaeo_service_generate_one', 'twtaeo_service_schema_nonce', __( 'Add Service Schema', 'twt-aeo-ultimate' ), $post->ID ); ?>
 				<?php endif; ?>
 			</div>
 			<?php endif; ?>

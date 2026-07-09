@@ -18,7 +18,22 @@ class TWTAEO_Last_Updated_Badge {
 
 	public static function register_hooks() {
 		add_filter( 'the_content', array( __CLASS__, 'prepend_badge' ) );
-		add_action( 'wp_head', array( __CLASS__, 'output_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_style' ) );
+	}
+
+	/**
+	 * Enqueue the badge stylesheet on single posts, where the badge appears.
+	 */
+	public static function enqueue_style() {
+		if ( ! is_singular( 'post' ) ) {
+			return;
+		}
+		wp_enqueue_style(
+			'twt-aeo-last-updated-badge',
+			plugin_dir_url( dirname( __FILE__ ) ) . 'public/css/last-updated-badge.css',
+			array(),
+			TWTAEO_VERSION
+		);
 	}
 
 	/**
@@ -51,10 +66,4 @@ class TWTAEO_Last_Updated_Badge {
 		return $badge . $content;
 	}
 
-	public static function output_styles() {
-		if ( ! is_singular( 'post' ) ) {
-			return;
-		}
-		echo '<style>.twt-aeo-last-updated{font-size:.875em;color:#666;margin-bottom:1em;}</style>' . "\n";
-	}
 }

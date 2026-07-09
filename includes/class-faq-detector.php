@@ -486,6 +486,16 @@ class TWTAEO_FAQ_Detector {
 			// Fall through — stored scan may not include all schema sources.
 		}
 
+		// Strategy 1b: TWT AEO custom schema — this is where our own "Add FAQ
+		// Schema" action stores the FAQPage it generates. Without this check the
+		// detector keeps reporting "Missing" even right after we created it.
+		if ( class_exists( 'TWTAEO_Custom_Schema_Writer' ) ) {
+			$custom = TWTAEO_Custom_Schema_Writer::get_by_type( $post->ID, 'FAQPage' );
+			if ( ! empty( $custom ) ) {
+				return true;
+			}
+		}
+
 		// Strategy 2: Check Rank Math schema postmeta.
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
 			$meta = get_post_meta( $post->ID );

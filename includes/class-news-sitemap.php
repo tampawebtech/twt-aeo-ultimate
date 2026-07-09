@@ -83,7 +83,11 @@ class TWTAEO_News_Sitemap {
 		status_header( 200 );
 		header( 'Content-Type: application/xml; charset=UTF-8' );
 		header( 'X-Robots-Tag: noindex' );
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// XML sitemap document served as application/xml. Every dynamic value was
+		// escaped during assembly in generate() (esc_url() on <loc>, esc_html() on all
+		// text nodes); the rest is a static literal. There is no whole-document XML
+		// escaper, and esc_html() here would double-encode the already-safe markup.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped XML document; see note above.
 		echo $xml;
 		exit;
 	}
@@ -113,9 +117,9 @@ class TWTAEO_News_Sitemap {
 
 		$posts = get_posts( $args );
 
-		// Filter out posts individually excluded via the metabox.
+		// Opt-in: only include posts explicitly marked as news articles.
 		$posts = array_filter( $posts, function( $post ) {
-			return ! TWTAEO_News_Meta::is_excluded( $post->ID );
+			return TWTAEO_News_Meta::is_included( $post->ID );
 		} );
 
 		return self::build_xml( array_values( $posts ) );
@@ -170,7 +174,7 @@ class TWTAEO_News_Sitemap {
 			return;
 		}
 
-		if ( TWTAEO_News_Meta::is_excluded( $post_id ) ) {
+		if ( ! TWTAEO_News_Meta::is_included( $post_id ) ) {
 			return;
 		}
 
@@ -280,7 +284,7 @@ class TWTAEO_News_Sitemap {
 
 		$posts = get_posts( $args );
 		return array_filter( $posts, function( $p ) {
-			return ! TWTAEO_News_Meta::is_excluded( $p->ID );
+			return TWTAEO_News_Meta::is_included( $p->ID );
 		} );
 	}
 }

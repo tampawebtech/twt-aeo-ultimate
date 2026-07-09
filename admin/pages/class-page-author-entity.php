@@ -77,7 +77,7 @@ class TWTAEO_Page_Author_Entity {
 					<p style="margin:0;font-size:13px;color:var(--aeo-text);">
 						<?php
 						printf(
-							/* translators: %s: SEO plugin name */
+							/* translators: %s: name of the active SEO plugin handling Person schema. */
 							esc_html__( '%s is handling Person schema. The TWT AEO Author Schema Writer will not output a duplicate. Certifications and social profiles are stored and ready if you switch away from this plugin.', 'twt-aeo-ultimate' ),
 							'<strong>' . esc_html( $seo_plugin_handles ) . '</strong>'
 						);

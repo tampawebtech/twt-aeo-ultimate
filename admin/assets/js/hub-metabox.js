@@ -1,4 +1,4 @@
-﻿/* WP.org compliance: extracted from admin/class-hub-metabox.php inline <script> */
+﻿/* WP.org compliance: extracted from admin/class-hub-metabox.php inline script block */
 /* global twtAeoHubMetabox */
 ( function () {
 	'use strict';

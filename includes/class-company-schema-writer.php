@@ -75,8 +75,11 @@ class TWTAEO_Company_Schema_Writer {
 
 		echo "\n<!-- TWT AEO Organization Schema -->\n";
 		echo '<script type="application/ld+json">' . "\n";
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_TAG );
+		// JSON-LD output. esc_html() would corrupt the JSON, so safety comes from the
+		// HEX_* flags: <, >, &, ' and " are all encoded as \uXXXX, so the value cannot
+		// break out of the script element or carry HTML/JS into the page.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML-inert JSON-LD; see note above.
+		echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
 		echo "\n</script>\n";
 	}
 

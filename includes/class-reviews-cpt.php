@@ -2,7 +2,7 @@
 /**
  * Reviews CPT
  *
- * Registers the twt_review custom post type and handles all storage,
+ * Registers the twtaeo_review custom post type and handles all storage,
  * retrieval, and frontend form submission.
  *
  * Storage:
@@ -11,11 +11,11 @@
  *   post_status  = draft (pending approval) | publish (approved)
  *
  * Meta keys:
- *   _twt_review_rating   — integer 1–5
- *   _twt_review_email    — reviewer email (not displayed publicly)
- *   _twt_review_source   — 'internal' | 'gbp' | 'trustpilot' | 'yelp'
- *   _twt_review_post_id  — associated post/product ID (0 = site-level)
- *   _twt_review_context  — 'local' | 'product' | 'service' | 'general'
+ *   _twtaeo_review_rating   — integer 1–5
+ *   _twtaeo_review_email    — reviewer email (not displayed publicly)
+ *   _twtaeo_review_source   — 'internal' | 'gbp' | 'trustpilot' | 'yelp'
+ *   _twtaeo_review_post_id  — associated post/product ID (0 = site-level)
+ *   _twtaeo_review_context  — 'local' | 'product' | 'service' | 'general'
  *
  * @package TWTAEO_Connector
  */
@@ -26,18 +26,69 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TWTAEO_Reviews_CPT {
 
-	const POST_TYPE    = 'twt_review';
-	const META_RATING  = '_twt_review_rating';
-	const META_EMAIL   = '_twt_review_email';
-	const META_SOURCE  = '_twt_review_source';
-	const META_POST_ID = '_twt_review_post_id';
-	const META_CONTEXT = '_twt_review_context';
+	const POST_TYPE    = 'twtaeo_review';
+	const META_RATING  = '_twtaeo_review_rating';
+	const META_EMAIL   = '_twtaeo_review_email';
+	const META_SOURCE  = '_twtaeo_review_source';
+	const META_POST_ID = '_twtaeo_review_post_id';
+	const META_CONTEXT = '_twtaeo_review_context';
 	const NONCE_SUBMIT = 'twtaeo_review_submit';
+
+	// One-time flag: legacy "twt_" → "twtaeo_" prefix migration has run.
+	const MIGRATED_OPTION = 'twtaeo_prefix_migrated';
 
 	// ── Hook registration ─────────────────────────────────────────────────────
 
 	public static function register_hooks() {
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
+		add_action( 'admin_init', array( __CLASS__, 'maybe_migrate_legacy_prefix' ) );
+	}
+
+	// ── Legacy prefix migration ───────────────────────────────────────────────
+
+	/**
+	 * One-time rename of the data that used the old 3-character "twt_" prefix to
+	 * the plugin's "twtaeo_" prefix: the reviews post type and all persisted
+	 * post-meta keys (reviews + Google/Bing merchant-sync snapshots). Runs once,
+	 * guarded by an option flag, so existing installs keep their data after the
+	 * prefix change. Idempotent — finds zero rows on fresh installs.
+	 */
+	public static function maybe_migrate_legacy_prefix() {
+		if ( get_option( self::MIGRATED_OPTION ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		// Reviews post type: twt_review → twtaeo_review.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time data migration; no cache to invalidate.
+		$wpdb->update(
+			$wpdb->posts,
+			array( 'post_type' => self::POST_TYPE ),
+			array( 'post_type' => 'twt_review' )
+		);
+
+		// Post-meta keys: _twt_* → _twtaeo_*.
+		$meta_map = array(
+			'_twt_review_rating'  => self::META_RATING,
+			'_twt_review_email'   => self::META_EMAIL,
+			'_twt_review_source'  => self::META_SOURCE,
+			'_twt_review_post_id' => self::META_POST_ID,
+			'_twt_review_context' => self::META_CONTEXT,
+			'_twt_bmc_sync'       => '_twtaeo_bmc_sync',
+			'_twt_gmc_sync'       => '_twtaeo_gmc_sync',
+		);
+		foreach ( $meta_map as $old_key => $new_key ) {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- One-time meta_key rename migration; no cache to invalidate.
+			$wpdb->update(
+				$wpdb->postmeta,
+				array( 'meta_key' => $new_key ),
+				array( 'meta_key' => $old_key )
+			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		}
+
+		update_option( self::MIGRATED_OPTION, TWTAEO_VERSION, false );
 	}
 
 	// ── Post type ─────────────────────────────────────────────────────────────

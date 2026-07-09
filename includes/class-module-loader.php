@@ -85,7 +85,7 @@ class TWTAEO_Module_Loader {
 			'social-graph' => array(
 				'slug'        => 'social-graph',
 				'title'       => 'Social Graph',
-				'description' => 'Unified Open Graph and Twitter/X Card manager. Scans all pages for OG coverage, shows missing fields at a glance, and lets you edit og:title, og:description, og:image, og:type, twitter:card, and twitter:creator in one modal. Auto-fills twitter:creator from Author Entity schema. Sets a global twitter:site handle for the whole site.',
+				'description' => 'Unified Open Graph and Twitter/X Card manager. Scans every page for OG coverage and lets you edit og:title, og:description, og:image, og:type, twitter:card, and twitter:creator in one modal. Generate share-friendly og:descriptions and og:images with AI — one page at a time or as a bulk background job — or reuse the meta descriptions you already have. Auto-fills twitter:creator from Author Entity schema and sets a global twitter:site handle for the whole site.',
 				'icon'        => 'dashicons-share',
 				'phase'       => 'free',
 				'default'     => false,
@@ -236,24 +236,6 @@ class TWTAEO_Module_Loader {
 				'description' => 'Collect and manage customer reviews. Outputs context-aware AggregateRating and Review schema — automatically scoped to LocalBusiness, Product, Service, or Organization based on your active modules. Includes frontend shortcodes for review display and submission.',
 				'icon'        => 'dashicons-star-filled',
 				'phase'       => 'free',
-				'default'     => false,
-			),
-
-			'content-generator' => array(
-				'slug'        => 'content-generator',
-				'title'       => 'Content Generator',
-				'description' => 'Generate page content using Claude (body copy), OpenAI (concise summary), and Perplexity (deep research). Industry and subtopic selection tailors the prompts to your specific use case.',
-				'icon'        => 'dashicons-edit-page',
-				'phase'       => 'pro',
-				'default'     => false,
-			),
-
-			'pro-reporting' => array(
-				'slug'        => 'pro-reporting',
-				'title'       => 'Agency Reporting',
-				'description' => 'Connect client sites to your agency dashboard. Track work done, correlate it to traffic changes, and generate monthly reports that prove your value.',
-				'icon'        => 'dashicons-chart-line',
-				'phase'       => 'pro',
 				'default'     => false,
 			),
 

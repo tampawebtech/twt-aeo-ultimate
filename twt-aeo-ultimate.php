@@ -3,25 +3,38 @@
  * Plugin Name:       TWT AEO Ultimate
  * Plugin URI:        https://tampawebtech.com/twt-aeo-ultimate
  * Description:       Monitor AI search visibility, track AEO changes, and connect your site to TWT Agency. Install on each client site.
- * Version:           2.1.1
+ * Version:           2.9.0
  * Author:            Tampa Web Technologies
  * Author URI:        https://tampawebtech.com
  * License:           GPL-2.0+
  * Text Domain:       twt-aeo-ultimate
+ * Requires at least: 6.2
+ * Requires PHP:      7.4
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'TWTAEO_VERSION',    '2.1.1' );
+define( 'TWTAEO_VERSION',    '2.9.0' );
 define( 'TWTAEO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TWTAEO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+// Load the logger first and arm the fatal-error catcher so crashes anywhere in
+// the load chain (including the requires below) are captured for Diagnostics.
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-logger.php';
+TWTAEO_Logger::init();
+
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-crypt.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-key-resolver.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-activator.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-deactivator.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-seo-compatibility.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-page-intent.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-scan-store.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-background-scan.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-baseline-crawl.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-baseline-metrics.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-meta-inventory.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-data-handshake.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-module-loader.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-faq-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-plugin.php';
@@ -32,6 +45,7 @@ require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-dashboard.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-not-indexed.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-modules.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-settings.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-diagnostics.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-faq-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-schema-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-service-detector.php';
@@ -44,6 +58,7 @@ require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-woocommerce-detector.ph
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-contact-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-contact-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-service-schema-writer.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-contact-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-custom-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-author-meta.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-author-schema-writer.php';
@@ -59,16 +74,24 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/class-pr-distributor.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/class-pr-metabox.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-pr-bridge.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-industry-config.php';
-require_once TWTAEO_PLUGIN_DIR . 'includes/class-content-generator.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-ai-client.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-product-enricher.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-image-optimizer.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-image-seo.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-hub-cpt.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/class-hub-metabox.php';
-require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-content-generator.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-service-account.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-oauth.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-knowledge-graph.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-pagespeed.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-traffic-leak-scanner.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-perf-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-merchant-center.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-bing-merchant-center.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-bing-webmaster.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-gmc-sync-engine.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-bmc-sync-engine.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-merchant-sync-queue.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-command-center.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-html-to-markdown.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-crawler-tester.php';
@@ -78,19 +101,19 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/class-oauth-server.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-ai-ready.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-schema-conflicts.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-pro-transmitter.php';
-require_once TWTAEO_PLUGIN_DIR . 'includes/class-rest-remote-generate.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-micro-conversion-tracker.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-ai-crawler-logger.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-rate-limiter.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-index-heuristics.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-index-status.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-auto-index-scan.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-connector-rest.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-local-pack.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-local-pack-nap.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-local-pack.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-og-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-og-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-twitter-writer.php';
-require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-og-detector.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-social-graph.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-index-now.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-index-now.php';
@@ -102,6 +125,8 @@ require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-sitemap.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-news-sitemap.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-news-meta.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-news-schema-writer.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-article-schema-writer.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-ai-description.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-news.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-reviews-cpt.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-reviews-schema-writer.php';
@@ -118,8 +143,13 @@ function twtaeo_run() {
 	TWTAEO_Metabox::register_hooks();
 	TWTAEO_OAuth_Server::init();
 	TWTAEO_Pro_Transmitter::init();
-	TWTAEO_Rest_Remote_Generate::init();
 	TWTAEO_Micro_Conversion_Tracker::init();
+	TWTAEO_Baseline_Crawl::init();
+	TWTAEO_Data_Handshake::init();
+	TWTAEO_Merchant_Sync_Queue::init();
+	TWTAEO_Auto_Index_Scan::init();
+	TWTAEO_Connector_Rest::init();
+	TWTAEO_Background_Scan::init();
 
 	// Company profile — OG tags (priority 1) and schema (priority 5).
 	add_action( 'init', function () {

@@ -14,8 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_is_writable -- WP_Filesystem is not suitable for the inline filesystem checks this module performs before writing .well-known files.
-
 class TWTAEO_AI_Ready {
 
 	const OPTION_KEY    = 'twtaeo_ai_ready';
@@ -220,8 +218,7 @@ class TWTAEO_AI_Ready {
 			// Apache denies the entire directory when it cannot read a .htaccess there.
 			$bad_htaccess = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known' . DIRECTORY_SEPARATOR . '.htaccess';
 			if ( file_exists( $bad_htaccess ) ) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-				@unlink( $bad_htaccess );
+				wp_delete_file( $bad_htaccess );
 			}
 		}
 
@@ -288,6 +285,12 @@ class TWTAEO_AI_Ready {
 
 		// robots.txt — always run so we can add the Sitemap: directive plus any signals.
 		add_filter( 'robots_txt', array( __CLASS__, 'append_robots_txt' ), 10, 1 );
+
+		// Keep the dynamic robots.txt out of any full-page cache (host cache / CDN)
+		// so AI-crawler hits to it run through PHP and get logged. Plugin-agnostic:
+		// do_robots fires for any virtual robots.txt (WP core, Yoast, Rank Math,
+		// AIOSEO, SEOPress). No effect when a physical robots.txt is served off disk.
+		add_action( 'do_robots', array( __CLASS__, 'nocache_robots' ), 0 );
 
 		// Per-bot block & rate-limit enforcement for regular page requests.
 		// Priority 1: before Yoast, WP core, and any other template_redirect handlers.
@@ -374,6 +377,10 @@ class TWTAEO_AI_Ready {
 		$vars[] = 'twtaeo_wellknown';
 		$vars[] = 'twtaeo_skill';
 		$vars[] = 'twtaeo_sitemap';
+		// Public Markdown content-negotiation flag (?aeo_format=markdown). Registered
+		// as a query var so it is read via get_query_var() rather than the raw $_GET
+		// superglobal — see maybe_serve_markdown().
+		$vars[] = 'aeo_format';
 		return $vars;
 	}
 
@@ -642,7 +649,10 @@ class TWTAEO_AI_Ready {
 		header( 'Content-Type: application/xml; charset=utf-8' );
 		header( 'X-Robots-Tag: noindex' );
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// Static XML literals served as application/xml. The dynamic <loc>/<lastmod>/etc.
+		// values in the loop below are individually escaped (esc_url(), esc_html()), so
+		// the document is safe; these two lines contain no variables.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static XML literal; dynamic values escaped below.
 		echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
@@ -668,11 +678,21 @@ class TWTAEO_AI_Ready {
 	// ── Markdown content negotiation ──────────────────────────────────────────
 
 	public static function maybe_serve_markdown() {
+		// Public, read-only content negotiation on `template_redirect`. This runs for
+		// anonymous front-end requests (AI agents and crawlers): nothing here writes
+		// data, changes state, or performs a privileged action, so there is no privilege
+		// boundary and no nonce applies (a nonce cannot be issued to an unauthenticated
+		// bot, which would defeat the feature). The two untrusted inputs only select an
+		// output *format* for content that is already publicly visible:
+		//   • the Accept header, sanitized below; and
+		//   • the `aeo_format` query value, registered as a query var (see
+		//     add_query_vars()) so it is read through get_query_var() rather than the
+		//     raw $_GET superglobal, then sanitized and compared to a fixed literal.
 		$s          = self::get_settings();
 		$accept     = sanitize_text_field( wp_unslash( $_SERVER['HTTP_ACCEPT'] ?? '' ) );
 		$via_accept = strpos( $accept, 'text/markdown' ) !== false;
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$via_param  = ! empty( $s['url_fallback'] ) && sanitize_key( wp_unslash( $_GET['aeo_format'] ?? '' ) ) === 'markdown';
+		$format     = sanitize_key( get_query_var( 'aeo_format' ) );
+		$via_param  = ! empty( $s['url_fallback'] ) && 'markdown' === $format;
 
 		if ( ! $via_accept && ! $via_param ) {
 			return;
@@ -685,10 +705,15 @@ class TWTAEO_AI_Ready {
 				return;
 			}
 
-			$content  = apply_filters( 'the_content', $post->post_content );
-			$markdown = TWTAEO_HTML_To_Markdown::convert( $content );
-			$title    = get_the_title( $post );
-			$url      = get_permalink( $post );
+			// Render through WordPress's own the_content filter (shortcodes,
+			// blocks, embeds). Hook name held in a variable — it is core's, not
+			// ours to prefix.
+			$core_filter = 'the_content';
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
+			$content     = apply_filters( $core_filter, $post->post_content );
+			$markdown    = TWTAEO_HTML_To_Markdown::convert( $content );
+			$title       = get_the_title( $post );
+			$url         = get_permalink( $post );
 
 			$output  = '# ' . $title . "\n\n";
 			$output .= 'Source: ' . $url . "\n\n";
@@ -782,7 +807,39 @@ class TWTAEO_AI_Ready {
 			}
 		}
 
+		// WooCommerce: point AI shopping agents at the shop and product categories,
+		// and declare that the store publishes structured product data.
+		if ( class_exists( 'WooCommerce' ) ) {
+			$shop_id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( 'shop' ) : 0;
+			$cats    = get_terms( array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'number'     => 50,
+			) );
+			$has_cats = is_array( $cats ) && ! empty( $cats ) && ! is_wp_error( $cats );
+
+			if ( ( $shop_id && $shop_id > 0 ) || $has_cats ) {
+				$output .= "\n## Products\n\n";
+				$output .= "This store publishes Schema.org Product structured data (JSON-LD) for AI shopping agents.\n";
+				if ( $shop_id && $shop_id > 0 ) {
+					$output .= '- [Shop](' . get_permalink( $shop_id ) . ")\n";
+				}
+				if ( $has_cats ) {
+					foreach ( $cats as $t ) {
+						$link = get_term_link( $t );
+						if ( ! is_wp_error( $link ) ) {
+							$output .= '- [' . html_entity_decode( $t->name, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) . '](' . $link . ")\n";
+						}
+					}
+				}
+			}
+		}
+
 		status_header( 200 );
+		// Discovery files must run through PHP on every request so AI-crawler hits
+		// are logged. Without this, a full-page cache (host cache like Nexcess
+		// NxAccel, or a CDN) serves the file directly and the hit is never seen.
+		nocache_headers();
 		header( 'Content-Type: text/plain; charset=utf-8' );
 		echo wp_kses_post( $output );
 		exit;
@@ -927,7 +984,12 @@ class TWTAEO_AI_Ready {
 			register_rest_route( 'aeo/v1', '/mcp', array(
 				'methods'             => 'GET, POST',
 				'callback'            => array( __CLASS__, 'rest_mcp_endpoint' ),
-				'permission_callback' => '__return_true',
+				// Share the same gate as /search so MCP tool calls honour the
+				// configured bot-block rules, rate limits, IP whitelist, UA
+				// verification, and OAuth bearer auth instead of bypassing them.
+				// This callback returns true when no restrictions are configured,
+				// so the MCP server stays publicly reachable by default.
+				'permission_callback' => array( __CLASS__, 'rest_permission_check' ),
 			) );
 		}
 	}
@@ -1304,8 +1366,11 @@ class TWTAEO_AI_Ready {
 		}
 
 		$post    = get_post( $post_id );
-		$content = apply_filters( 'the_content', $post->post_content );
-		$md      = class_exists( 'TWTAEO_HTML_To_Markdown' )
+		// Core the_content filter, applied via a variable hook name (core's, not ours).
+		$core_filter = 'the_content';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
+		$content     = apply_filters( $core_filter, $post->post_content );
+		$md          = class_exists( 'TWTAEO_HTML_To_Markdown' )
 			? TWTAEO_HTML_To_Markdown::convert( $content )
 			: wp_strip_all_tags( $content );
 
@@ -1395,10 +1460,17 @@ class TWTAEO_AI_Ready {
 		$tagline    = html_entity_decode( get_bloginfo( 'description' ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$home_url   = home_url();
 
-		// Keep _handler in the JSON so JS can do a named lookup (not index-based).
-		$tools_json = wp_json_encode( $tools, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG );
-
 		wp_register_script( 'twt-aeo-webmcp', false, array(), TWTAEO_VERSION, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NoExplicitVersion
+
+		// Hand the tool definitions to the script as data via wp_add_inline_script()
+		// rather than echoing JSON into the page — there is no raw echo to escape. The
+		// HEX_* flags make the value HTML-inert (<, >, &, ' and " become \uXXXX), and
+		// _handler is kept so the JS can do a named lookup (not index-based).
+		wp_add_inline_script(
+			'twt-aeo-webmcp',
+			'window.twtAeoMcpTools = ' . wp_json_encode( $tools, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';',
+			'before'
+		);
 
 		ob_start();
 		?>
@@ -1442,7 +1514,7 @@ class TWTAEO_AI_Ready {
 		},
 	};
 
-	var toolDefs = <?php echo $tools_json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- produced by wp_json_encode() ?>;
+	var toolDefs = window.twtAeoMcpTools || [];
 
 	var toolsWithExecute = toolDefs.map( function ( def ) {
 		var handler = handlers[ def._handler ] || function () { return Promise.resolve( {} ); };
@@ -1573,8 +1645,7 @@ class TWTAEO_AI_Ready {
 	private static function serve_agent_skills_index_json( $s ) {
 		$skills = self::build_agent_skills_list( $s );
 		$index  = array(
-			'$schema' => 'https://agentskills.io/schemas/index.v0.2.0.json',
-			'skills'  => $skills,
+			'skills' => $skills,
 		);
 		status_header( 200 );
 		header( 'Content-Type: application/json; charset=utf-8' );
@@ -1587,7 +1658,11 @@ class TWTAEO_AI_Ready {
 		status_header( 200 );
 		header( 'Content-Type: application/linkset+json; charset=utf-8' );
 		header( 'Access-Control-Allow-Origin: *' );
-		echo wp_json_encode( array( 'linkset' => self::build_api_linkset( $s ) ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ); // phpcs:ignore
+		// Dedicated JSON API response (application/linkset+json), not an HTML document.
+		// The body is wp_json_encode() output; HEX_TAG keeps it inert even if a client
+		// mis-sniffs it as markup. esc_* HTML escapers would corrupt the JSON, so they
+		// are intentionally not used here.
+		echo wp_json_encode( array( 'linkset' => self::build_api_linkset( $s ) ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON API response, see note above.
 		exit;
 	}
 
@@ -1624,6 +1699,60 @@ class TWTAEO_AI_Ready {
 		);
 	}
 
+	/**
+	 * Lazily initialise and return the WP_Filesystem instance, or null when the
+	 * filesystem is not directly writable. These discovery-file helpers run during
+	 * settings saves, AJAX, and init hooks where we cannot prompt for FTP
+	 * credentials, so we only proceed on the 'direct' method; on other hosts the
+	 * feature degrades gracefully (the caller reports "not writable", as before).
+	 *
+	 * @return WP_Filesystem_Base|null
+	 */
+	private static function fs() {
+		global $wp_filesystem;
+		if ( $wp_filesystem instanceof WP_Filesystem_Base ) {
+			return $wp_filesystem;
+		}
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		if ( 'direct' !== get_filesystem_method() ) {
+			return null;
+		}
+		if ( ! WP_Filesystem() || ! ( $wp_filesystem instanceof WP_Filesystem_Base ) ) {
+			return null;
+		}
+		return $wp_filesystem;
+	}
+
+	/** File mode for written discovery files (0644), guarded for early calls. */
+	private static function fs_file_mode() {
+		return defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644;
+	}
+
+	/**
+	 * Ensure a writable directory under .well-known/ exists, correcting restrictive
+	 * permissions when possible, and return the WP_Filesystem instance to write with.
+	 *
+	 * @param string $dir Absolute directory path.
+	 * @return WP_Filesystem_Base|null Instance when $dir is writable, else null.
+	 */
+	private static function ensure_writable_dir( $dir ) {
+		if ( ! is_dir( $dir ) ) {
+			wp_mkdir_p( $dir );
+		}
+		$fs = self::fs();
+		if ( ! $fs ) {
+			return null;
+		}
+		// Attempt to correct restrictive permissions (e.g. 750 → 755) so the web
+		// server process can read files in this directory.
+		if ( $fs->is_dir( $dir ) && ! $fs->is_writable( $dir ) ) {
+			$fs->chmod( $dir, defined( 'FS_CHMOD_DIR' ) ? FS_CHMOD_DIR : 0755 );
+		}
+		return $fs->is_writable( $dir ) ? $fs : null;
+	}
+
 	public static function write_mcp_server_card_file() {
 		$wk  = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known';
 		$dir = $wk . DIRECTORY_SEPARATOR . 'mcp';
@@ -1635,37 +1764,24 @@ class TWTAEO_AI_Ready {
 		// Remove any bad .htaccess in .well-known/ that would block the directory.
 		$bad_htaccess = $wk . DIRECTORY_SEPARATOR . '.htaccess';
 		if ( file_exists( $bad_htaccess ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			@unlink( $bad_htaccess );
+			wp_delete_file( $bad_htaccess );
 		}
 
-		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
-		}
-		// phpcs:disable WordPress.WP.AlternativeFunctions
-		if ( is_dir( $dir ) && ! is_writable( $dir ) ) {
-			@chmod( $dir, 0755 );
-		}
-		if ( ! is_writable( $dir ) ) {
+		$fs = self::ensure_writable_dir( $dir );
+		if ( ! $fs ) {
 			return false;
 		}
 
 		$json     = wp_json_encode( self::build_mcp_server_card(), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
 		$filepath = $dir . DIRECTORY_SEPARATOR . 'server-card.json';
-		$ok       = file_put_contents( $filepath, $json );
-		if ( $ok !== false ) {
-			@chmod( $filepath, 0644 );
-		}
-		// phpcs:enable
 
-		return $ok !== false;
+		return $fs->put_contents( $filepath, $json, self::fs_file_mode() );
 	}
 
 	public static function delete_mcp_server_card_file() {
 		$path = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known' . DIRECTORY_SEPARATOR . 'mcp' . DIRECTORY_SEPARATOR . 'server-card.json';
 		if ( file_exists( $path ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			@unlink( $path );
+			wp_delete_file( $path );
 		}
 	}
 
@@ -1725,18 +1841,8 @@ class TWTAEO_AI_Ready {
 		$s   = self::get_settings();
 		$dir = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known';
 
-		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
-		}
-
-		// Attempt to correct restrictive permissions (e.g. 750 → 755) so the web
-		// server process can read files in this directory.
-		// phpcs:disable WordPress.WP.AlternativeFunctions
-		if ( is_dir( $dir ) && ! is_writable( $dir ) ) {
-			@chmod( $dir, 0755 );
-		}
-
-		if ( ! is_writable( $dir ) ) {
+		$fs = self::ensure_writable_dir( $dir );
+		if ( ! $fs ) {
 			return false;
 		}
 
@@ -1744,7 +1850,7 @@ class TWTAEO_AI_Ready {
 		// Apache/LiteSpeed denies access to the entire directory when it can't read it.
 		$htaccess = $dir . DIRECTORY_SEPARATOR . '.htaccess';
 		if ( file_exists( $htaccess ) ) {
-			@unlink( $htaccess );
+			wp_delete_file( $htaccess );
 		}
 
 		$json     = wp_json_encode(
@@ -1752,15 +1858,9 @@ class TWTAEO_AI_Ready {
 			JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
 		);
 		$filepath = $dir . DIRECTORY_SEPARATOR . 'api-catalog';
-		$ok       = file_put_contents( $filepath, $json );
 
-		// Ensure the file is world-readable so the web server can serve it.
-		if ( $ok !== false ) {
-			@chmod( $filepath, 0644 );
-		}
-		// phpcs:enable
-
-		return $ok !== false;
+		// FS_CHMOD_FILE keeps the file world-readable so the web server can serve it.
+		return $fs->put_contents( $filepath, $json, self::fs_file_mode() );
 	}
 
 	// Returns a status array for the .well-known/ directory and known files,
@@ -1775,12 +1875,13 @@ class TWTAEO_AI_Ready {
 		$card_path    = $dir . DIRECTORY_SEPARATOR . 'mcp' . DIRECTORY_SEPARATOR . 'server-card.json';
 		$htaccess     = $dir . DIRECTORY_SEPARATOR . '.htaccess';
 
+		$fs               = self::fs();
 		$dir_exists       = is_dir( $dir );
 		$dir_perms        = $dir_exists ? substr( sprintf( '%o', fileperms( $dir ) ), -4 ) : null;
 		$dir_readable     = $dir_exists && is_readable( $dir );
-		$dir_writable     = $dir_exists && is_writable( $dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		$dir_writable     = $dir_exists && $fs && $fs->is_writable( $dir );
 		$dir_ok           = $dir_readable && $dir_writable;
-		$abspath_writable = is_writable( $abspath ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		$abspath_writable = $fs && $fs->is_writable( $abspath );
 
 		// can_write: PHP can write files under .well-known/ either because the
 		// directory exists and is writable, or because ABSPATH is writable so
@@ -1805,11 +1906,86 @@ class TWTAEO_AI_Ready {
 		);
 	}
 
+	/**
+	 * Build the list of physical discovery files the plugin would write for the
+	 * currently-enabled features, each with the exact JSON content and target path.
+	 *
+	 * Used by the admin page to show copy-and-paste instructions when the host's
+	 * filesystem is not writable and the plugin cannot create the files itself.
+	 * The same content is also served dynamically at each file's URL, so the values
+	 * here match what an agent receives either way.
+	 *
+	 * @return array[] Each entry: { label, rel (path under site root), abs (full path), url, contents }.
+	 */
+	public static function get_wellknown_manifest() {
+		$s    = self::get_settings();
+		$root = self::get_site_root();
+		$ds   = DIRECTORY_SEPARATOR;
+		$flag = JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT;
+
+		$files = array();
+
+		// API Catalog — always generated (the endpoint is always on).
+		$files[] = array(
+			'label'    => 'API Catalog',
+			'rel'      => '.well-known/api-catalog',
+			'abs'      => $root . $ds . '.well-known' . $ds . 'api-catalog',
+			'url'      => home_url( '/.well-known/api-catalog' ),
+			'contents' => wp_json_encode( array( 'linkset' => self::build_api_linkset( $s ) ), $flag ),
+		);
+
+		if ( ! empty( $s['agent_skills_index'] ) ) {
+			$files[] = array(
+				'label'    => 'Agent Skills Index',
+				'rel'      => '.well-known/agent-skills/index.json',
+				'abs'      => $root . $ds . '.well-known' . $ds . 'agent-skills' . $ds . 'index.json',
+				'url'      => home_url( '/.well-known/agent-skills/index.json' ),
+				'contents' => wp_json_encode(
+					array(
+						'skills' => self::build_agent_skills_list( $s ),
+					),
+					$flag
+				),
+			);
+		}
+
+		if ( ! empty( $s['mcp_integration'] ) ) {
+			$files[] = array(
+				'label'    => 'MCP Server Card',
+				'rel'      => '.well-known/mcp/server-card.json',
+				'abs'      => $root . $ds . '.well-known' . $ds . 'mcp' . $ds . 'server-card.json',
+				'url'      => home_url( '/.well-known/mcp/server-card.json' ),
+				'contents' => wp_json_encode( self::build_mcp_server_card(), $flag ),
+			);
+		}
+
+		if ( ! empty( $s['oauth_discovery'] ) ) {
+			$files[] = array(
+				'label'    => 'OAuth Authorization Server Metadata',
+				'rel'      => '.well-known/oauth-authorization-server',
+				'abs'      => $root . $ds . '.well-known' . $ds . 'oauth-authorization-server',
+				'url'      => home_url( '/.well-known/oauth-authorization-server' ),
+				'contents' => wp_json_encode( self::build_oauth_discovery_doc( $s, false ), $flag ),
+			);
+
+			if ( ! empty( $s['oauth_oidc'] ) ) {
+				$files[] = array(
+					'label'    => 'OpenID Connect Discovery',
+					'rel'      => '.well-known/openid-configuration',
+					'abs'      => $root . $ds . '.well-known' . $ds . 'openid-configuration',
+					'url'      => home_url( '/.well-known/openid-configuration' ),
+					'contents' => wp_json_encode( self::build_oauth_discovery_doc( $s, true ), $flag ),
+				);
+			}
+		}
+
+		return $files;
+	}
+
 	public static function delete_api_catalog_file() {
 		$path = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known' . DIRECTORY_SEPARATOR . 'api-catalog';
 		if ( file_exists( $path ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			unlink( $path );
+			wp_delete_file( $path );
 		}
 	}
 
@@ -1880,41 +2056,28 @@ class TWTAEO_AI_Ready {
 		$s   = self::get_settings();
 		$dir = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known';
 
-		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
-		}
-		// phpcs:disable WordPress.WP.AlternativeFunctions
-		if ( is_dir( $dir ) && ! is_writable( $dir ) ) {
-			@chmod( $dir, 0755 );
-		}
-		if ( ! is_writable( $dir ) ) {
+		$fs = self::ensure_writable_dir( $dir );
+		if ( ! $fs ) {
 			return false;
 		}
 
 		// Clean up the old bad .htaccess if present.
 		$htaccess = $dir . DIRECTORY_SEPARATOR . '.htaccess';
 		if ( file_exists( $htaccess ) ) {
-			@unlink( $htaccess );
+			wp_delete_file( $htaccess );
 		}
 
-		$json  = wp_json_encode( self::build_oauth_discovery_doc( $s, false ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
-		$path  = $dir . DIRECTORY_SEPARATOR . 'oauth-authorization-server';
-		$ok    = file_put_contents( $path, $json );
-		if ( $ok !== false ) {
-			@chmod( $path, 0644 );
-		}
+		$json = wp_json_encode( self::build_oauth_discovery_doc( $s, false ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+		$path = $dir . DIRECTORY_SEPARATOR . 'oauth-authorization-server';
+		$ok   = $fs->put_contents( $path, $json, self::fs_file_mode() );
 
 		if ( ! empty( $s['oauth_oidc'] ) ) {
-			$oidc_json  = wp_json_encode( self::build_oauth_discovery_doc( $s, true ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
-			$oidc_path  = $dir . DIRECTORY_SEPARATOR . 'openid-configuration';
-			$oidc_ok    = file_put_contents( $oidc_path, $oidc_json );
-			if ( $oidc_ok !== false ) {
-				@chmod( $oidc_path, 0644 );
-			}
+			$oidc_json = wp_json_encode( self::build_oauth_discovery_doc( $s, true ), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+			$oidc_path = $dir . DIRECTORY_SEPARATOR . 'openid-configuration';
+			$fs->put_contents( $oidc_path, $oidc_json, self::fs_file_mode() );
 		}
-		// phpcs:enable
 
-		return $ok !== false;
+		return $ok;
 	}
 
 	public static function delete_oauth_discovery_files() {
@@ -1922,8 +2085,7 @@ class TWTAEO_AI_Ready {
 		foreach ( array( 'oauth-authorization-server', 'openid-configuration' ) as $name ) {
 			$path = $dir . DIRECTORY_SEPARATOR . $name;
 			if ( file_exists( $path ) ) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-				@unlink( $path );
+				wp_delete_file( $path );
 			}
 		}
 	}
@@ -1968,7 +2130,7 @@ class TWTAEO_AI_Ready {
 		}
 
 		$b64url = function ( $bin ) {
-			return rtrim( strtr( base64_encode( $bin ), '+/', '-_' ), '=' );
+			return rtrim( strtr( base64_encode( $bin ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- base64url encoding required by the spec, not obfuscation.
 		};
 
 		$x   = $b64url( $details['ec']['x'] );
@@ -2178,36 +2340,26 @@ class TWTAEO_AI_Ready {
 		// Remove any legacy .htaccess that blocks the directory.
 		$bad_htaccess = $wk . DIRECTORY_SEPARATOR . '.htaccess';
 		if ( file_exists( $bad_htaccess ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			@unlink( $bad_htaccess );
+			wp_delete_file( $bad_htaccess );
 		}
 
-		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
-		}
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.chmod_chmod
-		if ( is_dir( $dir ) && ! is_writable( $dir ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
-			@chmod( $dir, 0755 ); // phpcs:ignore
-		}
-		if ( ! is_writable( $dir ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		$fs = self::ensure_writable_dir( $dir );
+		if ( ! $fs ) {
 			return false;
 		}
 
 		$index = array(
-			'$schema' => 'https://agentskills.io/schemas/index.v0.2.0.json',
-			'skills'  => self::build_agent_skills_list( $s ),
+			'skills' => self::build_agent_skills_list( $s ),
 		);
 
 		$json = wp_json_encode( $index, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		return file_put_contents( $dir . DIRECTORY_SEPARATOR . 'index.json', $json ) !== false;
+		return $fs->put_contents( $dir . DIRECTORY_SEPARATOR . 'index.json', $json, self::fs_file_mode() );
 	}
 
 	public static function delete_agent_skills_index() {
 		$path = self::get_site_root() . DIRECTORY_SEPARATOR . '.well-known' . DIRECTORY_SEPARATOR . 'agent-skills' . DIRECTORY_SEPARATOR . 'index.json';
 		if ( file_exists( $path ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
-			@unlink( $path );
+			wp_delete_file( $path );
 		}
 	}
 
@@ -2481,17 +2633,18 @@ class TWTAEO_AI_Ready {
 	 */
 	public static function apply_wellknown_apache_fix() {
 		$htaccess = self::get_site_root() . DIRECTORY_SEPARATOR . '.htaccess';
+		$fs       = self::fs();
 
 		// Ensure WordPress can write .htaccess — it needs to exist and be writable,
 		// or the directory needs to be writable so WP can create it.
-		if ( file_exists( $htaccess ) && ! is_writable( $htaccess ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		if ( file_exists( $htaccess ) && ! ( $fs && $fs->is_writable( $htaccess ) ) ) {
 			return array(
 				'success' => false,
 				'message' => '.htaccess exists but is not writable by PHP. Set it to 644 in cPanel File Manager, then try again.',
 			);
 		}
 
-		if ( ! file_exists( $htaccess ) && ! is_writable( self::get_site_root() ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		if ( ! file_exists( $htaccess ) && ! ( $fs && $fs->is_writable( self::get_site_root() ) ) ) {
 			return array(
 				'success' => false,
 				'message' => 'The site root is not writable — WordPress cannot create .htaccess. Set your document root to 755 in cPanel.',
@@ -2507,8 +2660,7 @@ class TWTAEO_AI_Ready {
 		flush_rewrite_rules( true );
 
 		// Verify the rules landed in .htaccess.
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$contents = file_exists( $htaccess ) ? file_get_contents( $htaccess ) : '';
+		$contents = ( $fs && $fs->exists( $htaccess ) ) ? (string) $fs->get_contents( $htaccess ) : '';
 
 		if ( strpos( $contents, '.well-known' ) !== false ) {
 			return array(
@@ -2544,7 +2696,46 @@ class TWTAEO_AI_Ready {
 		if ( defined( 'WPSEO_VERSION' ) || class_exists( 'WPSEO_Options' ) ) {
 			$found[] = 'yoast';
 		}
+		if ( defined( 'AIOSEO_VERSION' ) || function_exists( 'aioseo' ) ) {
+			$found[] = 'aioseo';
+		}
+		if ( defined( 'SEOPRESS_VERSION' ) || function_exists( 'seopress_activation' ) ) {
+			$found[] = 'seopress';
+		}
 		return $found;
+	}
+
+	/**
+	 * Map SEO-plugin slugs (from detect_seo_plugins) to display names.
+	 *
+	 * @param array $slugs Slugs to translate.
+	 * @return string[] Human-readable plugin names.
+	 */
+	public static function seo_plugin_names( $slugs ) {
+		$map = array(
+			'rankmath' => 'Rank Math',
+			'yoast'    => 'Yoast SEO',
+			'aioseo'   => 'All in One SEO',
+			'seopress' => 'SEOPress',
+		);
+		$names = array();
+		foreach ( (array) $slugs as $slug ) {
+			if ( isset( $map[ $slug ] ) ) {
+				$names[] = $map[ $slug ];
+			}
+		}
+		return $names;
+	}
+
+	/**
+	 * Whether a physical robots.txt exists and the web server can delete/rewrite it.
+	 *
+	 * @return bool True only when the file exists AND is writable.
+	 */
+	public static function physical_robots_is_writable() {
+		$path = self::get_site_root() . DIRECTORY_SEPARATOR . 'robots.txt';
+		$fs   = self::fs();
+		return file_exists( $path ) && $fs && $fs->is_writable( $path );
 	}
 
 	// Checks whether a physical llms.txt exists on disk, which would prevent the
@@ -2568,6 +2759,16 @@ class TWTAEO_AI_Ready {
 
 	// ── Physical robots.txt helpers ───────────────────────────────────────────
 
+	/**
+	 * Send no-cache headers while WordPress generates a dynamic robots.txt, so a
+	 * full-page cache (host cache / CDN) doesn't serve it without invoking PHP —
+	 * which would hide AI-crawler hits from the logger. Hooked on do_robots at
+	 * priority 0 so it runs before output, regardless of which plugin builds the body.
+	 */
+	public static function nocache_robots() {
+		nocache_headers();
+	}
+
 	public static function has_physical_robots() {
 		return file_exists( self::get_site_root() . DIRECTORY_SEPARATOR . 'robots.txt' );
 	}
@@ -2576,8 +2777,49 @@ class TWTAEO_AI_Ready {
 		if ( ! self::has_physical_robots() ) {
 			return false;
 		}
-		$contents = file_get_contents( self::get_site_root() . DIRECTORY_SEPARATOR . 'robots.txt' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$fs = self::fs();
+		if ( ! $fs ) {
+			return false;
+		}
+		$contents = $fs->get_contents( self::get_site_root() . DIRECTORY_SEPARATOR . 'robots.txt' );
 		return $contents !== false && stripos( $contents, 'Content-Signal:' ) !== false;
+	}
+
+	/**
+	 * Build the robots.txt block a site owner should add by hand when the physical
+	 * file cannot be written automatically — the same Content-Signal and Sitemap
+	 * directives inject_into_physical_robots() would write. Returns '' when there is
+	 * nothing to add (all signals "unspecified" and no sitemap).
+	 *
+	 * @return string
+	 */
+	public static function get_robots_signal_snippet() {
+		$s     = self::get_settings();
+		$parts = array();
+		if ( $s['content_signal_ai_train'] !== 'unspecified' ) {
+			$parts[] = 'ai-train=' . $s['content_signal_ai_train'];
+		}
+		if ( $s['content_signal_search'] !== 'unspecified' ) {
+			$parts[] = 'search=' . $s['content_signal_search'];
+		}
+		if ( $s['content_signal_ai_input'] !== 'unspecified' ) {
+			$parts[] = 'ai-input=' . $s['content_signal_ai_input'];
+		}
+
+		$sitemap_url = self::get_sitemap_url();
+		if ( ! $sitemap_url ) {
+			$sitemap_url = home_url( '/sitemap.xml' );
+		}
+
+		$lines = array();
+		if ( ! empty( $parts ) ) {
+			$lines[] = 'User-agent: *';
+			$lines[] = 'Content-Signal: ' . implode( ', ', $parts );
+			$lines[] = '';
+		}
+		$lines[] = 'Sitemap: ' . $sitemap_url;
+
+		return implode( "\n", $lines );
 	}
 
 	public static function inject_into_physical_robots() {
@@ -2587,7 +2829,8 @@ class TWTAEO_AI_Ready {
 			return new WP_Error( 'no_physical_file', 'No physical robots.txt found.' );
 		}
 
-		if ( ! is_writable( $path ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_is_writable
+		$fs = self::fs();
+		if ( ! $fs || ! $fs->is_writable( $path ) ) {
 			return new WP_Error( 'not_writable', 'robots.txt is not writable by the web server.' );
 		}
 
@@ -2608,7 +2851,7 @@ class TWTAEO_AI_Ready {
 			$sitemap_url = home_url( '/sitemap.xml' );
 		}
 
-		$contents = file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$contents = $fs->get_contents( $path );
 
 		if ( $contents === false ) {
 			return new WP_Error( 'read_failed', 'Could not read robots.txt.' );
@@ -2657,9 +2900,38 @@ class TWTAEO_AI_Ready {
 			$contents = rtrim( $contents ) . "\n\nSitemap: " . $sitemap_url . "\n";
 		}
 
-		$written = file_put_contents( $path, $contents ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		if ( $written === false ) {
+		if ( ! $fs->put_contents( $path, $contents, self::fs_file_mode() ) ) {
 			return new WP_Error( 'write_failed', 'Could not write to robots.txt.' );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Delete the physical robots.txt so WordPress serves it dynamically again.
+	 *
+	 * A physical file (often left behind by Yoast/Rank Math after removal) is
+	 * served straight off disk by the web server, freezing its content and
+	 * bypassing the robots_txt filter and AI-crawler logging.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function delete_physical_robots() {
+		$path = self::get_site_root() . DIRECTORY_SEPARATOR . 'robots.txt';
+
+		if ( ! file_exists( $path ) ) {
+			return new WP_Error( 'no_physical_file', 'No physical robots.txt found — WordPress is already serving it dynamically.' );
+		}
+
+		$fs = self::fs();
+		if ( ! $fs || ! $fs->is_writable( $path ) ) {
+			return new WP_Error( 'not_writable', 'robots.txt exists but the web server cannot delete it. Remove it manually via FTP or your host file manager.' );
+		}
+
+		wp_delete_file( $path );
+
+		if ( file_exists( $path ) ) {
+			return new WP_Error( 'delete_failed', 'Could not delete robots.txt. Remove it manually via FTP or your host file manager.' );
 		}
 
 		return true;

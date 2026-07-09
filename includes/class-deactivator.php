@@ -22,6 +22,24 @@ class TWTAEO_Deactivator {
 	 * reactivation restores the previous state without reconfiguration.
 	 */
 	public static function deactivate() {
-		// Placeholder — add flush_rewrite_rules(), wp_clear_scheduled_hook(), etc. here as needed.
+		// Stop the baseline crawl cron; its progress/state option is preserved.
+		if ( class_exists( 'TWTAEO_Baseline_Crawl' ) ) {
+			TWTAEO_Baseline_Crawl::clear_schedule();
+		}
+
+		// Stop the data handshake cron; last-handshake record is preserved.
+		if ( class_exists( 'TWTAEO_Data_Handshake' ) ) {
+			TWTAEO_Data_Handshake::clear_schedule();
+		}
+
+		// Stop the auto index scan crons; fingerprint/results are preserved.
+		if ( class_exists( 'TWTAEO_Auto_Index_Scan' ) ) {
+			TWTAEO_Auto_Index_Scan::clear_schedule();
+		}
+
+		// Stop the background scan cron; its queue/state option is preserved.
+		if ( class_exists( 'TWTAEO_Background_Scan' ) ) {
+			TWTAEO_Background_Scan::clear_schedule();
+		}
 	}
 }

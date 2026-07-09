@@ -1,0 +1,178 @@
+TWT AEO Ultimate — Full Changelog
+=================================
+
+= 2.9.0 =
+
+* **Removed:** The built-in Content Generator module and its remote-generation REST endpoints. AI-assisted drafting is available in the standalone TWT Content Generator plugin instead. AI API keys and all other AI features are unchanged.
+* **Removed:** Dormant bulk OG-image generation code. Per-post, on-demand OG image generation in the editor modal remains.
+* **Removed:** The unused Agency Reporting module registration; the optional TWT Agency connection itself is unchanged.
+* **Compliance:** The last inline admin script block (the metabox one-click schema button) now loads via `wp_enqueue_script()` with localized strings.
+* **Compliance:** Restructured the readme within directory rendering limits. The complete external-services inventory now ships in EXTERNAL-SERVICES.md and the full version history in this file.
+* **Compliance:** Verified every disclosed terms/privacy link resolves and corrected outdated ones; expanded disclosures to name each API endpoint and dashboard link.
+* **i18n:** Regenerated the translation template and fixed translator-comment mismatches.
+
+= 2.8.0 =
+
+* **Compliance:** Output-escaping pass across the plugin. Inline SVG icons are now escaped through `wp_kses()` with an explicit SVG allow-list; JSON-LD schema output is hardened with the full `JSON_HEX_*` flag set so it is inert in HTML; and the WebMCP tool definitions are handed to the browser via `wp_add_inline_script()` instead of being echoed. Every remaining intentional escape exception is documented inline.
+* **Compliance:** All physical-file operations for the `/.well-known/` discovery files (API Catalog, Agent Skills Index, MCP Server Card, OAuth/OIDC) and `robots.txt` now go through the WordPress `WP_Filesystem` API instead of direct PHP filesystem functions.
+* **Compliance:** Unique-prefix pass — every element that used the short `twt_` prefix (the Reviews post type and its meta keys, the merchant-sync snapshot meta, nonces, AJAX/redirect parameters, and a transient) now uses the plugin's `twtaeo_` prefix. A one-time, automatic database migration renames existing data so nothing is lost on upgrade.
+* **Compliance:** base64 transport-encoding calls (cryptography, AI image payloads, OAuth/JWT, HTTP Basic, the admin-menu data-URI icon) are documented as legitimate, non-obfuscation uses.
+* **Security:** The AI Ready settings save now performs independent capability and nonce checks within the handler, and Markdown content negotiation reads its `aeo_format` request flag via a registered query var rather than the raw query string.
+* **Feature:** When the server filesystem is not writable, the AI Ready page now shows step-by-step instructions plus the exact, copy-and-paste contents for creating the `/.well-known/` discovery files (and the `robots.txt` Content-Signal/Sitemap directives) by hand.
+* **Compliance:** Expanded the External Services disclosures with the optional industry-directory links the plugin can surface, and corrected/removed several directory URLs.
+
+= 2.7.0 =
+
+* **Feature:** New **Image SEO** page — scans posts and pages for images missing alt text and fills it with AI vision per item, or via a manual edit modal when no AI provider is connected. Covers the featured image and images embedded in the content, and writes both the Media Library attachment alt and the empty inline `alt=""` in the post HTML (existing alt text is never overwritten). WooCommerce product images remain on the WooCommerce page.
+* **Feature:** Rich WooCommerce Product schema — the per-product schema modal now writes nested Brand, color/material/size, GTIN/MPN, `additionalProperty` custom specs, `itemCondition`, variable products as `ProductGroup` with `variesBy`, cross-sell/related/similar/accessory relationships, `aggregateRating` + individual reviews, and site-wide `OfferShippingDetails` + `hasMerchantReturnPolicy` defaults.
+* **Feature:** AI Product Enrichment engine (per-product, on-demand, non-destructive) — extract attributes from descriptions (with unit conversion to your store units), tag visual attributes from the product image (color/pattern/texture/shape), generate image alt text, enhance the description (fact-grounded, with optional write-back to the product), standardize custom attributes into schema.org fields, resolve brand `sameAs` authority links (Wikipedia/Wikidata/official), and flag competitor-expected fields you're missing.
+* **Feature:** Shared multi-provider AI client (Claude, OpenAI, Google Gemini, Perplexity) with JSON, web-search grounding, and image (vision) input. New "AI Enrichment" settings let you choose an extraction provider and a live-retrieval provider independently.
+* **Feature:** Products table now shows a per-product schema **Optimization score** (9 weighted signals, with the missing ones on hover) and an **image-alt coverage** column — both update live after you save or fill.
+* **Improvement:** `/llms.txt` now includes a Products section for WooCommerce stores — links the shop and product categories and declares that the store publishes Schema.org product data for AI shopping agents.
+* **Improvement:** Updated AI model IDs to current releases (OpenAI `gpt-5.4-mini`, with correct GPT-5 reasoning-model request parameters; image generation on `gpt-image-2`) and verified Claude/Gemini/Perplexity IDs.
+* **Compliance:** Updated the External Services disclosures to cover the new AI uses — WooCommerce product enrichment and Image SEO — and to state that vision features send your own post/product image URLs/contents to the configured AI provider. Added a dedicated Google Gemini API entry. All AI requests remain opt-in, key-gated, and triggered only by an explicit click.
+
+= 2.6.1 =
+
+* **Feature:** AI traffic & citations across the Command Center — a GA4 "AI Assistant Traffic" section (ChatGPT, Gemini, DeepSeek, Copilot, Grok) with per-source sessions, users, and conversions, plus "AI Search" panels on the Search Console and Bing tabs that link out to Google's and Bing's AI performance reports (those stay UI-only until the providers expose APIs).
+* **Feature:** Index Status now inspects every published page (not just the 50 most recently edited) and shows the pages that actually need work — sorted worst-first, with a "Needs work / All scanned" toggle and pagination. Google has no bulk index-status export, so each page is inspected individually via the URL Inspection API.
+* **Feature:** Inline fixes on the Index Status tab — an "Issues & Fixes" column with a modal to fill Open Graph (title/description/image, with AI generation) and generate FAQ schema without leaving the page.
+* **Feature:** Analytics "Top Pages" now includes Bounce Rate, Avg Time, Events, and Conversions plus a plain-language Signal (Converting / Needs work / Likely bots / Healthy) so non-analysts can tell what to act on.
+* **Improvement:** Bing tab "Query Statistics" rebuilt as a proper Top Queries table (query, impressions, clicks, CTR, average position) — it previously discarded the query term and showed a bogus -0 position from click-position data.
+* **Improvement:** Index Status content check now flags missing heading hierarchy (no H2/H3) instead of a missing in-content H1, since WordPress themes render the post title as the page H1.
+* **Improvement:** Modules page descriptions reviewed for accuracy — Social Graph now notes its AI og:description/og:image generation and bulk fill.
+* **Fix:** Setup wizard text corrected — sitemap URL now shows the real /aeo-sitemap.xml path, the completion screen links to the Command Center, and Basics step labels match what they configure.
+* **Improvement:** Plugin Check pass — annotated the legitimate-but-flagged spots (read-only display filters, core-hook calls, custom merchant-queue table queries, guarded set_time_limit) with justified phpcs:ignore comments. No behavior change.
+
+= 2.6.0 =
+
+* **Feature:** AI Discovery File Hits — the Command Center now tracks how many AI crawlers fetch your machine-readable discovery files (robots.txt, llms.txt, llms-full.txt) over a rolling 30-day window, so you can see whether bots are actually using your structured signals. Per-site hits sync to the agency dashboard.
+* **Feature:** "Remove physical robots.txt" button on the AI Ready page — deletes a stranded physical robots.txt (e.g. one left behind by Yoast) so WordPress serves it dynamically again, clearing stale content. No FTP required.
+* **Improvement:** The robots.txt panel is now state-aware and recommends the right action per site — confirms when robots.txt is already dynamic and tracked, or guides you to remove/inject when a physical file is in the way. SEO-plugin detection now covers Yoast, Rank Math, All in One SEO, and SEOPress.
+* **Improvement:** llms.txt, llms-full.txt, and the dynamic robots.txt now send no-cache headers so a full-page cache (host cache or CDN) doesn't serve them without running WordPress — which would hide AI-crawler hits. The dashboard also flags a physical robots.txt as "not tracked" instead of showing a misleading zero.
+* **Fix:** The IndexNow key file now returns HTTP 200 (it was returning 200's body with a 404 status, which made search engines reject it).
+* **Fix:** Saving IndexNow settings no longer fails with "The link you followed has expired" — a nested form was causing a nonce conflict.
+
+= 2.5.0 =
+
+* **Feature:** AI Open Graph images — generate a clean, on-brand social share banner (with the post title rendered on it) for a post on demand from the Social Graph editor modal: choose a style and what to base it on, and the image is added to the Media Library and set as the post's og:image. You can optionally reuse it as the post's featured image.
+* **Feature:** Stop button for the bulk AI-description job, plus per-provider notes showing each model and its relative speed and limitations.
+* **Improvement:** Bulk AI generation is more resilient — a single slow API call that times out is now skipped instead of stopping the whole run (it only gives up after repeated network failures), and the per-request timeout was raised.
+* **Improvement:** Pages with too little body text are skipped during AI description generation, since thin pages only produce generic descriptions.
+* **Improvement:** Added a "Rescan" button to the Social Graph and Schema Detector pages, with a confirmation when the scan refreshes.
+* **Fix:** Google Gemini descriptions are no longer thin or empty — the gemini-2.5 reasoning model was spending its token budget on internal "thinking"; that is now disabled for these short summaries.
+* **Fix:** The Social Graph coverage table now reflects the og:title and og:description saved through the AEO editor (previously only the saved image was detected), so saved values no longer show as "missing" after a rescan.
+* **Fix:** The Schema Detector FAQ tab now recognises FAQPage schema created by its own "Add FAQ Schema" action, so generated schema no longer keeps showing as "Missing".
+
+= 2.4.1 =
+
+* **Feature:** Bulk AI meta-description generation now runs as a background job — it processes server-side in small batches, shows live progress, and continues if you navigate away (on hosts with working WP-Cron). It also advances directly from the dashboard while the page is open, so it works even where WP-Cron is disabled. The run stops cleanly and shows the provider's message on errors such as no remaining API credits.
+* **Feature:** Social Graph — fill missing Open Graph (og:description) values in two ways: reuse the meta descriptions you already have (free and instant) or have AI write share-optimised social copy in the background. The per-post editor modal also gains "Use meta description" and "Generate with AI" buttons.
+* **Fix:** Updated the default Google Gemini model to gemini-2.5-flash (gemini-2.0-flash was retired).
+
+= 2.4.0 =
+
+* **Feature:** AI Meta Descriptions — generate concise meta descriptions with Claude, OpenAI, or Google Gemini. Use the per-post "Generate with AI" button in the editor, the bulk "Generate all missing" action on the dashboard, or turn on automatic generation when a post is first saved (existing descriptions are never overwritten). The description is written to the active SEO plugin's field when one is present, and output as a `<meta name="description">` tag when none is.
+* **Feature:** Added Google Gemini as an AI provider in Settings (key resolves via the `TWTAEO_GEMINI_KEY` constant/env var or the database, like the other providers).
+* **Feature:** Article schema is now output automatically on blog posts that have no SEO plugin supplying it, so posts are no longer left without article-type structured data.
+* **Feature:** New Diagnostics page (System Info + recent error log) with one-click copy for support. A centralized logger captures plugin errors — including a plugin-scoped fatal-error catcher — and redacts credentials from log output.
+* **Improvement:** NewsArticle schema is now opt-in per post via the "Mark as Google News article" toggle instead of being applied to every post; the news sitemap follows the same flag. This stops evergreen content from being mislabelled as news.
+* **Improvement:** E-E-A-T scan now reads your Company Profile and all supported SEO plugins (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Framework) when checking for sameAs links and an Organization name, and the cached scan refreshes automatically when plugins are activated or deactivated.
+* **Improvement:** Index-status results now flag `noindex` and mismatched canonical URLs (the real reasons a page stays unindexed), add an "Edit page" shortcut, and explain what actually drives indexing.
+* **Fix:** The "Add Certification" button on the user profile now works (its script handle was not enqueued on the profile screen).
+* **Fix:** sameAs links saved via the E-E-A-T "Add Links" modal now persist and are detected on rescan.
+
+= 2.3.3 =
+
+* **Compliance:** Plugin Check pass — rewrote database queries cleanly, fixed global-variable usage, and corrected hook-name flags.
+
+= 2.3.2 =
+
+* **Compliance:** Plugin Check compliance pass; declared WordPress 6.2 as the minimum supported version and made the WordPress 7.0 AI Client call conditional.
+
+= 2.3.1 =
+
+* **Security/Guidelines:** The Content Generator now sends Claude and OpenAI requests through the WordPress 7.0 AI Client (`wp_ai_client_prompt()`) when no plugin-owned key is set, so the plugin no longer reads the core Connectors API keys (`connectors_ai_*_api_key`) directly.
+* **Security:** The MCP endpoint (`aeo/v1/mcp`) now runs the same permission checks as the Agent Search endpoint — honouring bot-block rules, rate limits, IP allow-list, user-agent verification, and OAuth bearer auth instead of bypassing them. It remains public by default when no restrictions are configured.
+* **Performance/Guidelines:** Moved all remaining inline `<style>` and `<script>` blocks (admin pages, the Hub metabox, front-end hub shortcodes, the Last Updated badge) into properly enqueued CSS/JS via `wp_enqueue_*`. JSON-LD schema output remains inline as required.
+* **Compliance:** Removed promotional upsell prompts from the AI Crawler Watch and Not Indexed screens; the Not Indexed report now lists every not-indexed page locally instead of capping the free view.
+* **Fix:** Corrected the EasyPRWire service domain and its Terms/Privacy links, and updated the EIN Presswire legal links. All External Services disclosures reviewed and verified.
+
+= 2.3.0 =
+
+* **Feature:** Added Google service-account authentication as a no-OAuth alternative for Search Console and Analytics access on agency-managed sites.
+
+= 2.2.2 =
+
+* **Feature:** Social Graph now auto-fills the Open Graph title and image and adds an `og:image:alt` label.
+* **Feature:** The Dashboard now scans pages beyond the initial 200-page cap in the background, with progress and a completion notice.
+
+= 2.2.1 =
+
+* **Fix:** Resolved a fatal error when author social/credential meta was stored as an array and passed to `json_decode()`.
+* **Branding:** Updated the Modules promo card from "TWT AEO Pro" to "TWT Agency" with an accurate feature list.
+
+= 2.2.0 =
+
+* **Feature:** Content Generator — industry/subtopic-based AI content from Claude, OpenAI, and Perplexity.
+* **Feature:** AEO Command Center — Google Analytics, Search Console, and Bing Webmaster integrations.
+* **Feature:** Background WooCommerce merchant sync to Google Merchant Center and Bing Merchant Center.
+* **Feature:** Connector REST API for the TWT Agency hub, automatic index-status scanning, and remediation endpoints.
+
+= 2.1.1 =
+
+* Renamed the connected dashboard product to **TWT Agency** across the admin UI, settings, and documentation. Sync behavior is unchanged, and existing connection settings are preserved.
+* Updated the External Services disclosures and added Privacy Policy / Terms of Use links covering the optional TWT Agency sync and Token Telemetry features.
+* Readme polish and WordPress.org formatting and compliance fixes.
+
+= 2.1.0 =
+
+* **Compatibility:** Validated against WordPress 7.0; now requires MySQL 8.0.
+* **Feature:** Rebuilt the AI Crawler Watch interface on the WordPress DataViews framework (React) with live client-side filtering, sorting, and status — falling back to a classic table on older environments (< WP 6.5).
+* **Integration:** Registered core operations with the WordPress 7.0 Command Palette and Client-Side Abilities API. Schema Conflict Scan and IndexNow Submit All are now available via `Ctrl+K` and core AI assistants.
+* **Block Editor:** Added iframe-aware state tracking. The AEO Status metabox now reads block state via the `wp.data` store, avoiding direct DOM access in the iframed editor.
+* **Developer:** Added the `TWT_AEO_Key_Resolver` for API credentials, resolved in priority order (PHP constant → environment variable → Connectors → database). Constants are never written to the database.
+* **Server Safeguards:** Added environment checks on admin pages that flag low memory conditions (≤ 128MB) which can conflict with WP 7.0 AI features.
+
+= 1.0.17 =
+
+* Added: Company Profile module — Organization schema, `article:publisher` / `article:author` OG split, `fb:app_id` (Meta Business Sync), and Yoast / Rank Math one-click sync.
+* Added: Per-bot controls — custom rate limits and Block toggles for 20 known AI crawlers.
+* Added: `/llms-full.txt` generation mirrored against your sitemap configuration.
+
+= 1.0.16 =
+
+* Added: Repeatable `EducationalOccupationalCredential` fields on the author profile.
+* Added: Configurable frontend author hover cards.
+
+= 1.0.15 =
+
+* Added: XML sitemap generator at `/aeo-sitemap.xml`.
+* Added: Conflict detection against external SEO-suite sitemaps.
+* Added: IndexNow publishing hooks.
+
+= 1.0.14 =
+
+* Added: AI Ready toolkit — `llms.txt`, agent endpoints, and discovery/authentication routes.
+* Added: MCP server configuration.
+
+= 1.0.13 =
+
+* Added: Command Center overview with crawler analytics and a default 30-day log retention.
+
+= 1.0.12 =
+
+* Added: Open Graph and social metadata output with automatic conflict avoidance.
+
+= 1.0.11 =
+
+* Added: Author profile schema and a configurable frontend author box.
+
+= 1.0.10 =
+
+* Added: Schema Detector for FAQ and Service content.
+* Added: Local Pack module and LocalBusiness schema.
+
+= 1.0.0 =
+
+* Initial release — module loader, dashboard, settings, and data transmitter.

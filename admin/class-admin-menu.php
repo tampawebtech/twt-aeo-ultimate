@@ -66,6 +66,16 @@ class TWTAEO_Admin_Menu {
 			array( 'TWTAEO_Page_Settings', 'render' )
 		);
 
+		// Diagnostics — always visible (System Info + error log for support).
+		add_submenu_page(
+			'twt-aeo',
+			__( 'Diagnostics', 'twt-aeo-ultimate' ),
+			__( 'Diagnostics', 'twt-aeo-ultimate' ),
+			'manage_options',
+			'twt-aeo-diagnostics',
+			array( 'TWTAEO_Page_Diagnostics', 'render' )
+		);
+
 		// AEO Command Center — always visible.
 		add_submenu_page(
 			'twt-aeo',
@@ -99,6 +109,16 @@ class TWTAEO_Admin_Menu {
 				array( 'TWTAEO_Page_Schema_Detector', 'render' )
 			);
 		}
+
+		// Image SEO — always visible (alt text for posts/pages; products handled on the WooCommerce page).
+		add_submenu_page(
+			'twt-aeo',
+			__( 'Image SEO', 'twt-aeo-ultimate' ),
+			__( 'Image SEO', 'twt-aeo-ultimate' ),
+			'manage_options',
+			'twt-aeo-image-seo',
+			array( 'TWTAEO_Page_Image_SEO', 'render' )
+		);
 
 		// E-E-A-T Scorecard — always visible (Author Info + Company Info are tabs within this page).
 		add_submenu_page(
@@ -179,19 +199,6 @@ class TWTAEO_Admin_Menu {
 				'manage_options',
 				'twt-aeo-pr-bridge',
 				array( 'TWTAEO_Page_PR_Bridge', 'render' )
-			);
-		}
-
-		// Content Generator — only when module is active and standalone CG plugin is NOT active
-		// (when TWT_CG_ACTIVE is defined, the CG plugin registers its own submenu here).
-		if ( $this->modules->is_active( 'content-generator' ) && ! defined( 'TWT_CG_ACTIVE' ) ) {
-			add_submenu_page(
-				'twt-aeo',
-				__( 'Content Generator', 'twt-aeo-ultimate' ),
-				__( 'Content Generator', 'twt-aeo-ultimate' ),
-				'manage_options',
-				'twt-aeo-content-generator',
-				array( 'TWTAEO_Page_Content_Generator', 'render' )
 			);
 		}
 
@@ -297,6 +304,6 @@ class TWTAEO_Admin_Menu {
 			<path d="M10 1a9 9 0 0 0-9 9" stroke="black" stroke-width="1.5" stroke-linecap="round" fill="none"/>
 		</svg>';
 
-		return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Standard data-URI encoding for an inline admin-menu SVG icon, not obfuscation.
 	}
 }

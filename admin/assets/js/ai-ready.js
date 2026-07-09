@@ -88,6 +88,38 @@
 		} );
 	} );
 
+	// Remove the physical robots.txt so WordPress serves it dynamically.
+	$( '#twt-aeo-remove-robots' ).on( 'click', function () {
+		var $btn    = $( this );
+		var $status = $( '#twt-aeo-inject-status' );
+		var nonce   = $btn.data( 'nonce' );
+		var label   = __( 'Remove physical robots.txt (serve dynamically)', 'twt-aeo-ultimate' );
+
+		if ( ! window.confirm( __( 'Delete the physical robots.txt file? WordPress will serve robots.txt dynamically afterward. This cannot be undone.', 'twt-aeo-ultimate' ) ) ) {
+			return;
+		}
+
+		$btn.prop( 'disabled', true ).text( __( 'Removing…', 'twt-aeo-ultimate' ) );
+		$status.text( '' ).css( 'color', '' );
+
+		$.post( twtAeo.ajaxUrl, {
+			action: 'twtaeo_remove_robots',
+			nonce:  nonce,
+		}, function ( response ) {
+			if ( response.success ) {
+				$status.text( __( 'Removed. WordPress now serves robots.txt dynamically — reload to refresh.', 'twt-aeo-ultimate' ) ).css( 'color', 'var(--aeo-success, #2a9d5c)' );
+				// The notice block only applies to a physical file; hide it.
+				$( '#twt-aeo-robots-notice' ).slideUp();
+			} else {
+				$status.text( __( 'Error:', 'twt-aeo-ultimate' ) + ' ' + ( response.data || 'Unknown error.' ) ).css( 'color', '#cc0000' );
+				$btn.text( label ).prop( 'disabled', false );
+			}
+		} ).fail( function () {
+			$status.text( __( 'Request failed. Check your connection.', 'twt-aeo-ultimate' ) ).css( 'color', '#cc0000' );
+			$btn.text( label ).prop( 'disabled', false );
+		} );
+	} );
+
 	// ── Path Diagnostic ──────────────────────────────────────────────────────
 
 	$( '#twt-aeo-run-diagnostic' ).on( 'click', function () {

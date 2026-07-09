@@ -194,7 +194,12 @@ class TWTAEO_Author_Box_Detector {
 		// Check theme functions for author-related hooks or functions.
 		$theme_functions = get_template_directory() . '/functions.php';
 		if ( file_exists( $theme_functions ) ) {
-			$functions_content = file_get_contents( $theme_functions );
+			global $wp_filesystem;
+			if ( ! $wp_filesystem ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+				WP_Filesystem();
+			}
+			$functions_content = $wp_filesystem ? $wp_filesystem->get_contents( $theme_functions ) : '';
 			if ( stripos( $functions_content, 'author' ) !== false &&
 			     stripos( $functions_content, 'bio' ) !== false ) {
 				return true;

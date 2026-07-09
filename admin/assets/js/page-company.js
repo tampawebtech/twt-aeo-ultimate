@@ -1,4 +1,4 @@
-﻿/* WP.org compliance: extracted from admin/pages/class-page-company.php inline <script> */
+﻿/* WP.org compliance: extracted from admin/pages/class-page-company.php inline script block */
 /* global twtAeoCompany */
 ( function () {
 	'use strict';

@@ -37,13 +37,18 @@ class TWTAEO_Page_Dashboard {
 		$paged       = min( $paged, $total_pages );
 		$all_pages   = TWTAEO_Scan_Store::get_all_pages_with_status( $paged, $per_page );
 
-		// Build the list of all post IDs for Scan All.
+		// Build the list of post IDs scanned interactively by Scan All. Anything
+		// beyond this cap is handed to the background scanner when the
+		// foreground pass finishes.
 		$all_post_ids = get_posts( array(
 			'post_type'      => TWTAEO_Scan_Store::get_scannable_post_types(),
 			'post_status'    => 'publish',
-			'posts_per_page' => 200,
+			'posts_per_page' => TWTAEO_Background_Scan::FOREGROUND_CAP,
 			'fields'         => 'ids',
 		) );
+		$bg_remaining = max( 0, $total_posts - count( $all_post_ids ) );
+		$bg_state     = TWTAEO_Background_Scan::get_state();
+		$bg_running   = TWTAEO_Background_Scan::is_running( $bg_state );
 
 		?>
 		<div class="wrap twt-aeo-wrap">
@@ -72,16 +77,45 @@ class TWTAEO_Page_Dashboard {
 							class="twt-aeo-btn twt-aeo-btn--primary"
 							data-nonce="<?php echo esc_attr( wp_create_nonce( 'twtaeo_scan_nonce' ) ); ?>"
 							data-ids="<?php echo esc_attr( wp_json_encode( $all_post_ids ) ); ?>"
+							data-remaining="<?php echo esc_attr( $bg_remaining ); ?>"
 						>
 							<span class="dashicons dashicons-update" style="vertical-align:middle;margin-top:-2px;margin-right:4px;font-size:14px;width:14px;height:14px;"></span>
 							<?php esc_html_e( 'Scan All Pages', 'twt-aeo-ultimate' ); ?>
 						</button>
+						<?php if ( class_exists( 'TWTAEO_Pro_Transmitter' ) && TWTAEO_Pro_Transmitter::is_connected() ) :
+							$last_handshake = class_exists( 'TWTAEO_Data_Handshake' ) ? TWTAEO_Data_Handshake::get_last_handshake() : array();
+						?>
+						<button
+							type="button"
+							id="twt-aeo-handshake-btn"
+							class="twt-aeo-btn"
+							data-nonce="<?php echo esc_attr( wp_create_nonce( 'twtaeo_handshake_nonce' ) ); ?>"
+							title="<?php esc_attr_e( 'Bundle baseline, schema & performance data, send it to the Agency Hub, then purge transmitted local logs.', 'twt-aeo-ultimate' ); ?>"
+						>
+							<span class="dashicons dashicons-cloud-upload" style="vertical-align:middle;margin-top:-2px;margin-right:4px;font-size:14px;width:14px;height:14px;"></span>
+							<?php esc_html_e( 'Sync Now', 'twt-aeo-ultimate' ); ?>
+						</button>
+						<span id="twt-aeo-handshake-status" class="twt-aeo-handshake-status" style="margin-left:8px;font-size:12px;opacity:.8;">
+							<?php
+							if ( ! empty( $last_handshake['transmitted_at'] ) ) {
+								printf(
+									/* translators: %s: human-readable time difference */
+									esc_html__( 'Last sync: %s ago', 'twt-aeo-ultimate' ),
+									esc_html( human_time_diff( strtotime( $last_handshake['transmitted_at'] ), current_time( 'timestamp' ) ) )
+								);
+							}
+							?>
+						</span>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>
 
-			<!-- Scan All Progress Bar (hidden until scan starts) -->
-			<div id="twt-aeo-scan-progress" style="display:none;margin:0 0 24px;">
+			<!-- Scan All Progress Bar (hidden until scan starts; shown on load when a background scan is running) -->
+			<div id="twt-aeo-scan-progress" style="display:none;margin:0 0 24px;"
+				data-bg-running="<?php echo $bg_running ? '1' : '0'; ?>"
+				data-bg-done="<?php echo esc_attr( (int) $bg_state['done'] ); ?>"
+				data-bg-total="<?php echo esc_attr( (int) $bg_state['total'] ); ?>">
 				<div class="twt-aeo-progress-bar-wrap">
 					<div class="twt-aeo-progress-bar">
 						<div class="twt-aeo-progress-bar__fill" id="twt-aeo-progress-fill" style="width:0%"></div>
@@ -91,6 +125,82 @@ class TWTAEO_Page_Dashboard {
 					</span>
 				</div>
 			</div>
+
+			<?php
+			// ── AI Meta Descriptions panel ──────────────────────────────────────
+			$ai_providers = TWTAEO_AI_Description::available_providers();
+			$ai_enabled   = TWTAEO_AI_Description::is_enabled();
+			$ai_provider  = TWTAEO_AI_Description::get_provider();
+			$ai_labels    = array( 'claude' => 'Claude', 'openai' => 'OpenAI (ChatGPT)', 'gemini' => 'Gemini' );
+			$ai_job       = TWTAEO_AI_Description::job_payload();
+			?>
+			<section class="twt-aeo-section">
+				<div class="twt-aeo-card" style="border-left:3px solid #2271b1;">
+					<h2 style="margin:0 0 6px;font-size:15px;display:flex;align-items:center;gap:8px;">
+						<span class="dashicons dashicons-superhero" style="color:#2271b1;"></span>
+						<?php esc_html_e( 'AI Meta Descriptions', 'twt-aeo-ultimate' ); ?>
+					</h2>
+					<p style="margin:0 0 14px;color:#50575e;font-size:13px;max-width:760px;line-height:1.55;">
+						<?php esc_html_e( 'Turn this on and the plugin will automatically write a meta description for a post the first time you save it (existing descriptions are never overwritten). You can also generate one on demand from each post\'s editor, or fill in everything that\'s missing in bulk below. Pick which AI does the writing.', 'twt-aeo-ultimate' ); ?>
+					</p>
+
+					<?php if ( empty( $ai_providers ) ) : ?>
+						<p style="margin:0;font-size:13px;color:#b32d2e;">
+							<?php
+							printf(
+								wp_kses(
+									/* translators: %s: Settings page URL. */
+									__( 'No AI provider is configured yet. Add a Claude, OpenAI, or Gemini key under <a href="%s">TWT AEO &rsaquo; Settings</a> to enable this.', 'twt-aeo-ultimate' ),
+									array( 'a' => array( 'href' => array() ) )
+								),
+								esc_url( admin_url( 'admin.php?page=twt-aeo-settings' ) )
+							);
+							?>
+						</p>
+					<?php else : ?>
+						<div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;"
+							id="twt-aeo-aidesc"
+							data-nonce="<?php echo esc_attr( wp_create_nonce( TWTAEO_AI_Description::NONCE ) ); ?>"
+							data-running="<?php echo $ai_job['running'] ? '1' : '0'; ?>">
+
+							<label class="twt-aeo-toggle" style="display:inline-flex;align-items:center;gap:10px;">
+								<input type="checkbox" id="twt-aeo-aidesc-enabled" <?php checked( $ai_enabled ); ?> />
+								<span class="twt-aeo-toggle__slider"></span>
+								<span style="font-size:13px;font-weight:600;"><?php esc_html_e( 'Auto-generate on save', 'twt-aeo-ultimate' ); ?></span>
+							</label>
+
+							<label style="font-size:13px;display:inline-flex;align-items:center;gap:8px;">
+								<?php esc_html_e( 'AI provider', 'twt-aeo-ultimate' ); ?>
+								<select id="twt-aeo-aidesc-provider">
+									<?php foreach ( $ai_providers as $slug ) : ?>
+										<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $ai_provider, $slug ); ?>>
+											<?php echo esc_html( $ai_labels[ $slug ] ?? ucfirst( $slug ) ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</label>
+
+							<span style="flex:1;min-width:40px;"></span>
+
+							<button type="button" class="button button-primary" id="twt-aeo-aidesc-bulk">
+								<?php esc_html_e( 'Generate all missing', 'twt-aeo-ultimate' ); ?>
+							</button>
+							<button type="button" class="button" id="twt-aeo-aidesc-stop" style="display:none;">
+								<?php esc_html_e( 'Stop', 'twt-aeo-ultimate' ); ?>
+							</button>
+							<span id="twt-aeo-aidesc-status" style="font-size:12px;color:#646970;"></span>
+
+							<p id="twt-aeo-aidesc-note" style="flex-basis:100%;margin:2px 0 0;font-size:13px;color:#646970;line-height:1.55;"></p>
+						</div>
+
+						<div class="notice notice-warning inline" style="margin:14px 0 0;padding:8px 12px;">
+							<p style="margin:0;font-size:13px;line-height:1.55;">
+								<?php esc_html_e( 'Usage & cost: each description is one API call to your chosen provider, billed to your own account based on token usage. Generating a single post from its editor costs a fraction of a cent; the bulk run processes every post that is missing a description, so it scales with your site size. Before a bulk run you will be shown the exact number of posts and asked to confirm. Bulk generation runs in the background — you can safely leave this page once it starts.', 'twt-aeo-ultimate' ); ?>
+							</p>
+						</div>
+					<?php endif; ?>
+				</div>
+			</section>
 
 			<?php if ( $conflict ) : ?>
 			<section class="twt-aeo-section">
@@ -1169,7 +1279,176 @@ class TWTAEO_Page_Dashboard {
 				scanNext(0);
 			});
 
+			// ── Data Handshake: Sync Now ─────────────────────────────────────
+			$('#twt-aeo-handshake-btn').on('click', function() {
+				var $btn    = $(this);
+				var $status = $('#twt-aeo-handshake-status');
+				var nonce   = $btn.data('nonce');
+
+				if ( $btn.prop('disabled') ) { return; }
+				$btn.prop('disabled', true);
+				$status.css('opacity', 1).text('Syncing…');
+
+				$.post( ajaxurl, {
+					action: 'twtaeo_data_handshake',
+					nonce:  nonce
+				}, function( response ) {
+					if ( response && response.success ) {
+						var c = ( response.data && response.data.counts ) || {};
+						$status.text(
+							'Synced — ' +
+							( c.baseline_pages || 0 ) + ' baseline, ' +
+							( c.schema_deployments || 0 ) + ' schema, ' +
+							( c.crawler_entries || 0 ) + ' crawler hits sent' +
+							( c.crawler_purged ? ' (' + c.crawler_purged + ' purged)' : '' )
+						);
+					} else {
+						$status.text( ( response && response.data && response.data.message ) || 'Sync failed.' );
+					}
+				}).fail(function(){
+					$status.text('Sync failed — network error.');
+				}).always(function(){
+					$btn.prop('disabled', false);
+				});
+			});
+
 		}); // end document.ready
+		<?php
+		$js = ob_get_clean();
+		wp_add_inline_script( 'twt-aeo-admin', $js );
+
+		// ── AI Meta Descriptions panel JS ───────────────────────────────────────
+		ob_start();
+		?>
+		jQuery(function($){
+			var $wrap = $('#twt-aeo-aidesc');
+			if (!$wrap.length) { return; }
+			var nonce   = $wrap.data('nonce');
+			var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+
+			function saveSettings(){
+				$.post(ajaxurl, {
+					action:   'twtaeo_ai_desc_settings',
+					nonce:    nonce,
+					enabled:  $('#twt-aeo-aidesc-enabled').is(':checked') ? 1 : 0,
+					provider: $('#twt-aeo-aidesc-provider').val()
+				});
+			}
+			$('#twt-aeo-aidesc-enabled, #twt-aeo-aidesc-provider').on('change', saveSettings);
+
+			var $btn    = $('#twt-aeo-aidesc-bulk');
+			var $stop   = $('#twt-aeo-aidesc-stop');
+			var $status = $('#twt-aeo-aidesc-status');
+			var $note   = $('#twt-aeo-aidesc-note');
+			var polling = null;
+
+			// Per-provider model + speed/limitation note, shown under the picker.
+			var providerInfo = <?php echo wp_json_encode( TWTAEO_AI_Description::provider_info() ); ?>;
+			function updateNote(){
+				var info = providerInfo[$('#twt-aeo-aidesc-provider').val()];
+				if (info){ $note.text(info.model + ' — ' + info.note); }
+				else { $note.text(''); }
+			}
+			$('#twt-aeo-aidesc-provider').on('change', updateNote);
+			updateNote();
+
+			function renderState(s){
+				if (!s){ return; }
+				if (s.running || s.status === 'running'){
+					$btn.prop('disabled', true);
+					$stop.show().prop('disabled', false);
+					$status.css('color', '#646970').text(
+						(s.done || 0) + ' / ' + (s.total || 0) + ' — '
+						+ <?php echo wp_json_encode( __( 'generating in background (you can leave this page)…', 'twt-aeo-ultimate' ) ); ?>
+					);
+				} else if (s.status === 'error'){
+					$btn.prop('disabled', false);
+					$stop.hide();
+					$status.html('<span style="color:#b32d2e;">'
+						+ <?php echo wp_json_encode( __( 'Stopped: ', 'twt-aeo-ultimate' ) ); ?> + (s.last_error || 'error')
+						+ '</span> (' + (s.created || 0) + ' ' + <?php echo wp_json_encode( __( 'created', 'twt-aeo-ultimate' ) ); ?> + ')');
+				} else if (s.status === 'stopped'){
+					$btn.prop('disabled', false);
+					$stop.hide();
+					$status.css('color', '#646970').text(
+						(s.created || 0) + ' ' + <?php echo wp_json_encode( __( 'created — stopped.', 'twt-aeo-ultimate' ) ); ?>
+					);
+				} else if (s.status === 'done'){
+					$btn.prop('disabled', false);
+					$stop.hide();
+					$status.css('color', '#1a6629').text((s.created || 0) + ' ' + <?php echo wp_json_encode( __( 'descriptions created.', 'twt-aeo-ultimate' ) ); ?>);
+				} else {
+					$btn.prop('disabled', false);
+					$stop.hide();
+				}
+			}
+
+			function poll(){
+				$.post(ajaxurl, { action:'twtaeo_ai_desc_status', nonce:nonce }, function(res){
+					if (!res.success){ return; }
+					renderState(res.data);
+					if (res.data.status !== 'running'){ clearInterval(polling); polling = null; }
+				});
+			}
+			function startPolling(){
+				if (polling){ return; }
+				poll();
+				polling = setInterval(poll, 4000);
+			}
+
+			$btn.on('click', function(){
+				$btn.prop('disabled', true);
+				$status.css('color', '#646970').text(<?php echo wp_json_encode( __( 'Finding posts…', 'twt-aeo-ultimate' ) ); ?>);
+				$.post(ajaxurl, { action:'twtaeo_ai_desc_bulk', nonce:nonce }, function(res){
+					if (!res.success){ $status.text(res.data || 'Error'); $btn.prop('disabled', false); return; }
+					var count = res.data.count || 0;
+					if (!count){
+						$status.text(<?php echo wp_json_encode( __( 'All posts already have descriptions.', 'twt-aeo-ultimate' ) ); ?>);
+						$btn.prop('disabled', false);
+						return;
+					}
+
+					// Cost gate — confirm the number of billed API calls before running.
+					var providerLabel = $('#twt-aeo-aidesc-provider option:selected').text();
+					var confirmMsg = count + <?php echo wp_json_encode( ' ' . __( 'posts are missing a description.', 'twt-aeo-ultimate' ) ); ?>
+						+ '\n\n' + <?php echo wp_json_encode( __( 'This will make one API call per post', 'twt-aeo-ultimate' ) ); ?>
+						+ ' (' + count + ') ' + <?php echo wp_json_encode( __( 'using', 'twt-aeo-ultimate' ) ); ?> + ' ' + providerLabel + ', '
+						+ <?php echo wp_json_encode( __( 'billed to your account. It runs in the background, so you can leave this page. Continue?', 'twt-aeo-ultimate' ) ); ?>;
+					if (!window.confirm(confirmMsg)){
+						$status.text(<?php echo wp_json_encode( __( 'Cancelled.', 'twt-aeo-ultimate' ) ); ?>);
+						$btn.prop('disabled', false);
+						return;
+					}
+
+					var fd = new FormData();
+					fd.append('action',   'twtaeo_ai_desc_start');
+					fd.append('nonce',    nonce);
+					fd.append('provider', $('#twt-aeo-aidesc-provider').val());
+					fetch(ajaxurl, { method:'POST', body:fd, credentials:'same-origin' })
+						.then(function(r){ return r.json(); })
+						.then(function(r){
+							if (r.success){ renderState(r.data); startPolling(); }
+							else { $status.text(r.data || 'Error'); $btn.prop('disabled', false); }
+						})
+						.catch(function(){ $status.text(<?php echo wp_json_encode( __( 'Network error.', 'twt-aeo-ultimate' ) ); ?>); $btn.prop('disabled', false); });
+				});
+			});
+
+			$stop.on('click', function(){
+				$stop.prop('disabled', true);
+				$.post(ajaxurl, { action:'twtaeo_ai_desc_stop', nonce:nonce }, function(res){
+					if (res && res.success){
+						renderState(res.data);
+						if (res.data.status !== 'running'){ clearInterval(polling); polling = null; }
+					} else {
+						$stop.prop('disabled', false);
+					}
+				}).fail(function(){ $stop.prop('disabled', false); });
+			});
+
+			// Resume the live view if a job is already running when the page loads.
+			if (String($wrap.data('running')) === '1'){ startPolling(); }
+		});
 		<?php
 		$js = ob_get_clean();
 		wp_add_inline_script( 'twt-aeo-admin', $js );

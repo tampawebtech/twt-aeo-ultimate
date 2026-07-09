@@ -49,6 +49,34 @@ class TWTAEO_Author_Meta {
 		add_action( 'edit_user_profile',         array( __CLASS__, 'render_profile_fields' ) );
 		add_action( 'personal_options_update',   array( __CLASS__, 'save_profile_fields' ) );
 		add_action( 'edit_user_profile_update',  array( __CLASS__, 'save_profile_fields' ) );
+		add_action( 'admin_enqueue_scripts',     array( __CLASS__, 'enqueue_profile_assets' ) );
+	}
+
+	/**
+	 * Ensure the shared admin script handle is enqueued on the user profile
+	 * screens. The profile fields attach the "Add Certification" button handler
+	 * via wp_add_inline_script( 'twt-aeo-admin', ... ), which silently no-ops if
+	 * the handle is not enqueued — and TWTAEO_Admin_Assets only loads it on
+	 * plugin pages (hooks containing "twt-aeo"), not profile.php / user-edit.php.
+	 *
+	 * @param string $hook Current admin page hook suffix.
+	 */
+	public static function enqueue_profile_assets( $hook ) {
+		if ( 'profile.php' !== $hook && 'user-edit.php' !== $hook ) {
+			return;
+		}
+
+		if ( ! wp_script_is( 'twt-aeo-admin', 'registered' ) && ! wp_script_is( 'twt-aeo-admin', 'enqueued' ) ) {
+			wp_enqueue_script(
+				'twt-aeo-admin',
+				TWTAEO_PLUGIN_URL . 'admin/assets/js/admin.js',
+				array( 'jquery', 'wp-i18n' ),
+				TWTAEO_VERSION,
+				true
+			);
+		} else {
+			wp_enqueue_script( 'twt-aeo-admin' );
+		}
 	}
 
 	// ── Data access ────────────────────────────────────────────────────────────
@@ -90,11 +118,7 @@ class TWTAEO_Author_Meta {
 	 * @return array
 	 */
 	public static function get_certifications( $user_id ) {
-		$raw = get_user_meta( $user_id, 'twtaeo_certifications', true );
-		if ( empty( $raw ) ) {
-			return array();
-		}
-		$decoded = json_decode( $raw, true );
+		$decoded = self::decode_meta( get_user_meta( $user_id, 'twtaeo_certifications', true ) );
 		return is_array( $decoded ) ? $decoded : array();
 	}
 
@@ -105,12 +129,9 @@ class TWTAEO_Author_Meta {
 	 * @return array
 	 */
 	public static function get_social( $user_id ) {
-		$raw = get_user_meta( $user_id, 'twtaeo_social', true );
-		if ( ! empty( $raw ) ) {
-			$decoded = json_decode( $raw, true );
-			if ( is_array( $decoded ) ) {
-				return $decoded;
-			}
+		$decoded = self::decode_meta( get_user_meta( $user_id, 'twtaeo_social', true ) );
+		if ( is_array( $decoded ) ) {
+			return $decoded;
 		}
 
 		// Fall back to native WP keys.
@@ -119,6 +140,25 @@ class TWTAEO_Author_Meta {
 			'twitter'  => get_user_meta( $user_id, 'twitter', true ),
 			'website'  => $user ? $user->user_url : '',
 		);
+	}
+
+	/**
+	 * Decode a meta value that may be a JSON string (profile-page writes) or
+	 * already an array (historical Setup Wizard writes). PHP 8 fatals if an
+	 * array reaches json_decode(), so neither write path may assume the other.
+	 *
+	 * @param mixed $raw
+	 * @return array|null
+	 */
+	private static function decode_meta( $raw ) {
+		if ( is_array( $raw ) ) {
+			return $raw;
+		}
+		if ( is_string( $raw ) && $raw !== '' ) {
+			$decoded = json_decode( $raw, true );
+			return is_array( $decoded ) ? $decoded : null;
+		}
+		return null;
 	}
 
 	/**
@@ -132,6 +172,9 @@ class TWTAEO_Author_Meta {
 		$same_as = array();
 
 		foreach ( $social as $url ) {
+			if ( ! is_string( $url ) ) {
+				continue;
+			}
 			$url = trim( $url );
 			if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
 				$same_as[] = $url;
@@ -407,9 +450,9 @@ class TWTAEO_Author_Meta {
 		</button>
 
 		<!-- Cert row template (hidden) -->
-		<script type="text/html" id="twt-aeo-cert-template">
+		<template id="twt-aeo-cert-template">
 			<?php self::render_cert_row( '__INDEX__', array() ); ?>
-		</script>
+		</template>
 
 		<?php
 		ob_start();

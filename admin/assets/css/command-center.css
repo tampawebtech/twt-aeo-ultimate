@@ -557,6 +557,71 @@
 	color: #1e40af;
 }
 
+/* ── Top Pages signal badges + cell flags ───────────────────────────────── */
+
+.twt-aeo-cc__signal-badge {
+	display: inline-block;
+	padding: 3px 9px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	white-space: nowrap;
+}
+
+.twt-aeo-cc__sig--good {
+	background: #d1f0da;
+	color: #0a6b2e;
+}
+
+.twt-aeo-cc__sig--ok {
+	background: #e7f0fb;
+	color: #1e40af;
+}
+
+.twt-aeo-cc__sig--bots {
+	background: #f0f0f0;
+	color: #50575e;
+}
+
+.twt-aeo-cc__sig--bad {
+	background: #fde8e8;
+	color: #9b1c1c;
+}
+
+.twt-aeo-cc__cell--warn {
+	color: #92400e;
+	font-weight: 600;
+}
+
+.twt-aeo-cc__cell--bad {
+	color: #9b1c1c;
+	font-weight: 700;
+}
+
+.twt-aeo-cc__table-note {
+	margin: 8px 0 0;
+	font-size: 12px;
+	color: #787c82;
+	line-height: 1.5;
+}
+
+.twt-aeo-cc__callout {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+	padding: 14px 16px;
+}
+
+.twt-aeo-cc__callout p {
+	margin: 0 0 10px;
+	font-size: 13px;
+	color: #3c434a;
+	line-height: 1.5;
+}
+
 .twt-aeo-cc__rec-table td {
 	vertical-align: top;
 	padding-top: 10px;

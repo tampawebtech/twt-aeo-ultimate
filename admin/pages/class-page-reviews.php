@@ -223,8 +223,8 @@ class TWTAEO_Page_Reviews {
 							<?php if ( ! $is_pub ) : ?>
 							<a href="<?php echo esc_url( add_query_arg( array(
 								'twtaeo_tab'        => 'reviews',
-								'twt_review_action'  => 'approve',
-								'twt_review_id'      => $review->ID,
+								'twtaeo_review_action'  => 'approve',
+								'twtaeo_review_id'      => $review->ID,
 								'_wpnonce'           => $nonce,
 							), $base_url ) ); ?>" class="button button-small" style="background:#d1fae5;border-color:#a7f3d0;color:#065f46;">
 								<?php esc_html_e( 'Approve', 'twt-aeo-ultimate' ); ?>
@@ -232,8 +232,8 @@ class TWTAEO_Page_Reviews {
 							<?php else : ?>
 							<a href="<?php echo esc_url( add_query_arg( array(
 								'twtaeo_tab'        => 'reviews',
-								'twt_review_action'  => 'unapprove',
-								'twt_review_id'      => $review->ID,
+								'twtaeo_review_action'  => 'unapprove',
+								'twtaeo_review_id'      => $review->ID,
 								'_wpnonce'           => $nonce,
 							), $base_url ) ); ?>" class="button button-small">
 								<?php esc_html_e( 'Unapprove', 'twt-aeo-ultimate' ); ?>
@@ -241,8 +241,8 @@ class TWTAEO_Page_Reviews {
 							<?php endif; ?>
 							<a href="<?php echo esc_url( add_query_arg( array(
 								'twtaeo_tab'        => 'reviews',
-								'twt_review_action'  => 'delete',
-								'twt_review_id'      => $review->ID,
+								'twtaeo_review_action'  => 'delete',
+								'twtaeo_review_id'      => $review->ID,
 								'_wpnonce'           => $nonce,
 							), $base_url ) ); ?>" class="button button-small"
 							   style="color:#dc2626;border-color:#fca5a5;"
@@ -521,7 +521,7 @@ class TWTAEO_Page_Reviews {
 	// ── Action handling ───────────────────────────────────────────────────────
 
 	private static function maybe_handle_action() {
-		$action = sanitize_key( wp_unslash( $_GET['twt_review_action'] ?? '' ) );
+		$action = sanitize_key( wp_unslash( $_GET['twtaeo_review_action'] ?? '' ) );
 		if ( ! $action ) {
 			return;
 		}
@@ -532,7 +532,7 @@ class TWTAEO_Page_Reviews {
 			return;
 		}
 
-		$review_id = absint( wp_unslash( $_GET['twt_review_id'] ?? 0 ) );
+		$review_id = absint( wp_unslash( $_GET['twtaeo_review_id'] ?? 0 ) );
 		if ( ! $review_id ) {
 			return;
 		}
@@ -551,7 +551,7 @@ class TWTAEO_Page_Reviews {
 
 		// Redirect clean — remove action/nonce params.
 		$redirect = add_query_arg(
-			array( 'twtaeo_tab' => 'reviews', 'twt_review_action' => false, 'twt_review_id' => false, '_wpnonce' => false ),
+			array( 'twtaeo_tab' => 'reviews', 'twtaeo_review_action' => false, 'twtaeo_review_id' => false, '_wpnonce' => false ),
 			menu_page_url( 'twt-aeo-reviews', false )
 		);
 		wp_safe_redirect( $redirect );

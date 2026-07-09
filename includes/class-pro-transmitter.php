@@ -62,6 +62,7 @@ class TWTAEO_Pro_Transmitter {
 		// Send a plugin_status snapshot once daily
 		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_plugin_status' ) );
 		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_google_snapshots' ) );
+		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_bing_snapshot' ) );
 		if ( ! wp_next_scheduled( 'twtaeo_pro_daily_sync' ) ) {
 			wp_schedule_event( time(), 'daily', 'twtaeo_pro_daily_sync' );
 		}
@@ -78,8 +79,14 @@ class TWTAEO_Pro_Transmitter {
 			&& TWTAEO_Key_Resolver::get( 'pro_key' ) !== '';
 	}
 
+	/**
+	 * Transmit a typed payload to the Agency Hub.
+	 *
+	 * @return bool True only when the Hub confirms receipt (HTTP 200). Callers that
+	 *              purge local data after sending must gate the purge on this.
+	 */
 	public static function send( $type, $data ) {
-		if ( ! self::is_connected() ) return;
+		if ( ! self::is_connected() ) return false;
 
 		$response = wp_remote_post( esc_url_raw( TWTAEO_Key_Resolver::get( 'pro_url' ) ), array(
 			'timeout' => 10,
@@ -95,7 +102,10 @@ class TWTAEO_Pro_Transmitter {
 
 		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
 			update_option( 'twtaeo_pro_last_sync', current_time( 'mysql' ) );
+			return true;
 		}
+
+		return false;
 	}
 
 	public static function send_plugin_status() {
@@ -110,6 +120,7 @@ class TWTAEO_Pro_Transmitter {
 
 	// Call this from schema writers when schema is added
 	public static function send_schema_added( $schema_type, $post_id = null ) {
+		self::record_schema_deploy( $post_id, $schema_type );
 		self::send( 'schema_added', array(
 			'schema_type' => $schema_type,
 			'post_id'     => $post_id,
@@ -120,6 +131,7 @@ class TWTAEO_Pro_Transmitter {
 
 	// Call this from schema writers when schema is updated
 	public static function send_schema_changed( $schema_type, $post_id = null, $changes = array() ) {
+		self::record_schema_deploy( $post_id, $schema_type );
 		self::send( 'schema_changed', array(
 			'schema_type' => $schema_type,
 			'post_id'     => $post_id,
@@ -127,6 +139,32 @@ class TWTAEO_Pro_Transmitter {
 			'post_title'  => $post_id ? get_the_title( $post_id ) : '',
 			'changes'     => $changes,
 		) );
+	}
+
+	// Record when a schema type was deployed to a post, so the Data Handshake can
+	// report deployment timestamps. Stored as [ schema_type => mysql_datetime ].
+	private static function record_schema_deploy( $post_id, $schema_type ) {
+		if ( ! $post_id || ! $schema_type ) {
+			return;
+		}
+		$deployed = get_post_meta( $post_id, '_twtaeo_schema_deployed', true );
+		if ( ! is_array( $deployed ) ) {
+			$deployed = array();
+		}
+		$deployed[ $schema_type ] = current_time( 'mysql' );
+		update_post_meta( $post_id, '_twtaeo_schema_deployed', $deployed );
+	}
+
+	// Record when Open Graph optimization was first activated on a post, mirroring
+	// schema activation logging. First-write wins so it captures the activation moment.
+	public static function record_og_deploy( $post_id ) {
+		if ( ! $post_id ) {
+			return;
+		}
+		if ( get_post_meta( $post_id, '_twtaeo_og_deployed', true ) ) {
+			return;
+		}
+		update_post_meta( $post_id, '_twtaeo_og_deployed', current_time( 'mysql' ) );
 	}
 
 	// ── Press release distribution ───────────────────────────────────────────
@@ -187,11 +225,13 @@ class TWTAEO_Pro_Transmitter {
 				// Referral source breakdown: AI platforms + PR wire services + Bing organic
 				$referrals = self::fetch_source_referrals( $config['ga4_property_id'] );
 				if ( ! is_wp_error( $referrals ) ) {
-					$snapshot['ai_referrals']         = $referrals['ai'];
-					$snapshot['pr_referrals']          = $referrals['pr'];
-					$snapshot['bing_sessions']         = $referrals['bing'];
-					$snapshot['ai_referral_sessions']  = array_sum( $referrals['ai'] );
-					$snapshot['pr_referral_sessions']  = array_sum( $referrals['pr'] );
+					$snapshot['ai_referrals']             = $referrals['ai'];
+					$snapshot['pr_referrals']             = $referrals['pr'];
+					$snapshot['social_referrals']         = $referrals['social'];
+					$snapshot['bing_sessions']            = $referrals['bing'];
+					$snapshot['ai_referral_sessions']     = array_sum( $referrals['ai'] );
+					$snapshot['pr_referral_sessions']     = array_sum( $referrals['pr'] );
+					$snapshot['social_referral_sessions'] = array_sum( $referrals['social'] );
 				}
 
 				self::send_analytics_snapshot( $snapshot );
@@ -218,6 +258,49 @@ class TWTAEO_Pro_Transmitter {
 		}
 	}
 
+	// ── Daily Bing Webmaster Tools snapshot push ──────────────────────────────
+
+	/**
+	 * Aggregate Bing Webmaster query stats into a totals snapshot and push it to
+	 * the hub. Sums clicks/impressions across the returned queries and computes an
+	 * impression-weighted average position. Only runs when Bing is connected.
+	 */
+	public static function send_bing_snapshot() {
+		if ( ! self::is_connected() ) {
+			return;
+		}
+		if ( ! class_exists( 'TWTAEO_Bing_Webmaster' ) || ! TWTAEO_Bing_Webmaster::is_connected() ) {
+			return;
+		}
+
+		$stats = TWTAEO_Bing_Webmaster::get_query_stats();
+		if ( is_wp_error( $stats ) ) {
+			return;
+		}
+
+		$rows = isset( $stats['d'] ) && is_array( $stats['d'] ) ? $stats['d'] : array();
+
+		$clicks      = 0;
+		$impressions = 0;
+		$position_w  = 0.0;
+
+		foreach ( $rows as $row ) {
+			$c = (int) ( $row['Clicks'] ?? 0 );
+			$i = (int) ( $row['Impressions'] ?? 0 );
+			$clicks      += $c;
+			$impressions += $i;
+			$position_w  += (float) ( $row['AvgImpressionPosition'] ?? 0 ) * $i;
+		}
+
+		self::send( 'bing', array(
+			'clicks'        => $clicks,
+			'impressions'   => $impressions,
+			'ctr'           => $impressions > 0 ? round( $clicks / $impressions * 100, 2 ) : 0,
+			'avg_position'  => $impressions > 0 ? round( $position_w / $impressions, 1 ) : 0,
+			'snapshot_date' => gmdate( 'Y-m-d' ),
+		) );
+	}
+
 	// Query GA4 for sessions by source — identifies AI platform and PR wire referrals, plus Bing organic.
 	private static function fetch_source_referrals( $property_id ) {
 		$result = TWTAEO_Google_OAuth::ga4_run_report( $property_id, array(
@@ -230,12 +313,14 @@ class TWTAEO_Pro_Transmitter {
 
 		if ( is_wp_error( $result ) ) return $result;
 
-		$ai_patterns = array( 'claude.ai', 'perplexity.ai', 'chatgpt.com', 'you.com', 'copilot.microsoft.com', 'bard.google.com', 'gemini.google.com' );
-		$pr_patterns = array( 'einpresswire.com', 'prnewswire.com', 'businesswire.com', 'prweb.com', 'easypwire.com', 'accesswire.com', 'globe-newswire.com' );
+		$ai_patterns     = array( 'claude.ai', 'perplexity.ai', 'chatgpt.com', 'you.com', 'copilot.microsoft.com', 'bard.google.com', 'gemini.google.com' );
+		$pr_patterns     = array( 'einpresswire.com', 'prnewswire.com', 'businesswire.com', 'prweb.com', 'easyprwire.com', 'accesswire.com', 'globe-newswire.com' );
+		$social_patterns = array( 'facebook.com', 'fb.com', 'instagram.com', 'l.instagram.com', 't.co', 'twitter.com', 'x.com', 'linkedin.com', 'lnkd.in', 'pinterest.com', 'youtube.com', 'reddit.com', 'tiktok.com', 'threads.net' );
 
-		$ai   = array();
-		$pr   = array();
-		$bing = 0;
+		$ai     = array();
+		$pr     = array();
+		$social = array();
+		$bing   = 0;
 
 		foreach ( $result['rows'] ?? array() as $row ) {
 			$source   = strtolower( trim( $row['dimensionValues'][0]['value'] ?? '' ) );
@@ -254,12 +339,18 @@ class TWTAEO_Pro_Transmitter {
 					break;
 				}
 			}
+			foreach ( $social_patterns as $pattern ) {
+				if ( strpos( $source, $pattern ) !== false ) {
+					$social[ $source ] = $sessions;
+					break;
+				}
+			}
 			if ( strpos( $source, 'bing' ) !== false ) {
 				$bing += $sessions;
 			}
 		}
 
-		return array( 'ai' => $ai, 'pr' => $pr, 'bing' => $bing );
+		return array( 'ai' => $ai, 'pr' => $pr, 'social' => $social, 'bing' => $bing );
 	}
 
 	// ── Content change tracking ───────────────────────────────────────────────
@@ -274,7 +365,7 @@ class TWTAEO_Pro_Transmitter {
 			return;
 		}
 		set_transient(
-			'twt_wc_before_' . $post_id,
+			'twtaeo_wc_before_' . $post_id,
 			str_word_count( wp_strip_all_tags( $post->post_content ) ),
 			60
 		);
@@ -294,8 +385,8 @@ class TWTAEO_Pro_Transmitter {
 
 		$change_type = ( $old_status === 'publish' ) ? 'updated' : 'created';
 		$wc_after    = str_word_count( wp_strip_all_tags( $post->post_content ) );
-		$wc_before   = (int) get_transient( 'twt_wc_before_' . $post->ID );
-		delete_transient( 'twt_wc_before_' . $post->ID );
+		$wc_before   = (int) get_transient( 'twtaeo_wc_before_' . $post->ID );
+		delete_transient( 'twtaeo_wc_before_' . $post->ID );
 
 		self::send_content_change( $post->ID, $post->post_type, $change_type, $wc_before, $wc_after );
 	}
@@ -314,8 +405,9 @@ class TWTAEO_Pro_Transmitter {
 	}
 
 	// Call from Index Status to transmit the de-indexed URL list to the pro dashboard.
+	// Returns send()'s confirmation so callers can gate retry logic on receipt.
 	public static function send_deindex_report( $deindexed_items ) {
-		self::send( 'deindex_report', array(
+		return self::send( 'deindex_report', array(
 			'site_url'    => home_url(),
 			'site_name'   => get_bloginfo( 'name' ),
 			'items'       => $deindexed_items,
@@ -356,6 +448,18 @@ class TWTAEO_Pro_Transmitter {
 	// Call when a GSC snapshot is captured
 	public static function send_gsc_snapshot( $data ) {
 		self::send( 'gsc', $data );
+	}
+
+	// Call from Baseline Metrics with a chunk of beyond-cap pages (ranks 51–200).
+	public static function send_page_baseline( $pages, $period ) {
+		self::send( 'page_baseline', array(
+			'site_url'    => home_url(),
+			'site_name'   => get_bloginfo( 'name' ),
+			'period'      => $period,
+			'page_count'  => count( (array) $pages ),
+			'pages'       => array_values( (array) $pages ),
+			'captured_at' => current_time( 'mysql' ),
+		) );
 	}
 
 	// Call when an analytics snapshot is captured

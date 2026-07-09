@@ -1,0 +1,127 @@
+/* Settings page — AI provider API-key rows and provider blocks. */
+
+.twt-aeo-api-provider-block {
+	border: 1px solid #e5e7eb;
+	border-radius: 7px;
+	margin-bottom: 16px;
+	overflow: hidden;
+}
+
+.twt-aeo-api-provider-block:last-child {
+	margin-bottom: 0;
+}
+
+.twt-aeo-api-provider-block__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	background: #f9fafb;
+	border-bottom: 1px solid #e5e7eb;
+	font-size: 13px;
+}
+
+.twt-aeo-api-provider-block__head strong {
+	color: #111827;
+}
+
+.twt-aeo-api-provider-block__role {
+	font-size: 12px;
+	color: #6b7280;
+	margin-left: 4px;
+}
+
+.twt-aeo-api-provider-block__instructions {
+	padding: 12px 16px;
+	background: #fff;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.twt-aeo-api-provider-block__instructions ol {
+	margin: 0;
+	padding-left: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.twt-aeo-api-provider-block__instructions li {
+	font-size: 13px;
+	color: #374151;
+	line-height: 1.5;
+}
+
+.twt-aeo-api-provider-block__instructions a {
+	color: #2563eb;
+	text-decoration: none;
+}
+
+.twt-aeo-api-provider-block__instructions a:hover {
+	text-decoration: underline;
+}
+
+.twt-aeo-api-provider-block__instructions code {
+	background: #f3f4f6;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.twt-aeo-api-provider-block .twt-aeo-api-key-row {
+	padding: 12px 16px;
+	margin: 0;
+}
+
+.twt-aeo-api-configured {
+	font-size: 12px;
+	font-weight: 600;
+	color: #16a34a;
+	white-space: nowrap;
+}
+
+.twt-aeo-api-keys {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.twt-aeo-api-key-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.twt-aeo-api-key-row__label {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-weight: 600;
+	font-size: 13px;
+	color: #374151;
+	min-width: 130px;
+	flex-shrink: 0;
+}
+
+.twt-aeo-api-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.twt-aeo-api-dot--claude     { background: #d97706; }
+.twt-aeo-api-dot--openai     { background: #16a34a; }
+.twt-aeo-api-dot--perplexity { background: #2563eb; }
+
+.twt-aeo-api-key-row input[type="password"],
+.twt-aeo-api-key-row input[type="text"] {
+	flex: 1;
+	max-width: 480px;
+}
+
+.twt-aeo-api-key-row__hint {
+	font-size: 11px;
+	color: #6b7280;
+	white-space: nowrap;
+}

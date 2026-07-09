@@ -129,7 +129,23 @@ class TWTAEO_OG_Detector {
 			}
 		}
 
-		// ── AEO saved image override ─────────────────────────────────────────────
+		// ── AEO saved overrides ──────────────────────────────────────────────────
+		// Values saved through the AEO Open Graph editor (modal / bulk job) take
+		// precedence — these are what TWTAEO_OG_Writer actually outputs. Without
+		// this, filling an OG title/description here would still show as "missing"
+		// in the coverage table no matter how often you rescan.
+		$saved_title = get_post_meta( $post->ID, TWTAEO_OG_Writer::META_TITLE, true );
+		if ( ! empty( $saved_title ) ) {
+			$og_title  = $saved_title;
+			$signals[] = 'og:title set via AEO Open Graph editor';
+		}
+
+		$saved_desc = get_post_meta( $post->ID, TWTAEO_OG_Writer::META_DESC, true );
+		if ( ! empty( $saved_desc ) ) {
+			$og_description = $saved_desc;
+			$signals[]      = 'og:description set via AEO Open Graph editor';
+		}
+
 		$saved_image = get_post_meta( $post->ID, TWTAEO_OG_Writer::META_IMAGE, true );
 		if ( ! empty( $saved_image ) ) {
 			$og_image  = $saved_image;

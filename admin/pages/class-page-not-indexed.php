@@ -3,8 +3,6 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 class TWTAEO_Page_Not_Indexed {
 
-	const PREVIEW_LIMIT = 15;
-
 	public static function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission.', 'twt-aeo-ultimate' ) );
@@ -28,10 +26,7 @@ class TWTAEO_Page_Not_Indexed {
 		}
 
 		$total_count = count( $not_indexed );
-		$preview     = array_slice( $not_indexed, 0, self::PREVIEW_LIMIT );
 
-		$settings      = get_option( 'twtaeo_settings', array() );
-		$pro_connected = ! empty( $settings['pro_enabled'] ) && ! empty( $settings['pro_url'] );
 		$gsc_connected = (bool) TWTAEO_Google_OAuth::get_access_token();
 		?>
 		<div class="wrap twt-aeo-wrap">
@@ -88,23 +83,11 @@ class TWTAEO_Page_Not_Indexed {
 			<section class="twt-aeo-section">
 				<p style="color:#646970;font-size:13px;margin:0 0 12px;">
 					<?php
-					if ( $total_count > self::PREVIEW_LIMIT ) {
-						printf(
-							// translators: %1$d: preview limit. %2$d: total not-indexed pages. %3$s: link or text to view more.
-							esc_html__( 'Showing %1$d of %2$d not-indexed pages. %3$s for the complete list with detailed analysis.', 'twt-aeo-ultimate' ),
-							absint( self::PREVIEW_LIMIT ),
-							absint( $total_count ),
-							$pro_connected
-								? '<a href="' . esc_url( $settings['pro_url'] ) . '" target="_blank">' . esc_html__( 'View TWT Agency', 'twt-aeo-ultimate' ) . '</a>'
-								: esc_html__( 'Connect TWT Agency', 'twt-aeo-ultimate' )
-						);
-					} else {
-						printf(
-							// translators: %d: number of published pages not in Google.
-							esc_html__( '%d page(s) are published but not appearing in Google search results.', 'twt-aeo-ultimate' ),
-							absint( $total_count )
-						);
-					}
+					printf(
+						// translators: %d: number of published pages not in Google.
+						esc_html__( '%d page(s) are published but not appearing in Google search results.', 'twt-aeo-ultimate' ),
+						absint( $total_count )
+					);
 					?>
 				</p>
 
@@ -120,7 +103,7 @@ class TWTAEO_Page_Not_Indexed {
 							</tr>
 						</thead>
 						<tbody>
-						<?php foreach ( $preview as $item ) :
+						<?php foreach ( $not_indexed as $item ) :
 							$flags      = $item['heuristics']['flags'] ?? array();
 							$word_count = $item['heuristics']['data']['word_count'] ?? null;
 						?>
@@ -191,26 +174,6 @@ class TWTAEO_Page_Not_Indexed {
 					</table>
 				</div>
 			</section>
-
-			<?php if ( $pro_connected || $total_count > self::PREVIEW_LIMIT ) : ?>
-			<section class="twt-aeo-section">
-				<div class="twt-aeo-card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-					<div>
-						<strong><?php esc_html_e( 'Want the full picture?', 'twt-aeo-ultimate' ); ?></strong>
-						<p style="margin:4px 0 0;color:#646970;font-size:13px;">
-							<?php esc_html_e( 'TWT Agency shows all not-indexed pages with AI-powered analysis — including why each page is excluded, heuristic flags, GSC reasons, and a recommended fix for each URL.', 'twt-aeo-ultimate' ); ?>
-						</p>
-					</div>
-					<?php if ( $pro_connected ) : ?>
-					<a href="<?php echo esc_url( rtrim( $settings['pro_url'], '/' ) . '/wp-admin/admin.php?page=twt-pro-not-indexed' ); ?>" target="_blank" class="twt-aeo-btn twt-aeo-btn--primary" style="white-space:nowrap;">
-						<?php esc_html_e( 'More Stats in TWT Agency →', 'twt-aeo-ultimate' ); ?>
-					</a>
-					<?php else : ?>
-					<span style="font-size:12px;color:#646970;"><?php esc_html_e( 'Connect TWT Agency in Settings to unlock full analysis.', 'twt-aeo-ultimate' ); ?></span>
-					<?php endif; ?>
-				</div>
-			</section>
-			<?php endif; ?>
 
 			<?php endif; ?>
 

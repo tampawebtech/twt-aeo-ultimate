@@ -33,7 +33,10 @@ class TWTAEO_Index_Heuristics {
 		$post = get_post( $post_id );
 		if ( ! $post ) return null;
 
-		$content_html  = apply_filters( 'the_content', $post->post_content );
+		// Core the_content filter, applied via a variable hook name (core's, not ours).
+		$core_filter   = 'the_content';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
+		$content_html  = apply_filters( $core_filter, $post->post_content );
 		$content_plain = wp_strip_all_tags( $content_html );
 
 		$flags = array();
@@ -132,20 +135,51 @@ class TWTAEO_Index_Heuristics {
 	private static function technical_health( $post, $content_html ) {
 		$flags = array();
 
-		// H1 — check for explicit <h1> in content HTML.
-		// Note: most themes render post_title as H1 in the template, outside post_content.
-		// Flag only when the content block itself contains no H1.
-		if ( ! preg_match( '/<h1[\s>]/i', $content_html ) ) {
+		// ── Indexability blockers — the real reasons a page won't get indexed ──
+		// noindex robots directive set in any common SEO plugin.
+		if ( self::is_noindexed( $post->ID ) ) {
 			$flags[] = array(
-				'type'     => 'missing_h1',
-				'label'    => 'Missing H1 in Content',
-				'detail'   => 'No H1 found in post content. Confirm your theme wraps the post title in an H1 — if not, add one manually.',
+				'type'     => 'noindex',
+				'label'    => 'Set to noindex',
+				'detail'   => 'This page is marked "noindex", so search engines are told not to index it — this alone will keep it out of Google. Open the page in your SEO plugin\'s Advanced/Robots settings and switch it back to "index".',
+				'severity' => 'critical',
+			);
+		}
+
+		// Canonical URL pointing somewhere else — the page is consolidated away.
+		$canonical = self::get_canonical( $post->ID );
+		if ( $canonical ) {
+			$permalink = get_permalink( $post );
+			if ( $permalink && ! self::same_url( $canonical, $permalink ) ) {
+				$flags[] = array(
+					'type'     => 'canonical_mismatch',
+					'label'    => 'Canonical points elsewhere',
+					'detail'   => sprintf(
+						'The canonical URL is set to %s, so Google treats that page as the original and usually will not index this one. Clear the canonical override unless this duplication is intentional.',
+						$canonical
+					),
+					'severity' => 'warning',
+				);
+			}
+		}
+
+		// Heading hierarchy — WordPress themes render the post title as the page's
+		// H1 (outside post_content), so an in-content H1 isn't needed. What matters
+		// for readers and AI/search parsing is section structure: H2/H3 subheadings.
+		// Flag when the content has no subheadings at all.
+		$has_headings = (bool) preg_match( '/<h[2-6][\s>]/i', $content_html );
+		if ( ! $has_headings ) {
+			$flags[] = array(
+				'type'     => 'no_heading_hierarchy',
+				'label'    => 'No Heading Hierarchy',
+				'detail'   => 'This content has no H2/H3 subheadings, so it reads as one undifferentiated block. Break it into sections with H2 (and H3 where needed) — clear hierarchy helps readers scan and helps search engines and AI assistants understand the page structure.',
 				'severity' => 'warning',
 			);
 		}
 
-		// Meta description — check common SEO plugins.
-		$meta = get_post_meta( $post->ID, '_yoast_wpseo_metadesc', true )
+		// Meta description — check the plugin's own field and common SEO plugins.
+		$meta = get_post_meta( $post->ID, '_twtaeo_meta_description', true )
+			?: get_post_meta( $post->ID, '_yoast_wpseo_metadesc', true )
 			?: get_post_meta( $post->ID, 'rank_math_description', true )
 			?: get_post_meta( $post->ID, '_aioseop_description', true )
 			?: get_post_meta( $post->ID, 'seopress_titles_desc', true )
@@ -181,11 +215,121 @@ class TWTAEO_Index_Heuristics {
 			);
 		}
 
+		// ── AEO opportunities (fixable inline from the Index Status modal) ─────
+		// Open Graph — flag when title/description/image aren't all set. The 'fix'
+		// key tells the UI which inline editor to open.
+		if ( class_exists( 'TWTAEO_OG_Detector' ) ) {
+			$og = TWTAEO_OG_Detector::scan( $post );
+			if ( ! empty( $og['missing'] ) ) {
+				$flags[] = array(
+					'type'     => 'missing_og',
+					'label'    => 'Open Graph Incomplete',
+					'detail'   => sprintf(
+						'Missing %s — social shares and AI link previews will look bare. Fix it here to add a title, description, and image.',
+						implode( ', ', $og['missing'] )
+					),
+					'severity' => 'warning',
+					'fix'      => 'og',
+					'og'       => array(
+						'title'       => $og['og_title'] ?? '',
+						'description' => $og['og_description'] ?? '',
+						'image'       => $og['og_image'] ?? '',
+						'type'        => $og['og_type'] ?? 'website',
+					),
+				);
+			}
+		}
+
+		// FAQ — Q&A-style content that has no FAQPage schema yet.
+		if ( class_exists( 'TWTAEO_FAQ_Detector' ) ) {
+			$faq = TWTAEO_FAQ_Detector::scan( $post );
+			if ( ! empty( $faq['needs_schema'] ) ) {
+				$flags[] = array(
+					'type'     => 'faq_opportunity',
+					'label'    => 'FAQ Schema Opportunity',
+					'detail'   => 'This page has Q&A-style content but no FAQ schema. Generate FAQPage schema to qualify for rich results and AI answers.',
+					'severity' => 'notice',
+					'fix'      => 'faq',
+				);
+			}
+		}
+
 		return array(
-			'flags'       => $flags,
-			'has_h1'      => ! (bool) preg_match( '/<h1[\s>]/i', $content_html ),
-			'meta_desc'   => $meta,
-			'missing_alt' => $missing_alt,
+			'flags'        => $flags,
+			'has_headings' => $has_headings,
+			'meta_desc'    => $meta,
+			'missing_alt'  => $missing_alt,
 		);
+	}
+
+	/**
+	 * Whether a post is set to noindex in any common SEO plugin.
+	 *
+	 * @param int $post_id
+	 * @return bool
+	 */
+	private static function is_noindexed( $post_id ) {
+		// Yoast — '1' means noindex ('2' = index, '0'/empty = default).
+		if ( '1' === (string) get_post_meta( $post_id, '_yoast_wpseo_meta-robots-noindex', true ) ) {
+			return true;
+		}
+
+		// Rank Math — array of robots directives.
+		$rm = get_post_meta( $post_id, 'rank_math_robots', true );
+		if ( is_array( $rm ) && in_array( 'noindex', $rm, true ) ) {
+			return true;
+		}
+
+		// SEOPress — 'yes' means "set to noindex".
+		if ( 'yes' === (string) get_post_meta( $post_id, '_seopress_robots_index', true ) ) {
+			return true;
+		}
+
+		// All in One SEO (legacy v3 meta) — 'on' means noindex.
+		if ( 'on' === (string) get_post_meta( $post_id, '_aioseop_noindex', true ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get a custom canonical URL set in any common SEO plugin, if any.
+	 *
+	 * @param int $post_id
+	 * @return string Empty string when none is set.
+	 */
+	private static function get_canonical( $post_id ) {
+		$keys = array(
+			'_yoast_wpseo_canonical',
+			'rank_math_canonical_url',
+			'_seopress_robots_canonical',
+		);
+
+		foreach ( $keys as $key ) {
+			$val = get_post_meta( $post_id, $key, true );
+			if ( ! empty( $val ) ) {
+				return $val;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Compare two URLs ignoring scheme and trailing slash.
+	 *
+	 * @param string $a
+	 * @param string $b
+	 * @return bool
+	 */
+	private static function same_url( $a, $b ) {
+		$normalize = static function ( $url ) {
+			$url = strtolower( trim( $url ) );
+			$url = preg_replace( '#^https?://#', '', $url );
+			return untrailingslashit( $url );
+		};
+
+		return $normalize( $a ) === $normalize( $b );
 	}
 }

@@ -32,8 +32,20 @@ class TWTAEO_Plugin {
 		add_action( 'init', array( 'TWTAEO_Scan_Store', 'register_hooks' ) );
 		add_action( 'init', array( 'TWTAEO_AI_Crawler_Logger', 'register_hooks' ) );
 
+		// Invalidate the cached E-E-A-T scan when the active plugin set changes.
+		TWTAEO_EEAT_Detector::register_hooks();
+
 		// Register Service Schema Writer — outputs JSON-LD on frontend.
 		add_action( 'init', array( 'TWTAEO_Service_Schema_Writer', 'register_hooks' ) );
+
+		// Register Contact Schema Writer — outputs Organization/ContactPage JSON-LD on frontend.
+		add_action( 'init', array( 'TWTAEO_Contact_Schema_Writer', 'register_hooks' ) );
+
+		// Article schema on blog posts (NewsArticle handles posts marked as news).
+		add_action( 'init', array( 'TWTAEO_Article_Schema_Writer', 'register_hooks' ) );
+
+		// AI meta descriptions — editor metabox, auto-on-save, front-end output.
+		add_action( 'init', array( 'TWTAEO_AI_Description', 'register_hooks' ) );
 
 		// AI Ready — Markdown negotiation, llms.txt, Content-Signal headers, REST API.
 		add_action( 'init', array( 'TWTAEO_AI_Ready', 'on_init' ) );
@@ -106,7 +118,6 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_save_social_graph',    array( $this, 'ajax_save_social_graph' ) );
 		add_action( 'wp_ajax_twtaeo_save_twitter_site',    array( $this, 'ajax_save_twitter_site' ) );
 		add_action( 'wp_ajax_twtaeo_save_linkedin_company', array( $this, 'ajax_save_linkedin_company' ) );
-		add_action( 'wp_ajax_twtaeo_save_og_data',         array( $this, 'ajax_save_og_data' ) );
 
 		add_action( 'wp_ajax_twtaeo_indexnow_verify_key',  array( $this, 'ajax_indexnow_verify_key' ) );
 		add_action( 'wp_ajax_twtaeo_indexnow_submit',      array( $this, 'ajax_indexnow_submit' ) );
@@ -116,20 +127,25 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_local_pack_nap_bing',    array( $this, 'ajax_local_pack_nap_bing' ) );
 		add_action( 'wp_ajax_twtaeo_local_pack_autofill',    array( $this, 'ajax_local_pack_autofill' ) );
 		add_action( 'wp_ajax_twtaeo_inject_robots',          array( $this, 'ajax_inject_robots' ) );
+		add_action( 'wp_ajax_twtaeo_remove_robots',          array( $this, 'ajax_remove_robots' ) );
 		add_action( 'wp_ajax_twtaeo_toggle_module',         array( $this, 'ajax_toggle_module' ) );
 		add_action( 'wp_ajax_twtaeo_scan_page',             array( $this, 'ajax_scan_page' ) );
 		add_action( 'wp_ajax_twtaeo_scan_all',              array( $this, 'ajax_scan_all' ) );
+		add_action( 'wp_ajax_twtaeo_bg_scan_start',         array( $this, 'ajax_bg_scan_start' ) );
+		add_action( 'wp_ajax_twtaeo_bg_scan_status',        array( $this, 'ajax_bg_scan_status' ) );
+		add_action( 'wp_ajax_twtaeo_data_handshake',        array( $this, 'ajax_data_handshake' ) );
 		add_action( 'wp_ajax_twtaeo_get_service_prefill',   array( $this, 'ajax_get_service_prefill' ) );
 		add_action( 'wp_ajax_twtaeo_save_service_schema',   array( $this, 'ajax_save_service_schema' ) );
 		add_action( 'wp_ajax_twtaeo_delete_service_schema', array( $this, 'ajax_delete_service_schema' ) );
+		add_action( 'wp_ajax_twtaeo_get_contact_prefill',   array( $this, 'ajax_get_contact_prefill' ) );
+		add_action( 'wp_ajax_twtaeo_save_contact_schema',   array( $this, 'ajax_save_contact_schema' ) );
+		add_action( 'wp_ajax_twtaeo_delete_contact_schema', array( $this, 'ajax_delete_contact_schema' ) );
 		add_action( 'wp_ajax_twtaeo_cc_disconnect',         array( $this, 'ajax_cc_disconnect' ) );
 		// Hub CPT, shortcodes, and metabox.
 		add_action( 'init', array( 'TWTAEO_Hub_CPT', 'register_hooks' ) );
 		add_action( 'load-post.php',     array( 'TWTAEO_Hub_Metabox', 'register_hooks' ) );
 		add_action( 'load-post-new.php', array( 'TWTAEO_Hub_Metabox', 'register_hooks' ) );
 
-		add_action( 'wp_ajax_twtaeo_generate_content',      array( $this, 'ajax_generate_content' ) );
-		add_action( 'wp_ajax_twtaeo_save_content_draft',    array( $this, 'ajax_save_content_draft' ) );
 		add_action( 'wp_ajax_twtaeo_pr_transform',          array( $this, 'ajax_pr_transform' ) );
 		add_action( 'wp_ajax_twtaeo_pr_save',               array( $this, 'ajax_pr_save' ) );
 		add_action( 'wp_ajax_twtaeo_pr_delete',             array( $this, 'ajax_pr_delete' ) );
@@ -141,8 +157,26 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_get_schema_prefill',   array( $this, 'ajax_get_schema_prefill' ) );
 		add_action( 'wp_ajax_twtaeo_wc_get_product_data',  array( $this, 'ajax_wc_get_product_data' ) );
 		add_action( 'wp_ajax_twtaeo_wc_generate_all',      array( $this, 'ajax_wc_generate_all' ) );
+		add_action( 'wp_ajax_twtaeo_wc_save_schema',           array( $this, 'ajax_wc_save_schema' ) );
+		add_action( 'wp_ajax_twtaeo_wc_search_products',       array( $this, 'ajax_wc_search_products' ) );
+		add_action( 'wp_ajax_twtaeo_wc_save_shipping_settings', array( $this, 'ajax_wc_save_shipping_settings' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_extract',            array( $this, 'ajax_wc_ai_extract' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_vision',             array( $this, 'ajax_wc_ai_vision' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_describe',           array( $this, 'ajax_wc_ai_describe' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_sameas',             array( $this, 'ajax_wc_ai_sameas' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_standardize',        array( $this, 'ajax_wc_ai_standardize' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_competitive',        array( $this, 'ajax_wc_ai_competitive' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_alt',                array( $this, 'ajax_wc_ai_alt' ) );
+		add_action( 'wp_ajax_twtaeo_img_get_post_images',      array( $this, 'ajax_img_get_post_images' ) );
+		add_action( 'wp_ajax_twtaeo_img_generate_alt',         array( $this, 'ajax_img_generate_alt' ) );
+		add_action( 'wp_ajax_twtaeo_img_save_alt',             array( $this, 'ajax_img_save_alt' ) );
 		add_action( 'wp_ajax_twtaeo_diagnose_server',       array( $this, 'ajax_diagnose_server' ) );
 		add_action( 'wp_ajax_twtaeo_apply_apache_fix',      array( $this, 'ajax_apply_apache_fix' ) );
+		add_action( 'wp_ajax_twtaeo_gsc_inspect',           array( $this, 'ajax_gsc_inspect' ) );
+		add_action( 'wp_ajax_twtaeo_psi_check',             array( $this, 'ajax_psi_check' ) );
+		add_action( 'wp_ajax_twtaeo_leak_scan_start',       array( $this, 'ajax_leak_scan_start' ) );
+		add_action( 'wp_ajax_twtaeo_leak_scan_next',        array( $this, 'ajax_leak_scan_next' ) );
+		add_action( 'wp_ajax_twtaeo_code_health_scan',      array( $this, 'ajax_code_health_scan' ) );
 		add_action( 'wp_ajax_twtaeo_index_scan_url',        array( $this, 'ajax_index_scan_url' ) );
 		add_action( 'wp_ajax_twtaeo_index_clear',           array( $this, 'ajax_index_clear' ) );
 		add_action( 'wp_ajax_twtaeo_index_send_to_pro',     array( $this, 'ajax_index_send_to_pro' ) );
@@ -151,13 +185,26 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_schema_conflict_suppress', array( $this, 'ajax_schema_conflict_suppress' ) );
 		add_action( 'wp_ajax_twtaeo_seo_schema_delete',        array( $this, 'ajax_seo_schema_delete' ) );
 		add_action( 'wp_ajax_twtaeo_faq_generate_one',   array( $this, 'ajax_faq_generate_one' ) );
+		add_action( 'wp_ajax_twtaeo_service_generate_one', array( $this, 'ajax_service_generate_one' ) );
 		add_action( 'wp_ajax_twtaeo_faq_generate_batch', array( $this, 'ajax_faq_generate_batch' ) );
 
 		add_action( 'wp_ajax_twtaeo_create_eeat_page',  array( $this, 'ajax_create_eeat_page' ) );
 		add_action( 'wp_ajax_twtaeo_get_sameas',         array( $this, 'ajax_get_sameas' ) );
 		add_action( 'wp_ajax_twtaeo_save_sameas',        array( $this, 'ajax_save_sameas' ) );
+		add_action( 'wp_ajax_twtaeo_kg_search',          array( $this, 'ajax_kg_search' ) );
 		add_action( 'wp_ajax_twtaeo_get_author_meta',    array( $this, 'ajax_get_author_meta' ) );
 		add_action( 'wp_ajax_twtaeo_save_author_meta',   array( $this, 'ajax_save_author_meta' ) );
+
+		add_action( 'wp_ajax_twtaeo_ai_desc_generate',   array( $this, 'ajax_ai_desc_generate' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_bulk',       array( $this, 'ajax_ai_desc_bulk' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_start',      array( $this, 'ajax_ai_desc_start' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_stop',       array( $this, 'ajax_ai_desc_stop' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_status',     array( $this, 'ajax_ai_desc_status' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_settings',   array( $this, 'ajax_ai_desc_settings' ) );
+		add_action( 'wp_ajax_twtaeo_ai_desc_social',     array( $this, 'ajax_ai_desc_generate_social' ) );
+		add_action( 'wp_ajax_twtaeo_ai_og_image',        array( $this, 'ajax_ai_og_image' ) );
+		add_action( 'wp_ajax_twtaeo_set_featured',       array( $this, 'ajax_set_featured_image' ) );
+		add_action( 'wp_ajax_twtaeo_og_fill_from_meta',  array( $this, 'ajax_og_fill_from_meta' ) );
 
 		add_action( 'wp_ajax_twtaeo_gmc_save_settings', array( $this, 'ajax_gmc_save_settings' ) );
 		add_action( 'wp_ajax_twtaeo_gmc_sync',          array( $this, 'ajax_gmc_sync' ) );
@@ -166,6 +213,8 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_bmc_save_settings', array( $this, 'ajax_bmc_save_settings' ) );
 		add_action( 'wp_ajax_twtaeo_bmc_sync',          array( $this, 'ajax_bmc_sync' ) );
 		add_action( 'wp_ajax_twtaeo_bmc_disconnect',    array( $this, 'ajax_bmc_disconnect' ) );
+
+		add_action( 'wp_ajax_twtaeo_msync_status',      array( $this, 'ajax_msync_status' ) );
 
 		// Schema conflict suppression filters — must register at init time
 		// so they fire before wp_head on the frontend.
@@ -216,6 +265,18 @@ class TWTAEO_Plugin {
 		wp_send_json_success( array( 'message' => 'Content-Signal directive written to robots.txt.' ) );
 	}
 
+	public function ajax_remove_robots() {
+		check_ajax_referer( TWTAEO_AI_Ready::NONCE_INJECT, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$result = TWTAEO_AI_Ready::delete_physical_robots();
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		wp_send_json_success( array( 'message' => 'Physical robots.txt removed — WordPress now serves it dynamically.' ) );
+	}
+
 	public function ajax_toggle_module() {
 		check_ajax_referer( 'twtaeo_modules_nonce', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -225,6 +286,36 @@ class TWTAEO_Plugin {
 		$active = rest_sanitize_boolean( wp_unslash( $_POST['active'] ?? false ) );
 		$this->modules->toggle( $slug, $active );
 		wp_send_json_success( array( 'slug' => $slug, 'active' => $active ) );
+	}
+
+	/**
+	 * AJAX: Run a Data Handshake on demand (bundle → transmit → purge-on-ack).
+	 */
+	public function ajax_data_handshake() {
+		check_ajax_referer( 'twtaeo_handshake_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		if ( ! class_exists( 'TWTAEO_Data_Handshake' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Handshake unavailable.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$result = TWTAEO_Data_Handshake::run( true );
+
+		if ( ( $result['status'] ?? '' ) !== 'ok' ) {
+			$message = ( ( $result['status'] ?? '' ) === 'not_connected' )
+				? __( 'Not connected to the Agency Hub. Add your Agency URL and API key in Settings first.', 'twt-aeo-ultimate' )
+				: __( 'The Agency Hub did not confirm receipt. Nothing was purged — will retry on the next scheduled sync.', 'twt-aeo-ultimate' );
+			wp_send_json_error( array( 'message' => $message, 'result' => $result ) );
+		}
+
+		$counts = $result['counts'] ?? array();
+		wp_send_json_success( array(
+			'message'        => __( 'Handshake complete.', 'twt-aeo-ultimate' ),
+			'transmitted_at' => $result['transmitted_at'] ?? '',
+			'counts'         => $counts,
+		) );
 	}
 
 	public function ajax_scan_page() {
@@ -278,6 +369,31 @@ class TWTAEO_Plugin {
 			'missing'    => count( $result['evaluation']['missing'] ?? array() ),
 			'present'    => count( $result['evaluation']['present'] ?? array() ),
 		) );
+	}
+
+	/**
+	 * AJAX: Queue the posts beyond the foreground cap for background scanning.
+	 */
+	public function ajax_bg_scan_start() {
+		check_ajax_referer( 'twtaeo_scan_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		TWTAEO_Background_Scan::start();
+		wp_send_json_success( TWTAEO_Background_Scan::state_payload() );
+	}
+
+	/**
+	 * AJAX: Background scan progress, polled by the dashboard.
+	 */
+	public function ajax_bg_scan_status() {
+		check_ajax_referer( 'twtaeo_scan_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		wp_send_json_success( TWTAEO_Background_Scan::state_payload() );
 	}
 
 	/**
@@ -343,6 +459,92 @@ class TWTAEO_Plugin {
 	}
 
 	/**
+	 * AJAX: Get pre-fill data for the contact schema modal / top panel.
+	 */
+	public function ajax_get_contact_prefill() {
+		check_ajax_referer( 'twtaeo_contact_schema_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID' );
+		}
+		wp_send_json_success( TWTAEO_Contact_Schema_Writer::get_prefill( $post_id ) );
+	}
+
+	/**
+	 * AJAX: Save generated contact schema to postmeta.
+	 *
+	 * Also mirrors the business details back into the central Local Pack
+	 * profile so the Contact tab and Local Pack page stay in sync.
+	 */
+	public function ajax_save_contact_schema() {
+		check_ajax_referer( 'twtaeo_contact_schema_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID' );
+		}
+		$fields = array(
+			'name'           => sanitize_text_field( wp_unslash( $_POST['name']           ?? '' ) ),
+			'business_type'  => sanitize_text_field( wp_unslash( $_POST['business_type']  ?? 'Organization' ) ),
+			'phone'          => sanitize_text_field( wp_unslash( $_POST['phone']          ?? '' ) ),
+			'email'          => sanitize_email(      wp_unslash( $_POST['email']          ?? '' ) ),
+			'contact_type'   => sanitize_text_field( wp_unslash( $_POST['contact_type']   ?? '' ) ),
+			'street_address' => sanitize_text_field( wp_unslash( $_POST['street_address'] ?? '' ) ),
+			'city'           => sanitize_text_field( wp_unslash( $_POST['city']           ?? '' ) ),
+			'state'          => sanitize_text_field( wp_unslash( $_POST['state']          ?? '' ) ),
+			'zip'            => sanitize_text_field( wp_unslash( $_POST['zip']            ?? '' ) ),
+			'country'        => sanitize_text_field( wp_unslash( $_POST['country']        ?? '' ) ),
+		);
+		if ( empty( $fields['name'] ) ) {
+			wp_send_json_error( 'Business Name is required.' );
+		}
+
+		$saved = TWTAEO_Contact_Schema_Writer::save( $post_id, $fields );
+		if ( ! $saved ) {
+			wp_send_json_error( 'Failed to save schema.' );
+		}
+
+		// Mirror business details back into the central Local Pack profile.
+		if ( class_exists( 'TWTAEO_Local_Pack' ) ) {
+			$lp = TWTAEO_Local_Pack::get_settings();
+			$lp['business_name']  = $fields['name'];
+			$lp['phone']          = $fields['phone'];
+			$lp['email']          = $fields['email'];
+			$lp['street_address'] = $fields['street_address'];
+			$lp['city']           = $fields['city'];
+			$lp['state']          = $fields['state'];
+			$lp['zip']            = $fields['zip'];
+			if ( ! empty( $fields['country'] ) ) {
+				$lp['country'] = $fields['country'];
+			}
+			TWTAEO_Local_Pack::save_settings( $lp );
+		}
+
+		wp_send_json_success( array( 'post_id' => $post_id ) );
+	}
+
+	/**
+	 * AJAX: Delete generated contact schema from postmeta.
+	 */
+	public function ajax_delete_contact_schema() {
+		check_ajax_referer( 'twtaeo_contact_schema_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID' );
+		}
+		TWTAEO_Contact_Schema_Writer::delete( $post_id );
+		wp_send_json_success( array( 'post_id' => $post_id ) );
+	}
+
+	/**
 	 * AJAX: Disconnect a Command Center service (google or bing).
 	 */
 	public function ajax_cc_disconnect() {
@@ -366,6 +568,147 @@ class TWTAEO_Plugin {
 			default:
 				wp_send_json_error( 'Unknown service.' );
 		}
+	}
+
+	/**
+	 * AJAX: Inspect a single URL via the Search Console URL Inspection API.
+	 *
+	 * Results are cached per-URL for an hour to stay well within the API's
+	 * per-property daily quota. Returns a flattened payload the panel renders.
+	 */
+	public function ajax_gsc_inspect() {
+		check_ajax_referer( 'twtaeo_gsc_inspect', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		if ( ! TWTAEO_Google_OAuth::is_connected() ) {
+			wp_send_json_error( array( 'message' => __( 'Connect your Google account in Settings first.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$config   = TWTAEO_Google_OAuth::get_config();
+		$site_url = $config['gsc_site_url'] ?? '';
+		if ( ! $site_url ) {
+			wp_send_json_error( array( 'message' => __( 'Set your Search Console site URL in Settings first.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$page_url = esc_url_raw( wp_unslash( $_POST['url'] ?? '' ) );
+		if ( ! $page_url ) {
+			wp_send_json_error( array( 'message' => __( 'Enter a URL to inspect.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$cache_key = 'twtaeo_gsc_inspect_' . md5( $page_url );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			$cached['cached'] = true;
+			wp_send_json_success( $cached );
+		}
+
+		$result = TWTAEO_Google_OAuth::gsc_inspect_url( $site_url, $page_url );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		$index = $result['indexStatusResult'] ?? array();
+		$mob   = $result['mobileUsabilityResult'] ?? array();
+		$rich  = $result['richResultsResult'] ?? array();
+
+		$rich_types = array();
+		foreach ( $rich['detectedItems'] ?? array() as $item ) {
+			if ( ! empty( $item['richResultType'] ) ) {
+				$rich_types[] = $item['richResultType'];
+			}
+		}
+
+		$payload = array(
+			'cached'           => false,
+			'url'              => $page_url,
+			'verdict'          => $index['verdict'] ?? 'NEUTRAL',
+			'coverage'         => $index['coverageState'] ?? '—',
+			'robots'           => $index['robotsTxtState'] ?? '—',
+			'indexing'         => $index['indexingState'] ?? '—',
+			'fetch'            => $index['pageFetchState'] ?? '—',
+			'crawled_as'       => $index['crawledAs'] ?? '—',
+			'last_crawl'       => $index['lastCrawlTime'] ?? '',
+			'google_canonical' => $index['googleCanonical'] ?? '',
+			'user_canonical'   => $index['userCanonical'] ?? '',
+			'canonical_match'  => ( ! empty( $index['googleCanonical'] ) && ! empty( $index['userCanonical'] ) )
+				? ( $index['googleCanonical'] === $index['userCanonical'] )
+				: null,
+			'mobile_verdict'   => $mob['verdict'] ?? '',
+			'rich_verdict'     => $rich['verdict'] ?? '',
+			'rich_types'       => $rich_types,
+			'report_link'      => $result['inspectionResultLink'] ?? '',
+		);
+
+		set_transient( $cache_key, $payload, HOUR_IN_SECONDS );
+		wp_send_json_success( $payload );
+	}
+
+	/**
+	 * AJAX: Run a PageSpeed Insights analysis on one URL (mobile or desktop).
+	 * Results are cached per URL+strategy in the PSI client.
+	 */
+	public function ajax_psi_check() {
+		check_ajax_referer( 'twtaeo_psi_check', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$url      = esc_url_raw( wp_unslash( $_POST['url'] ?? '' ) );
+		$strategy = sanitize_key( wp_unslash( $_POST['strategy'] ?? 'mobile' ) );
+		if ( ! $url ) {
+			wp_send_json_error( array( 'message' => __( 'Enter a URL to analyze.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$result = TWTAEO_Google_PageSpeed::analyze( $url, $strategy );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( $result );
+	}
+
+	/** AJAX: Start a traffic-leak scan — selects GA4 candidates and primes state. */
+	public function ajax_leak_scan_start() {
+		check_ajax_referer( 'twtaeo_leak_scan', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$min_sessions = absint( wp_unslash( $_POST['min_sessions'] ?? 10 ) );
+		$result       = TWTAEO_Traffic_Leak_Scanner::start( $min_sessions );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+		wp_send_json_success( $result );
+	}
+
+	/** AJAX: Audit one candidate URL in the active scan. */
+	public function ajax_leak_scan_next() {
+		check_ajax_referer( 'twtaeo_leak_scan', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$run_id = sanitize_text_field( wp_unslash( $_POST['run_id'] ?? '' ) );
+		$index  = absint( wp_unslash( $_POST['index'] ?? 0 ) );
+		$result = TWTAEO_Traffic_Leak_Scanner::scan_one( $run_id, $index );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+		wp_send_json_success( $result );
+	}
+
+	/** AJAX: Scan published content for performance anti-patterns (no API). */
+	public function ajax_code_health_scan() {
+		check_ajax_referer( 'twtaeo_code_health', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+		wp_send_json_success( TWTAEO_Perf_Detector::scan_all() );
 	}
 
 	/** AJAX: Transform a post into AP-style press release copy using Claude. */
@@ -431,130 +774,6 @@ class TWTAEO_Plugin {
 		} else {
 			wp_send_json_error( $result['message'] );
 		}
-	}
-
-	/**
-	 * AJAX: Generate AI content — supports both existing posts and "create new" mode.
-	 */
-	public function ajax_generate_content() {
-		check_ajax_referer( TWTAEO_Page_Content_Generator::NONCE, 'nonce' );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Unauthorized' );
-		}
-
-		$industry = sanitize_key( wp_unslash( $_POST['industry'] ?? '' ) );
-		$subtopic = sanitize_key( wp_unslash( $_POST['subtopic'] ?? '' ) );
-		if ( ! $industry || ! $subtopic ) {
-			wp_send_json_error( 'Missing required fields.' );
-		}
-
-		$post_id       = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
-		$create_type   = '';
-		$create_title  = '';
-		$create_parent = 0;
-
-		if ( $post_id ) {
-			if ( ! get_post( $post_id ) ) {
-				wp_send_json_error( 'Post not found.' );
-			}
-		} else {
-			$allowed_create = array( 'post', 'page', 'twtaeo_hub', 'twtaeo_hub_sub' );
-			$create_type    = sanitize_key( wp_unslash( $_POST['create_type']  ?? '' ) );
-			$create_title   = sanitize_text_field( wp_unslash( $_POST['create_title'] ?? '' ) );
-			$create_parent  = absint( wp_unslash( $_POST['create_parent'] ?? 0 ) );
-			if ( ! in_array( $create_type, $allowed_create, true ) || ! $create_title ) {
-				wp_send_json_error( 'Missing required fields.' );
-			}
-		}
-
-		$allowed_semantic = array( 'voice-search', 'featured-snippet', 'comparison-table', 'misconceptions', 'local-trust' );
-		$semantic_raw     = sanitize_text_field( wp_unslash( $_POST['semantic_elements'] ?? '' ) );
-		$semantic_parts   = $semantic_raw ? explode( ',', $semantic_raw ) : array();
-		$semantic_clean   = array();
-		foreach ( $semantic_parts as $part ) {
-			$part = sanitize_key( trim( $part ) );
-			if ( in_array( $part, $allowed_semantic, true ) ) {
-				$semantic_clean[] = $part;
-			}
-		}
-
-		$options = array(
-			'intent'            => sanitize_key( wp_unslash( $_POST['intent']        ?? '' ) ),
-			'tone'              => sanitize_key( wp_unslash( $_POST['tone']          ?? '' ) ),
-			'audience'          => sanitize_key( wp_unslash( $_POST['audience']      ?? '' ) ),
-			'pov'               => sanitize_key( wp_unslash( $_POST['pov']          ?? '' ) ),
-			'length'            => sanitize_key( wp_unslash( $_POST['length']        ?? '' ) ),
-			'format'            => sanitize_key( wp_unslash( $_POST['format']        ?? '' ) ),
-			'focus'             => sanitize_key( wp_unslash( $_POST['focus']         ?? '' ) ),
-			'cta'               => sanitize_key( wp_unslash( $_POST['cta']           ?? '' ) ),
-			'reading_level'     => sanitize_key( wp_unslash( $_POST['reading_level'] ?? '' ) ),
-			'notes'             => sanitize_textarea_field( wp_unslash( $_POST['notes'] ?? '' ) ),
-			'semantic_elements' => $semantic_clean,
-		);
-
-		$results = TWTAEO_Content_Generator::generate( $post_id, $industry, $subtopic, $options, $create_title );
-
-		if ( isset( $results['error'] ) ) {
-			wp_send_json_error( $results['error'] );
-		}
-
-		if ( $create_type ) {
-			$results['__meta'] = array(
-				'is_new'        => true,
-				'create_type'   => $create_type,
-				'create_title'  => $create_title,
-				'create_parent' => $create_parent,
-			);
-		}
-
-		wp_send_json_success( $results );
-	}
-
-	/**
-	 * AJAX: Save generated content as a new draft post, page, or hub.
-	 */
-	public function ajax_save_content_draft() {
-		check_ajax_referer( TWTAEO_Page_Content_Generator::NONCE, 'nonce' );
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Unauthorized' );
-		}
-
-		$allowed_create = array( 'post', 'page', 'twtaeo_hub', 'twtaeo_hub_sub' );
-		$create_type    = sanitize_key( wp_unslash( $_POST['create_type']  ?? '' ) );
-		$create_title   = sanitize_text_field( wp_unslash( $_POST['create_title'] ?? '' ) );
-		$post_content   = wp_kses_post( wp_unslash( $_POST['post_content'] ?? '' ) );
-		$create_parent  = absint( wp_unslash( $_POST['create_parent'] ?? 0 ) );
-
-		if ( ! in_array( $create_type, $allowed_create, true ) || ! $create_title ) {
-			wp_send_json_error( 'Invalid request.' );
-		}
-
-		$post_type   = ( $create_type === 'twtaeo_hub_sub' ) ? 'twtaeo_hub' : $create_type;
-		$post_parent = ( $create_type === 'twtaeo_hub_sub' && $create_parent ) ? $create_parent : 0;
-
-		// Inject auto-linking shortcodes into the content.
-		if ( $create_type === 'twtaeo_hub' ) {
-			$post_content .= "\n\n[twtaeo_hub_nav]";
-		} elseif ( $create_type === 'twtaeo_hub_sub' ) {
-			$post_content = "[twtaeo_hub_breadcrumb]\n\n" . $post_content;
-		}
-
-		$post_id = wp_insert_post( array(
-			'post_type'    => $post_type,
-			'post_title'   => $create_title,
-			'post_content' => $post_content,
-			'post_status'  => 'draft',
-			'post_parent'  => $post_parent,
-		), true );
-
-		if ( is_wp_error( $post_id ) ) {
-			wp_send_json_error( $post_id->get_error_message() );
-		}
-
-		wp_send_json_success( array(
-			'post_id'  => $post_id,
-			'edit_url' => get_edit_post_link( $post_id, 'raw' ),
-		) );
 	}
 
 	/**
@@ -933,8 +1152,12 @@ class TWTAEO_Plugin {
 			setup_postdata( $post );
 		}
 
+		// Fire core's wp_head to capture the rendered <head> for analysis. Hook
+		// name held in a variable — it is core's, not ours to prefix.
+		$core_action = 'wp_head';
 		ob_start();
-		do_action( 'wp_head' );
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
+		do_action( $core_action );
 		$html = ob_get_clean();
 
 		if ( $post ) {
@@ -949,7 +1172,7 @@ class TWTAEO_Plugin {
 		$schema_types = array();
 
 		preg_match_all(
-			'/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/is',
+			'/<scr[i]pt[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/scr[i]pt>/is',
 			$html,
 			$matches
 		);
@@ -1131,26 +1354,485 @@ class TWTAEO_Plugin {
 		$existing    = TWTAEO_Custom_Schema_Writer::get_by_type( $post_id, $recommended );
 		$missing     = self::get_wc_product_missing( $wc_product, $edit_url );
 
+		// Rich Product detection (attributes, identifiers, relationships, reviews).
+		$attributes    = TWTAEO_WooCommerce_Detector::detect_attributes( $wc_product );
+		$identifiers   = TWTAEO_WooCommerce_Detector::detect_identifiers( $wc_product );
+		$relationships = TWTAEO_WooCommerce_Detector::detect_relationships( $wc_product );
+		$reviews       = TWTAEO_WooCommerce_Detector::detect_reviews( $post_id, $wc_product );
+
 		wp_send_json_success( array(
-			'name'          => $name,
-			'description'   => $description,
-			'price'         => (string) $price,
-			'currency'      => $currency,
-			'sku'           => $sku,
-			'availability'  => $availability,
-			'image_url'     => $image_url,
-			'url'           => get_permalink( $post_id ),
-			'site_name'     => get_bloginfo( 'name' ),
-			'site_url'      => home_url(),
-			'intent'        => $intent,
-			'recommended'   => $recommended,
-			'edit_url'      => $edit_url,
-			'missing'       => $missing,
-			'has_existing'  => (bool) $existing,
-			'existing_json' => $existing
+			'name'           => $name,
+			'description'    => $description,
+			'price'          => (string) $price,
+			'currency'       => $currency,
+			'sku'            => $sku,
+			'availability'   => $availability,
+			'image_url'      => $image_url,
+			'url'            => get_permalink( $post_id ),
+			'site_name'      => get_bloginfo( 'name' ),
+			'site_url'       => home_url(),
+			'intent'         => $intent,
+			'recommended'    => $recommended,
+			'edit_url'       => $edit_url,
+			'missing'        => $missing,
+			'has_existing'   => (bool) $existing,
+			'existing_json'  => $existing
 				? wp_json_encode( $existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE )
 				: '',
+			// Rich Product fields.
+			'attributes'     => $attributes,
+			'identifiers'    => $identifiers,
+			'item_condition' => 'https://schema.org/NewCondition',
+			'relationships'  => array(
+				'is_variant_of' => $relationships['is_variant_of'],
+				'related'       => $relationships['related'],
+				'similar'       => self::wc_picked_chips( $post_id, TWTAEO_WooCommerce_Detector::META_SIMILAR ),
+				'accessory'     => self::wc_picked_chips( $post_id, TWTAEO_WooCommerce_Detector::META_ACCESSORY ),
+			),
+			'reviews'        => array(
+				'aggregate' => $reviews['aggregate'],
+				'count'     => count( $reviews['reviews'] ),
+			),
+			'shipping'       => TWTAEO_WooCommerce_Detector::get_shipping_defaults(),
+			'return'         => TWTAEO_WooCommerce_Detector::get_return_defaults(),
+			'ai_attributes'  => TWTAEO_Product_Enricher::get_cached_attributes( $post_id ),
+			'ai_vision'      => TWTAEO_Product_Enricher::get_cached_vision( $post_id ),
+			'image_alt'      => TWTAEO_Product_Enricher::image_alt_summary( $post_id ),
+			'brand_sameas'   => array_values( (array) get_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_SAMEAS, true ) ),
 		) );
+	}
+
+	/**
+	 * AJAX: Run on-demand AI attribute extraction for one product.
+	 */
+	public function ajax_wc_ai_extract() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$result = TWTAEO_Product_Enricher::extract_attributes( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		$cached = TWTAEO_Product_Enricher::get_cached_attributes( $post_id );
+		wp_send_json_success( array(
+			'data'      => $result,
+			'provider'  => $cached['provider'] ?? '',
+			'time'      => $cached['time'] ?? time(),
+			'time_diff' => human_time_diff( $cached['time'] ?? time() ) . ' ago',
+		) );
+	}
+
+	/**
+	 * AJAX: Rewrite/enhance a product description via AI.
+	 */
+	public function ajax_wc_ai_describe() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		$current = isset( $_POST['current'] ) ? sanitize_textarea_field( wp_unslash( $_POST['current'] ) ) : '';
+
+		$result = TWTAEO_Product_Enricher::enhance_description( $post_id, $current );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		wp_send_json_success( array(
+			'text'     => $result,
+			'provider' => TWTAEO_AI_Client::enrich_provider(),
+		) );
+	}
+
+	/**
+	 * AJAX: Standardize custom attributes into schema.org fields via AI.
+	 */
+	public function ajax_wc_ai_standardize() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$rows = array();
+		if ( isset( $_POST['additional'] ) && is_array( $_POST['additional'] ) ) {
+			foreach ( wp_unslash( $_POST['additional'] ) as $row ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+				$rows[] = array(
+					'name'  => sanitize_text_field( $row['name'] ?? '' ),
+					'value' => sanitize_text_field( $row['value'] ?? '' ),
+				);
+			}
+		}
+
+		$result = TWTAEO_Product_Enricher::standardize_attributes( $rows );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		wp_send_json_success( array(
+			'data'     => $result,
+			'provider' => TWTAEO_AI_Client::enrich_provider(),
+		) );
+	}
+
+	/**
+	 * AJAX: Flag competitor-expected fields this product is missing.
+	 */
+	public function ajax_wc_ai_competitive() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$result = TWTAEO_Product_Enricher::competitive_gaps( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		wp_send_json_success( array(
+			'recommended' => $result,
+			'provider'    => TWTAEO_AI_Client::retrieval_provider(),
+		) );
+	}
+
+	/**
+	 * AJAX: Resolve brand authority (sameAs) URLs via web-grounded retrieval.
+	 */
+	public function ajax_wc_ai_sameas() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		$brand   = sanitize_text_field( wp_unslash( $_POST['brand'] ?? '' ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$urls = TWTAEO_Product_Enricher::resolve_brand_sameas( $brand );
+		if ( is_wp_error( $urls ) ) {
+			wp_send_json_error( $urls->get_error_message() );
+		}
+		wp_send_json_success( array(
+			'urls'     => $urls,
+			'provider' => TWTAEO_AI_Client::retrieval_provider(),
+		) );
+	}
+
+	/**
+	 * AJAX: Extract visual attributes from a product's image via AI vision.
+	 */
+	public function ajax_wc_ai_vision() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$result = TWTAEO_Product_Enricher::extract_vision_attributes( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		$cached = TWTAEO_Product_Enricher::get_cached_vision( $post_id );
+		wp_send_json_success( array(
+			'data'      => $result,
+			'provider'  => $cached['provider'] ?? '',
+			'time'      => $cached['time'] ?? time(),
+			'time_diff' => human_time_diff( $cached['time'] ?? time() ) . ' ago',
+		) );
+	}
+
+	/**
+	 * AJAX: Return a post/page's images for the Image SEO edit modal.
+	 */
+	public function ajax_img_get_post_images() {
+		check_ajax_referer( TWTAEO_Page_Image_SEO::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		wp_send_json_success( array( 'images' => TWTAEO_Image_Optimizer::modal_images( $post_id ) ) );
+	}
+
+	/**
+	 * AJAX: Generate alt text for a post/page's images via AI vision.
+	 */
+	public function ajax_img_generate_alt() {
+		check_ajax_referer( TWTAEO_Page_Image_SEO::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		$result = TWTAEO_Image_Optimizer::generate_alt( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		$result['cov_html'] = TWTAEO_Product_Enricher::alt_badge_html( TWTAEO_Image_Optimizer::image_summary( $post_id ) );
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX: Save manually-edited alt text for a post/page's images.
+	 */
+	public function ajax_img_save_alt() {
+		check_ajax_referer( TWTAEO_Page_Image_SEO::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		$map = array();
+		if ( isset( $_POST['alts'] ) && is_array( $_POST['alts'] ) ) {
+			foreach ( wp_unslash( $_POST['alts'] ) as $key => $alt ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$map[ sanitize_key( $key ) ] = sanitize_text_field( $alt );
+			}
+		}
+
+		$result = TWTAEO_Image_Optimizer::save_manual( $post_id, $map );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		$result['cov_html'] = TWTAEO_Product_Enricher::alt_badge_html( TWTAEO_Image_Optimizer::image_summary( $post_id ) );
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX: Fill missing alt text on a product's images via AI vision.
+	 */
+	public function ajax_wc_ai_alt() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$result = TWTAEO_Product_Enricher::fill_image_alt( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		$result['alt_html'] = TWTAEO_Product_Enricher::alt_badge_html(
+			TWTAEO_Product_Enricher::image_alt_summary( $post_id )
+		);
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX: Assemble and save a rich Product schema from modal field values.
+	 */
+	public function ajax_wc_save_schema() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		// Scalar field overrides.
+		$overrides = array();
+		foreach ( array( 'name', 'description', 'sku', 'price', 'currency', 'brand', 'color', 'material', 'size', 'gtin', 'mpn' ) as $key ) {
+			if ( isset( $_POST[ $key ] ) ) {
+				$overrides[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+			}
+		}
+		if ( isset( $_POST['description'] ) ) {
+			$overrides['description'] = sanitize_textarea_field( wp_unslash( $_POST['description'] ) );
+		}
+		if ( isset( $_POST['image'] ) ) {
+			$overrides['image'] = esc_url_raw( wp_unslash( $_POST['image'] ) );
+		}
+		if ( isset( $_POST['availability'] ) ) {
+			$overrides['availability'] = esc_url_raw( wp_unslash( $_POST['availability'] ) );
+		}
+		if ( isset( $_POST['item_condition'] ) ) {
+			$overrides['item_condition'] = esc_url_raw( wp_unslash( $_POST['item_condition'] ) );
+		}
+
+		// additionalProperty rows.
+		if ( isset( $_POST['additional'] ) && is_array( $_POST['additional'] ) ) {
+			$rows = array();
+			foreach ( wp_unslash( $_POST['additional'] ) as $row ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+				$rows[] = array(
+					'name'  => sanitize_text_field( $row['name'] ?? '' ),
+					'value' => sanitize_text_field( $row['value'] ?? '' ),
+				);
+			}
+			$overrides['additional'] = $rows;
+		}
+
+		// Manual relationship pickers (arrays of product IDs). Always set the keys
+		// so an empty selection clears previously-saved picks.
+		$overrides['is_similar_to'] = ( isset( $_POST['is_similar_to'] ) && is_array( $_POST['is_similar_to'] ) )
+			? array_filter( array_map( 'absint', wp_unslash( $_POST['is_similar_to'] ) ) )
+			: array();
+		$overrides['is_accessory_for'] = ( isset( $_POST['is_accessory_for'] ) && is_array( $_POST['is_accessory_for'] ) )
+			? array_filter( array_map( 'absint', wp_unslash( $_POST['is_accessory_for'] ) ) )
+			: array();
+		update_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_SIMILAR, array_values( $overrides['is_similar_to'] ) );
+		update_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_ACCESSORY, array_values( $overrides['is_accessory_for'] ) );
+
+		// Brand sameAs authority URLs (always set so an empty selection clears them).
+		$overrides['same_as'] = ( isset( $_POST['same_as'] ) && is_array( $_POST['same_as'] ) )
+			? array_filter( array_map( 'esc_url_raw', wp_unslash( $_POST['same_as'] ) ) ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- esc_url_raw sanitizes each element via array_map.
+			: array();
+		update_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_SAMEAS, array_values( $overrides['same_as'] ) );
+
+		$overrides['include_reviews'] = ! isset( $_POST['include_reviews'] ) || rest_sanitize_boolean( wp_unslash( $_POST['include_reviews'] ) );
+
+		$schema = TWTAEO_WooCommerce_Detector::build_product_schema( $post_id, $overrides );
+		if ( ! $schema ) {
+			wp_send_json_error( 'Could not build schema for this product.' );
+		}
+		if ( empty( $schema['name'] ) ) {
+			wp_send_json_error( 'Name is required.' );
+		}
+
+		$json   = wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		$result = TWTAEO_Custom_Schema_Writer::save( $post_id, 'Product', $json );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		// Optionally write the (enhanced) description back to the product itself.
+		$write_desc = isset( $_POST['update_product_desc'] ) && rest_sanitize_boolean( wp_unslash( $_POST['update_product_desc'] ) );
+		if ( $write_desc && ! empty( $overrides['description'] ) ) {
+			wp_update_post( array(
+				'ID'           => $post_id,
+				'post_content' => $overrides['description'],
+			) );
+		}
+
+		wp_send_json_success( array(
+			'type'              => 'Product',
+			'optimization_html' => TWTAEO_WooCommerce_Detector::optimization_badge_html(
+				TWTAEO_WooCommerce_Detector::schema_optimization( $post_id )
+			),
+		) );
+	}
+
+	/**
+	 * Resolve a stored array of product IDs into picker chip objects.
+	 *
+	 * @param int    $post_id
+	 * @param string $meta_key
+	 * @return array[] Each: { id, text, url }
+	 */
+	private static function wc_picked_chips( $post_id, $meta_key ) {
+		$ids = get_post_meta( $post_id, $meta_key, true );
+		$out = array();
+		foreach ( (array) $ids as $id ) {
+			$id = absint( $id );
+			if ( ! $id ) {
+				continue;
+			}
+			$post = get_post( $id );
+			if ( ! $post || $post->post_type !== 'product' ) {
+				continue;
+			}
+			$out[] = array(
+				'id'   => $id,
+				'text' => html_entity_decode( get_the_title( $id ), ENT_QUOTES, 'UTF-8' ) . ' (#' . $id . ')',
+				'url'  => get_permalink( $id ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * AJAX: Search published products for the relationship pickers.
+	 */
+	public function ajax_wc_search_products() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$term = sanitize_text_field( wp_unslash( $_POST['term'] ?? '' ) );
+		if ( strlen( $term ) < 2 || ! function_exists( 'wc_get_products' ) ) {
+			wp_send_json_success( array() );
+		}
+
+		$products = wc_get_products( array(
+			's'      => $term,
+			'limit'  => 15,
+			'status' => 'publish',
+			'return' => 'objects',
+		) );
+
+		$out = array();
+		foreach ( $products as $product ) {
+			$out[] = array(
+				'id'   => $product->get_id(),
+				'text' => html_entity_decode( $product->get_name(), ENT_QUOTES, 'UTF-8' ) . ' (#' . $product->get_id() . ')',
+				'url'  => get_permalink( $product->get_id() ),
+			);
+		}
+		wp_send_json_success( $out );
+	}
+
+	/**
+	 * AJAX: Save site-wide shipping & return-policy defaults.
+	 */
+	public function ajax_wc_save_shipping_settings() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$shipping = array(
+			'enabled'      => ! empty( $_POST['ship_enabled'] ) && rest_sanitize_boolean( wp_unslash( $_POST['ship_enabled'] ) ),
+			'country'      => strtoupper( sanitize_text_field( wp_unslash( $_POST['ship_country'] ?? 'US' ) ) ),
+			'rate_type'    => ( sanitize_key( wp_unslash( $_POST['ship_rate_type'] ?? 'flat' ) ) === 'free' ) ? 'free' : 'flat',
+			'rate'         => sanitize_text_field( wp_unslash( $_POST['ship_rate'] ?? '' ) ),
+			'currency'     => strtoupper( sanitize_text_field( wp_unslash( $_POST['ship_currency'] ?? 'USD' ) ) ),
+			'handling_min' => absint( wp_unslash( $_POST['ship_handling_min'] ?? 0 ) ),
+			'handling_max' => absint( wp_unslash( $_POST['ship_handling_max'] ?? 1 ) ),
+			'transit_min'  => absint( wp_unslash( $_POST['ship_transit_min'] ?? 1 ) ),
+			'transit_max'  => absint( wp_unslash( $_POST['ship_transit_max'] ?? 5 ) ),
+		);
+
+		$return = array(
+			'enabled' => ! empty( $_POST['ret_enabled'] ) && rest_sanitize_boolean( wp_unslash( $_POST['ret_enabled'] ) ),
+			'country' => strtoupper( sanitize_text_field( wp_unslash( $_POST['ret_country'] ?? 'US' ) ) ),
+			'days'    => absint( wp_unslash( $_POST['ret_days'] ?? 30 ) ),
+			'fees'    => ( sanitize_key( wp_unslash( $_POST['ret_fees'] ?? 'free' ) ) === 'paid' ) ? 'paid' : 'free',
+			'method'  => esc_url_raw( wp_unslash( $_POST['ret_method'] ?? 'https://schema.org/ReturnByMail' ) ),
+		);
+
+		update_option( TWTAEO_WooCommerce_Detector::OPTION_SHIPPING, $shipping );
+		update_option( TWTAEO_WooCommerce_Detector::OPTION_RETURN, $return );
+
+		wp_send_json_success( array( 'shipping' => $shipping, 'return' => $return ) );
 	}
 
 	/**
@@ -1248,6 +1930,12 @@ class TWTAEO_Plugin {
 	 * @return array|null
 	 */
 	private static function build_wc_auto_schema( WP_Post $post, $type ) {
+		// Product schema is assembled by the central rich builder so the bulk path
+		// and the per-product modal stay in sync.
+		if ( $type === 'Product' ) {
+			return TWTAEO_WooCommerce_Detector::build_product_schema( $post->ID );
+		}
+
 		$wc_product  = function_exists( 'wc_get_product' ) ? wc_get_product( $post->ID ) : null;
 		$name        = html_entity_decode( get_the_title( $post->ID ), ENT_QUOTES, 'UTF-8' );
 		$url         = get_permalink( $post->ID );
@@ -1266,36 +1954,6 @@ class TWTAEO_Plugin {
 		}
 		if ( ! $image_url ) {
 			$image_url = get_the_post_thumbnail_url( $post->ID, 'full' ) ?: '';
-		}
-
-		if ( $type === 'Product' ) {
-			$price    = $wc_product ? (string) $wc_product->get_price() : '';
-			$currency = function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD';
-			$sku      = $wc_product ? $wc_product->get_sku() : '';
-			$avail    = ( $wc_product && $wc_product->get_stock_status() !== 'instock' )
-				? 'https://schema.org/OutOfStock'
-				: 'https://schema.org/InStock';
-
-			$schema = array(
-				'@context'    => 'https://schema.org',
-				'@type'       => 'Product',
-				'name'        => $name,
-				'url'         => $url,
-			);
-			if ( $description ) $schema['description'] = $description;
-			if ( $image_url )   $schema['image']       = $image_url;
-			if ( $sku )         $schema['sku']         = $sku;
-			if ( $price !== '' ) {
-				$schema['offers'] = array(
-					'@type'         => 'Offer',
-					'price'         => $price,
-					'priceCurrency' => $currency,
-					'availability'  => $avail,
-					'url'           => $url,
-				);
-			}
-			$schema['seller'] = array( '@type' => 'Organization', 'name' => $site_name, 'url' => $site_url );
-			return $schema;
 		}
 
 		if ( $type === 'Service' ) {
@@ -1439,6 +2097,41 @@ class TWTAEO_Plugin {
 			'post_title' => get_the_title( $post_id ),
 			'qa_count'   => count( $qa_pairs ),
 		) );
+	}
+
+	/**
+	 * AJAX: One-click Service schema for a single post — prefills from the page
+	 * (title + content) via the existing writer and saves, no modal needed.
+	 */
+	public function ajax_service_generate_one() {
+		check_ajax_referer( 'twtaeo_service_schema_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+		}
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id || ! get_post( $post_id ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid post.' ) );
+		}
+
+		$prefill = TWTAEO_Service_Schema_Writer::get_prefill( $post_id );
+		if ( empty( $prefill['name'] ) ) {
+			wp_send_json_error( array( 'message' => 'Could not build Service schema for this page.' ) );
+		}
+
+		$saved = TWTAEO_Service_Schema_Writer::save( $post_id, array(
+			'name'          => $prefill['name'],
+			'description'   => $prefill['description']   ?? '',
+			'service_type'  => $prefill['service_type']  ?? '',
+			'area_served'   => $prefill['area_served']   ?? '',
+			'provider_name' => $prefill['provider_name'] ?? '',
+			'phone'         => $prefill['phone']         ?? '',
+		) );
+
+		if ( ! $saved ) {
+			wp_send_json_error( array( 'message' => 'Failed to save Service schema.' ) );
+		}
+		wp_send_json_success( array( 'post_id' => $post_id ) );
 	}
 
 	/**
@@ -1653,6 +2346,7 @@ class TWTAEO_Plugin {
 		$company = TWTAEO_Company_Profile::get();
 
 		wp_send_json_success( array(
+			'name'      => $company['name']             ?? '',
 			'linkedin'  => $company['social_linkedin']  ?? '',
 			'facebook'  => $company['social_facebook']  ?? '',
 			'twitter'   => $company['social_twitter']   ?? '',
@@ -1680,6 +2374,28 @@ class TWTAEO_Plugin {
 		TWTAEO_EEAT_Detector::clear_cache();
 
 		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX: Look up brand/entity candidates in the Google Knowledge Graph.
+	 *
+	 * Used by the sameAs editor to verify which entity Google recognises and to
+	 * pull its authoritative URL + entity ID into Organization sameAs.
+	 */
+	public function ajax_kg_search() {
+		check_ajax_referer( 'twtaeo_eeat_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$query  = sanitize_text_field( wp_unslash( $_POST['query'] ?? '' ) );
+		$result = TWTAEO_Google_Knowledge_Graph::search( $query );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'entities' => $result ) );
 	}
 
 	public function ajax_get_author_meta() {
@@ -1726,6 +2442,188 @@ class TWTAEO_Plugin {
 		wp_send_json_success();
 	}
 
+	// ── AI Meta Description ─────────────────────────────────────────────────────
+
+	/** Generate (and save) an AI meta description for a single post. */
+	public function ajax_ai_desc_generate() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : '';
+		$result   = TWTAEO_AI_Description::generate_for_post( $post_id, $provider ?: null );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		TWTAEO_AI_Description::save_description( $post_id, $result );
+		wp_send_json_success( array( 'post_id' => $post_id, 'description' => $result ) );
+	}
+
+	/** Return the list of published posts/pages missing a description. */
+	public function ajax_ai_desc_bulk() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		// Count how many posts are missing a description, for the cost confirmation.
+		$count = count( TWTAEO_AI_Description::get_posts_missing_description( 2000 ) );
+		wp_send_json_success( array( 'count' => $count ) );
+	}
+
+	/** Start the background bulk job (runs server-side; survives navigation). */
+	public function ajax_ai_desc_start() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : '';
+		$mode     = isset( $_POST['mode'] ) && 'og' === $_POST['mode'] ? 'og' : 'meta';
+		wp_send_json_success( TWTAEO_AI_Description::start_job( $provider ?: null, $mode ) );
+	}
+
+	/** Stop the running background bulk job (keeps what was already created). */
+	public function ajax_ai_desc_stop() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		wp_send_json_success( TWTAEO_AI_Description::stop_job() );
+	}
+
+	/** Generate (without saving) a social-friendly description for one post. */
+	public function ajax_ai_desc_generate_social() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : '';
+		$result   = TWTAEO_AI_Description::generate_for_post( $post_id, $provider ?: null, 'social' );
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		wp_send_json_success( array( 'description' => $result ) );
+	}
+
+	/** Generate an og:image for one post with OpenAI and add it to the library. */
+	public function ajax_ai_og_image() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( __( 'You do not have permission to add media.', 'twt-aeo-ultimate' ) );
+		}
+
+		$style     = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'clean';
+		$modifiers = array(
+			'title'       => ! empty( $_POST['use_title'] ),
+			'description' => ! empty( $_POST['use_description'] ),
+			'brand'       => ! empty( $_POST['use_brand'] ),
+		);
+
+		$result = TWTAEO_AI_Description::generate_og_image( $post_id, $style, $modifiers );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+
+		wp_send_json_success( $result );
+	}
+
+	/** Set an existing attachment as a post's featured image (post thumbnail). */
+	public function ajax_set_featured_image() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		$att_id  = absint( wp_unslash( $_POST['attachment_id'] ?? 0 ) );
+		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+		if ( ! $att_id || 'attachment' !== get_post_type( $att_id ) || ! wp_attachment_is_image( $att_id ) ) {
+			wp_send_json_error( __( 'That image could not be found.', 'twt-aeo-ultimate' ) );
+		}
+
+		if ( ! set_post_thumbnail( $post_id, $att_id ) ) {
+			wp_send_json_error( __( 'Could not set the featured image.', 'twt-aeo-ultimate' ) );
+		}
+
+		wp_send_json_success();
+	}
+
+	/**
+	 * Bulk-fill Open Graph descriptions from each post's existing meta
+	 * description (no AI call). Free and instant.
+	 */
+	public function ajax_og_fill_from_meta() {
+		check_ajax_referer( 'twtaeo_social_graph_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$filled  = 0;
+		$skipped = 0;
+		foreach ( TWTAEO_AI_Description::get_posts_missing_og( 2000 ) as $post_id ) {
+			$meta = TWTAEO_AI_Description::get_existing_description( $post_id );
+			if ( '' === $meta ) {
+				$skipped++;
+				continue;
+			}
+			TWTAEO_AI_Description::save_og_description( $post_id, $meta );
+			$filled++;
+		}
+
+		wp_send_json_success( array( 'filled' => $filled, 'skipped' => $skipped ) );
+	}
+
+	/** Return the current background bulk job state for polling. */
+	public function ajax_ai_desc_status() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		// Drive a batch from the poll itself so the job progresses even when
+		// WP-Cron is not firing (common on local / loopback-restricted sites).
+		// The job's internal lock prevents overlap with the scheduled cron run.
+		TWTAEO_AI_Description::run_job_batch();
+
+		wp_send_json_success( TWTAEO_AI_Description::job_payload() );
+	}
+
+	/** Save the AI-description enable toggle and provider from the dashboard. */
+	public function ajax_ai_desc_settings() {
+		check_ajax_referer( TWTAEO_AI_Description::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$settings = get_option( 'twtaeo_settings', array() );
+		$settings[ TWTAEO_AI_Description::SETTING_ENABLED ] = ! empty( $_POST['enabled'] ) ? 1 : 0;
+
+		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : 'claude';
+		if ( ! in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ) {
+			$provider = 'claude';
+		}
+		$settings[ TWTAEO_AI_Description::SETTING_PROVIDER ] = $provider;
+
+		update_option( 'twtaeo_settings', $settings );
+		wp_send_json_success();
+	}
+
 	/** Clear all stored scan results. */
 	public function ajax_index_clear() {
 		check_ajax_referer( TWTAEO_Index_Status::NONCE, 'nonce' );
@@ -1768,6 +2666,7 @@ class TWTAEO_Plugin {
 			'og_description' => sanitize_textarea_field( wp_unslash( $_POST['og_description'] ?? '' ) ),
 			'og_type'        => sanitize_key( wp_unslash( $_POST['og_type'] ?? 'website' ) ),
 			'og_image'       => esc_url_raw( wp_unslash( $_POST['og_image'] ?? '' ) ),
+			'og_image_alt'   => sanitize_text_field( wp_unslash( $_POST['og_image_alt'] ?? '' ) ),
 		) );
 
 		$tw_saved = TWTAEO_Twitter_Writer::save( $post_id, array(
@@ -1802,33 +2701,6 @@ class TWTAEO_Plugin {
 		$company['social_linkedin'] = $url;
 		TWTAEO_Company_Profile::save( $company );
 		wp_send_json_success( array( 'url' => $url ) );
-	}
-
-	// ── Open Graph AJAX (legacy) ──────────────────────────────────────────────
-
-	public function ajax_save_og_data() {
-		check_ajax_referer( 'twtaeo_og_nonce', 'nonce' );
-		if ( ! current_user_can( 'edit_posts' ) ) {
-			wp_send_json_error( 'Unauthorized' );
-		}
-
-		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
-		if ( ! $post_id || ! get_post( $post_id ) ) {
-			wp_send_json_error( 'Invalid post.' );
-		}
-
-		$saved = TWTAEO_OG_Writer::save( $post_id, array(
-			'og_title'       => sanitize_text_field( wp_unslash( $_POST['og_title']       ?? '' ) ),
-			'og_description' => sanitize_textarea_field( wp_unslash( $_POST['og_description'] ?? '' ) ),
-			'og_type'        => sanitize_key( wp_unslash( $_POST['og_type'] ?? 'website' ) ),
-			'og_image'       => esc_url_raw( wp_unslash( $_POST['og_image'] ?? '' ) ),
-		) );
-
-		if ( $saved ) {
-			wp_send_json_success( array( 'post_id' => $post_id ) );
-		} else {
-			wp_send_json_error( 'Failed to save.' );
-		}
 	}
 
 	// ── IndexNow AJAX ─────────────────────────────────────────────────────────
@@ -1905,13 +2777,43 @@ class TWTAEO_Plugin {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
-		$result = TWTAEO_GMC_Sync_Engine::run_sync();
+		$this->start_merchant_sync( 'gmc', 'TWTAEO_GMC_Sync_Engine' );
+	}
 
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
+	/**
+	 * Start a merchant sync as a queued background run; only when Action
+	 * Scheduler is missing does it fall back to the old single-request sync.
+	 */
+	private function start_merchant_sync( $provider, $engine ) {
+		$state = TWTAEO_Merchant_Sync_Queue::start( $provider );
+
+		if ( is_wp_error( $state ) ) {
+			if ( 'no_scheduler' === $state->get_error_code() ) {
+				$result = $engine::run_sync();
+				if ( is_wp_error( $result ) ) {
+					wp_send_json_error( $result->get_error_message() );
+				}
+				wp_send_json_success( array( 'queued' => false, 'summary' => $result ) );
+			}
+			wp_send_json_error( $state->get_error_message() );
 		}
 
-		wp_send_json_success( $result );
+		wp_send_json_success( array( 'queued' => true, 'state' => $state ) );
+	}
+
+	/**
+	 * Progress of a queued merchant sync, polled by the admin UI.
+	 */
+	public function ajax_msync_status() {
+		$provider = ( isset( $_POST['provider'] ) && 'bmc' === $_POST['provider'] ) ? 'bmc' : 'gmc';
+		check_ajax_referer( 'bmc' === $provider ? 'twtaeo_bmc_nonce' : 'twtaeo_gmc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+
+		$state            = TWTAEO_Merchant_Sync_Queue::get_state( $provider );
+		$state['running'] = TWTAEO_Merchant_Sync_Queue::is_running( $state );
+		wp_send_json_success( $state );
 	}
 
 	public function ajax_gmc_disconnect() {
@@ -1961,13 +2863,7 @@ class TWTAEO_Plugin {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
-		$result = TWTAEO_BMC_Sync_Engine::run_sync();
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
+		$this->start_merchant_sync( 'bmc', 'TWTAEO_BMC_Sync_Engine' );
 	}
 
 	public function ajax_bmc_disconnect() {

@@ -21,6 +21,19 @@ class TWTAEO_EEAT_Detector {
 	const OPTION_KEY = 'twtaeo_eeat_scan';
 
 	/**
+	 * Register hooks that keep the cached scan in sync with the environment.
+	 *
+	 * The scan reads from SEO plugins (Rank Math, Yoast, …) and the TWT AEO
+	 * Company Profile. When a plugin is activated or deactivated/deleted the
+	 * available signals change, so the cached result must be discarded — WordPress
+	 * forces deactivation before deletion, so deactivated_plugin covers deletes.
+	 */
+	public static function register_hooks() {
+		add_action( 'activated_plugin',   array( __CLASS__, 'clear_cache' ) );
+		add_action( 'deactivated_plugin', array( __CLASS__, 'clear_cache' ) );
+	}
+
+	/**
 	 * Run a full E-E-A-T scan and cache the result.
 	 *
 	 * @return array
@@ -140,17 +153,19 @@ class TWTAEO_EEAT_Detector {
 
 		// Author schema with name (10pts).
 		$has_author_schema = false;
-		if ( defined( 'RANK_MATH_VERSION' ) ) {
-			$rm = get_option( 'rank_math_titles', array() );
-			if ( ! empty( $rm['knowledgegraph_name'] ) ) {
+
+		// TWT AEO Company Profile — the plugin's own Organization schema source.
+		if ( class_exists( 'TWTAEO_Company_Profile' ) ) {
+			$company = TWTAEO_Company_Profile::get();
+			if ( ! empty( $company['output_org_schema'] ) && ! empty( $company['name'] ) ) {
 				$has_author_schema = true;
 			}
 		}
-		if ( defined( 'WPSEO_VERSION' ) ) {
-			$wpseo = get_option( 'wpseo_titles', array() );
-			if ( ! empty( $wpseo['company_name'] ) || ! empty( $wpseo['company_or_person'] ) ) {
-				$has_author_schema = true;
-			}
+
+		// Any active SEO plugin (Rank Math, Yoast, AIOSEO, SEOPress, SEO Framework)
+		// with a configured Organization / Knowledge-Graph name also counts.
+		if ( ! $has_author_schema && ! empty( self::get_seo_plugin_org_names() ) ) {
+			$has_author_schema = true;
 		}
 
 		if ( $has_author_schema ) {
@@ -160,9 +175,7 @@ class TWTAEO_EEAT_Detector {
 			$missing[] = array(
 				'label'  => 'Author or Organization schema name missing',
 				'points' => 10,
-				'fix'    => defined( 'RANK_MATH_VERSION' )
-					? 'In Rank Math → Titles & Meta → Knowledge Graph, add your name or business name.'
-					: 'In Yoast SEO → Company Info, add your organization name.',
+				'fix'    => 'In TWT AEO → Company Profile, enable Organization schema and set your business name. (Rank Math and Yoast company names are also detected.)',
 				'action' => null,
 			);
 		}
@@ -463,12 +476,29 @@ class TWTAEO_EEAT_Detector {
 	}
 
 	/**
-	 * Get sameAs links from SEO plugin settings.
+	 * Get sameAs links from the TWT AEO Company Profile and SEO plugin settings.
+	 *
+	 * The "Add Links" modal on the E-E-A-T page saves into the Company Profile
+	 * option (TWTAEO_Company_Profile), so that store must be read here — otherwise
+	 * links the user saves never satisfy the signal on rescan.
 	 *
 	 * @return string[]
 	 */
 	private static function get_same_as_links() {
 		$links = array();
+
+		if ( class_exists( 'TWTAEO_Company_Profile' ) ) {
+			$company = TWTAEO_Company_Profile::get();
+			$social_keys = array(
+				'social_facebook', 'social_twitter', 'social_instagram',
+				'social_linkedin', 'social_youtube', 'social_wikipedia', 'social_pinterest',
+			);
+			foreach ( $social_keys as $key ) {
+				if ( ! empty( $company[ $key ] ) ) {
+					$links[] = $company[ $key ];
+				}
+			}
+		}
 
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
 			$rm = get_option( 'rank_math_titles', array() );
@@ -490,7 +520,110 @@ class TWTAEO_EEAT_Detector {
 			}
 		}
 
-		return array_filter( $links );
+		if ( defined( 'AIOSEO_VERSION' ) ) {
+			$urls = self::get_aioseo_options()['social']['profiles']['urls'] ?? array();
+			$social_keys = array( 'facebookPageUrl', 'twitterUrl', 'instagramUrl', 'linkedinUrl', 'youtubeUrl', 'pinterestUrl' );
+			foreach ( $social_keys as $key ) {
+				if ( ! empty( $urls[ $key ] ) ) {
+					$links[] = $urls[ $key ];
+				}
+			}
+		}
+
+		if ( defined( 'SEOPRESS_VERSION' ) ) {
+			$social = get_option( 'seopress_social', array() );
+			$social_keys = array(
+				'seopress_social_accounts_facebook', 'seopress_social_accounts_twitter',
+				'seopress_social_accounts_instagram', 'seopress_social_accounts_linkedin',
+				'seopress_social_accounts_youtube', 'seopress_social_accounts_pinterest',
+			);
+			foreach ( $social_keys as $key ) {
+				if ( ! empty( $social[ $key ] ) ) {
+					$links[] = $social[ $key ];
+				}
+			}
+		}
+
+		if ( defined( 'THE_SEO_FRAMEWORK_VERSION' ) ) {
+			$tsf = get_option( 'autodescription-site-settings', array() );
+			$social_keys = array(
+				'knowledge_facebook', 'knowledge_twitter', 'knowledge_instagram',
+				'knowledge_linkedin', 'knowledge_youtube', 'knowledge_pinterest',
+			);
+			foreach ( $social_keys as $key ) {
+				if ( ! empty( $tsf[ $key ] ) ) {
+					$links[] = $tsf[ $key ];
+				}
+			}
+		}
+
+		return array_values( array_unique( array_filter( $links ) ) );
+	}
+
+	/**
+	 * Collect Organization / Knowledge-Graph names configured in any active SEO
+	 * plugin (Rank Math, Yoast, AIOSEO, SEOPress, The SEO Framework).
+	 *
+	 * @return string[] Trimmed names (may be empty).
+	 */
+	private static function get_seo_plugin_org_names() {
+		$names = array();
+
+		if ( defined( 'RANK_MATH_VERSION' ) ) {
+			$rm = get_option( 'rank_math_titles', array() );
+			if ( ! empty( $rm['knowledgegraph_name'] ) ) {
+				$names[] = $rm['knowledgegraph_name'];
+			}
+		}
+
+		if ( defined( 'WPSEO_VERSION' ) ) {
+			$wpseo = get_option( 'wpseo_titles', array() );
+			if ( ! empty( $wpseo['company_name'] ) ) {
+				$names[] = $wpseo['company_name'];
+			}
+		}
+
+		if ( defined( 'AIOSEO_VERSION' ) ) {
+			$name = self::get_aioseo_options()['searchAppearance']['global']['schema']['organizationName'] ?? '';
+			if ( ! empty( $name ) ) {
+				$names[] = $name;
+			}
+		}
+
+		if ( defined( 'SEOPRESS_VERSION' ) ) {
+			$social = get_option( 'seopress_social', array() );
+			if ( ! empty( $social['seopress_social_knowledge_name'] ) ) {
+				$names[] = $social['seopress_social_knowledge_name'];
+			}
+		}
+
+		if ( defined( 'THE_SEO_FRAMEWORK_VERSION' ) ) {
+			$tsf = get_option( 'autodescription-site-settings', array() );
+			if ( ! empty( $tsf['knowledge_name'] ) ) {
+				$names[] = $tsf['knowledge_name'];
+			}
+		}
+
+		return array_values( array_filter( array_map( 'trim', $names ) ) );
+	}
+
+	/**
+	 * Decode the AIOSEO v4 options blob, which is stored as a JSON string.
+	 *
+	 * @return array Decoded options, or empty array if unavailable.
+	 */
+	private static function get_aioseo_options() {
+		$raw = get_option( 'aioseo_options', '' );
+		if ( is_array( $raw ) ) {
+			return $raw;
+		}
+		if ( is_string( $raw ) && '' !== $raw ) {
+			$decoded = json_decode( $raw, true );
+			if ( is_array( $decoded ) ) {
+				return $decoded;
+			}
+		}
+		return array();
 	}
 
 	/**
@@ -506,18 +639,16 @@ class TWTAEO_EEAT_Detector {
 			$names[] = strtolower( trim( $site_name ) );
 		}
 
-		if ( defined( 'RANK_MATH_VERSION' ) ) {
-			$rm = get_option( 'rank_math_titles', array() );
-			if ( ! empty( $rm['knowledgegraph_name'] ) ) {
-				$names[] = strtolower( trim( $rm['knowledgegraph_name'] ) );
+		if ( class_exists( 'TWTAEO_Company_Profile' ) ) {
+			$company = TWTAEO_Company_Profile::get();
+			if ( ! empty( $company['name'] ) ) {
+				$names[] = strtolower( trim( $company['name'] ) );
 			}
 		}
 
-		if ( defined( 'WPSEO_VERSION' ) ) {
-			$wpseo = get_option( 'wpseo_titles', array() );
-			if ( ! empty( $wpseo['company_name'] ) ) {
-				$names[] = strtolower( trim( $wpseo['company_name'] ) );
-			}
+		// Names from any active SEO plugin (Rank Math, Yoast, AIOSEO, SEOPress, SEO Framework).
+		foreach ( self::get_seo_plugin_org_names() as $seo_name ) {
+			$names[] = strtolower( $seo_name );
 		}
 
 		if ( count( $names ) <= 1 ) {

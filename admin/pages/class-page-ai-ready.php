@@ -288,6 +288,29 @@ class TWTAEO_Page_AI_Ready {
 				<p style="margin-top:.5em;font-size:13px;">
 					<?php esc_html_e( 'Features affected: API Catalog, Agent Skills Index, MCP Server Card, OAuth Discovery. After fixing permissions, click Save Changes to generate all files.', 'twt-aeo-ultimate' ); ?>
 				</p>
+
+				<details class="twt-aeo-air-manual" style="margin-top:.6em;font-size:13px;">
+					<summary style="cursor:pointer;font-weight:600;"><?php esc_html_e( 'Can’t change permissions? Create the files manually', 'twt-aeo-ultimate' ); ?></summary>
+					<div style="margin-top:.6em;">
+						<p><?php esc_html_e( 'If your host will not let WordPress write to the site root, you can create each file below by hand. In cPanel File Manager (or over SFTP/FTP), starting from your WordPress root folder — the one that contains wp-config.php:', 'twt-aeo-ultimate' ); ?></p>
+						<ol style="margin:.4em 0 .8em 1.5em;list-style:decimal;">
+							<li><?php esc_html_e( 'Create a folder named .well-known in your WordPress root if it does not already exist, and set its permissions to 755.', 'twt-aeo-ultimate' ); ?></li>
+							<li><?php esc_html_e( 'For each file below, create it at the exact path shown — creating any sub-folder it names (such as mcp/ or agent-skills/) first — then paste the contents exactly and save.', 'twt-aeo-ultimate' ); ?></li>
+							<li><?php esc_html_e( 'Set each file’s permissions to 644 so the web server can read it. The api-catalog and oauth files have no extension — that is correct, do not add .txt or .json.', 'twt-aeo-ultimate' ); ?></li>
+						</ol>
+						<?php foreach ( TWTAEO_AI_Ready::get_wellknown_manifest() as $manual_file ) : ?>
+							<p style="margin:.9em 0 .2em;">
+								<strong><?php echo esc_html( $manual_file['label'] ); ?></strong><br>
+								<?php esc_html_e( 'Path (relative to your WordPress root):', 'twt-aeo-ultimate' ); ?>
+								<code><?php echo esc_html( $manual_file['rel'] ); ?></code>
+							</p>
+							<textarea readonly rows="6" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px;" onclick="this.select();"><?php echo esc_textarea( $manual_file['contents'] ); ?></textarea>
+						<?php endforeach; ?>
+						<p style="margin-top:.6em;">
+							<?php esc_html_e( 'Each file is also served at its own URL by this plugin, so after creating it you can confirm it by opening the matching /.well-known/ address in your browser. If the URL already loads correctly, the dynamic version is working and the physical file is only needed for hosts that serve /.well-known/ straight from disk.', 'twt-aeo-ultimate' ); ?>
+						</p>
+					</div>
+				</details>
 			</div>
 			<?php elseif ( $wk_needs_files ) : ?>
 			<div class="notice notice-warning">
@@ -526,47 +549,88 @@ class TWTAEO_Page_AI_Ready {
 									<strong style="color:var(--aeo-warning);display:block;margin-top:4px;"><?php esc_html_e( 'Leave off if Yoast, Rank Math, or another SEO plugin already manages AI bot access — duplicate rules cause conflicts.', 'twt-aeo-ultimate' ); ?></strong>
 								</p>
 							</div>
-							<?php if ( TWTAEO_AI_Ready::has_physical_robots() ) : ?>
+							<?php
+							$robots_physical = TWTAEO_AI_Ready::has_physical_robots();
+							$robots_writable = TWTAEO_AI_Ready::physical_robots_is_writable();
+							$robots_signal   = $robots_physical && TWTAEO_AI_Ready::get_physical_robots_has_signal();
+							$seo_names       = TWTAEO_AI_Ready::seo_plugin_names( $seo );
+							$seo_label       = ! empty( $seo_names ) ? implode( ' / ', $seo_names ) : '';
+							$robots_nonce    = wp_create_nonce( TWTAEO_AI_Ready::NONCE_INJECT );
+							?>
 							<div class="twt-aeo-air-robots-notice" id="twt-aeo-robots-notice">
-								<?php
-								$has_signal = TWTAEO_AI_Ready::get_physical_robots_has_signal();
-								$seo_names  = array();
-								if ( $has_rm )    $seo_names[] = 'Rank Math';
-								if ( $has_yoast ) $seo_names[] = 'Yoast SEO';
-								$seo_label = ! empty( $seo_names ) ? implode( ' / ', $seo_names ) : __( 'your SEO plugin', 'twt-aeo-ultimate' );
-								?>
-								<?php if ( $has_signal ) : ?>
+								<?php if ( ! $robots_physical ) : ?>
 								<span class="twt-aeo-air-robots-notice__icon dashicons dashicons-yes-alt" style="color:var(--aeo-success);"></span>
 								<div class="twt-aeo-air-robots-notice__body">
-									<strong><?php esc_html_e( 'Physical robots.txt detected — Content-Signal already present.', 'twt-aeo-ultimate' ); ?></strong>
+									<strong><?php esc_html_e( 'robots.txt is served dynamically — fully tracked.', 'twt-aeo-ultimate' ); ?></strong>
 									<p>
+										<?php if ( $seo_label ) : ?>
 										<?php
 										printf(
 											/* translators: SEO plugin name(s) */
-											esc_html__( 'A physical robots.txt is managed by %s. It already contains a Content-Signal directive. Save your settings and click Inject to update it with your current values.', 'twt-aeo-ultimate' ),
+											esc_html__( 'WordPress builds robots.txt on each request, so this plugin\'s AI directives and Content-Signal are applied automatically alongside %s, and AI-crawler hits are logged. No action needed.', 'twt-aeo-ultimate' ),
 											'<strong>' . esc_html( $seo_label ) . '</strong>'
 										);
 										?>
+										<?php else : ?>
+										<?php esc_html_e( 'WordPress builds robots.txt on each request, so this plugin\'s AI directives and Content-Signal are applied automatically and AI-crawler hits are logged. No action needed.', 'twt-aeo-ultimate' ); ?>
+										<?php endif; ?>
+									</p>
+								</div>
+								<?php elseif ( $robots_writable ) : ?>
+								<span class="twt-aeo-air-robots-notice__icon dashicons dashicons-warning" style="color:var(--aeo-warning);"></span>
+								<div class="twt-aeo-air-robots-notice__body">
+									<strong><?php esc_html_e( 'Physical robots.txt detected — served as a static file.', 'twt-aeo-ultimate' ); ?></strong>
+									<p><?php esc_html_e( 'A robots.txt file on disk is served directly by the web server. That freezes its content and prevents AI-crawler hits from being tracked.', 'twt-aeo-ultimate' ); ?></p>
+									<p style="margin-top:6px;">
+										<strong><?php esc_html_e( 'Recommended: remove it.', 'twt-aeo-ultimate' ); ?></strong>
+										<?php if ( $seo_label ) : ?>
+										<?php
+										printf(
+											/* translators: SEO plugin name(s) */
+											esc_html__( 'WordPress will then serve robots.txt dynamically and %s will keep managing its rules through WordPress — no content is lost, and hits become trackable.', 'twt-aeo-ultimate' ),
+											'<strong>' . esc_html( $seo_label ) . '</strong>'
+										);
+										?>
+										<?php else : ?>
+										<?php esc_html_e( 'WordPress and this plugin will then serve a clean dynamic robots.txt with AI directives and Content-Signal, and hits become trackable.', 'twt-aeo-ultimate' ); ?>
+										<?php endif; ?>
+										<?php if ( ! $robots_signal ) : ?>
+										<br><?php esc_html_e( 'Prefer to keep the file? Use Inject instead to write Content-Signal into it — but hits to a static file stay untracked.', 'twt-aeo-ultimate' ); ?>
+										<?php endif; ?>
 									</p>
 								</div>
 								<?php else : ?>
 								<span class="twt-aeo-air-robots-notice__icon dashicons dashicons-warning" style="color:var(--aeo-warning);"></span>
 								<div class="twt-aeo-air-robots-notice__body">
-									<strong><?php esc_html_e( 'Physical robots.txt detected — Content-Signal missing.', 'twt-aeo-ultimate' ); ?></strong>
-									<p>
-										<?php
-										printf(
-											/* translators: SEO plugin name(s) */
-											esc_html__( 'A physical robots.txt is managed by %s. WordPress\'s robots_txt filter is bypassed, so Content-Signal cannot be added automatically. Use the Inject button below to write it directly into the file.', 'twt-aeo-ultimate' ),
-											'<strong>' . esc_html( $seo_label ) . '</strong>'
-										);
-										?>
+									<strong><?php esc_html_e( 'Physical robots.txt detected — not writable.', 'twt-aeo-ultimate' ); ?></strong>
+									<p><?php esc_html_e( 'A robots.txt file on disk is served directly by the web server, and the web server does not have permission to delete it.', 'twt-aeo-ultimate' ); ?></p>
+									<p style="margin-top:6px;">
+										<strong><?php esc_html_e( 'Recommended:', 'twt-aeo-ultimate' ); ?></strong>
+										<?php esc_html_e( 'Delete robots.txt manually via FTP or your host file manager so it is served dynamically (best for tracking), or click Inject to at least write Content-Signal into the existing file.', 'twt-aeo-ultimate' ); ?>
 									</p>
+									<?php $robots_snippet = TWTAEO_AI_Ready::get_robots_signal_snippet(); ?>
+									<?php if ( '' !== $robots_snippet ) : ?>
+									<details style="margin-top:6px;">
+										<summary style="cursor:pointer;font-weight:600;"><?php esc_html_e( 'Can’t delete it either? Add this to robots.txt by hand', 'twt-aeo-ultimate' ); ?></summary>
+										<div style="margin-top:6px;">
+											<p><?php esc_html_e( 'Open robots.txt in your host file manager and append the lines below. If a "User-agent: *" or "Sitemap:" line already exists, merge into it rather than duplicating it:', 'twt-aeo-ultimate' ); ?></p>
+											<textarea readonly rows="4" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:12px;" onclick="this.select();"><?php echo esc_textarea( $robots_snippet ); ?></textarea>
+										</div>
+									</details>
+									<?php endif; ?>
 								</div>
 								<?php endif; ?>
+
+								<?php if ( $robots_physical ) : ?>
 								<div class="twt-aeo-air-robots-notice__actions">
-									<button type="button" id="twt-aeo-inject-robots" class="button button-primary"
-										data-nonce="<?php echo esc_attr( wp_create_nonce( TWTAEO_AI_Ready::NONCE_INJECT ) ); ?>">
+									<?php if ( $robots_writable ) : ?>
+									<button type="button" id="twt-aeo-remove-robots" class="button button-primary"
+										data-nonce="<?php echo esc_attr( $robots_nonce ); ?>">
+										<?php esc_html_e( 'Remove physical robots.txt (serve dynamically)', 'twt-aeo-ultimate' ); ?>
+									</button>
+									<?php endif; ?>
+									<button type="button" id="twt-aeo-inject-robots" class="button"
+										data-nonce="<?php echo esc_attr( $robots_nonce ); ?>">
 										<?php esc_html_e( 'Inject into robots.txt', 'twt-aeo-ultimate' ); ?>
 									</button>
 									<?php if ( $has_yoast ) : ?>
@@ -581,8 +645,8 @@ class TWTAEO_Page_AI_Ready {
 									<?php endif; ?>
 									<span id="twt-aeo-inject-status" style="margin-left:10px;"></span>
 								</div>
+								<?php endif; ?>
 							</div>
-							<?php endif; ?>
 						</div>
 
 						<!-- Semantic Breadcrumbs -->
@@ -1287,6 +1351,13 @@ class TWTAEO_Page_AI_Ready {
 	}
 
 	private static function handle_save() {
+		// Two independent gates, both required, neither able to satisfy the other:
+		// capability first (who you are), then nonce (that this specific request came
+		// from our form). Kept inside the handler — not relying solely on the caller —
+		// so the save can never run for an under-privileged or forged request.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return array( 'saved' => false, 'flushed' => false );
+		}
 		if ( ! check_admin_referer( TWTAEO_AI_Ready::NONCE_ACTION, TWTAEO_AI_Ready::NONCE_NAME ) ) {
 			return array( 'saved' => false, 'flushed' => false );
 		}

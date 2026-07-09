@@ -73,7 +73,7 @@ class TWTAEO_Page_EEAT {
 						<span class="twt-aeo-badge twt-aeo-badge--page">
 							<?php
 						printf(
-							// translators: %s: human-readable time difference (e.g. '5 minutes').
+							// translators: %s: human-readable time difference (e.g. "5 minutes").
 							esc_html__( 'Last scanned %s ago', 'twt-aeo-ultimate' ),
 							esc_html( human_time_diff( strtotime( $scan['scanned_at'] ), current_time( 'timestamp' ) ) )
 						); ?>
@@ -369,6 +369,24 @@ class TWTAEO_Page_EEAT {
 			<p style="margin-top:0;color:#646970;font-size:13px;">
 				<?php esc_html_e( 'sameAs links tell AI systems and search engines that these profiles belong to your organisation. Add any that apply.', 'twt-aeo-ultimate' ); ?>
 			</p>
+
+			<?php /* ── Google Knowledge Graph verification ── */ ?>
+			<div id="twt-aeo-kg-block" style="border:1px solid #dbe3ef;background:#f6f9ff;border-radius:6px;padding:12px;margin-bottom:16px;">
+				<strong style="font-size:13px;color:#1e3a5f;">
+					<span class="dashicons dashicons-admin-site-alt3" style="vertical-align:text-bottom;color:#2271b1;"></span>
+					<?php esc_html_e( 'Check Google Knowledge Graph', 'twt-aeo-ultimate' ); ?>
+				</strong>
+				<p style="margin:6px 0 8px;font-size:12px;color:#50575e;">
+					<?php esc_html_e( 'Look up your brand in Google\'s entity database to confirm Google recognises it as an entity, and see its Knowledge Graph ID. This is a read-only check — nothing is saved to your schema.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+					<input type="text" id="twt-kg-query" class="regular-text" placeholder="<?php esc_attr_e( 'Your brand or organisation name', 'twt-aeo-ultimate' ); ?>" style="flex:1;min-width:220px;" />
+					<button type="button" class="button button-secondary" id="twt-kg-search-btn"><?php esc_html_e( 'Search', 'twt-aeo-ultimate' ); ?></button>
+					<span id="twt-kg-spinner" style="display:none;"><span class="spinner is-active" style="float:none;margin:0;"></span></span>
+				</div>
+				<div id="twt-kg-results" style="margin-top:10px;display:none;"></div>
+			</div>
+
 			<table class="form-table" style="margin-top:0;">
 				<tbody>
 					<tr><th><label><?php esc_html_e( 'LinkedIn', 'twt-aeo-ultimate' ); ?></label></th><td><input type="url" id="twt-sameas-linkedin" class="regular-text" placeholder="https://linkedin.com/company/yourcompany" /></td></tr>
@@ -444,6 +462,7 @@ class TWTAEO_Page_EEAT {
 
 			$(document).on('click', '.twt-aeo-open-sameas', function() {
 				$('#twt-sameas-message').hide();
+				$('#twt-kg-results').hide().empty();
 				$.post(ajaxurl, { action: 'twtaeo_get_sameas', nonce: nonce }, function(r) {
 					if ( r.success ) {
 						var d = r.data;
@@ -453,9 +472,57 @@ class TWTAEO_Page_EEAT {
 						$('#twt-sameas-instagram').val(d.instagram || '');
 						$('#twt-sameas-youtube').val(d.youtube   || '');
 						$('#twt-sameas-google').val(d.google    || '');
+						$('#twt-kg-query').val(d.name || '');
 					}
 				});
 				$('#twt-aeo-sameas-modal').dialog('open');
+			});
+
+			// ── Knowledge Graph entity lookup ───────────────────────────────
+			function kgBadge(s){
+				var color = s >= 200 ? '#166534' : (s >= 50 ? '#854d0e' : '#6b7280');
+				return '<span style="font-size:11px;color:'+color+';font-weight:600;">'
+					+ '<?php echo esc_js( __( 'match score', 'twt-aeo-ultimate' ) ); ?> ' + s + '</span>';
+			}
+			function kgEscape(str){
+				return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+			}
+
+			$('#twt-kg-search-btn').on('click', function() {
+				var q = $.trim($('#twt-kg-query').val());
+				if (!q) { return; }
+				var $btn = $(this), $sp = $('#twt-kg-spinner'), $out = $('#twt-kg-results');
+				$btn.prop('disabled', true); $sp.show(); $out.hide().empty();
+
+				$.post(ajaxurl, { action: 'twtaeo_kg_search', nonce: nonce, query: q }, function(r) {
+					$sp.hide(); $btn.prop('disabled', false);
+					if (!r.success) {
+						$out.html('<p style="color:#991b1b;font-size:12px;margin:0;">' + kgEscape(r.data && r.data.message ? r.data.message : '<?php echo esc_js( __( 'Lookup failed.', 'twt-aeo-ultimate' ) ); ?>') + '</p>').show();
+						return;
+					}
+					var list = r.data.entities || [];
+					if (!list.length) {
+						$out.html('<p style="color:#6b7280;font-size:12px;margin:0;"><?php echo esc_js( __( 'No matching entities found. Google may not recognise this brand yet.', 'twt-aeo-ultimate' ) ); ?></p>').show();
+						return;
+					}
+					var html = '';
+					$.each(list, function(i, e){
+						var types = (e.types || []).join(', ');
+						html += '<div class="twt-kg-card" style="border:1px solid #e2e8f0;border-radius:5px;padding:8px 10px;margin-bottom:6px;background:#fff;display:flex;gap:10px;align-items:flex-start;">'
+							+ (e.image ? '<img src="'+kgEscape(e.image)+'" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;flex-shrink:0;" />' : '')
+							+ '<div style="flex:1;min-width:0;">'
+							+ '<div style="font-weight:600;font-size:13px;">' + kgEscape(e.name) + (e.description ? ' <span style="font-weight:400;color:#6b7280;">— ' + kgEscape(e.description) + '</span>' : '') + '</div>'
+							+ (types ? '<div style="font-size:11px;color:#94a3b8;">' + kgEscape(types) + '</div>' : '')
+							+ (e.id ? '<div style="font-size:11px;color:#475569;margin-top:3px;"><?php echo esc_js( __( 'Knowledge Graph ID:', 'twt-aeo-ultimate' ) ); ?> <code style="font-size:11px;">' + kgEscape(e.id) + '</code></div>' : '')
+							+ '<div style="margin-top:4px;">' + kgBadge(e.score) + (e.url ? ' &middot; <a href="'+kgEscape(e.url)+'" target="_blank" rel="noopener" style="font-size:11px;"><?php echo esc_js( __( 'preview', 'twt-aeo-ultimate' ) ); ?></a>' : '') + '</div>'
+							+ '</div>'
+							+ '</div>';
+					});
+					$out.html(html).show();
+				}).fail(function(){
+					$sp.hide(); $btn.prop('disabled', false);
+					$out.html('<p style="color:#991b1b;font-size:12px;margin:0;"><?php echo esc_js( __( 'Request failed. Check your connection.', 'twt-aeo-ultimate' ) ); ?></p>').show();
+				});
 			});
 
 			function saveSameAs() {

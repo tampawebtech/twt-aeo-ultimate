@@ -27,11 +27,11 @@ class TWTAEO_Page_Index_Now {
 		if ( isset( $_POST['twtaeo_indexnow_save'] ) ) {
 			check_admin_referer( self::NONCE_SAVE );
 			TWTAEO_Index_Now::save_settings( map_deep( wp_unslash( $_POST ), 'sanitize_text_field' ) );
-			wp_safe_redirect( add_query_arg( 'twt_indexnow_saved', '1', $return_url ) );
+			wp_safe_redirect( add_query_arg( 'twtaeo_indexnow_saved', '1', $return_url ) );
 			exit;
 		}
 
-		if ( isset( $_GET['twt_indexnow_clear_log'] ) ) {
+		if ( isset( $_GET['twtaeo_indexnow_clear_log'] ) ) {
 			check_admin_referer( 'twtaeo_indexnow_clear_log' );
 			TWTAEO_Index_Now::clear_log();
 			wp_safe_redirect( $return_url );
@@ -39,9 +39,9 @@ class TWTAEO_Page_Index_Now {
 		}
 
 		if ( isset( $_POST['twtaeo_indexnow_regen'] ) ) {
-			check_admin_referer( 'twtaeo_indexnow_regen' );
+			check_admin_referer( 'twtaeo_indexnow_regen', '_twtaeo_regen_nonce' );
 			TWTAEO_Index_Now::regenerate_key();
-			wp_safe_redirect( add_query_arg( 'twt_regen', '1', $return_url ) );
+			wp_safe_redirect( add_query_arg( 'twtaeo_regen', '1', $return_url ) );
 			exit;
 		}
 	}
@@ -97,14 +97,14 @@ class TWTAEO_Page_Index_Now {
 		);
 
 		$clear_log_url = wp_nonce_url(
-			add_query_arg( 'twt_indexnow_clear_log', '1', $return_url ),
+			add_query_arg( 'twtaeo_indexnow_clear_log', '1', $return_url ),
 			'twtaeo_indexnow_clear_log'
 		);
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$saved    = isset( $_GET['twt_indexnow_saved'] );
+		$saved    = isset( $_GET['twtaeo_indexnow_saved'] );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$regenned = isset( $_GET['twt_regen'] );
+		$regenned = isset( $_GET['twtaeo_regen'] );
 
 		wp_enqueue_script(
 			'twt-aeo-indexnow',
@@ -179,11 +179,9 @@ class TWTAEO_Page_Index_Now {
 						<th><?php esc_html_e( 'Regenerate Key', 'twt-aeo-ultimate' ); ?></th>
 						<td>
 							<div style="display:flex;align-items:center;gap:10px;">
-								<form method="post" style="margin:0;">
-									<?php wp_nonce_field( 'twtaeo_indexnow_regen' ); ?>
-									<input type="submit" name="twtaeo_indexnow_regen" class="button" value="<?php esc_attr_e( 'Generate New Key', 'twt-aeo-ultimate' ); ?>"
-										onclick="return confirm('<?php echo esc_js( __( 'This will invalidate your current key. Are you sure?', 'twt-aeo-ultimate' ) ); ?>')">
-								</form>
+								<?php wp_nonce_field( 'twtaeo_indexnow_regen', '_twtaeo_regen_nonce' ); ?>
+								<input type="submit" name="twtaeo_indexnow_regen" class="button" value="<?php esc_attr_e( 'Generate New Key', 'twt-aeo-ultimate' ); ?>"
+									onclick="return confirm('<?php echo esc_js( __( 'This will invalidate your current key. Are you sure?', 'twt-aeo-ultimate' ) ); ?>')">
 							</div>
 							<p class="description"><?php esc_html_e( 'Only do this if your key has been compromised. Search engines will re-verify automatically on the next submission.', 'twt-aeo-ultimate' ); ?></p>
 						</td>

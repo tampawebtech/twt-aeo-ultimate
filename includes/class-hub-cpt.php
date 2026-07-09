@@ -19,8 +19,21 @@ class TWTAEO_Hub_CPT {
 
 	public static function register_hooks() {
 		add_action( 'init', array( __CLASS__, 'register_post_type' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ) );
 		add_shortcode( 'twtaeo_hub_nav',        array( __CLASS__, 'render_nav' ) );
 		add_shortcode( 'twtaeo_hub_breadcrumb', array( __CLASS__, 'render_breadcrumb' ) );
+	}
+
+	/**
+	 * Register the front-end stylesheet. Enqueued on demand by the shortcodes.
+	 */
+	public static function register_assets() {
+		wp_register_style(
+			'twt-aeo-hub',
+			plugin_dir_url( dirname( __FILE__ ) ) . 'public/css/hub.css',
+			array(),
+			TWTAEO_VERSION
+		);
 	}
 
 	// ── CPT ──────────────────────────────────────────────────────────────────
@@ -94,7 +107,8 @@ class TWTAEO_Hub_CPT {
 		}
 
 		$html .= '</ul></nav>';
-		$html .= self::inline_styles();
+
+		wp_enqueue_style( 'twt-aeo-hub' );
 
 		return $html;
 	}
@@ -117,30 +131,9 @@ class TWTAEO_Hub_CPT {
 		$html .= '<a class="twt-hub-breadcrumb__link" href="' . esc_url( get_permalink( $parent->ID ) ) . '">';
 		$html .= '&#8592; ' . esc_html( $parent->post_title );
 		$html .= '</a></nav>';
-		$html .= self::inline_styles();
+
+		wp_enqueue_style( 'twt-aeo-hub' );
 
 		return $html;
-	}
-
-	// ── Minimal frontend styles (output once per page) ────────────────────────
-
-	private static $styles_output = false;
-
-	private static function inline_styles() {
-		if ( self::$styles_output ) {
-			return '';
-		}
-		self::$styles_output = true;
-
-		return '<style>
-.twt-hub-nav{margin:1.5em 0;padding:1em 1.25em;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px}
-.twt-hub-nav__label{margin:0 0 .6em;font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b}
-.twt-hub-nav__list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.35em}
-.twt-hub-nav__link{color:#2563eb;text-decoration:none;font-size:.95em}
-.twt-hub-nav__link:hover{text-decoration:underline}
-.twt-hub-breadcrumb{margin:0 0 1.5em}
-.twt-hub-breadcrumb__link{color:#2563eb;text-decoration:none;font-size:.9em}
-.twt-hub-breadcrumb__link:hover{text-decoration:underline}
-</style>';
 	}
 }

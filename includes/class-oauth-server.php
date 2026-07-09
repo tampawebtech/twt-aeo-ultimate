@@ -168,7 +168,7 @@ class TWTAEO_OAuth_Server {
 		// Try HTTP Basic Auth first (preferred per RFC 6749 §2.3.1).
 		$auth = $request->get_header( 'authorization' );
 		if ( $auth && strncasecmp( $auth, 'Basic ', 6 ) === 0 ) {
-			$decoded = base64_decode( substr( $auth, 6 ), true );
+			$decoded = base64_decode( substr( $auth, 6 ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decoding an HTTP Basic Auth header per RFC 7617, not obfuscation.
 			if ( $decoded !== false && strpos( $decoded, ':' ) !== false ) {
 				return explode( ':', $decoded, 2 );
 			}

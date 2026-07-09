@@ -6,7 +6,7 @@
  * Content API. Diffs WooCommerce product data against the Bing Merchant Center
  * feed, stores per-product snapshots, and calculates an Integrity Score.
  *
- * Postmeta: _twt_bmc_sync
+ * Postmeta: _twtaeo_bmc_sync
  * Option:   twtaeo_bmc_last_sync
  *
  * @package TWTAEO_Connector
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class TWTAEO_BMC_Sync_Engine {
 
-	const META_SYNC   = '_twt_bmc_sync';
+	const META_SYNC   = '_twtaeo_bmc_sync';
 	const OPTION_LAST = 'twtaeo_bmc_last_sync';
 	const NONCE_SYNC  = 'twtaeo_bmc_sync_nonce';
 	const NONCE_SAVE  = 'twtaeo_bmc_save_nonce';
@@ -73,8 +73,28 @@ class TWTAEO_BMC_Sync_Engine {
 			'fields'         => 'ids',
 		) );
 
+		$summary = self::diff_chunk( $wc_posts, $bmc_by_sku, $bmc_by_gtin, $bmc_statuses );
+
+		update_option( self::OPTION_LAST, time() );
+		delete_transient( 'twtaeo_bmc_integrity_score' );
+
+		return $summary;
+	}
+
+	/**
+	 * Diff a batch of WC products against pre-built BMC lookup maps and persist
+	 * the per-product snapshots. Used by run_sync() for the full catalog and by
+	 * the merchant sync queue one chunk at a time.
+	 *
+	 * @param int[] $post_ids
+	 * @param array $by_sku   BMC products keyed by lowercase offerId.
+	 * @param array $by_gtin  BMC products keyed by GTIN.
+	 * @param array $statuses BMC product statuses keyed by BMC product ID.
+	 * @return array Summary counters for this batch.
+	 */
+	public static function diff_chunk( array $post_ids, array $by_sku, array $by_gtin, array $statuses ) {
 		$summary = array(
-			'total'          => count( $wc_posts ),
+			'total'          => count( $post_ids ),
 			'matched'        => 0,
 			'unmatched'      => 0,
 			'price_mismatch' => 0,
@@ -83,13 +103,13 @@ class TWTAEO_BMC_Sync_Engine {
 			'schema_issues'  => 0,
 		);
 
-		foreach ( $wc_posts as $post_id ) {
+		foreach ( $post_ids as $post_id ) {
 			$wc_product = wc_get_product( $post_id );
 			if ( ! $wc_product ) {
 				continue;
 			}
 
-			$snapshot = self::build_product_snapshot( $post_id, $wc_product, $bmc_by_sku, $bmc_by_gtin, $bmc_statuses );
+			$snapshot = self::build_product_snapshot( $post_id, $wc_product, $by_sku, $by_gtin, $statuses );
 			update_post_meta( $post_id, self::META_SYNC, $snapshot );
 
 			if ( $snapshot['matched'] ) {
@@ -103,36 +123,31 @@ class TWTAEO_BMC_Sync_Engine {
 			if ( $snapshot['schema_discrepancy'] )           $summary['schema_issues']++;
 		}
 
-		update_option( self::OPTION_LAST, time() );
-		delete_transient( 'twtaeo_bmc_integrity_score' );
-
 		return $summary;
 	}
 
 	/**
 	 * Calculate and cache the Bing E-Commerce Integrity Score (0–100).
 	 *
+	 * @param array|null $rows Optional pre-fetched get_product_snapshots() rows,
+	 *                         so render paths can share one catalog pass.
 	 * @return array { score: int, label: string, counts: array, synced: bool }
 	 */
-	public static function get_integrity_score() {
-		$cached = get_transient( 'twtaeo_bmc_integrity_score' );
-		if ( $cached !== false ) {
-			return $cached;
+	public static function get_integrity_score( $rows = null ) {
+		if ( null === $rows ) {
+			$cached = get_transient( 'twtaeo_bmc_integrity_score' );
+			if ( $cached !== false ) {
+				return $cached;
+			}
+			$rows = self::get_product_snapshots();
 		}
 
-		$wc_posts = get_posts( array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		) );
-
-		if ( empty( $wc_posts ) ) {
+		if ( empty( $rows ) ) {
 			return array( 'score' => 100, 'label' => 'Excellent', 'counts' => array(), 'synced' => false );
 		}
 
 		$counts = array(
-			'total'          => count( $wc_posts ),
+			'total'          => count( $rows ),
 			'synced'         => 0,
 			'matched'        => 0,
 			'unmatched'      => 0,
@@ -142,8 +157,8 @@ class TWTAEO_BMC_Sync_Engine {
 			'schema_issues'  => 0,
 		);
 
-		foreach ( $wc_posts as $post_id ) {
-			$snap = get_post_meta( $post_id, self::META_SYNC, true );
+		foreach ( $rows as $row ) {
+			$snap = $row['snap'];
 			if ( ! is_array( $snap ) ) {
 				continue;
 			}
@@ -195,6 +210,9 @@ class TWTAEO_BMC_Sync_Engine {
 			'fields'         => 'ids',
 		) );
 
+		// One query for posts + meta instead of two per product below.
+		_prime_post_caches( $wc_posts, false, true );
+
 		$rows = array();
 		foreach ( $wc_posts as $post_id ) {
 			$snap   = get_post_meta( $post_id, self::META_SYNC, true );
@@ -212,27 +230,24 @@ class TWTAEO_BMC_Sync_Engine {
 	/**
 	 * Get only products with rejection codes, for the Rejection Log section.
 	 *
+	 * @param array|null $rows Optional pre-fetched get_product_snapshots() rows.
 	 * @return array[]
 	 */
-	public static function get_rejection_log() {
-		$wc_posts = get_posts( array(
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		) );
+	public static function get_rejection_log( $rows = null ) {
+		if ( null === $rows ) {
+			$rows = self::get_product_snapshots();
+		}
 
 		$log = array();
-		foreach ( $wc_posts as $post_id ) {
-			$snap = get_post_meta( $post_id, self::META_SYNC, true );
-			if ( ! is_array( $snap ) || empty( $snap['rejection_codes'] ) ) {
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row['snap'] ) || empty( $row['snap']['rejection_codes'] ) ) {
 				continue;
 			}
 			$log[] = array(
-				'post_id'         => $post_id,
-				'title'           => get_the_title( $post_id ),
-				'edit_url'        => get_edit_post_link( $post_id, 'raw' ),
-				'rejection_codes' => $snap['rejection_codes'],
+				'post_id'         => $row['post_id'],
+				'title'           => $row['title'],
+				'edit_url'        => $row['edit_url'],
+				'rejection_codes' => $row['snap']['rejection_codes'],
 			);
 		}
 

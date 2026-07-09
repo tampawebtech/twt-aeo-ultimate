@@ -1,0 +1,8 @@
+.twt-hub-nav{margin:1.5em 0;padding:1em 1.25em;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px}
+.twt-hub-nav__label{margin:0 0 .6em;font-size:.8em;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b}
+.twt-hub-nav__list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.35em}
+.twt-hub-nav__link{color:#2563eb;text-decoration:none;font-size:.95em}
+.twt-hub-nav__link:hover{text-decoration:underline}
+.twt-hub-breadcrumb{margin:0 0 1.5em}
+.twt-hub-breadcrumb__link{color:#2563eb;text-decoration:none;font-size:.9em}
+.twt-hub-breadcrumb__link:hover{text-decoration:underline}

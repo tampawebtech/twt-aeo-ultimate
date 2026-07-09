@@ -1,4 +1,4 @@
-/* WP.org compliance: extracted from class-page-local-pack.php inline <script> */
+/* WP.org compliance: extracted from class-page-local-pack.php inline script block */
 ( function () {
 	'use strict';
 

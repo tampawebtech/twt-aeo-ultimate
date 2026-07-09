@@ -101,6 +101,7 @@ class TWTAEO_Index_Status {
 				'title'    => get_the_title( $post ),
 				'modified' => $post->post_modified,
 				'type'     => $post->post_type,
+				'edit_url' => get_edit_post_link( $post->ID, 'raw' ),
 			);
 		}
 		return $urls;

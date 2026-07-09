@@ -30,6 +30,13 @@ class TWTAEO_Page_Social_Graph {
 		$site_handle    = TWTAEO_Twitter_Writer::get_site_handle();
 		$company        = TWTAEO_Company_Profile::get();
 		$linkedin_url   = $company['social_linkedin'] ?? '';
+		$ai_nonce       = wp_create_nonce( TWTAEO_AI_Description::NONCE );
+		$ai_providers   = TWTAEO_AI_Description::available_providers();
+		$ai_provider    = TWTAEO_AI_Description::get_provider();
+		$ai_job         = TWTAEO_AI_Description::job_payload();
+		// AI image generation needs a real OpenAI key (the WP AI Client text
+		// fallback does not cover images), plus the capability to add media.
+		$ai_image_ready = ( '' !== TWTAEO_Key_Resolver::get( 'openai' ) ) && current_user_can( 'upload_files' );
 
 		// Count pages with a twitter:card explicitly set.
 		$tw_configured = 0;
@@ -50,220 +57,6 @@ class TWTAEO_Page_Social_Graph {
 		wp_enqueue_media();
 
 		?>
-		<style>
-		/* ── Social Graph Modal overlay ── */
-		#twt-aeo-sg-modal-overlay {
-			position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-			background: rgba(0,0,0,.65); z-index: 100000;
-			padding: 20px; box-sizing: border-box; overflow-y: auto;
-		}
-		.twt-aeo-modal {
-			background: #fff; border-radius: 6px; width: 100%; max-width: 660px;
-			margin: 40px auto; box-shadow: 0 12px 48px rgba(0,0,0,.35);
-			display: flex; flex-direction: column;
-		}
-		.twt-aeo-modal__header {
-			display: flex; align-items: center; justify-content: space-between;
-			padding: 16px 20px; border-bottom: 1px solid #e0e0e0;
-			position: sticky; top: 0; background: #fff; z-index: 1;
-		}
-		.twt-aeo-modal__title {
-			margin: 0; font-size: 15px; font-weight: 600;
-			display: flex; align-items: center; gap: 8px;
-		}
-		.twt-aeo-modal__close {
-			background: none; border: none; font-size: 22px; line-height: 1;
-			cursor: pointer; color: #666; padding: 0 4px;
-		}
-		.twt-aeo-modal__close:hover { color: #000; }
-		.twt-aeo-modal__body { padding: 20px; flex: 1; }
-		.twt-aeo-modal__footer {
-			padding: 14px 20px; border-top: 1px solid #e0e0e0;
-			display: flex; align-items: center; gap: 10px;
-			background: #f9f9f9; border-radius: 0 0 6px 6px;
-			position: sticky; bottom: 0;
-		}
-		.twt-aeo-modal__field { margin-bottom: 16px; }
-		.twt-aeo-modal__label {
-			display: flex; align-items: center; justify-content: space-between;
-			font-size: 12px; font-weight: 600; text-transform: uppercase;
-			letter-spacing: .04em; color: #444; margin-bottom: 5px;
-		}
-		.twt-aeo-modal__input,
-		.twt-aeo-modal__textarea,
-		.twt-aeo-modal__select {
-			width: 100%; box-sizing: border-box; border: 1px solid #c3c4c7;
-			border-radius: 3px; padding: 7px 10px; font-size: 13px; line-height: 1.4;
-		}
-		.twt-aeo-modal__input:focus,
-		.twt-aeo-modal__textarea:focus,
-		.twt-aeo-modal__select:focus {
-			border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; outline: none;
-		}
-		.twt-aeo-modal__hint { display: block; font-size: 11px; color: #888; margin-top: 4px; }
-		.twt-aeo-modal__char-count { font-weight: normal; font-size: 11px; color: #888; }
-		.twt-aeo-modal__char-count.is-over { color: #d63638; font-weight: 600; }
-		.twt-aeo-modal__status { font-size: 12px; }
-		.twt-aeo-modal__status.is-success { color: #00a32a; }
-		.twt-aeo-modal__status.is-error   { color: #d63638; }
-
-		/* ── Section dividers inside modal ── */
-		.twt-aeo-modal__section {
-			margin: 20px 0 0; padding: 14px; border-radius: 4px;
-			border: 1px solid #e0e0e0; background: #fafafa;
-		}
-		.twt-aeo-modal__section-title {
-			display: flex; align-items: center; gap: 6px;
-			font-size: 11px; font-weight: 700; text-transform: uppercase;
-			letter-spacing: .06em; color: #555; margin: 0 0 12px;
-		}
-		.twt-aeo-modal__section .twt-aeo-modal__field:last-child { margin-bottom: 0; }
-
-		/* ── Image picker ── */
-		.twt-aeo-og-image-picker { display: flex; gap: 14px; align-items: flex-start; }
-		.twt-aeo-og-image-picker__thumb {
-			width: 160px; height: 90px; flex-shrink: 0;
-			border: 2px dashed #c3c4c7; border-radius: 4px;
-			cursor: pointer; overflow: hidden;
-			display: flex; align-items: center; justify-content: center;
-			background: #f9f9f9;
-		}
-		.twt-aeo-og-image-picker__thumb:hover { border-color: #2271b1; }
-		.twt-aeo-og-image-picker__thumb img { width: 100%; height: 100%; object-fit: cover; }
-		.twt-aeo-og-image-picker__placeholder {
-			display: flex; flex-direction: column; align-items: center;
-			gap: 4px; color: #aaa; font-size: 11px;
-		}
-		.twt-aeo-og-image-picker__actions { display: flex; flex-direction: column; gap: 8px; }
-
-		/* ── Social card live preview ── */
-		.twt-aeo-og-preview {
-			border: 1px solid #e0e0e0; border-radius: 4px;
-			overflow: hidden; margin-bottom: 16px;
-		}
-		.twt-aeo-og-preview__inner { display: flex; }
-		.twt-aeo-og-preview__image-wrap {
-			width: 120px; flex-shrink: 0; background: #f0f0f0;
-			display: flex; align-items: center; justify-content: center; min-height: 80px;
-		}
-		.twt-aeo-og-preview__image-wrap img { width: 100%; height: 80px; object-fit: cover; }
-		.twt-aeo-og-preview__placeholder { color: #bbb; font-size: 24px; }
-		.twt-aeo-og-preview__text { padding: 10px 12px; flex: 1; }
-		.twt-aeo-og-preview__site { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 3px; }
-		.twt-aeo-og-preview__title { font-size: 13px; font-weight: 600; line-height: 1.3; margin-bottom: 3px; }
-		.twt-aeo-og-preview__desc  { font-size: 11px; color: #555; line-height: 1.4; }
-
-		/* ── Buttons ── */
-		.twt-aeo-btn {
-			display: inline-flex; align-items: center; gap: 5px;
-			padding: 6px 12px; border-radius: 3px; font-size: 13px;
-			cursor: pointer; border: 1px solid transparent; line-height: 1.4;
-		}
-		.twt-aeo-btn--primary { background: #2271b1; color: #fff; border-color: #2271b1; }
-		.twt-aeo-btn--primary:hover { background: #135e96; }
-		.twt-aeo-btn--ghost { background: #fff; color: #2271b1; border-color: #c3c4c7; }
-		.twt-aeo-btn--ghost:hover { border-color: #2271b1; }
-		.twt-aeo-btn--sm { padding: 4px 8px; font-size: 12px; }
-		.twt-aeo-btn:disabled { opacity: .6; cursor: not-allowed; }
-
-		/* ── Logo badge ── */
-		.twt-aeo-logo {
-			display: inline-block; background: #2271b1; color: #fff;
-			font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
-		}
-
-		/* ── Badges ── */
-		.twt-aeo-badge {
-			display: inline-block; font-size: 11px; font-weight: 600;
-			padding: 2px 7px; border-radius: 10px; white-space: nowrap;
-		}
-		.twt-aeo-badge--warn { background: #fcf0e3; color: #b35900; }
-		.twt-aeo-badge--good { background: #edfaef; color: #006505; }
-		.twt-aeo-badge--auto { background: #f0f0f1; color: #555; }
-		.twt-aeo-badge--tw   { background: #e7f5ff; color: #0055a5; }
-		.twt-aeo-og-source-badge--ours { background: #e8f0fe; color: #1a56b0; }
-		.twt-aeo-tag--missing { display: inline-block; font-size: 11px; color: #d63638; font-weight: 600; }
-		.twt-aeo-og-type-pill {
-			display: inline-block; font-size: 11px; font-weight: 600;
-			padding: 2px 7px; border-radius: 10px; background: #f0f0f1; color: #444;
-		}
-
-		/* ── Table ── */
-		.twt-aeo-page-table-wrap { overflow-x: auto; }
-		.twt-aeo-og-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-		.twt-aeo-og-table th, .twt-aeo-og-table td {
-			padding: 8px 10px; border-bottom: 1px solid #f0f0f1; vertical-align: middle;
-		}
-		.twt-aeo-og-table thead th { background: #f6f7f7; font-size: 12px; font-weight: 600; }
-		.twt-aeo-og-table thead th:hover { background: #eef0f1; }
-		.twt-aeo-page-row--issues td:first-child { border-left: 3px solid #d63638; }
-		.twt-aeo-page-row--ok td:first-child    { border-left: 3px solid #00a32a; }
-		.twt-aeo-og-field-ok { display: inline-flex; align-items: center; gap: 4px; color: #00a32a; font-size: 12px; }
-		.twt-aeo-og-field-text { color: #333; }
-		.twt-aeo-og-actions { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-		.twt-aeo-link { font-size: 12px; color: #2271b1; }
-
-		/* ── Summary cards ── */
-		.twt-aeo-summary-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-		.twt-aeo-summary-card {
-			flex: 1; min-width: 140px; background: #fff;
-			border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px;
-			display: flex; flex-direction: column; align-items: center; gap: 4px;
-		}
-		.twt-aeo-summary-card__number { font-size: 28px; font-weight: 700; }
-		.twt-aeo-summary-card__label  { font-size: 12px; color: #666; text-align: center; }
-		.twt-aeo-summary-card--alert { border-color: #f6b73c; }
-		.twt-aeo-summary-card--good  { border-color: #00a32a; }
-
-		/* ── Notice ── */
-		.twt-aeo-og-notice {
-			background: #e8f0fe; border-left: 4px solid #2271b1;
-			padding: 10px 14px; font-size: 13px; border-radius: 0 3px 3px 0;
-			margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start;
-		}
-
-		/* ── Site handle card ── */
-		.twt-aeo-site-handle-card {
-			background: #fff; border: 1px solid #e0e0e0; border-radius: 6px;
-			padding: 16px; margin-bottom: 20px;
-			display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-		}
-		.twt-aeo-site-handle-card__label { font-size: 13px; font-weight: 600; white-space: nowrap; }
-		.twt-aeo-site-handle-card__input {
-			border: 1px solid #c3c4c7; border-radius: 3px; padding: 6px 10px;
-			font-size: 13px; width: 200px;
-		}
-		.twt-aeo-site-handle-card__hint { font-size: 12px; color: #666; }
-		#twt-aeo-site-handle-status { font-size: 12px; }
-
-		/* ── Sections ── */
-		.twt-aeo-section { margin-bottom: 24px; }
-		.twt-aeo-section__title { font-size: 14px; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
-		.twt-aeo-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; }
-		.twt-aeo-card__note { margin-top: 0; color: #555; font-size: 13px; }
-		.twt-aeo-checklist { margin: 0; padding: 0; list-style: none; }
-		.twt-aeo-checklist__item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; }
-
-		/* ── Pagination ── */
-		.twt-og-pagination { display: flex; align-items: center; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
-		.twt-og-pagination a, .twt-og-pagination span {
-			display: inline-block; padding: 5px 10px; border: 1px solid #c3c4c7;
-			border-radius: 3px; font-size: 13px; text-decoration: none; color: #2271b1;
-		}
-		.twt-og-pagination span.current {
-			background: #2271b1; color: #fff; border-color: #2271b1; font-weight: 600;
-		}
-		.twt-og-pagination a:hover { border-color: #2271b1; background: #f0f6fc; }
-
-		/* ── Auto-fill chip ── */
-		.twt-aeo-autofill-chip {
-			display: inline-flex; align-items: center; gap: 4px;
-			background: #e8f0fe; color: #1a56b0; border-radius: 10px;
-			font-size: 11px; padding: 2px 8px; cursor: pointer;
-			border: 1px solid #c5d9f5; margin-left: 8px;
-		}
-		.twt-aeo-autofill-chip:hover { background: #d0e4fc; }
-		</style>
 
 		<div class="wrap twt-aeo-wrap">
 
@@ -292,6 +85,21 @@ class TWTAEO_Page_Social_Graph {
 				</div>
 			</div>
 
+			<?php if ( isset( $_GET['rescanned'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only UI confirmation, no state change. ?>
+			<div class="notice notice-success is-dismissible" style="margin:0 0 16px;">
+				<p>
+					<?php
+					printf(
+						// translators: %1$d: total pages scanned. %2$d: pages needing attention.
+						esc_html__( 'Rescan complete — %1$d pages scanned, %2$d need attention.', 'twt-aeo-ultimate' ),
+						absint( $summary['total'] ),
+						absint( $summary['needs_work'] )
+					);
+					?>
+				</p>
+			</div>
+			<?php endif; ?>
+
 			<?php if ( $seo_managed ) : ?>
 			<div class="twt-aeo-og-notice">
 				<span class="dashicons dashicons-info-outline"></span>
@@ -305,6 +113,49 @@ class TWTAEO_Page_Social_Graph {
 				?>
 			</div>
 			<?php endif; ?>
+
+			<!-- Bulk OG descriptions -->
+			<div class="twt-aeo-card" id="twt-aeo-og-bulk"
+				style="border-left:3px solid #2271b1;margin-bottom:16px;"
+				data-sgnonce="<?php echo esc_attr( $sg_nonce ); ?>"
+				data-ainonce="<?php echo esc_attr( $ai_nonce ); ?>"
+				data-running="<?php echo $ai_job['running'] ? '1' : '0'; ?>">
+				<p style="margin:0 0 10px;font-size:13px;color:#50575e;line-height:1.55;max-width:820px;">
+					<strong><?php esc_html_e( 'Fill missing social descriptions', 'twt-aeo-ultimate' ); ?></strong> —
+					<?php esc_html_e( 'reuse the meta descriptions you already have (free and instant), or ask AI to write punchier, share-friendly copy for posts that are missing an og:description.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+					<button type="button" class="button" id="twt-aeo-og-from-meta">
+						<?php esc_html_e( 'Use existing meta descriptions', 'twt-aeo-ultimate' ); ?>
+					</button>
+					<?php if ( ! empty( $ai_providers ) ) : ?>
+						<span style="color:#b0b5bb;"><?php esc_html_e( 'or', 'twt-aeo-ultimate' ); ?></span>
+						<label style="font-size:13px;display:inline-flex;align-items:center;gap:6px;">
+							<?php esc_html_e( 'AI', 'twt-aeo-ultimate' ); ?>
+							<select id="twt-aeo-og-provider">
+								<?php foreach ( $ai_providers as $slug ) : ?>
+									<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $ai_provider, $slug ); ?>>
+										<?php echo esc_html( ucfirst( $slug ) ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<button type="button" class="button button-primary" id="twt-aeo-og-ai">
+							<?php esc_html_e( 'Generate social-friendly with AI', 'twt-aeo-ultimate' ); ?>
+						</button>
+						<button type="button" class="button" id="twt-aeo-og-stop" style="display:none;">
+							<?php esc_html_e( 'Stop', 'twt-aeo-ultimate' ); ?>
+						</button>
+					<?php endif; ?>
+					<span id="twt-aeo-og-bulk-status" style="font-size:12px;color:#646970;"></span>
+				</div>
+				<?php if ( ! empty( $ai_providers ) ) : ?>
+				<p style="margin:10px 0 0;font-size:13px;color:#646970;line-height:1.55;">
+					<?php esc_html_e( 'The AI option makes one billed API call per post and runs in the background — you can leave this page once it starts, and stop it at any time. You will be asked to confirm the count first.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<p id="twt-aeo-og-note" style="margin:6px 0 0;font-size:13px;color:#646970;line-height:1.55;"></p>
+				<?php endif; ?>
+			</div>
 
 			<!-- Twitter Site Handle (global setting) -->
 			<div class="twt-aeo-site-handle-card">
@@ -391,7 +242,7 @@ class TWTAEO_Page_Social_Graph {
 						<span class="dashicons dashicons-share"></span>
 						<?php esc_html_e( 'Page Coverage', 'twt-aeo-ultimate' ); ?>
 					</h2>
-					<a href="<?php echo esc_url( add_query_arg( 'page', 'twt-aeo-social-graph', admin_url( 'admin.php' ) ) ); ?>" class="button">
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-social-graph', 'rescanned' => time() ), admin_url( 'admin.php' ) ) ); ?>" class="button">
 						&#8635; <?php esc_html_e( 'Rescan All', 'twt-aeo-ultimate' ); ?>
 					</a>
 				</div>
@@ -429,10 +280,19 @@ class TWTAEO_Page_Social_Graph {
 							if ( $post->post_type === 'post' )    $default_type = 'article';
 							if ( $post->post_type === 'product' ) $default_type = 'product';
 
+							// Auto-fill: page title, featured/attached image, and its
+							// label (when descriptive) seed the modal for unsaved fields.
+							$auto = TWTAEO_OG_Writer::auto_defaults( $post->ID );
+
 							$modal_type     = $saved_og['og_type']        ?: $default_type;
-							$modal_title    = $saved_og['og_title']       ?: '';
+							$modal_title    = $saved_og['og_title']       ?: $auto['title'];
 							$modal_desc     = $saved_og['og_description'] ?: '';
-							$modal_image    = $saved_og['og_image']       ?: '';
+							$modal_image    = $saved_og['og_image']       ?: $auto['image_url'];
+							// Only auto-label when the image itself is the automatic one —
+							// a saved custom image keeps whatever label was saved with it.
+							$modal_image_alt = $saved_og['og_image']
+								? ( $saved_og['og_image_alt'] ?: '' )
+								: $auto['image_alt'];
 							$modal_tw_card  = $saved_tw['tw_card']        ?: 'summary_large_image';
 							$modal_tw_creator = $saved_tw['tw_creator']  ?: '';
 							$author_twitter = TWTAEO_Twitter_Writer::get_author_twitter( $post->ID );
@@ -524,8 +384,10 @@ class TWTAEO_Page_Social_Graph {
 										data-post-type="<?php echo esc_attr( $post->post_type ); ?>"
 										data-og-title="<?php echo esc_attr( $modal_title ); ?>"
 										data-og-description="<?php echo esc_attr( $modal_desc ); ?>"
+										data-meta-description="<?php echo esc_attr( TWTAEO_AI_Description::get_existing_description( $post->ID ) ); ?>"
 										data-og-type="<?php echo esc_attr( $modal_type ); ?>"
 										data-og-image="<?php echo esc_attr( $modal_image ); ?>"
+										data-og-image-alt="<?php echo esc_attr( $modal_image_alt ); ?>"
 										data-tw-card="<?php echo esc_attr( $modal_tw_card ); ?>"
 										data-tw-creator="<?php echo esc_attr( $modal_tw_creator ); ?>"
 										data-author-twitter="<?php echo esc_attr( $author_twitter ); ?>"
@@ -635,7 +497,51 @@ class TWTAEO_Page_Social_Graph {
 								</button>
 							</div>
 						</div>
+
+						<?php if ( $ai_image_ready ) : ?>
+						<!-- AI image generation (OpenAI) -->
+						<div class="twt-aeo-ai-img" style="margin-top:12px;padding:12px;border:1px solid #e2e4e7;border-radius:6px;background:#fafafa;">
+							<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+								<label style="font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+									<?php esc_html_e( 'AI image style', 'twt-aeo-ultimate' ); ?>
+									<select id="sg-ai-img-style" class="twt-aeo-modal__select" style="width:auto;min-width:170px;">
+										<?php foreach ( TWTAEO_AI_Description::image_styles() as $style_key => $style_info ) : ?>
+											<option value="<?php echo esc_attr( $style_key ); ?>"><?php echo esc_html( $style_info['label'] ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</label>
+								<button type="button" class="twt-aeo-btn twt-aeo-btn--ghost twt-aeo-btn--sm" id="sg-ai-img-btn">
+									<span class="dashicons dashicons-art"></span>
+									<?php esc_html_e( 'Generate with AI', 'twt-aeo-ultimate' ); ?>
+								</button>
+								<span id="sg-ai-img-status" style="font-size:11px;color:#646970;"></span>
+							</div>
+							<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;">
+								<span style="font-size:11px;color:#646970;"><?php esc_html_e( 'Base it on:', 'twt-aeo-ultimate' ); ?></span>
+								<label style="font-size:12px;display:inline-flex;align-items:center;gap:5px;">
+									<input type="checkbox" id="sg-ai-img-title" checked> <?php esc_html_e( 'Post title', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<label style="font-size:12px;display:inline-flex;align-items:center;gap:5px;">
+									<input type="checkbox" id="sg-ai-img-desc" checked> <?php esc_html_e( 'Description', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<label style="font-size:12px;display:inline-flex;align-items:center;gap:5px;">
+									<input type="checkbox" id="sg-ai-img-brand"> <?php esc_html_e( 'Brand name', 'twt-aeo-ultimate' ); ?>
+								</label>
+							</div>
+							<p style="margin:8px 0 0;font-size:11px;color:#8a8f94;line-height:1.5;">
+								<?php esc_html_e( 'Generates a 1.91:1 landscape image with OpenAI, adds it to your Media Library, and sets it as the social image above. One billed API call — image generation costs more than text and can take 10–30 seconds. "Description" uses the social description, falling back to the meta description.', 'twt-aeo-ultimate' ); ?>
+							</p>
+						</div>
+						<?php endif; ?>
+
 						<span class="twt-aeo-modal__hint"><?php esc_html_e( 'Shared by OG and Twitter. Recommended: 1200×630px. Falls back to featured image.', 'twt-aeo-ultimate' ); ?></span>
+					</div>
+
+					<!-- Image label (og:image:alt) -->
+					<div class="twt-aeo-modal__field" style="margin-bottom:20px;">
+						<label class="twt-aeo-modal__label" for="sg-image-alt"><?php esc_html_e( 'Image Label (og:image:alt)', 'twt-aeo-ultimate' ); ?></label>
+						<input type="text" id="sg-image-alt" class="twt-aeo-modal__input" placeholder="<?php esc_attr_e( 'Describe what the image shows…', 'twt-aeo-ultimate' ); ?>" maxlength="200">
+						<span class="twt-aeo-modal__hint"><?php esc_html_e( 'Auto-filled from the image\'s alt text or media title when it\'s descriptive (generic camera names like IMG_4302 are skipped). Selecting a new image refreshes this.', 'twt-aeo-ultimate' ); ?></span>
 					</div>
 
 					<!-- Live preview -->
@@ -672,6 +578,17 @@ class TWTAEO_Page_Social_Graph {
 							<span class="twt-aeo-modal__char-count" id="sg-desc-count">0 / 160</span>
 						</label>
 						<textarea id="sg-description" class="twt-aeo-modal__textarea" rows="3" placeholder="<?php esc_attr_e( 'Write a compelling description for social shares…', 'twt-aeo-ultimate' ); ?>" maxlength="300"></textarea>
+						<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;">
+							<button type="button" class="twt-aeo-btn twt-aeo-btn--ghost twt-aeo-btn--sm" id="sg-use-meta" style="display:none;">
+								<?php esc_html_e( 'Use meta description', 'twt-aeo-ultimate' ); ?>
+							</button>
+							<?php if ( ! empty( $ai_providers ) ) : ?>
+							<button type="button" class="twt-aeo-btn twt-aeo-btn--ghost twt-aeo-btn--sm" id="sg-gen-ai">
+								<?php esc_html_e( 'Generate with AI', 'twt-aeo-ultimate' ); ?>
+							</button>
+							<?php endif; ?>
+							<span id="sg-desc-ai-status" style="font-size:11px;color:#646970;"></span>
+						</div>
 						<span class="twt-aeo-modal__hint"><?php esc_html_e( 'Used by og:description. X inherits this. Recommended: 120–160 characters.', 'twt-aeo-ultimate' ); ?></span>
 					</div>
 
@@ -760,12 +677,25 @@ class TWTAEO_Page_Social_Graph {
 			'use strict';
 
 			var nonce         = <?php echo wp_json_encode( $sg_nonce ); ?>;
+			var aiNonce       = <?php echo wp_json_encode( $ai_nonce ); ?>;
 			var ajaxUrl       = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
 			var linkedinUrl   = <?php echo wp_json_encode( $linkedin_url ); ?>;
 			var linkedinSettingsUrl = <?php echo wp_json_encode( admin_url( 'admin.php?page=twt-aeo-social-graph' ) ); ?>;
 			var mediaFrame    = null;
+			var currentMeta   = '';
 
 			// ── Image helpers ──────────────────────────────────────────────────────
+
+			// Mirrors TWTAEO_OG_Writer::is_generic_image_label() — camera/export
+			// names and bare numbers don't make useful og:image:alt text.
+			function isGenericImageLabel( label ) {
+				label = String( label || '' ).trim().toLowerCase();
+				if ( label.length < 4 ) { return true; }
+				if ( /\.(jpe?g|png|gif|webp|avif|bmp|tiff?|heic)$/.test( label ) ) { return true; }
+				if ( /^(img|image|dsc[fn]?|dcim|pxl|gopr|mvimg|vid|screen[\s_-]?shot|screenshot|photo|picture|pic|untitled|unnamed|capture|snapshot|scan|file|frame|clipboard|pasted[\s_-]?image|whatsapp[\s_-]?image|placeholder|default|thumbnail|temp)([\s_\-.()\d:at]+|copy|scaled|edited|final|e\d+)*$/.test( label ) ) { return true; }
+				if ( /^[\d\s_\-.()x×:]+$/.test( label ) ) { return true; }
+				return false;
+			}
 
 			function setImage( url ) {
 				if ( url ) {
@@ -796,10 +726,16 @@ class TWTAEO_Page_Social_Graph {
 				$('#sg-modal-post-name').text( data.postTitle );
 				$('#sg-title').val( data.ogTitle || '' );
 				$('#sg-description').val( data.ogDescription || '' );
+
+				// Offer "Use meta description" only when one exists and differs.
+				currentMeta = data.metaDescription || '';
+				$('#sg-use-meta').toggle( !!currentMeta );
+				$('#sg-desc-ai-status').text('').css('color', '#646970');
 				$('#sg-og-type').val( data.ogType || defaultType );
 				$('#sg-tw-card').val( data.twCard || 'summary_large_image' );
 				$('#sg-tw-creator').val( data.twCreator || '' );
 				setImage( data.ogImage || '' );
+				$('#sg-image-alt').val( data.ogImageAlt || '' );
 
 				// Populate LinkedIn company URL display.
 				var $liDisplay = $('#sg-linkedin-company-display');
@@ -860,8 +796,10 @@ class TWTAEO_Page_Social_Graph {
 					postType:      $btn.data('post-type'),
 					ogTitle:       $btn.data('og-title'),
 					ogDescription: $btn.data('og-description'),
+					metaDescription: $btn.data('meta-description'),
 					ogType:        $btn.data('og-type'),
 					ogImage:       $btn.data('og-image'),
+					ogImageAlt:    $btn.data('og-image-alt'),
 					twCard:        $btn.data('tw-card'),
 					twCreator:     $btn.data('tw-creator'),
 					authorTwitter: $btn.data('author-twitter'),
@@ -902,6 +840,10 @@ class TWTAEO_Page_Social_Graph {
 				mediaFrame.on('select', function() {
 					var attachment = mediaFrame.state().get('selection').first().toJSON();
 					setImage( attachment.url );
+					// Refresh the label from the new image's alt/title — but only
+					// with a real description, never a generic camera/export name.
+					var label = attachment.alt || attachment.title || '';
+					$('#sg-image-alt').val( isGenericImageLabel( label ) ? '' : label );
 				});
 				mediaFrame.open();
 			});
@@ -939,6 +881,7 @@ class TWTAEO_Page_Social_Graph {
 						og_description: $('#sg-description').val(),
 						og_type:        $('#sg-og-type').val(),
 						og_image:       $('#sg-image-url').val(),
+						og_image_alt:   $('#sg-image-alt').val(),
 						tw_card:        $('#sg-tw-card').val(),
 						tw_creator:     $('#sg-tw-creator').val(),
 					},
@@ -953,6 +896,7 @@ class TWTAEO_Page_Social_Graph {
 							$editBtn.data('og-description', $('#sg-description').val());
 							$editBtn.data('og-type',        $('#sg-og-type').val());
 							$editBtn.data('og-image',       $('#sg-image-url').val());
+							$editBtn.data('og-image-alt',   $('#sg-image-alt').val());
 							$editBtn.data('tw-card',        $('#sg-tw-card').val());
 							$editBtn.data('tw-creator',     $('#sg-tw-creator').val());
 
@@ -1086,6 +1030,198 @@ class TWTAEO_Page_Social_Graph {
 					}
 				});
 			});
+
+			// ── Modal: description helpers ───────────────────────────────────────────
+
+			$(document).on('click', '#sg-use-meta', function() {
+				if ( currentMeta ) {
+					$('#sg-description').val( currentMeta );
+					updatePreview();
+					updateCounts();
+				}
+			});
+
+			$(document).on('click', '#sg-gen-ai', function() {
+				var $btn = $(this), $st = $('#sg-desc-ai-status');
+				$btn.prop('disabled', true);
+				$st.css('color', '#646970').text('<?php echo esc_js( __( 'Generating…', 'twt-aeo-ultimate' ) ); ?>');
+				$.post(ajaxUrl, { action:'twtaeo_ai_desc_social', nonce:aiNonce, post_id:$('#sg-post-id').val() }, function(res){
+					if ( res.success ) {
+						$('#sg-description').val( res.data.description );
+						updatePreview(); updateCounts();
+						$st.css('color', '#1a6629').text('<?php echo esc_js( __( 'Done — review and Save.', 'twt-aeo-ultimate' ) ); ?>');
+					} else {
+						$st.css('color', '#b32d2e').text( res.data || 'Error' );
+					}
+				}).fail(function(){
+					$st.css('color', '#b32d2e').text('<?php echo esc_js( __( 'Request failed.', 'twt-aeo-ultimate' ) ); ?>');
+				}).always(function(){ $btn.prop('disabled', false); });
+			});
+
+			// ── Modal: AI image generation (OpenAI) ──────────────────────────────────
+
+			$(document).on('click', '#sg-ai-img-btn', function() {
+				var $btn = $(this), $st = $('#sg-ai-img-status');
+				var postId = $('#sg-post-id').val();
+				if ( ! postId ) { return; }
+				if ( ! window.confirm('<?php echo esc_js( __( 'Generate a social image with OpenAI? This makes one billed API call and can take up to 30 seconds.', 'twt-aeo-ultimate' ) ); ?>') ) { return; }
+
+				$btn.prop('disabled', true);
+				$st.css('color', '#646970').text('<?php echo esc_js( __( 'Generating image… this can take up to 30s.', 'twt-aeo-ultimate' ) ); ?>');
+
+				$.ajax({
+					url: ajaxUrl, type: 'POST', timeout: 150000,
+					data: {
+						action:          'twtaeo_ai_og_image',
+						nonce:           aiNonce,
+						post_id:         postId,
+						style:           $('#sg-ai-img-style').val(),
+						use_title:       $('#sg-ai-img-title').is(':checked') ? 1 : 0,
+						use_description: $('#sg-ai-img-desc').is(':checked') ? 1 : 0,
+						use_brand:       $('#sg-ai-img-brand').is(':checked') ? 1 : 0
+					},
+					success: function(res) {
+						if ( res.success ) {
+							setImage( res.data.url );
+							if ( res.data.alt && ! $('#sg-image-alt').val() ) { $('#sg-image-alt').val( res.data.alt ); }
+							$st.css('color', '#1a6629').text('<?php echo esc_js( __( 'Image added — review and Save.', 'twt-aeo-ultimate' ) ); ?>');
+
+							// It's already in the Media Library — offer to reuse it as
+							// the post's featured image.
+							if ( res.data.attachment_id && window.confirm('<?php echo esc_js( __( 'Also set this image as the post\'s featured image?', 'twt-aeo-ultimate' ) ); ?>') ) {
+								$.post(ajaxUrl, {
+									action: 'twtaeo_set_featured',
+									nonce: aiNonce,
+									post_id: postId,
+									attachment_id: res.data.attachment_id
+								}, function(r2) {
+									if ( r2 && r2.success ) {
+										$st.css('color', '#1a6629').text('<?php echo esc_js( __( 'Image added and set as featured — review and Save.', 'twt-aeo-ultimate' ) ); ?>');
+									} else {
+										$st.css('color', '#b32d2e').text( ( r2 && r2.data ) || '<?php echo esc_js( __( 'Could not set featured image.', 'twt-aeo-ultimate' ) ); ?>' );
+									}
+								});
+							}
+						} else {
+							$st.css('color', '#b32d2e').text( res.data || 'Error' );
+						}
+					},
+					error: function() {
+						$st.css('color', '#b32d2e').text('<?php echo esc_js( __( 'Request failed or timed out.', 'twt-aeo-ultimate' ) ); ?>');
+					},
+					complete: function() { $btn.prop('disabled', false); }
+				});
+			});
+
+			// ── Bulk OG descriptions ─────────────────────────────────────────────────
+
+			var $bulk = $('#twt-aeo-og-bulk');
+			if ( $bulk.length ) {
+				var sgNonce  = $bulk.data('sgnonce');
+				var aiN      = $bulk.data('ainonce');
+				var $bstatus = $('#twt-aeo-og-bulk-status');
+				var $ogStop  = $('#twt-aeo-og-stop');
+				var $ogNote  = $('#twt-aeo-og-note');
+				var ogPoll   = null;
+
+				// Per-provider model + speed/limitation note under the picker.
+				var ogProviderInfo = <?php echo wp_json_encode( TWTAEO_AI_Description::provider_info() ); ?>;
+				function ogUpdateNote(){
+					var info = ogProviderInfo[$('#twt-aeo-og-provider').val()];
+					if ( info ) { $ogNote.text(info.model + ' — ' + info.note); }
+					else { $ogNote.text(''); }
+				}
+				$('#twt-aeo-og-provider').on('change', ogUpdateNote);
+				ogUpdateNote();
+
+				$('#twt-aeo-og-from-meta').on('click', function() {
+					var $b = $(this);
+					$b.prop('disabled', true);
+					$bstatus.css('color', '#646970').text('<?php echo esc_js( __( 'Filling from existing meta…', 'twt-aeo-ultimate' ) ); ?>');
+					$.post(ajaxUrl, { action:'twtaeo_og_fill_from_meta', nonce:sgNonce }, function(res){
+						if ( res.success ) {
+							$bstatus.css('color', '#1a6629').text(
+								res.data.filled + ' <?php echo esc_js( __( 'filled', 'twt-aeo-ultimate' ) ); ?>'
+								+ ( res.data.skipped ? ', ' + res.data.skipped + ' <?php echo esc_js( __( 'had no meta', 'twt-aeo-ultimate' ) ); ?>' : '' )
+								+ '. <?php echo esc_js( __( 'Reloading…', 'twt-aeo-ultimate' ) ); ?>'
+							);
+							setTimeout(function(){ location.reload(); }, 1200);
+						} else {
+							$bstatus.css('color', '#b32d2e').text( res.data || 'Error' );
+							$b.prop('disabled', false);
+						}
+					}).fail(function(){
+						$bstatus.css('color', '#b32d2e').text('<?php echo esc_js( __( 'Request failed.', 'twt-aeo-ultimate' ) ); ?>');
+						$b.prop('disabled', false);
+					});
+				});
+
+				function ogRender(s){
+					if ( !s ) { return; }
+					if ( s.running || s.status === 'running' ) {
+						$('#twt-aeo-og-ai').prop('disabled', true);
+						$ogStop.show().prop('disabled', false);
+						$bstatus.css('color', '#646970').text(
+							(s.done||0) + ' / ' + (s.total||0) + ' — <?php echo esc_js( __( 'generating in background (you can leave this page)…', 'twt-aeo-ultimate' ) ); ?>'
+						);
+					} else if ( s.status === 'error' ) {
+						$('#twt-aeo-og-ai').prop('disabled', false);
+						$ogStop.hide();
+						$bstatus.css('color', '#b32d2e').text('<?php echo esc_js( __( 'Stopped: ', 'twt-aeo-ultimate' ) ); ?>' + (s.last_error||'error') + ' (' + (s.created||0) + ')');
+					} else if ( s.status === 'stopped' ) {
+						$('#twt-aeo-og-ai').prop('disabled', false);
+						$ogStop.hide();
+						$bstatus.css('color', '#646970').text((s.created||0) + ' <?php echo esc_js( __( 'created — stopped.', 'twt-aeo-ultimate' ) ); ?>');
+					} else if ( s.status === 'done' ) {
+						$('#twt-aeo-og-ai').prop('disabled', false);
+						$ogStop.hide();
+						$bstatus.css('color', '#1a6629').text((s.created||0) + ' <?php echo esc_js( __( 'created. Reload to see them.', 'twt-aeo-ultimate' ) ); ?>');
+					} else {
+						$('#twt-aeo-og-ai').prop('disabled', false);
+						$ogStop.hide();
+					}
+				}
+				function ogPollOnce(){
+					$.post(ajaxUrl, { action:'twtaeo_ai_desc_status', nonce:aiN }, function(res){
+						if ( !res.success ) { return; }
+						ogRender(res.data);
+						if ( res.data.status !== 'running' ) { clearInterval(ogPoll); ogPoll = null; }
+					});
+				}
+				function ogStartPolling(){ if (ogPoll) { return; } ogPollOnce(); ogPoll = setInterval(ogPollOnce, 4000); }
+
+				$('#twt-aeo-og-ai').on('click', function() {
+					var $b = $(this);
+					$b.prop('disabled', true);
+					$bstatus.css('color', '#646970').text('<?php echo esc_js( __( 'Finding posts…', 'twt-aeo-ultimate' ) ); ?>');
+					var provider = $('#twt-aeo-og-provider').val();
+					var fd = new FormData();
+					fd.append('action','twtaeo_ai_desc_start'); fd.append('nonce', aiN);
+					fd.append('mode','og'); fd.append('provider', provider);
+					if ( ! window.confirm('<?php echo esc_js( __( 'Generate social descriptions for all posts missing one? This makes one billed API call per post and runs in the background.', 'twt-aeo-ultimate' ) ); ?>') ) {
+						$bstatus.text('<?php echo esc_js( __( 'Cancelled.', 'twt-aeo-ultimate' ) ); ?>'); $b.prop('disabled', false); return;
+					}
+					fetch(ajaxUrl, { method:'POST', body:fd, credentials:'same-origin' })
+						.then(function(r){ return r.json(); })
+						.then(function(r){ if (r.success){ ogRender(r.data); ogStartPolling(); } else { $bstatus.css('color','#b32d2e').text(r.data||'Error'); $b.prop('disabled', false); } })
+						.catch(function(){ $bstatus.css('color','#b32d2e').text('<?php echo esc_js( __( 'Request failed.', 'twt-aeo-ultimate' ) ); ?>'); $b.prop('disabled', false); });
+				});
+
+				$ogStop.on('click', function() {
+					$ogStop.prop('disabled', true);
+					$.post(ajaxUrl, { action:'twtaeo_ai_desc_stop', nonce:aiN }, function(res){
+						if ( res && res.success ) {
+							ogRender(res.data);
+							if ( res.data.status !== 'running' ) { clearInterval(ogPoll); ogPoll = null; }
+						} else {
+							$ogStop.prop('disabled', false);
+						}
+					}).fail(function(){ $ogStop.prop('disabled', false); });
+				});
+
+				// Resume live view if a background job is already running.
+				if ( String($bulk.data('running')) === '1' ) { ogStartPolling(); }
+			}
 
 		})(jQuery);
 

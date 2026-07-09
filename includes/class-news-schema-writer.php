@@ -7,9 +7,10 @@
  * Entity system (Person @id, name, url, sameAs) and the publisher node comes
  * from TWTAEO_Company_Schema_Writer when available.
  *
- * Output is suppressed when:
+ * NewsArticle is opt-in: it is only emitted on posts an editor has marked as a
+ * news article via the news metabox. Output is suppressed when:
  *   - The post type is not enabled in News settings.
- *   - The post is individually excluded via the news metabox.
+ *   - The post is not marked as a news article.
  *   - schema_enabled is off in News settings.
  *   - Rank Math or Yoast already declares a NewsArticle schema for this post.
  *
@@ -48,8 +49,8 @@ class TWTAEO_News_Schema_Writer {
 			return;
 		}
 
-		// Respect per-post exclusion.
-		if ( TWTAEO_News_Meta::is_excluded( $post_id ) ) {
+		// Opt-in: only posts explicitly marked as news get NewsArticle schema.
+		if ( ! TWTAEO_News_Meta::is_included( $post_id ) ) {
 			return;
 		}
 
@@ -63,9 +64,12 @@ class TWTAEO_News_Schema_Writer {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// JSON-LD output. esc_html() would corrupt the JSON, so safety comes from the
+		// HEX_* flags: <, >, &, ' and " are all encoded as \uXXXX, so the value cannot
+		// break out of the script element or carry HTML/JS into the page.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML-inert JSON-LD; see note above.
 		echo "\n" . '<script type="application/ld+json">' . "\n"
-			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG )
+			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT )
 			. "\n" . '</script>' . "\n";
 	}
 
@@ -136,7 +140,15 @@ class TWTAEO_News_Schema_Writer {
 
 	// ── Author node ───────────────────────────────────────────────────────────
 
-	private static function build_author_node( $user_id ) {
+	/**
+	 * Build an embeddable Person author node (no @context) from the Author
+	 * Entity system, with a basic WP-user fallback. Shared with the Article
+	 * schema writer.
+	 *
+	 * @param int $user_id
+	 * @return array|null
+	 */
+	public static function build_author_node( $user_id ) {
 		if ( ! $user_id ) {
 			return null;
 		}
@@ -183,7 +195,13 @@ class TWTAEO_News_Schema_Writer {
 
 	// ── Publisher ref ─────────────────────────────────────────────────────────
 
-	private static function get_publisher_ref() {
+	/**
+	 * Build the publisher Organization reference, with a site-info fallback.
+	 * Shared with the Article schema writer.
+	 *
+	 * @return array
+	 */
+	public static function get_publisher_ref() {
 		if ( class_exists( 'TWTAEO_Company_Schema_Writer' ) ) {
 			$ref = TWTAEO_Company_Schema_Writer::get_publisher_ref();
 			if ( ! empty( $ref ) ) {

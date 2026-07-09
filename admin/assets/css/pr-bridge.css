@@ -568,3 +568,19 @@ body.twt-aeo-modal-open {
 	color: #9ca3af;
 	margin-top: 4px;
 }
+
+/* Metabox transform spinner. */
+.twt-aeo-pr-spinner {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border: 2px solid #e5e7eb;
+	border-top-color: #2563eb;
+	border-radius: 50%;
+	animation: twt-aeo-pr-spin .7s linear infinite;
+	flex-shrink: 0;
+}
+
+@keyframes twt-aeo-pr-spin {
+	to { transform: rotate(360deg); }
+}

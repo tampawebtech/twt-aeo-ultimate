@@ -86,9 +86,11 @@
 		// Signals.
 		var signals = '';
 		if ( author.yearsExperience ) {
+			// translators: %s: number of years of professional experience.
 			signals += '<span class="twt-aeo-hover-signal twt-aeo-hover-signal--exp">' + esc( sprintf( __( '%s yrs exp', 'twt-aeo-ultimate' ), author.yearsExperience ) ) + '</span>';
 		}
 		if ( author.certCount ) {
+			// translators: %s: number of certifications the author holds.
 			signals += '<span class="twt-aeo-hover-signal twt-aeo-hover-signal--certs">' + esc( _n( '%s cert', '%s certs', author.certCount, 'twt-aeo-ultimate' ).replace( '%s', author.certCount ) ) + '</span>';
 		}
 		if ( signals ) {

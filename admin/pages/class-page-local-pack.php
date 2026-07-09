@@ -25,7 +25,7 @@ class TWTAEO_Page_Local_Pack {
 		}
 
 		// ── Handle GBP OAuth callback ─────────────────────────────────────────
-		if ( isset( $_GET['twt_gbp_callback'], $_GET['code'], $_GET['state'] ) ) {
+		if ( isset( $_GET['twtaeo_gbp_callback'], $_GET['code'], $_GET['state'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 			$result = TWTAEO_Local_Pack_NAP::handle_gbp_callback(
 				sanitize_text_field( wp_unslash( $_GET['code'] ) ),
@@ -35,7 +35,7 @@ class TWTAEO_Page_Local_Pack {
 		}
 
 		// ── Handle GBP disconnect ─────────────────────────────────────────────
-		if ( isset( $_GET['twt_gbp_disconnect'] ) ) {
+		if ( isset( $_GET['twtaeo_gbp_disconnect'] ) ) {
 			check_admin_referer( 'twtaeo_gbp_disconnect' );
 			TWTAEO_Local_Pack_NAP::disconnect_gbp();
 			$gbp_notice = array( 'success', 'Google Business Profile disconnected.' );
@@ -56,7 +56,7 @@ class TWTAEO_Page_Local_Pack {
 
 		$gbp_oauth_url = TWTAEO_Local_Pack_NAP::get_gbp_oauth_url();
 		$gbp_disconnect_url = wp_nonce_url(
-			add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'twt_gbp_disconnect' => '1' ), admin_url( 'admin.php' ) ),
+			add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'twtaeo_gbp_disconnect' => '1' ), admin_url( 'admin.php' ) ),
 			'twtaeo_gbp_disconnect'
 		);
 
@@ -939,11 +939,6 @@ class TWTAEO_Page_Local_Pack {
 					'url'  => 'https://www.carfax.com/service/',
 					'why'  => 'CARFAX is a trusted automotive authority. Being listed as a verified service shop associates your entity with CARFAX\'s credibility when AI engines answer "where can I service my car?"',
 				),
-				array(
-					'name' => 'AutoMD',
-					'url'  => 'https://www.automd.com/auto-repair-shops/',
-					'why'  => 'AutoMD aggregates shop data for cost comparison and recommendations. AI assistants use its shop database for auto repair queries, making it a valuable entity signal for repair businesses.',
-				),
 			),
 
 			'beauty_wellness' => array(
@@ -1017,11 +1012,6 @@ class TWTAEO_Page_Local_Pack {
 					'name' => 'Tutor.com / Wyzant',
 					'url'  => 'https://www.wyzant.com/tutors/jobs',
 					'why'  => 'Wyzant is the largest tutor marketplace and is indexed by AI assistants for "find a tutor" queries. A profile here extends your entity into the tutoring and supplemental education graph.',
-				),
-				array(
-					'name' => 'CourseHorse',
-					'url'  => 'https://coursehorse.com/nyc/list-classes',
-					'why'  => 'CourseHorse aggregates classes and workshops across cities. AI assistants answering "where can I learn X near me" frequently surface CourseHorse listings with schedule and pricing data.',
 				),
 				array(
 					'name' => 'Classgap',

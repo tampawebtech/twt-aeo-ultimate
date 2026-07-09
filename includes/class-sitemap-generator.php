@@ -139,9 +139,20 @@ class TWTAEO_Sitemap_Generator {
 		}
 
 		status_header( 200 );
+		// Keep this file out of any full-page cache (host cache / CDN). On hosts
+		// like Nexcess/NxAccel the cache can otherwise capture a wrong response
+		// (e.g. a homepage fall-through during a deploy/rewrite-flush window) under
+		// this URL and serve that stale HTML to Google, which then rejects the
+		// sitemap as invalid.
+		nocache_headers();
 		header( 'Content-Type: application/xml; charset=UTF-8' );
 		header( 'X-Robots-Tag: noindex' );
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// XML sitemap document served as application/xml. Every dynamic value was
+		// escaped during assembly in generate() (esc_url() on <loc>, esc_html() on
+		// lastmod/changefreq/priority); the rest is a static literal. There is no
+		// whole-document XML escaper, and esc_html() here would double-encode the
+		// already-safe markup.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Pre-escaped XML document; see note above.
 		echo $xml;
 		exit;
 	}
@@ -155,6 +166,9 @@ class TWTAEO_Sitemap_Generator {
 		}
 
 		status_header( 200 );
+		// Keep this file out of any full-page cache (host cache / CDN) so every
+		// AI-crawler request runs through PHP and is recorded by the crawler logger.
+		nocache_headers();
 		header( 'Content-Type: text/plain; charset=UTF-8' );
 		echo wp_kses_post( $content );
 		exit;
@@ -494,8 +508,11 @@ class TWTAEO_Sitemap_Generator {
 				$out .= 'URL: ' . $url . "\n";
 				$out .= 'Last modified: ' . $lastmod . "\n\n";
 
-				$rendered = apply_filters( 'the_content', $post->post_content );
-				$out     .= self::html_to_markdown( $rendered );
+				// Core the_content filter, applied via a variable hook name (core's, not ours).
+				$core_filter = 'the_content';
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
+				$rendered    = apply_filters( $core_filter, $post->post_content );
+				$out        .= self::html_to_markdown( $rendered );
 				$out     .= "\n\n---\n\n";
 			}
 		}

@@ -222,45 +222,69 @@ class TWTAEO_Bing_Merchant_Center {
 	// ── Content API — Products ───────────────────────────────────────────────
 
 	/**
+	 * Fetch a single page (≤250 items) of a Shopping Content API listing.
+	 * Lets the sync queue spread a large feed across many short requests
+	 * instead of looping every page inside one PHP request.
+	 *
+	 * @param string $store_id
+	 * @param string $endpoint   'products' or 'productstatuses'.
+	 * @param string $page_token Pagination token from the previous page.
+	 * @return array|WP_Error  { items: array, next: string }
+	 */
+	public static function fetch_page( $store_id, $endpoint, $page_token = '' ) {
+		$token = self::get_access_token();
+		if ( ! $token ) {
+			return new WP_Error( 'not_connected', 'Not connected to Bing Merchant Center.' );
+		}
+
+		$creds   = self::get_credentials();
+		$headers = self::build_headers( $token, $creds['developer_token'] ?? '' );
+
+		$url = self::API_BASE . '/' . rawurlencode( $store_id ) . '/' . $endpoint . '?maxResults=250';
+		if ( $page_token ) {
+			$url .= '&pageToken=' . rawurlencode( $page_token );
+		}
+
+		$response = wp_remote_get( $url, array(
+			'headers' => $headers,
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( $code !== 200 ) {
+			return new WP_Error( 'bmc_error', $data['errors'][0]['message'] ?? 'Bing Merchant Center API error (HTTP ' . $code . ').' );
+		}
+
+		return array(
+			'items' => $data['resources'] ?? array(),
+			'next'  => $data['nextPageToken'] ?? '',
+		);
+	}
+
+	/**
 	 * Fetch all products from Bing Merchant Center (handles pagination).
 	 *
 	 * @param string $store_id
 	 * @return array|WP_Error  Flat array of product resource objects.
 	 */
 	public static function list_all_products( $store_id ) {
-		$token = self::get_access_token();
-		if ( ! $token ) {
-			return new WP_Error( 'not_connected', 'Not connected to Bing Merchant Center.' );
-		}
-
-		$creds    = self::get_credentials();
-		$headers  = self::build_headers( $token, $creds['developer_token'] ?? '' );
-		$products = array();
-		$next_url = self::API_BASE . '/' . rawurlencode( $store_id ) . '/products?maxResults=250';
+		$products   = array();
+		$page_token = '';
 
 		do {
-			$response = wp_remote_get( $next_url, array(
-				'headers' => $headers,
-				'timeout' => 30,
-			) );
-
-			if ( is_wp_error( $response ) ) {
-				return $response;
+			$page = self::fetch_page( $store_id, 'products', $page_token );
+			if ( is_wp_error( $page ) ) {
+				return $page;
 			}
-
-			$code = wp_remote_retrieve_response_code( $response );
-			$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-			if ( $code !== 200 ) {
-				return new WP_Error( 'bmc_error', $data['errors'][0]['message'] ?? 'Bing Merchant Center API error (HTTP ' . $code . ').' );
-			}
-
-			$products = array_merge( $products, $data['resources'] ?? array() );
-			$next_url = ! empty( $data['nextPageToken'] )
-				? self::API_BASE . '/' . rawurlencode( $store_id ) . '/products?maxResults=250&pageToken=' . rawurlencode( $data['nextPageToken'] )
-				: '';
-
-		} while ( $next_url );
+			$products   = array_merge( $products, $page['items'] );
+			$page_token = $page['next'];
+		} while ( $page_token );
 
 		return $products;
 	}
@@ -274,42 +298,19 @@ class TWTAEO_Bing_Merchant_Center {
 	 * @return array|WP_Error  Keyed by Bing product ID.
 	 */
 	public static function list_all_product_statuses( $store_id ) {
-		$token = self::get_access_token();
-		if ( ! $token ) {
-			return new WP_Error( 'not_connected', 'Not connected to Bing Merchant Center.' );
-		}
-
-		$creds    = self::get_credentials();
-		$headers  = self::build_headers( $token, $creds['developer_token'] ?? '' );
-		$statuses = array();
-		$next_url = self::API_BASE . '/' . rawurlencode( $store_id ) . '/productstatuses?maxResults=250';
+		$statuses   = array();
+		$page_token = '';
 
 		do {
-			$response = wp_remote_get( $next_url, array(
-				'headers' => $headers,
-				'timeout' => 30,
-			) );
-
-			if ( is_wp_error( $response ) ) {
-				return $response;
+			$page = self::fetch_page( $store_id, 'productstatuses', $page_token );
+			if ( is_wp_error( $page ) ) {
+				return $page;
 			}
-
-			$code = wp_remote_retrieve_response_code( $response );
-			$data = json_decode( wp_remote_retrieve_body( $response ), true );
-
-			if ( $code !== 200 ) {
-				return new WP_Error( 'bmc_error', $data['errors'][0]['message'] ?? 'Bing Merchant Center API error (HTTP ' . $code . ').' );
-			}
-
-			foreach ( $data['resources'] ?? array() as $status ) {
+			foreach ( $page['items'] as $status ) {
 				$statuses[ $status['productId'] ] = $status;
 			}
-
-			$next_url = ! empty( $data['nextPageToken'] )
-				? self::API_BASE . '/' . rawurlencode( $store_id ) . '/productstatuses?maxResults=250&pageToken=' . rawurlencode( $data['nextPageToken'] )
-				: '';
-
-		} while ( $next_url );
+			$page_token = $page['next'];
+		} while ( $page_token );
 
 		return $statuses;
 	}

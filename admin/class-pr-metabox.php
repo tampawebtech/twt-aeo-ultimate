@@ -243,7 +243,7 @@ class TWTAEO_PR_Metabox {
 							<span class="twt-aeo-pr-modal__hint"><?php esc_html_e( '(editable)', 'twt-aeo-ultimate' ); ?></span>
 						</div>
 						<div class="twt-aeo-pr-modal__spinner" id="twt-aeo-pr-modal-spinner" style="display:none;">
-							<span class="twt-aeo-cg-spinner"></span>
+							<span class="twt-aeo-pr-spinner"></span>
 							<?php esc_html_e( 'Claude is writing your press release…', 'twt-aeo-ultimate' ); ?>
 						</div>
 						<textarea id="twt-aeo-pr-formatted" class="twt-aeo-pr-modal__textarea"><?php echo esc_textarea( $formatted ); ?></textarea>

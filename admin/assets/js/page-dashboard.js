@@ -1,4 +1,4 @@
-/* WP.org compliance: extracted from admin/pages/class-page-dashboard.php inline <script> */
+/* WP.org compliance: extracted from admin/pages/class-page-dashboard.php inline script block */
 /* global twtAeoSchemas, ajaxurl */
 		jQuery(document).ready(function($) {
 
@@ -736,12 +736,63 @@
 				});
 			});
 
+			// ── Background scan polling ─────────────────────────────────────
+			// Posts beyond the foreground cap are scanned server-side via
+			// WP-cron; this just watches the state option and paints progress.
+			function pollBgScan( nonce ) {
+				$.post( ajaxurl, {
+					action: 'twtaeo_bg_scan_status',
+					nonce:  nonce
+				}, function( res ) {
+					if ( ! res.success ) {
+						setTimeout(function(){ pollBgScan( nonce ); }, 10000);
+						return;
+					}
+					var s = res.data;
+					if ( s.status === 'done' ) {
+						$('#twt-aeo-progress-fill').css('width', '100%');
+						$('#twt-aeo-progress-label').text(
+							'Background scan complete — ' + s.done + ' pages scanned' +
+							( s.errors > 0 ? ' (' + s.errors + ' errors)' : '' ) + ' — reloading…'
+						);
+						setTimeout(function(){ location.reload(); }, 1500);
+						return;
+					}
+					if ( s.running ) {
+						var pct = s.total > 0 ? Math.round( (s.done / s.total) * 100 ) : 0;
+						$('#twt-aeo-progress-fill').css('width', pct + '%');
+						$('#twt-aeo-progress-label').text(
+							'Background scan… ' + s.done + ' / ' + s.total + ' remaining pages (you can leave this page)'
+						);
+					}
+					setTimeout(function(){ pollBgScan( nonce ); }, 5000);
+				}).fail(function(){
+					setTimeout(function(){ pollBgScan( nonce ); }, 10000);
+				});
+			}
+
+			// Resume the progress display when a background scan was already
+			// running when this page loaded.
+			(function() {
+				var $prog = $('#twt-aeo-scan-progress');
+				if ( $prog.data('bg-running') !== 1 ) { return; }
+				var done  = parseInt( $prog.data('bg-done'), 10 )  || 0;
+				var total = parseInt( $prog.data('bg-total'), 10 ) || 0;
+				var pct   = total > 0 ? Math.round( (done / total) * 100 ) : 0;
+				$('#twt-aeo-scan-all-btn').prop('disabled', true).css('opacity', '0.6');
+				$('#twt-aeo-progress-fill').css('width', pct + '%');
+				$('#twt-aeo-progress-label').text('Background scan… ' + done + ' / ' + total + ' remaining pages');
+				$prog.show();
+				pollBgScan( $('#twt-aeo-scan-all-btn').data('nonce') );
+			})();
+
 			// ── Scan All Pages ──────────────────────────────────────────────
 			$('#twt-aeo-scan-all-btn').on('click', function() {
-				var $btn    = $(this);
-				var nonce   = $btn.data('nonce');
-				var ids     = $btn.data('ids');
-				var total   = ids.length;
+				var $btn      = $(this);
+				var nonce     = $btn.data('nonce');
+				var ids       = $btn.data('ids');
+				var total     = ids.length;
+				var remaining = parseInt( $btn.data('remaining'), 10 ) || 0;
 
 				if ( total === 0 ) { return; }
 
@@ -759,6 +810,26 @@
 
 				function scanNext( index ) {
 					if ( index >= total ) {
+						if ( remaining > 0 ) {
+							// Hand the rest of the catalog to the background scanner.
+							$('#twt-aeo-progress-fill').css('width', '0%');
+							$('#twt-aeo-progress-label').text(
+								done + ' pages scanned — queuing the remaining ' + remaining + ' for background scanning…'
+							);
+							$.post( ajaxurl, {
+								action: 'twtaeo_bg_scan_start',
+								nonce:  nonce
+							}, function( res ) {
+								if ( res.success ) {
+									pollBgScan( nonce );
+								} else {
+									setTimeout(function(){ location.reload(); }, 1500);
+								}
+							}).fail(function(){
+								setTimeout(function(){ location.reload(); }, 1500);
+							});
+							return;
+						}
 						$('#twt-aeo-progress-label').text(
 							done + ' pages scanned' + ( errors > 0 ? ' (' + errors + ' errors)' : '' ) + ' — reloading…'
 						);

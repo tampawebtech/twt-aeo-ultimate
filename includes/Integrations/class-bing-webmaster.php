@@ -20,15 +20,19 @@ class TWTAEO_Bing_Webmaster {
 	// ── Credentials ──────────────────────────────────────────────────────────
 
 	public static function get_credentials() {
-		return get_option( self::OPTION_CREDS, array() );
+		$creds = get_option( self::OPTION_CREDS, array() );
+		if ( isset( $creds['api_key'] ) ) {
+			$creds['api_key'] = TWTAEO_Crypt::decrypt( (string) $creds['api_key'] );
+		}
+		return $creds;
 	}
 
 	public static function save_credentials( $api_key, $site_url ) {
 		update_option( self::OPTION_CREDS, array(
-			'api_key'  => sanitize_text_field( $api_key ),
+			'api_key'  => TWTAEO_Crypt::encrypt( sanitize_text_field( $api_key ) ),
 			'site_url' => esc_url_raw( $site_url ),
 		) );
-		delete_transient( 'twtaeo_bing_stats' );
+		delete_transient( 'twtaeo_bing_stats_v2' );
 		delete_transient( 'twtaeo_bing_crawl' );
 		delete_transient( 'twtaeo_bing_suggestions' );
 	}
@@ -40,7 +44,7 @@ class TWTAEO_Bing_Webmaster {
 
 	public static function disconnect() {
 		delete_option( self::OPTION_CREDS );
-		delete_transient( 'twtaeo_bing_stats' );
+		delete_transient( 'twtaeo_bing_stats_v2' );
 		delete_transient( 'twtaeo_bing_crawl' );
 		delete_transient( 'twtaeo_bing_suggestions' );
 	}

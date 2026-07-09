@@ -3,9 +3,12 @@
  * News Meta
  *
  * Registers a side metabox on enabled post types so editors can set:
+ *   - Include toggle   (opt-in: adds NewsArticle schema + news sitemap inclusion)
  *   - Article section  (used in NewsArticle schema + news sitemap keywords)
  *   - News keywords    (comma-separated; output in NewsArticle and news sitemap)
- *   - Exclude toggle   (removes the post from the news sitemap and suppresses schema)
+ *
+ * NewsArticle is opt-in by design: most posts are evergreen, not news, so the
+ * NewsArticle type is only emitted on posts an editor explicitly marks as news.
  *
  * @package TWTAEO_Connector
  */
@@ -18,7 +21,7 @@ class TWTAEO_News_Meta {
 
 	const META_SECTION  = '_twtaeo_news_section';
 	const META_KEYWORDS = '_twtaeo_news_keywords';
-	const META_EXCLUDE  = '_twtaeo_news_exclude';
+	const META_INCLUDE  = '_twtaeo_news_include';
 	const NONCE_ACTION  = 'twtaeo_news_meta_save';
 	const NONCE_FIELD   = '_twtaeo_news_meta_nonce';
 
@@ -68,8 +71,18 @@ class TWTAEO_News_Meta {
 
 		$section  = get_post_meta( $post->ID, self::META_SECTION,  true );
 		$keywords = get_post_meta( $post->ID, self::META_KEYWORDS, true );
-		$exclude  = (bool) get_post_meta( $post->ID, self::META_EXCLUDE, true );
+		$include  = (bool) get_post_meta( $post->ID, self::META_INCLUDE, true );
 		?>
+		<p style="margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid #f0f0f1;">
+			<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;">
+				<input type="checkbox" name="twtaeo_news_include" value="1" <?php checked( $include ); ?>>
+				<span><?php esc_html_e( 'Mark as Google News article', 'twt-aeo-ultimate' ); ?></span>
+			</label>
+			<span style="font-size:11px;color:#888;display:block;margin-top:2px;">
+				<?php esc_html_e( 'Adds NewsArticle schema and includes this post in the news sitemap (while it is within Google\'s 48-hour window). Leave off for evergreen content.', 'twt-aeo-ultimate' ); ?>
+			</span>
+		</p>
+
 		<p style="margin:0 0 10px;">
 			<label for="twtaeo_news_section" style="display:block;font-weight:600;margin-bottom:4px;">
 				<?php esc_html_e( 'Article Section', 'twt-aeo-ultimate' ); ?>
@@ -92,16 +105,6 @@ class TWTAEO_News_Meta {
 			       placeholder="<?php esc_attr_e( 'keyword1, keyword2', 'twt-aeo-ultimate' ); ?>">
 			<span style="font-size:11px;color:#888;"><?php esc_html_e( 'Comma-separated. Used in NewsArticle schema.', 'twt-aeo-ultimate' ); ?></span>
 		</p>
-
-		<p style="margin:0;">
-			<label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-				<input type="checkbox" name="twtaeo_news_exclude" value="1" <?php checked( $exclude ); ?>>
-				<span><?php esc_html_e( 'Exclude from news sitemap', 'twt-aeo-ultimate' ); ?></span>
-			</label>
-			<span style="font-size:11px;color:#888;display:block;margin-top:2px;">
-				<?php esc_html_e( 'Also suppresses NewsArticle schema on this post.', 'twt-aeo-ultimate' ); ?>
-			</span>
-		</p>
 		<?php
 	}
 
@@ -123,11 +126,11 @@ class TWTAEO_News_Meta {
 
 		$section  = sanitize_text_field( wp_unslash( $_POST['twtaeo_news_section']  ?? '' ) );
 		$keywords = sanitize_text_field( wp_unslash( $_POST['twtaeo_news_keywords'] ?? '' ) );
-		$exclude  = ! empty( $_POST['twtaeo_news_exclude'] ) ? '1' : '';
+		$include  = ! empty( $_POST['twtaeo_news_include'] ) ? '1' : '';
 
 		update_post_meta( $post_id, self::META_SECTION,  $section );
 		update_post_meta( $post_id, self::META_KEYWORDS, $keywords );
-		update_post_meta( $post_id, self::META_EXCLUDE,  $exclude );
+		update_post_meta( $post_id, self::META_INCLUDE,  $include );
 	}
 
 	// ── Accessors ─────────────────────────────────────────────────────────────
@@ -144,7 +147,14 @@ class TWTAEO_News_Meta {
 		return array_values( array_filter( array_map( 'trim', explode( ',', $raw ) ) ) );
 	}
 
-	public static function is_excluded( $post_id ) {
-		return (bool) get_post_meta( $post_id, self::META_EXCLUDE, true );
+	/**
+	 * Whether a post is opted in as a Google News article. NewsArticle schema
+	 * and news-sitemap inclusion are both gated on this (opt-in by design).
+	 *
+	 * @param int $post_id
+	 * @return bool
+	 */
+	public static function is_included( $post_id ) {
+		return (bool) get_post_meta( $post_id, self::META_INCLUDE, true );
 	}
 }

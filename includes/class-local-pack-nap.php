@@ -124,7 +124,7 @@ class TWTAEO_Local_Pack_NAP {
 	}
 
 	public static function get_gbp_redirect_uri() {
-		return admin_url( 'admin.php?page=twt-aeo-local-pack&twt_gbp_callback=1' );
+		return admin_url( 'admin.php?page=twt-aeo-local-pack&twtaeo_gbp_callback=1' );
 	}
 
 	/**

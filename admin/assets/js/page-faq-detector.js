@@ -1,4 +1,4 @@
-﻿/* WP.org compliance: extracted from admin/pages/class-page-faq-detector.php inline <script> */
+﻿/* WP.org compliance: extracted from admin/pages/class-page-faq-detector.php inline script block */
 /* global twtAeoFaqDetector, ajaxurl */
 ( function ( $ ) {
 	'use strict';

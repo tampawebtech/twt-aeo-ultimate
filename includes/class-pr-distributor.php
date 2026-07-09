@@ -184,11 +184,11 @@ class TWTAEO_PR_Distributor {
 
 	/**
 	 * Submit to EasyPRWire API.
-	 * Docs: https://www.easypwire.com/api
+	 * Docs: https://easyprwire.com/api
 	 */
 	private static function submit_easypwire( $api_key, $headline, $body, WP_Post $post ) {
 		$response = wp_remote_post(
-			'https://www.easypwire.com/api/submit',
+			'https://easyprwire.com/api/submit',
 			array(
 				'timeout' => 30,
 				'headers' => array(

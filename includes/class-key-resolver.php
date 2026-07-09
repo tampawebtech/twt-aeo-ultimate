@@ -2,12 +2,18 @@
 /**
  * TWT AEO Key Resolver
  *
- * Centralized API-key resolution with a four-tier priority chain:
+ * Centralized API-key resolution with a three-tier priority chain:
  *
  *   1. PHP constant   (wp-config.php)          — never stored in DB, never logged
  *   2. Server env var (web-server / Docker)    — never stored in DB, never logged
- *   3. WP 7.0 Connectors API                  — managed by WordPress core
- *   4. Plugin DB option                        — legacy / standalone fallback
+ *   3. Plugin DB option                        — legacy / standalone fallback
+ *
+ * WordPress 7.0 Connectors keys are deliberately NOT resolved here. Those
+ * credentials were granted by the user to WordPress core, not to this plugin,
+ * so the plugin must never read connectors_ai_*_api_key options directly.
+ * Instead, when no plugin-owned key is configured, the plugin's AI features route
+ * the request through the AI Client API (wp_ai_client_prompt()), which lets
+ * WordPress use the configured connection without ever exposing the raw key.
  *
  * Agency rule: define keys as PHP constants or env vars so they never touch
  * the WordPress database. The plugin will never write, read back, or log a key
@@ -31,17 +37,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 class TWTAEO_Key_Resolver {
 
 	/**
-	 * Slug → [ PHP_CONSTANT, ENV_VAR, settings_db_field, wp7_connector_option ]
-	 * A null wp7_connector_option means no WP 7.0 Connector exists for this key.
+	 * Slug → [ PHP_CONSTANT, ENV_VAR, settings_db_field ]
 	 */
 	private static $map = array(
-		'claude'        => array( 'TWTAEO_CLAUDE_KEY',     'TWTAEO_CLAUDE_KEY',     'api_claude',         'connectors_ai_anthropic_api_key' ),
-		'openai'        => array( 'TWTAEO_OPENAI_KEY',     'TWTAEO_OPENAI_KEY',     'api_openai',         'connectors_ai_openai_api_key' ),
-		'perplexity'    => array( 'TWTAEO_PERPLEXITY_KEY', 'TWTAEO_PERPLEXITY_KEY', 'api_perplexity',     null ),
-		'pro_key'       => array( 'TWTAEO_PRO_KEY',        'TWTAEO_PRO_KEY',        'pro_key',            null ),
-		'pro_url'       => array( 'TWTAEO_PRO_URL',        'TWTAEO_PRO_URL',        'pro_url',            null ),
-		'ein_presswire' => array( 'TWTAEO_EIN_KEY',        'TWTAEO_EIN_KEY',        'api_ein_presswire',  null ),
-		'easypwire'     => array( 'TWTAEO_EASYPWIRE_KEY',  'TWTAEO_EASYPWIRE_KEY',  'api_easypwire',      null ),
+		'claude'        => array( 'TWTAEO_CLAUDE_KEY',     'TWTAEO_CLAUDE_KEY',     'api_claude' ),
+		'openai'        => array( 'TWTAEO_OPENAI_KEY',     'TWTAEO_OPENAI_KEY',     'api_openai' ),
+		'gemini'        => array( 'TWTAEO_GEMINI_KEY',     'TWTAEO_GEMINI_KEY',     'api_gemini' ),
+		'perplexity'    => array( 'TWTAEO_PERPLEXITY_KEY', 'TWTAEO_PERPLEXITY_KEY', 'api_perplexity' ),
+		'pro_key'       => array( 'TWTAEO_PRO_KEY',        'TWTAEO_PRO_KEY',        'pro_key' ),
+		'pro_url'       => array( 'TWTAEO_PRO_URL',        'TWTAEO_PRO_URL',        'pro_url' ),
+		'ein_presswire' => array( 'TWTAEO_EIN_KEY',        'TWTAEO_EIN_KEY',        'api_ein_presswire' ),
+		'easypwire'     => array( 'TWTAEO_EASYPWIRE_KEY',  'TWTAEO_EASYPWIRE_KEY',  'api_easypwire' ),
 	);
 
 	/**
@@ -55,7 +61,7 @@ class TWTAEO_Key_Resolver {
 			return '';
 		}
 
-		list( $constant, $env_var, $db_field, $wp7_option ) = self::$map[ $slug ];
+		list( $constant, $env_var, $db_field ) = self::$map[ $slug ];
 
 		// Tier 1 — PHP constant (wp-config.php or server config).
 		if ( defined( $constant ) ) {
@@ -68,17 +74,21 @@ class TWTAEO_Key_Resolver {
 			return (string) $env;
 		}
 
-		// Tier 3 — WordPress 7.0 Connectors API (where applicable).
-		if ( $wp7_option && function_exists( 'wp_is_connector_registered' ) ) {
-			$connector_key = trim( (string) get_option( $wp7_option, '' ) );
-			if ( $connector_key !== '' ) {
-				return $connector_key;
-			}
-		}
-
-		// Tier 4 — Plugin database option.
+		// Tier 3 — Plugin database option. Stored encrypted at rest; decrypt()
+		// passes legacy plaintext through unchanged until its next save.
 		$settings = get_option( 'twtaeo_settings', array() );
-		return trim( (string) ( $settings[ $db_field ] ?? '' ) );
+		return trim( TWTAEO_Crypt::decrypt( (string) ( $settings[ $db_field ] ?? '' ) ) );
+	}
+
+	/**
+	 * True when the WordPress 7.0 AI Client API is available. When it is, the
+	 * plugin's AI features can fulfil Claude/OpenAI requests through the user's
+	 * configured connection without this plugin ever handling the raw key.
+	 *
+	 * @return bool
+	 */
+	public static function ai_client_available() {
+		return function_exists( 'wp_ai_client_prompt' );
 	}
 
 	/**

@@ -1,0 +1,133 @@
+/* ── Pro Plugins promo grid ──────────────────────────────────────────────── */
+.twt-aeo-promo-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+}
+@media (max-width: 900px) {
+.twt-aeo-promo-grid { grid-template-columns: 1fr; }
+}
+.twt-aeo-promo-card {
+background: #fff;
+border: 1px solid #e5e7eb;
+border-radius: 10px;
+padding: 24px;
+display: flex;
+flex-direction: column;
+gap: 18px;
+box-shadow: 0 1px 4px rgba(0,0,0,.06);
+position: relative;
+overflow: hidden;
+}
+.twt-aeo-promo-card::before {
+content: '';
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 3px;
+background: linear-gradient(90deg, #1e40af, #3b82f6);
+}
+.twt-aeo-promo-card--installed::before {
+background: linear-gradient(90deg, #15803d, #22c55e);
+}
+.twt-aeo-promo-card--aeo-pro::before {
+background: linear-gradient(90deg, #6d28d9, #8b5cf6);
+}
+.twt-aeo-promo-card--soon::before {
+background: linear-gradient(90deg, #6b7280, #9ca3af);
+}
+.twt-aeo-promo-card--soon {
+opacity: .78;
+}
+.twt-aeo-promo-card__badge {
+position: absolute;
+top: 14px; right: 16px;
+}
+.twt-aeo-promo-badge {
+font-size: 11px;
+font-weight: 700;
+padding: 2px 9px;
+border-radius: 20px;
+text-transform: uppercase;
+letter-spacing: .04em;
+}
+.twt-aeo-promo-badge--new        { background: #eff6ff; color: #1d4ed8; }
+.twt-aeo-promo-badge--installed  { background: #f0fdf4; color: #15803d; }
+.twt-aeo-promo-badge--soon       { background: #f3f4f6; color: #6b7280; }
+.twt-aeo-promo-badge--pro-plugin { background: #faf5ff; color: #7c3aed; }
+.twt-aeo-promo-card__head {
+display: flex;
+align-items: flex-start;
+gap: 14px;
+margin-top: 4px;
+}
+.twt-aeo-promo-card__icon {
+width: 44px;
+height: 44px;
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+.twt-aeo-promo-card__icon--cg      { background: #eff6ff; color: #1d4ed8; }
+.twt-aeo-promo-card__icon--aeo-pro { background: #faf5ff; color: #7c3aed; }
+.twt-aeo-promo-card__icon--soon    { background: #f3f4f6; color: #9ca3af; }
+.twt-aeo-promo-card__icon .dashicons { font-size: 22px; width: 22px; height: 22px; }
+.twt-aeo-promo-card__title {
+font-size: 16px;
+font-weight: 700;
+color: #111827;
+margin: 0 0 3px;
+}
+.twt-aeo-promo-card__tagline {
+font-size: 13px;
+color: #6b7280;
+margin: 0;
+}
+.twt-aeo-promo-card__features {
+list-style: none;
+margin: 0;
+padding: 0;
+display: flex;
+flex-direction: column;
+gap: 8px;
+flex: 1;
+}
+.twt-aeo-promo-card__features li {
+display: flex;
+align-items: flex-start;
+gap: 8px;
+font-size: 13px;
+color: #374151;
+line-height: 1.45;
+}
+.twt-aeo-promo-check { color: #16a34a; font-weight: 700; flex-shrink: 0; }
+.twt-aeo-promo-check--muted { color: #9ca3af; font-weight: 400; }
+.twt-aeo-promo-card__pricing {
+display: flex;
+gap: 20px;
+padding: 14px 16px;
+background: #f9fafb;
+border-radius: 7px;
+border: 1px solid #f3f4f6;
+}
+.twt-aeo-promo-price {
+display: flex;
+flex-direction: column;
+gap: 2px;
+}
+.twt-aeo-promo-price__amount {
+font-size: 22px;
+font-weight: 800;
+color: #111827;
+line-height: 1;
+}
+.twt-aeo-promo-price__label {
+font-size: 11px;
+color: #6b7280;
+}
+.twt-aeo-promo-card__foot { margin-top: auto; }
+.twt-aeo-promo-cta { width: 100%; text-align: center; justify-content: center; height: 38px; line-height: 36px; padding: 0 !important; display: block !important; }
+.twt-aeo-promo-cta--muted       { color: #6b7280 !important; border-color: #d1d5db !important; }
+.twt-aeo-promo-cta--pro-plugin  { background: #7c3aed !important; border-color: #6d28d9 !important; color: #fff !important; }
+.twt-aeo-promo-cta--pro-plugin:hover { background: #6d28d9 !important; }

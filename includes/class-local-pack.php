@@ -39,8 +39,12 @@ class TWTAEO_Local_Pack {
 
 		$schema = self::build_schema( $settings );
 
+		// JSON-LD output. esc_html() would corrupt the JSON, so safety comes from the
+		// HEX_* flags: <, >, &, ' and " are all encoded as \uXXXX, so the value cannot
+		// break out of the script element or carry HTML/JS into the page.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML-inert JSON-LD; see note above.
 		echo '<script type="application/ld+json">' . "\n"
-			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG )
+			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT )
 			. "\n</script>\n";
 	}
 

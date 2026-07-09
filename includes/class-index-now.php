@@ -51,6 +51,11 @@ class TWTAEO_Index_Now {
 		$key  = self::get_key();
 		$path = trim( wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH ), '/' );
 		if ( $path === $key . '.txt' ) {
+			// WordPress has already called status_header( 404 ) during the main
+			// query (no post matches this URL), and that runs before
+			// template_redirect. Reset to 200 — IndexNow requires the key file to
+			// return HTTP 200 or search engines reject it.
+			status_header( 200 );
 			header( 'Content-Type: text/plain; charset=utf-8' );
 			echo esc_html( $key );
 			exit;

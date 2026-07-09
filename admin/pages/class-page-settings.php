@@ -25,6 +25,13 @@ class TWTAEO_Page_Settings {
 
 		$settings = get_option( 'twtaeo_settings', array() );
 
+		// Decrypt secret fields for display (stored encrypted at rest).
+		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
+			if ( ! empty( $settings[ $secret_field ] ) ) {
+				$settings[ $secret_field ] = TWTAEO_Crypt::decrypt( (string) $settings[ $secret_field ] );
+			}
+		}
+
 		?>
 		<div class="wrap twt-aeo-wrap">
 
@@ -41,20 +48,20 @@ class TWTAEO_Page_Settings {
 				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>
 
 				<?php
-				// WP 7.0+ Connectors API detection.
-				$wp7_connectors = function_exists( 'wp_is_connector_registered' );
-				$wp7_claude_key = $wp7_connectors ? trim( (string) get_option( 'connectors_ai_anthropic_api_key', '' ) ) : '';
-				$wp7_openai_key = $wp7_connectors ? trim( (string) get_option( 'connectors_ai_openai_api_key', '' ) ) : '';
+				// WP 7.0+ AI Client detection. When present, Claude and OpenAI
+				// requests are routed through the user's configured connection;
+				// this plugin never reads the connector API keys.
+				$ai_client = function_exists( 'wp_ai_client_prompt' );
 				?>
 				<section class="twt-aeo-section">
 					<h2 class="twt-aeo-section__title"><?php esc_html_e( 'AI API Keys', 'twt-aeo-ultimate' ); ?></h2>
 					<div class="twt-aeo-card">
-						<?php if ( $wp7_connectors ) : ?>
+						<?php if ( $ai_client ) : ?>
 						<div class="notice notice-info inline" style="margin:0 0 14px;padding:8px 12px;">
 							<p style="margin:0;"><?php printf(
 								wp_kses(
 									/* translators: %s: URL to Settings > Connectors */
-									__( '<strong>WordPress 7 detected:</strong> Keys for Claude and OpenAI can be managed centrally at <a href="%s">Settings &rsaquo; Connectors</a>. Keys set there take priority over the fields below.', 'twt-aeo-ultimate' ),
+									__( '<strong>WordPress 7 detected:</strong> leave the Claude and OpenAI fields blank to generate content using the AI providers you connected at <a href="%s">Settings &rsaquo; Connectors</a>. A key entered below overrides the connected provider for that service.', 'twt-aeo-ultimate' ),
 									array( 'strong' => array(), 'a' => array( 'href' => array() ) )
 								),
 								esc_url( admin_url( 'options-general.php?page=connectors' ) )
@@ -62,7 +69,7 @@ class TWTAEO_Page_Settings {
 						</div>
 						<?php endif; ?>
 						<p class="twt-aeo-card__note">
-							<?php esc_html_e( 'Used by the Content Generator. Each key is optional — only providers with a key will generate content.', 'twt-aeo-ultimate' ); ?>
+							<?php esc_html_e( 'Used by the plugin\'s AI features — meta descriptions, PR Bridge, WooCommerce product enrichment, and image analysis. Each key is optional — only providers with a key are used.', 'twt-aeo-ultimate' ); ?>
 						</p>
 						<div class="twt-aeo-api-keys">
 
@@ -73,8 +80,7 @@ class TWTAEO_Page_Settings {
 							// $db_value    = current value from DB (shown only when not protected)
 							// $placeholder = input placeholder text
 							// $hint        = label text shown to the right
-							// $wp7_active  = whether WP7 Connectors already provides this key
-							$render_key_field = function( $slug, $field_name, $db_value, $placeholder, $hint, $wp7_active = false ) {
+							$render_key_field = function( $slug, $field_name, $db_value, $placeholder, $hint ) {
 								$protected = TWTAEO_Key_Resolver::is_protected( $slug );
 								$const_name = TWTAEO_Key_Resolver::constant_name( $slug );
 
@@ -86,12 +92,6 @@ class TWTAEO_Page_Settings {
 									echo '<span class="twt-aeo-api-key-row__hint" style="color:#1a6629;font-weight:600;">&#128274; ';
 									echo esc_html( $const_name );
 									echo '</span>';
-								} elseif ( $wp7_active ) {
-									// WP 7.0 Connectors provides this key.
-									echo '<input type="password" name="' . esc_attr( $field_name ) . '" value="" ';
-									echo 'placeholder="' . esc_attr__( '— using key from Settings → Connectors —', 'twt-aeo-ultimate' ) . '" ';
-									echo 'autocomplete="off" class="regular-text" disabled aria-disabled="true" />';
-									echo '<span class="twt-aeo-api-key-row__hint" style="color:#1a6629;">&#10003; ' . esc_html__( 'WP Connectors', 'twt-aeo-ultimate' ) . '</span>';
 								} else {
 									// Standard DB-backed input.
 									echo '<input type="password" name="' . esc_attr( $field_name ) . '" ';
@@ -108,7 +108,7 @@ class TWTAEO_Page_Settings {
 									<span class="twt-aeo-api-dot twt-aeo-api-dot--claude"></span>
 									<?php esc_html_e( 'Claude (Anthropic)', 'twt-aeo-ultimate' ); ?>
 								</label>
-								<?php $render_key_field( 'claude', 'twtaeo_settings[api_claude]', $settings['api_claude'] ?? '', 'sk-ant-…', __( 'Body copy', 'twt-aeo-ultimate' ), $wp7_claude_key !== '' ); ?>
+								<?php $render_key_field( 'claude', 'twtaeo_settings[api_claude]', $settings['api_claude'] ?? '', 'sk-ant-…', __( 'Descriptions & PR', 'twt-aeo-ultimate' ) ); ?>
 							</div>
 
 							<div class="twt-aeo-api-key-row">
@@ -116,7 +116,15 @@ class TWTAEO_Page_Settings {
 									<span class="twt-aeo-api-dot twt-aeo-api-dot--openai"></span>
 									<?php esc_html_e( 'OpenAI (ChatGPT)', 'twt-aeo-ultimate' ); ?>
 								</label>
-								<?php $render_key_field( 'openai', 'twtaeo_settings[api_openai]', $settings['api_openai'] ?? '', 'sk-…', __( 'Concise copy', 'twt-aeo-ultimate' ), $wp7_openai_key !== '' ); ?>
+								<?php $render_key_field( 'openai', 'twtaeo_settings[api_openai]', $settings['api_openai'] ?? '', 'sk-…', __( 'Descriptions & images', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#1a73e8;"></span>
+									<?php esc_html_e( 'Gemini (Google)', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'gemini', 'twtaeo_settings[api_gemini]', $settings['api_gemini'] ?? '', 'AIza…', __( 'Summaries & meta', 'twt-aeo-ultimate' ) ); ?>
 							</div>
 
 							<div class="twt-aeo-api-key-row">
@@ -124,10 +132,56 @@ class TWTAEO_Page_Settings {
 									<span class="twt-aeo-api-dot twt-aeo-api-dot--perplexity"></span>
 									<?php esc_html_e( 'Perplexity', 'twt-aeo-ultimate' ); ?>
 								</label>
-								<?php $render_key_field( 'perplexity', 'twtaeo_settings[api_perplexity]', $settings['api_perplexity'] ?? '', 'pplx-…', __( 'Deep research', 'twt-aeo-ultimate' ) ); ?>
+								<?php $render_key_field( 'perplexity', 'twtaeo_settings[api_perplexity]', $settings['api_perplexity'] ?? '', 'pplx-…', __( 'Brand & gap research', 'twt-aeo-ultimate' ) ); ?>
 							</div>
 
 						</div>
+					</div>
+				</section>
+
+				<?php
+				$enrich_provider    = $settings['ai_enrich_provider'] ?? '';
+				$retrieval_provider = $settings['ai_retrieval_provider'] ?? 'gemini';
+				$inherited          = $settings['ai_desc_provider'] ?? 'claude';
+				?>
+				<section class="twt-aeo-section">
+					<h2 class="twt-aeo-section__title"><?php esc_html_e( 'AI Enrichment', 'twt-aeo-ultimate' ); ?></h2>
+					<div class="twt-aeo-card">
+						<p class="twt-aeo-card__note">
+							<?php esc_html_e( 'Which providers power on-demand product enrichment (extract attributes from descriptions, resolve brand authority links). Uses the API keys above.', 'twt-aeo-ultimate' ); ?>
+						</p>
+						<table class="form-table" style="margin-top:4px;">
+							<tr>
+								<th style="width:220px;">
+									<label for="twtaeo_ai_enrich_provider"><?php esc_html_e( 'Attribute extraction', 'twt-aeo-ultimate' ); ?></label>
+								</th>
+								<td>
+									<select id="twtaeo_ai_enrich_provider" name="twtaeo_settings[ai_enrich_provider]">
+										<option value="" <?php selected( $enrich_provider, '' ); ?>>
+											<?php
+											/* translators: %s: inherited provider name. */
+											echo esc_html( sprintf( __( 'Inherit meta-description provider (%s)', 'twt-aeo-ultimate' ), ucfirst( $inherited ) ) ); ?>
+										</option>
+										<option value="claude" <?php selected( $enrich_provider, 'claude' ); ?>>Claude</option>
+										<option value="openai" <?php selected( $enrich_provider, 'openai' ); ?>>OpenAI</option>
+										<option value="gemini" <?php selected( $enrich_provider, 'gemini' ); ?>>Gemini</option>
+									</select>
+									<p class="description"><?php esc_html_e( 'Parses product text into structured attributes (color, material, dimensions, specs).', 'twt-aeo-ultimate' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th>
+									<label for="twtaeo_ai_retrieval_provider"><?php esc_html_e( 'Live retrieval', 'twt-aeo-ultimate' ); ?></label>
+								</th>
+								<td>
+									<select id="twtaeo_ai_retrieval_provider" name="twtaeo_settings[ai_retrieval_provider]">
+										<option value="gemini" <?php selected( $retrieval_provider, 'gemini' ); ?>><?php esc_html_e( 'Gemini (Google Search grounding)', 'twt-aeo-ultimate' ); ?></option>
+										<option value="perplexity" <?php selected( $retrieval_provider, 'perplexity' ); ?>><?php esc_html_e( 'Perplexity', 'twt-aeo-ultimate' ); ?></option>
+									</select>
+									<p class="description"><?php esc_html_e( 'Used for web-grounded lookups such as brand sameAs authority links.', 'twt-aeo-ultimate' ); ?></p>
+								</td>
+							</tr>
+						</table>
 					</div>
 				</section>
 
@@ -239,7 +293,7 @@ class TWTAEO_Page_Settings {
 									<input type="url" id="twtaeo_pro_url" name="twtaeo_settings[pro_url]"
 										class="regular-text"
 										value="<?php echo esc_attr( $settings['pro_url'] ?? '' ); ?>"
-										placeholder="https://yourprofessional.com/wp-json/twt-pro/v1/ingest" />
+										placeholder="https://yourprofessional.com/wp-json/twt-agency/v1/ingest" />
 								</td>
 							</tr>
 							<tr>
@@ -275,8 +329,7 @@ class TWTAEO_Page_Settings {
 						<?php if ( empty( $settings['pro_enabled'] ) || empty( $settings['pro_url'] ) ) : ?>
 						<div style="margin-top:16px;padding:14px 18px;background:#f0f6fc;border-left:4px solid #2271b1;border-radius:0 4px 4px 0;">
 							<strong><?php esc_html_e( 'Don\'t have a TWT Agency account yet?', 'twt-aeo-ultimate' ); ?></strong><br>
-							<a href="https://tampawebtech.com/twt-agency/" target="_blank"><?php esc_html_e( 'Get TWT Agency &rarr;', 'twt-aeo-ultimate' ); ?></a>
-							&mdash; <?php esc_html_e( 'Starter (up to 20 sites): $49/yr &nbsp;&bull;&nbsp; Agency (unlimited): $99/yr', 'twt-aeo-ultimate' ); ?>
+							<a href="https://tampawebtech.com/twt-agency/" target="_blank" rel="noopener"><?php esc_html_e( 'Learn more about TWT Agency &rarr;', 'twt-aeo-ultimate' ); ?></a>
 						</div>
 						<?php endif; ?>
 					</div>
@@ -299,7 +352,7 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 // define( 'TWTAEO_EASYPWIRE_KEY',  'easypwire-api-key' );"
 						); ?></pre>
 						<p style="margin:0;font-size:12px;color:#646970;">
-							<?php esc_html_e( 'Alternatively, set the same names as server environment variables (LSAPI_CHILDREN, Nginx fastcgi_param, or Docker ENV). WordPress 7.0\'s Connectors API also stores keys outside this plugin — keys set there take the same priority as constants.', 'twt-aeo-ultimate' ); ?>
+							<?php esc_html_e( 'Alternatively, set the same names as server environment variables (LSAPI_CHILDREN, Nginx fastcgi_param, or Docker ENV). On WordPress 7.0 you can instead leave the Claude and OpenAI fields blank and connect those providers at Settings → Connectors; the plugin then generates through the WordPress AI Client without ever handling the key.', 'twt-aeo-ultimate' ); ?>
 						</p>
 					</div>
 				</section>
@@ -324,6 +377,7 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 		$slug_to_field = array(
 			'claude'        => 'api_claude',
 			'openai'        => 'api_openai',
+			'gemini'        => 'api_gemini',
 			'perplexity'    => 'api_perplexity',
 			'ein_presswire' => 'api_ein_presswire',
 			'easypwire'     => 'api_easypwire',
@@ -334,9 +388,15 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 			}
 			$value = trim( $posted[ $field ] ?? '' );
 			if ( $value !== '' ) {
-				$existing[ $field ] = $value;
+				$existing[ $field ] = TWTAEO_Crypt::encrypt( $value );
 			}
 		}
+
+		// AI enrichment providers (allow-listed).
+		$enrich = $posted['ai_enrich_provider'] ?? '';
+		$existing['ai_enrich_provider'] = in_array( $enrich, array( 'claude', 'openai', 'gemini' ), true ) ? $enrich : '';
+		$retrieval = $posted['ai_retrieval_provider'] ?? 'gemini';
+		$existing['ai_retrieval_provider'] = in_array( $retrieval, array( 'gemini', 'perplexity' ), true ) ? $retrieval : 'gemini';
 
 		// Telemetry opt-in
 		$existing['token_telemetry'] = ! empty( $posted['token_telemetry'] ) ? 1 : 0;
