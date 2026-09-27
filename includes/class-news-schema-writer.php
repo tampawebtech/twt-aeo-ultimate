@@ -26,11 +26,17 @@ class TWTAEO_News_Schema_Writer {
 	public static function register_hooks() {
 		// Priority 12 — after Company schema (5) but before Author/Service (20).
 		add_action( 'wp_head', array( __CLASS__, 'output_schema' ), 12 );
+		// Fold the NewsArticle node into the Knowledge Graph when active.
+		add_filter( 'twtaeo_kg_nodes', array( __CLASS__, 'kg_nodes' ), 10, 2 );
 	}
 
 	// ── Output ────────────────────────────────────────────────────────────────
 
 	public static function output_schema() {
+		// The Knowledge Graph module folds this node into its unified @graph.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' ) && TWTAEO_Knowledge_Graph::is_folding() ) {
+			return;
+		}
 		if ( ! is_singular() ) {
 			return;
 		}
@@ -71,6 +77,52 @@ class TWTAEO_News_Schema_Writer {
 		echo "\n" . '<script type="application/ld+json">' . "\n"
 			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT )
 			. "\n" . '</script>' . "\n";
+	}
+
+	// ── Knowledge Graph contribution ──────────────────────────────────────────
+
+	/**
+	 * Contribute the NewsArticle (+ author Person) nodes to the unified @graph,
+	 * applying the same opt-in / deferral rules as output_schema().
+	 *
+	 * @param array $nodes
+	 * @param array $context
+	 * @return array
+	 */
+	public static function kg_nodes( $nodes, $context ) {
+		$post_id = (int) ( $context['post_id'] ?? 0 );
+		if ( ! $post_id || ! is_singular() ) {
+			return $nodes;
+		}
+
+		$settings = TWTAEO_News_Sitemap::get_settings();
+		if ( empty( $settings['schema_enabled'] ) ) {
+			return $nodes;
+		}
+		$post_types = ! empty( $settings['post_types'] ) ? (array) $settings['post_types'] : array( 'post' );
+		if ( ! in_array( get_post_type( $post_id ), $post_types, true ) ) {
+			return $nodes;
+		}
+		if ( ! TWTAEO_News_Meta::is_included( $post_id ) ) {
+			return $nodes;
+		}
+		if ( self::seo_plugin_handles_news_article( $post_id ) ) {
+			return $nodes;
+		}
+
+		$schema = self::build_schema( $post_id );
+		if ( ! $schema ) {
+			return $nodes;
+		}
+
+		// Reuse the Article writer's node transform ( @id, author-as-node, publisher ref ).
+		if ( class_exists( 'TWTAEO_Article_Schema_Writer' ) ) {
+			return array_merge( $nodes, TWTAEO_Article_Schema_Writer::article_graph_nodes( $schema, $context ) );
+		}
+
+		unset( $schema['@context'] );
+		$schema['@id'] = ( $context['url'] ?? $schema['url'] ) . '#article';
+		return array_merge( $nodes, array( $schema ) );
 	}
 
 	// ── Schema builder ────────────────────────────────────────────────────────
@@ -120,6 +172,20 @@ class TWTAEO_News_Schema_Writer {
 		$excerpt = get_the_excerpt( $post_id );
 		if ( $excerpt ) {
 			$schema['description'] = wp_strip_all_tags( $excerpt );
+		}
+
+		// Language + translation links (site-locale fallback; workTranslation
+		// only when a multilingual plugin reports published translations).
+		if ( class_exists( 'TWTAEO_Multilingual' ) ) {
+			$schema = TWTAEO_Multilingual::decorate_article( $schema, $post_id, 'NewsArticle' );
+		}
+
+		// Declared content provenance (empty = human default, nothing emitted).
+		if ( class_exists( 'TWTAEO_Content_Provenance' ) ) {
+			$source = TWTAEO_Content_Provenance::get_url( $post_id );
+			if ( '' !== $source ) {
+				$schema['digitalSourceType'] = $source;
+			}
 		}
 
 		// Author — full Person node from Author Entity if available.
@@ -234,6 +300,13 @@ class TWTAEO_News_Schema_Writer {
 			if ( 'NewsArticle' === $article_type ) {
 				return true;
 			}
+		}
+
+		// SASWP per-post custom schema already carries a NewsArticle/Article here.
+		if ( class_exists( 'TWTAEO_SEO_Compatibility' )
+			&& ( TWTAEO_SEO_Compatibility::saswp_post_has_type( $post_id, 'NewsArticle' )
+				|| TWTAEO_SEO_Compatibility::saswp_post_has_type( $post_id, 'Article' ) ) ) {
+			return true;
 		}
 
 		return false;

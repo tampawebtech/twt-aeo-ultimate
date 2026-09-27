@@ -5,6 +5,28 @@ class TWTAEO_Pro_Transmitter {
 
 	const TELEMETRY_ENDPOINT = 'https://tampawebtech.com/wp-json/twt-aeo/v1/token-telemetry';
 
+	/** Deferred single event that ships a finished AI Visibility run to the Hub. */
+	const VISIBILITY_SEND_HOOK = 'twtaeo_pro_send_visibility_run';
+
+	/**
+	 * Payload ceilings for a visibility run. A Deep allocation on a large
+	 * catalogue is a few thousand checks; excerpts are the bulk of that weight,
+	 * so they are the first thing dropped -- and their absence is declared, so the
+	 * Hub never reads an empty excerpt as "the engine said nothing".
+	 */
+	const VISIBILITY_MAX_BYTES  = 1500000;
+	const VISIBILITY_MAX_CHECKS = 4000;
+
+	/**
+	 * How many scored pages travel with the daily AEO Score snapshot.
+	 *
+	 * The Hub's use for per-page scores is "which pages are dragging this client
+	 * down" — a job the worst pages answer and a 5,000-page catalogue does not.
+	 * The site summary is computed from every scored page regardless, so the cap
+	 * costs no accuracy in the headline number.
+	 */
+	const SCORE_MAX_PAGES = 250;
+
 	// ── Token telemetry ───────────────────────────────────────────────────────
 
 	public static function telemetry_enabled() {
@@ -63,6 +85,7 @@ class TWTAEO_Pro_Transmitter {
 		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_plugin_status' ) );
 		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_google_snapshots' ) );
 		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_bing_snapshot' ) );
+		add_action( 'twtaeo_pro_daily_sync', array( __CLASS__, 'send_aeo_score' ) );
 		if ( ! wp_next_scheduled( 'twtaeo_pro_daily_sync' ) ) {
 			wp_schedule_event( time(), 'daily', 'twtaeo_pro_daily_sync' );
 		}
@@ -70,6 +93,12 @@ class TWTAEO_Pro_Transmitter {
 		// Content change tracking
 		add_action( 'pre_post_update',        array( __CLASS__, 'capture_pre_update_word_count' ), 10, 2 );
 		add_action( 'transition_post_status', array( __CLASS__, 'maybe_send_content_change' ),     10, 3 );
+
+		// AI Visibility runs. The run finishes inside an AJAX step (or the cron
+		// worker), so the transmit is deferred to its own single event rather than
+		// made the board wait on a 10-second POST to finish the last check.
+		add_action( 'twtaeo_visibility_run_finished', array( __CLASS__, 'queue_visibility_run' ), 10, 2 );
+		add_action( self::VISIBILITY_SEND_HOOK,       array( __CLASS__, 'send_visibility_run' ),  10, 1 );
 	}
 
 	public static function is_connected() {
@@ -508,5 +537,312 @@ class TWTAEO_Pro_Transmitter {
 	private static function get_active_modules() {
 		$modules = get_option( 'twtaeo_modules', array() );
 		return array_keys( array_filter( $modules ) );
+	}
+
+	// -- AEO Score -------------------------------------------------------------
+
+	/**
+	 * Daily AEO Score snapshot: the site's number, how it was earned, and the
+	 * pages holding it back.
+	 *
+	 * Sent as the score, not as raw signals: the rubric that produced it lives
+	 * here and changes with this plugin, so recomputing it on the Hub would drift
+	 * the moment the two versions differ. `rubric_version` travels with the
+	 * snapshot so the Hub can tell a real movement from a change in how the
+	 * number is calculated.
+	 *
+	 * @return bool True when the Hub confirmed receipt.
+	 */
+	public static function send_aeo_score() {
+		if ( ! self::is_connected() || ! class_exists( 'TWTAEO_AEO_Score' ) ) {
+			return false;
+		}
+
+		$summary = TWTAEO_AEO_Score::site_summary();
+		if ( ! is_array( $summary ) || null === ( $summary['site_score'] ?? null ) ) {
+			return false; // Nothing scanned yet; a null score is not a zero.
+		}
+
+		return self::send( 'aeo_score', array(
+			'site_url'       => home_url(),
+			'site_name'      => get_bloginfo( 'name' ),
+			'plugin_version' => TWTAEO_VERSION,
+			'rubric_version' => (int) TWTAEO_AEO_Score::RUBRIC_VERSION,
+			'scored_at'      => current_time( 'mysql' ),
+			'summary'        => array(
+				'site_score'    => (int) $summary['site_score'],
+				'avg_page'      => isset( $summary['avg_page'] ) ? (int) $summary['avg_page'] : null,
+				'scored_pages'  => (int) ( $summary['scored_pages'] ?? 0 ),
+				'checklist_pct' => (int) ( $summary['checklist_pct'] ?? 0 ),
+				'categories'    => self::score_categories( $summary ),
+			),
+			'pages' => self::worst_scored_pages(),
+		) );
+	}
+
+	/**
+	 * Category rollup, trimmed to what a cross-client view can use: the label and
+	 * the percentage. The raw earned/max are a per-site artefact of how many pages
+	 * were sampled and do not add up across clients.
+	 *
+	 * @param array $summary
+	 * @return array
+	 */
+	private static function score_categories( array $summary ) {
+		$out = array();
+		foreach ( (array) ( $summary['categories'] ?? array() ) as $id => $cat ) {
+			if ( ! is_array( $cat ) ) {
+				continue;
+			}
+			$out[ (string) $id ] = array(
+				'label' => (string) ( $cat['label'] ?? $id ),
+				'pct'   => (int) ( $cat['pct'] ?? 0 ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * The lowest-scoring published pages, worst first.
+	 *
+	 * @return array
+	 */
+	private static function worst_scored_pages() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one daily transmit; the postmeta aggregate has no WP_Query equivalent.
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT p.ID, p.post_title, p.post_type, CAST(pm.meta_value AS UNSIGNED) AS score
+			 FROM {$wpdb->postmeta} pm
+			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id AND p.post_status = 'publish'
+			 WHERE pm.meta_key = %s
+			 ORDER BY score ASC, p.ID ASC
+			 LIMIT %d",
+			TWTAEO_AEO_Score::META_SCORE,
+			self::SCORE_MAX_PAGES
+		) );
+
+		$out = array();
+		foreach ( (array) $rows as $row ) {
+			$out[] = array(
+				'url'       => get_permalink( $row->ID ),
+				'title'     => (string) $row->post_title,
+				'post_type' => (string) $row->post_type,
+				'score'     => (int) $row->score,
+				'gaps'      => self::score_gaps( (int) $row->ID ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * The named gaps on one page — the line items it did not earn.
+	 *
+	 * Only the labels travel. The fix links in a stored breakdown are admin URLs
+	 * on THIS site, useless in an agency dashboard, and the point of shipping the
+	 * gaps at all is so the agency can see what to bill for.
+	 *
+	 * @param int $post_id
+	 * @return string[]
+	 */
+	private static function score_gaps( $post_id ) {
+		$breakdown = TWTAEO_AEO_Score::get_breakdown( $post_id );
+		if ( ! is_array( $breakdown ) || empty( $breakdown['categories'] ) ) {
+			return array();
+		}
+
+		$gaps = array();
+		foreach ( (array) $breakdown['categories'] as $cat ) {
+			foreach ( (array) ( $cat['items'] ?? array() ) as $item ) {
+				// A gap is a line item that earned nothing. Partial credit is not
+				// listed: "you have some of this" is not an instruction.
+				if ( ! is_array( $item ) || (float) ( $item['max'] ?? 0 ) <= 0 || (float) ( $item['pts'] ?? 0 ) > 0 ) {
+					continue;
+				}
+				$label = trim( (string) ( $item['label'] ?? '' ) );
+				if ( '' !== $label && ! in_array( $label, $gaps, true ) ) {
+					$gaps[] = $label;
+				}
+			}
+			if ( count( $gaps ) >= 12 ) {
+				break;
+			}
+		}
+		return array_slice( $gaps, 0, 12 );
+	}
+
+	// -- AI Visibility runs ----------------------------------------------------
+
+	/**
+	 * A visibility run finished -- queue it for transmission.
+	 *
+	 * Only the id is carried through the event. The run is re-read at send time
+	 * from the tables, which are the source of truth and cost nothing to query,
+	 * so a run edited or pruned between finishing and sending is never shipped in
+	 * a state the site no longer holds.
+	 *
+	 * @param string $run_id
+	 * @param array  $run    The finished run (used only to skip sample data early).
+	 */
+	public static function queue_visibility_run( $run_id, $run = array() ) {
+		if ( ! self::is_connected() ) {
+			return;
+		}
+		// Sample data is invented from the site's own catalogue to demonstrate the
+		// board. Shipping it would put fabricated citations in an agency's client
+		// reporting, so it never leaves the site.
+		if ( ! empty( $run['demo'] ) ) {
+			return;
+		}
+		$run_id = (string) $run_id;
+		if ( '' === $run_id || wp_next_scheduled( self::VISIBILITY_SEND_HOOK, array( $run_id ) ) ) {
+			return;
+		}
+		wp_schedule_single_event( time(), self::VISIBILITY_SEND_HOOK, array( $run_id ) );
+	}
+
+	/**
+	 * Ship one finished visibility run to the Hub.
+	 *
+	 * Sends the run's own verdicts rather than a re-probe: the Hub gets every
+	 * engine this site holds a key for, the full cited/named/absent/unavailable
+	 * vocabulary, and the cited domains per check -- which is what a cross-client
+	 * share of voice needs and what a boolean "appeared" cannot express.
+	 *
+	 * @param string $run_id
+	 * @return bool True when the Hub confirmed receipt.
+	 */
+	public static function send_visibility_run( $run_id ) {
+		if ( ! self::is_connected() || ! class_exists( 'TWTAEO_Visibility_Store' ) ) {
+			return false;
+		}
+
+		$run = TWTAEO_Visibility_Store::get_run( (string) $run_id );
+		if ( ! is_array( $run ) || empty( $run['id'] ) || ! empty( $run['demo'] ) ) {
+			return false;
+		}
+
+		$payload = self::build_visibility_payload( $run );
+		if ( empty( $payload['checks'] ) ) {
+			return false; // A run that recorded nothing is not evidence of anything.
+		}
+
+		return self::send( 'ai_visibility', $payload );
+	}
+
+	/**
+	 * Assemble the wire payload for a run.
+	 *
+	 * Questions are limited to the ones actually checked. A run only asks as far
+	 * as its allocation reached, and an unasked question is not an absent one --
+	 * shipping the whole planned set would let the Hub report silence as failure.
+	 * `questions_planned` carries the coverage denominator instead.
+	 *
+	 * @param array $run
+	 * @return array
+	 */
+	private static function build_visibility_payload( array $run ) {
+		$settings = TWTAEO_Visibility_Store::get_settings();
+		$checks   = isset( $run['checks'] ) && is_array( $run['checks'] ) ? $run['checks'] : array();
+
+		$truncated = false;
+		if ( count( $checks ) > self::VISIBILITY_MAX_CHECKS ) {
+			$checks    = array_slice( $checks, 0, self::VISIBILITY_MAX_CHECKS );
+			$truncated = true;
+		}
+
+		$asked = array();
+		$wire  = array();
+		foreach ( $checks as $c ) {
+			if ( ! is_array( $c ) || empty( $c['question_id'] ) ) {
+				continue;
+			}
+			$asked[ (string) $c['question_id'] ] = true;
+			$wire[] = array(
+				'question_id'      => (string) $c['question_id'],
+				'engine'           => (string) ( $c['engine'] ?? '' ),
+				'checked_at'       => (string) ( $c['at'] ?? '' ),
+				'verdict'          => (string) ( $c['verdict'] ?? 'unavailable' ),
+				'accuracy'         => (string) ( $c['accuracy'] ?? 'n/a' ),
+				'citation_surface' => (string) ( $c['citation_surface'] ?? '' ),
+				'cited_urls'       => array_values( (array) ( $c['cited_urls'] ?? array() ) ),
+				'our_urls'         => array_values( (array) ( $c['our_urls'] ?? array() ) ),
+				'domains'          => array_values( (array) ( $c['domains'] ?? array() ) ),
+				'owned_domains'    => array_values( (array) ( $c['owned_domains'] ?? array() ) ),
+				'brand_hits'       => array_values( (array) ( $c['brand_hits'] ?? array() ) ),
+				'excerpt'          => (string) ( $c['excerpt'] ?? '' ),
+				'model'            => (string) ( $c['model'] ?? '' ),
+				'error'            => isset( $c['error'] ) && '' !== (string) $c['error'] ? (string) $c['error'] : null,
+			);
+		}
+
+		$questions = array();
+		foreach ( (array) ( $run['questions'] ?? array() ) as $q ) {
+			if ( ! is_array( $q ) || ! isset( $q['id'] ) || ! isset( $asked[ (string) $q['id'] ] ) ) {
+				continue;
+			}
+			$questions[] = array(
+				'id'          => (string) $q['id'],
+				'level'       => (string) ( $q['level'] ?? '' ),
+				'scope_id'    => (string) ( $q['scope_id'] ?? '' ),
+				'scope_label' => (string) ( $q['scope_label'] ?? '' ),
+				'family'      => (string) ( $q['family'] ?? '' ),
+				'text'        => (string) ( $q['text'] ?? '' ),
+				'source'      => (string) ( $q['source'] ?? '' ),
+			);
+		}
+
+		$payload = array(
+			'site_url'          => home_url(),
+			'site_name'         => get_bloginfo( 'name' ),
+			'plugin_version'    => TWTAEO_VERSION,
+			'run'               => TWTAEO_Visibility_Verdict::summarize_run( $run ),
+			'allocation'        => (array) ( $run['allocation'] ?? array() ),
+			'questions_planned' => count( (array) ( $run['questions'] ?? array() ) ),
+			'questions'         => $questions,
+			'checks'            => $wire,
+			'identity'          => self::visibility_identity( $settings ),
+			'excerpts_omitted'  => false,
+			'truncated'         => $truncated,
+		);
+
+		// Weight check. Excerpts go first because they are the bulk and the least
+		// structural; everything the Hub aggregates on survives.
+		if ( strlen( (string) wp_json_encode( $payload ) ) > self::VISIBILITY_MAX_BYTES ) {
+			foreach ( array_keys( $payload['checks'] ) as $i ) {
+				$payload['checks'][ $i ]['excerpt'] = '';
+			}
+			$payload['excerpts_omitted'] = true;
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * What counts as this site, so the Hub can read a citation the same way the
+	 * site does -- an owned LinkedIn or YouTube page is us, not a competitor.
+	 *
+	 * @param array $settings Visibility settings.
+	 * @return array
+	 */
+	private static function visibility_identity( array $settings ) {
+		$brands = array();
+		foreach ( (array) ( $settings['brand_items'] ?? array() ) as $item ) {
+			if ( ! is_array( $item ) || empty( $item['enabled'] ) ) {
+				continue;
+			}
+			$brands[] = array(
+				'label'   => (string) ( $item['label'] ?? '' ),
+				'phrases' => array_values( (array) ( $item['phrases'] ?? array() ) ),
+				'urls'    => array_values( (array) ( $item['urls'] ?? array() ) ),
+			);
+		}
+
+		return array(
+			'site_host'       => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
+			'alternate_hosts' => array_values( (array) ( $settings['alternate_hosts'] ?? array() ) ),
+			'company_urls'    => array_values( (array) ( $settings['company_urls'] ?? array() ) ),
+			'brand_items'     => $brands,
+		);
 	}
 }

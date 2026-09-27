@@ -79,6 +79,10 @@ class TWTAEO_Scan_Store {
 		update_post_meta( $post->ID, self::META_SCHEMA,     $schema );
 		update_post_meta( $post->ID, self::META_LAST_SCAN,  current_time( 'mysql' ) );
 
+		if ( class_exists( 'TWTAEO_Aeo_Score' ) ) {
+			$result['aeo_score'] = TWTAEO_Aeo_Score::score_and_store( $post, $result );
+		}
+
 		return $result;
 	}
 

@@ -22,8 +22,31 @@ class TWTAEO_Page_Social_Graph {
 			wp_die( esc_html__( 'You do not have permission.', 'twt-aeo-ultimate' ) );
 		}
 
-		$all_results = TWTAEO_OG_Detector::scan_all();
-		$summary     = TWTAEO_OG_Detector::get_summary();
+		// Pagination first, because it decides which scan block to load: the
+		// table pages 25 rows at a time across the WHOLE catalogue, and the
+		// detector scans in blocks of SCAN_BLOCK — so page 9 loads block 2
+		// rather than stopping at the first 200 items.
+		// A search term narrows the walk to matches (title, content, product
+		// SKU) site-wide; the blocks then page through the matches.
+		$per_page     = 25;
+		$block_size   = TWTAEO_OG_Detector::SCAN_BLOCK;
+		$s_term       = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$current_page = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$row_offset   = ( $current_page - 1 ) * $per_page;
+		$block        = (int) floor( $row_offset / $block_size ) + 1;
+
+		$all_results = TWTAEO_OG_Detector::scan_all( $block, $s_term );
+		$total       = ( '' !== $s_term ) ? TWTAEO_OG_Detector::last_found() : TWTAEO_OG_Detector::total_items();
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		if ( $current_page > $total_pages ) {
+			// Requested page fell off the end (usually a stale page number after
+			// a narrowing search) — land on the last real page instead.
+			$current_page = $total_pages;
+			$row_offset   = ( $current_page - 1 ) * $per_page;
+			$block        = (int) floor( $row_offset / $block_size ) + 1;
+			$all_results  = TWTAEO_OG_Detector::scan_all( $block, $s_term );
+		}
+		$summary = TWTAEO_OG_Detector::get_summary( $all_results );
 		$site_source = TWTAEO_OG_Detector::detect_site_source();
 		$seo_managed = TWTAEO_OG_Writer::seo_plugin_active();
 		$sg_nonce    = wp_create_nonce( 'twtaeo_social_graph_nonce' );
@@ -38,21 +61,54 @@ class TWTAEO_Page_Social_Graph {
 		// fallback does not cover images), plus the capability to add media.
 		$ai_image_ready = ( '' !== TWTAEO_Key_Resolver::get( 'openai' ) ) && current_user_can( 'upload_files' );
 
-		// Count pages with a twitter:card explicitly set.
-		$tw_configured = 0;
+		// Twitter Cards: the writer outputs a card on EVERY singular page (default
+		// summary_large_image) unless Rank Math or Yoast manages them — so the
+		// honest number is effective coverage, not just explicit per-post picks.
+		// Counting only explicit picks showed "0" to a merchant whose every page
+		// already carries a live card.
+		$tw_managed_elsewhere = defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' );
+		$tw_configured        = 0;
 		foreach ( $all_results as $item ) {
 			$tw = TWTAEO_Twitter_Writer::get( $item['post']->ID );
 			if ( ! empty( $tw['tw_card'] ) ) {
 				$tw_configured++;
 			}
 		}
+		$tw_live = $tw_managed_elsewhere ? null : count( $all_results );
 
-		// Pagination.
-		$per_page     = 25;
-		$total        = count( $all_results );
-		$total_pages  = max( 1, (int) ceil( $total / $per_page ) );
-		$current_page = isset( $_GET['paged'] ) ? max( 1, min( $total_pages, absint( wp_unslash( $_GET['paged'] ) ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$results      = array_slice( $all_results, ( $current_page - 1 ) * $per_page, $per_page );
+		// The summary cards describe the WHOLE SITE when a census exists — a
+		// single block's counts on a 955-page site read as nonsense ("200
+		// missing, 200 scanned, 200 cards" is the block size three times, and
+		// it was read exactly that way). Until the first census runs, the cards
+		// fall back to the current block and say so.
+		$census         = TWTAEO_OG_Detector::get_census();
+		$cards_sitewide = ! empty( $census );
+		if ( $cards_sitewide ) {
+			$ct             = $census['totals'];
+			$card_scanned   = (int) $ct['scanned'];
+			$card_complete  = (int) $ct['complete'];
+			$card_miss_txt  = (int) $ct['missing_text'];
+			$card_miss_img  = (int) $ct['missing_image'];
+			$tw_configured  = (int) $ct['tw_explicit'];
+			$tw_live        = $tw_managed_elsewhere ? null : $card_scanned;
+			$card_caption   = sprintf(
+				/* translators: 1: pages checked, 2: human time diff since the census. */
+				__( 'Site-wide census: all %1$d pages checked %2$s ago. Rescan All re-checks every page.', 'twt-aeo-ultimate' ),
+				$card_scanned,
+				human_time_diff( $census['completed_at'] )
+			);
+		} else {
+			$card_scanned  = (int) $summary['scanned'];
+			$card_complete = (int) $summary['complete'];
+			$card_miss_txt = (int) $summary['missing_text'];
+			$card_miss_img = (int) $summary['missing_image'];
+			$card_caption  = $summary['truncated']
+				? __( 'These cards cover only the newest block so far — run Rescan All to check every page on the site.', 'twt-aeo-ultimate' )
+				: '';
+		}
+
+		// Slice the current 25-row page out of the loaded scan block.
+		$results = array_slice( $all_results, $row_offset % $block_size, $per_page );
 
 		wp_enqueue_media();
 
@@ -73,12 +129,22 @@ class TWTAEO_Page_Social_Graph {
 						</span>
 						<p class="twt-aeo-header__sub" style="margin:0;">
 							<?php
-							printf(
-								// translators: %1$d: total pages scanned. %2$d: pages needing attention.
-								esc_html__( '%1$d pages scanned — %2$d need attention', 'twt-aeo-ultimate' ),
-								absint( $summary['total'] ),
-								absint( $summary['needs_work'] )
-							);
+							if ( ! empty( $summary['truncated'] ) ) {
+								printf(
+									// translators: %1$d: pages scanned. %2$d: total published pages. %3$d: pages needing attention.
+									esc_html__( '%1$d of %2$d pages scanned (most recent first) — %3$d of those need attention', 'twt-aeo-ultimate' ),
+									absint( $summary['scanned'] ),
+									absint( $summary['total'] ),
+									absint( $summary['needs_work'] )
+								);
+							} else {
+								printf(
+									// translators: %1$d: total pages scanned. %2$d: pages needing attention.
+									esc_html__( '%1$d pages scanned — %2$d need attention', 'twt-aeo-ultimate' ),
+									absint( $summary['scanned'] ),
+									absint( $summary['needs_work'] )
+								);
+							}
 							?>
 						</p>
 					</div>
@@ -89,12 +155,21 @@ class TWTAEO_Page_Social_Graph {
 			<div class="notice notice-success is-dismissible" style="margin:0 0 16px;">
 				<p>
 					<?php
-					printf(
-						// translators: %1$d: total pages scanned. %2$d: pages needing attention.
-						esc_html__( 'Rescan complete — %1$d pages scanned, %2$d need attention.', 'twt-aeo-ultimate' ),
-						absint( $summary['total'] ),
-						absint( $summary['needs_work'] )
-					);
+					if ( $cards_sitewide ) {
+						printf(
+							// translators: %1$d: total pages checked site-wide. %2$d: pages needing attention.
+							esc_html__( 'Site-wide rescan complete — all %1$d pages checked, %2$d need attention.', 'twt-aeo-ultimate' ),
+							absint( $card_scanned ),
+							absint( $census['totals']['needs_work'] )
+						);
+					} else {
+						printf(
+							// translators: %1$d: total pages scanned. %2$d: pages needing attention.
+							esc_html__( 'Rescan complete — %1$d pages scanned, %2$d need attention.', 'twt-aeo-ultimate' ),
+							absint( $summary['scanned'] ),
+							absint( $summary['needs_work'] )
+						);
+					}
 					?>
 				</p>
 			</div>
@@ -206,52 +281,173 @@ class TWTAEO_Page_Social_Graph {
 
 			<!-- Summary Cards -->
 			<section class="twt-aeo-section">
-				<div class="twt-aeo-summary-grid">
+				<div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:10px;">
+					<span id="twt-aeo-og-rescan-status" style="font-size:12px;color:#646970;"></span>
+					<button type="button" id="twt-aeo-og-rescan" class="button">
+						&#8635; <?php esc_html_e( 'Rescan All', 'twt-aeo-ultimate' ); ?>
+					</button>
+				</div>
+				<div class="twt-aeo-summary-grid twt-aeo-summary-grid--compact">
 
 					<div class="twt-aeo-summary-card">
 						<div class="twt-aeo-summary-card__icon"><span class="dashicons dashicons-admin-page"></span></div>
-						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['total'] ); ?></div>
-						<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Pages Scanned', 'twt-aeo-ultimate' ); ?></div>
+						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $card_scanned ); ?></div>
+						<div class="twt-aeo-summary-card__label">
+							<?php
+							if ( $cards_sitewide ) {
+								esc_html_e( 'Pages Scanned (site-wide)', 'twt-aeo-ultimate' );
+							} elseif ( ! empty( $summary['truncated'] ) ) {
+								printf(
+									/* translators: %d: total published pages on the site. */
+									esc_html__( 'Pages Scanned (of %d)', 'twt-aeo-ultimate' ),
+									absint( $summary['total'] )
+								);
+							} else {
+								esc_html_e( 'Pages Scanned', 'twt-aeo-ultimate' );
+							}
+							?>
+						</div>
 					</div>
 
 					<div class="twt-aeo-summary-card twt-aeo-summary-card--good">
 						<div class="twt-aeo-summary-card__icon"><span class="dashicons dashicons-yes-alt" style="color:var(--aeo-success);"></span></div>
-						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['complete'] ); ?></div>
+						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $card_complete ); ?></div>
 						<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Full OG Coverage', 'twt-aeo-ultimate' ); ?></div>
 					</div>
 
-					<div class="twt-aeo-summary-card <?php echo $summary['missing_image'] > 0 ? 'twt-aeo-summary-card--alert' : 'twt-aeo-summary-card--good'; ?>">
+					<div class="twt-aeo-summary-card <?php echo $card_miss_txt > 0 ? 'twt-aeo-summary-card--alert' : 'twt-aeo-summary-card--good'; ?>">
+						<div class="twt-aeo-summary-card__icon"><span class="dashicons dashicons-editor-alignleft"></span></div>
+						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $card_miss_txt ); ?></div>
+						<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Missing Title/Desc', 'twt-aeo-ultimate' ); ?></div>
+					</div>
+
+					<div class="twt-aeo-summary-card <?php echo $card_miss_img > 0 ? 'twt-aeo-summary-card--alert' : 'twt-aeo-summary-card--good'; ?>">
 						<div class="twt-aeo-summary-card__icon"><span class="dashicons dashicons-format-image"></span></div>
-						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['missing_image'] ); ?></div>
+						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $card_miss_img ); ?></div>
 						<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Missing OG Image', 'twt-aeo-ultimate' ); ?></div>
 					</div>
 
 					<div class="twt-aeo-summary-card twt-aeo-summary-card--good">
 						<div class="twt-aeo-summary-card__icon"><span class="dashicons dashicons-twitter" style="color:#1da1f2;"></span></div>
-						<div class="twt-aeo-summary-card__number"><?php echo esc_html( $tw_configured ); ?></div>
-						<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Twitter Cards Set', 'twt-aeo-ultimate' ); ?></div>
+						<div class="twt-aeo-summary-card__number"><?php echo null === $tw_live ? '&mdash;' : esc_html( $tw_live ); ?></div>
+						<div class="twt-aeo-summary-card__label">
+							<?php
+							if ( null === $tw_live ) {
+								/* translators: shown when an SEO plugin outputs Twitter Cards instead of this plugin. */
+								echo esc_html( sprintf( __( 'Twitter Cards (via %s)', 'twt-aeo-ultimate' ), $site_source ) );
+							} elseif ( $tw_configured > 0 ) {
+								printf(
+									/* translators: %d: pages with an explicitly chosen card type. */
+									esc_html__( 'Twitter Cards Live (%d customised)', 'twt-aeo-ultimate' ),
+									absint( $tw_configured )
+								);
+							} else {
+								esc_html_e( 'Twitter Cards Live', 'twt-aeo-ultimate' );
+							}
+							?>
+						</div>
 					</div>
 
 				</div>
+				<?php if ( '' !== $card_caption ) : ?>
+				<p style="margin:8px 0 0;font-size:12px;color:#646970;">
+					<?php echo esc_html( $card_caption ); ?>
+				</p>
+				<?php endif; ?>
 			</section>
 
 			<!-- Page Table -->
+			<?php
+			$base_url = add_query_arg( 'page', 'twt-aeo-social-graph', admin_url( 'admin.php' ) );
+			if ( '' !== $s_term ) {
+				$base_url = add_query_arg( 's', $s_term, $base_url );
+			}
+			$render_pager = static function () use ( $total_pages, $current_page, $base_url, $per_page, $total ) {
+				if ( $total_pages <= 1 ) {
+					return;
+				}
+				?>
+				<div class="twt-og-pagination">
+					<?php if ( $current_page > 1 ) : ?>
+						<a href="<?php echo esc_url( add_query_arg( 'paged', $current_page - 1, $base_url ) ); ?>">&laquo; <?php esc_html_e( 'Prev', 'twt-aeo-ultimate' ); ?></a>
+					<?php endif; ?>
+					<?php
+					// A windowed pager: a 3,000-item site would otherwise print
+					// 120 page links here.
+					$window = array( 1, $total_pages );
+					for ( $p = $current_page - 2; $p <= $current_page + 2; $p++ ) {
+						$window[] = $p;
+					}
+					$window = array_values( array_unique( array_filter( $window, static function ( $p ) use ( $total_pages ) {
+						return $p >= 1 && $p <= $total_pages;
+					} ) ) );
+					sort( $window );
+					$prev = 0;
+					foreach ( $window as $p ) :
+						if ( $p > $prev + 1 ) : ?>
+							<span style="color:#8c8f94;">&hellip;</span>
+						<?php endif;
+						$prev = $p;
+						if ( $p === $current_page ) : ?>
+							<span class="current"><?php echo esc_html( $p ); ?></span>
+						<?php else : ?>
+							<a href="<?php echo esc_url( add_query_arg( 'paged', $p, $base_url ) ); ?>"><?php echo esc_html( $p ); ?></a>
+						<?php endif;
+					endforeach; ?>
+					<?php if ( $current_page < $total_pages ) : ?>
+						<a href="<?php echo esc_url( add_query_arg( 'paged', $current_page + 1, $base_url ) ); ?>"><?php esc_html_e( 'Next', 'twt-aeo-ultimate' ); ?> &raquo;</a>
+					<?php endif; ?>
+					<span style="font-size:12px;color:#666;margin-left:6px;">
+						<?php
+						// translators: %1$d: first item on page. %2$d: last item on page. %3$d: total items.
+						printf( esc_html__( '%1$d–%2$d of %3$d', 'twt-aeo-ultimate' ), absint( ( $current_page - 1 ) * $per_page + 1 ), absint( min( $current_page * $per_page, $total ) ), absint( $total ) ); ?>
+					</span>
+				</div>
+				<?php
+			};
+			?>
 			<section class="twt-aeo-section">
 				<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
 					<h2 class="twt-aeo-section__title" style="margin:0;">
 						<span class="dashicons dashicons-share"></span>
 						<?php esc_html_e( 'Page Coverage', 'twt-aeo-ultimate' ); ?>
 					</h2>
-					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-social-graph', 'rescanned' => time() ), admin_url( 'admin.php' ) ) ); ?>" class="button">
-						&#8635; <?php esc_html_e( 'Rescan All', 'twt-aeo-ultimate' ); ?>
-					</a>
+					<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:flex;align-items:center;gap:6px;margin:0;">
+						<input type="hidden" name="page" value="twt-aeo-social-graph">
+						<label class="screen-reader-text" for="twt-aeo-sg-search"><?php esc_html_e( 'Search pages and products', 'twt-aeo-ultimate' ); ?></label>
+						<input type="search" id="twt-aeo-sg-search" name="s" value="<?php echo esc_attr( $s_term ); ?>"
+							placeholder="<?php esc_attr_e( 'Search by title or SKU…', 'twt-aeo-ultimate' ); ?>"
+							class="regular-text" autocomplete="off">
+						<button type="submit" class="button"><?php esc_html_e( 'Search', 'twt-aeo-ultimate' ); ?></button>
+						<?php if ( '' !== $s_term ) : ?>
+							<a href="<?php echo esc_url( add_query_arg( 'page', 'twt-aeo-social-graph', admin_url( 'admin.php' ) ) ); ?>" class="button-link">
+								<?php esc_html_e( 'Clear', 'twt-aeo-ultimate' ); ?>
+							</a>
+						<?php endif; ?>
+					</form>
 				</div>
+
+				<?php if ( '' !== $s_term ) : ?>
+				<p style="margin:0 0 8px;font-size:13px;color:#50575e;">
+					<?php
+					printf(
+						// translators: %1$d: matching items. %2$s: the search term.
+						esc_html( _n( '%1$d item matches “%2$s” — searched across every page, post and product.', '%1$d items match “%2$s” — searched across every page, post and product.', $total, 'twt-aeo-ultimate' ) ),
+						absint( $total ),
+						esc_html( $s_term )
+					);
+					?>
+				</p>
+				<?php endif; ?>
 
 				<?php if ( empty( $all_results ) ) : ?>
 					<div class="twt-aeo-card">
-						<p><?php esc_html_e( 'No published pages or posts found.', 'twt-aeo-ultimate' ); ?></p>
+						<p><?php echo '' !== $s_term
+							? esc_html__( 'Nothing matches that search. It looked at every page, post and product title, content and SKU.', 'twt-aeo-ultimate' )
+							: esc_html__( 'No published pages or posts found.', 'twt-aeo-ultimate' ); ?></p>
 					</div>
 				<?php else : ?>
+				<?php $render_pager(); ?>
 				<div class="twt-aeo-page-table-wrap">
 					<table class="twt-aeo-page-table twt-aeo-og-table" id="twt-sg-table">
 						<thead>
@@ -356,8 +552,18 @@ class TWTAEO_Page_Social_Graph {
 										<span class="twt-aeo-badge twt-aeo-badge--tw">
 											<?php echo esc_html( $saved_tw['tw_card'] === 'summary_large_image' ? 'large image' : 'summary' ); ?>
 										</span>
+									<?php elseif ( $tw_managed_elsewhere ) : ?>
+										<span class="twt-aeo-badge twt-aeo-badge--auto"><?php echo esc_html( sprintf( /* translators: %s: SEO plugin name. */ __( 'via %s', 'twt-aeo-ultimate' ), $site_source ) ); ?></span>
 									<?php else : ?>
-										<span class="twt-aeo-badge twt-aeo-badge--auto"><?php esc_html_e( 'auto', 'twt-aeo-ultimate' ); ?></span>
+										<?php
+										// The card every page gets by default — the writer
+										// publishes summary_large_image, downgrading only when
+										// the page has no image at all to attach.
+										$eff_large = (bool) TWTAEO_OG_Writer::effective_image( $post->ID );
+										?>
+										<span class="twt-aeo-badge twt-aeo-badge--auto" title="<?php esc_attr_e( 'Applied automatically — edit the page to override.', 'twt-aeo-ultimate' ); ?>">
+											<?php echo esc_html( $eff_large ? __( 'large image · default', 'twt-aeo-ultimate' ) : __( 'summary · default', 'twt-aeo-ultimate' ) ); ?>
+										</span>
 									<?php endif; ?>
 								</td>
 
@@ -403,32 +609,8 @@ class TWTAEO_Page_Social_Graph {
 						</tbody>
 					</table>
 
-					<?php if ( $total_pages > 1 ) : ?>
-					<div class="twt-og-pagination">
-						<?php
-						$base_url = add_query_arg( 'page', 'twt-aeo-social-graph', admin_url( 'admin.php' ) );
-						if ( $current_page > 1 ) : ?>
-							<a href="<?php echo esc_url( add_query_arg( 'paged', $current_page - 1, $base_url ) ); ?>">&laquo; <?php esc_html_e( 'Prev', 'twt-aeo-ultimate' ); ?></a>
-						<?php endif; ?>
-						<?php for ( $p = 1; $p <= $total_pages; $p++ ) : ?>
-							<?php if ( $p === $current_page ) : ?>
-								<span class="current"><?php echo esc_html( $p ); ?></span>
-							<?php else : ?>
-								<a href="<?php echo esc_url( add_query_arg( 'paged', $p, $base_url ) ); ?>"><?php echo esc_html( $p ); ?></a>
-							<?php endif; ?>
-						<?php endfor; ?>
-						<?php if ( $current_page < $total_pages ) : ?>
-							<a href="<?php echo esc_url( add_query_arg( 'paged', $current_page + 1, $base_url ) ); ?>"><?php esc_html_e( 'Next', 'twt-aeo-ultimate' ); ?> &raquo;</a>
-						<?php endif; ?>
-						<span style="font-size:12px;color:#666;margin-left:6px;">
-							<?php
-						// translators: %1$d: first item on page. %2$d: last item on page. %3$d: total items.
-						printf( esc_html__( '%1$d–%2$d of %3$d', 'twt-aeo-ultimate' ), absint( ( $current_page - 1 ) * $per_page + 1 ), absint( min( $current_page * $per_page, $total ) ), absint( $total ) ); ?>
-						</span>
-					</div>
-					<?php endif; ?>
-
 				</div>
+				<?php $render_pager(); ?>
 				<?php endif; ?>
 			</section>
 
@@ -1156,7 +1338,31 @@ class TWTAEO_Page_Social_Graph {
 					});
 				});
 
-				function ogRender(s){
+				// Rescan All: walk every scan block server-side, one AJAX call per
+			// block, with live progress — then reload so the cards show the
+			// finished site-wide census.
+			$('#twt-aeo-og-rescan').on('click', function(){
+				var $b = $(this).prop('disabled', true);
+				var $s = $('#twt-aeo-og-rescan-status');
+				function step(block){
+					$.post(ajaxUrl, { action:'twtaeo_og_census_block', nonce:sgNonce, block:block }, function(res){
+						if ( ! res.success ) { $s.css('color','#b32d2e').text(res.data || 'Error'); $b.prop('disabled', false); return; }
+						var st = res.data;
+						$s.css('color','#646970').text(
+							'<?php echo esc_js( __( 'Scanning…', 'twt-aeo-ultimate' ) ); ?> '
+							+ (st.totals && st.totals.scanned ? st.totals.scanned : 0) + ' / ' + (st.total_items || 0)
+						);
+						if ( st.completed_at ) {
+							window.location = '<?php echo esc_url_raw( add_query_arg( array( 'page' => 'twt-aeo-social-graph', 'rescanned' => 1 ), admin_url( 'admin.php' ) ) ); ?>';
+						} else {
+							step( (st.blocks_done || block) + 1 );
+						}
+					}).fail(function(){ $s.css('color','#b32d2e').text('<?php echo esc_js( __( 'Request failed.', 'twt-aeo-ultimate' ) ); ?>'); $b.prop('disabled', false); });
+				}
+				step(1);
+			});
+
+			function ogRender(s){
 					if ( !s ) { return; }
 					if ( s.running || s.status === 'running' ) {
 						$('#twt-aeo-og-ai').prop('disabled', true);
@@ -1175,7 +1381,13 @@ class TWTAEO_Page_Social_Graph {
 					} else if ( s.status === 'done' ) {
 						$('#twt-aeo-og-ai').prop('disabled', false);
 						$ogStop.hide();
-						$bstatus.css('color', '#1a6629').text((s.created||0) + ' <?php echo esc_js( __( 'created. Reload to see them.', 'twt-aeo-ultimate' ) ); ?>');
+						// Name the skips — "0 created" with the skip count hidden reads
+						// as a silent failure to someone staring at rows still missing.
+						$bstatus.css('color', (s.created||0) > 0 ? '#1a6629' : '#996800').text(
+							(s.created||0) + ' <?php echo esc_js( __( 'created', 'twt-aeo-ultimate' ) ); ?>'
+							+ ( (s.errors||0) ? ', ' + s.errors + ' <?php echo esc_js( __( 'skipped (not enough content to summarise)', 'twt-aeo-ultimate' ) ); ?>' : '' )
+							+ '. <?php echo esc_js( __( 'Reload to see them.', 'twt-aeo-ultimate' ) ); ?>'
+						);
 					} else {
 						$('#twt-aeo-og-ai').prop('disabled', false);
 						$ogStop.hide();
@@ -1198,12 +1410,22 @@ class TWTAEO_Page_Social_Graph {
 					var fd = new FormData();
 					fd.append('action','twtaeo_ai_desc_start'); fd.append('nonce', aiN);
 					fd.append('mode','og'); fd.append('provider', provider);
-					if ( ! window.confirm('<?php echo esc_js( __( 'Generate social descriptions for all posts missing one? This makes one billed API call per post and runs in the background.', 'twt-aeo-ultimate' ) ); ?>') ) {
+					if ( ! window.confirm('<?php echo esc_js( __( 'Generate social descriptions for every page, post and product missing one? This makes one billed API call per item and runs in the background.', 'twt-aeo-ultimate' ) ); ?>') ) {
 						$bstatus.text('<?php echo esc_js( __( 'Cancelled.', 'twt-aeo-ultimate' ) ); ?>'); $b.prop('disabled', false); return;
 					}
 					fetch(ajaxUrl, { method:'POST', body:fd, credentials:'same-origin' })
 						.then(function(r){ return r.json(); })
-						.then(function(r){ if (r.success){ ogRender(r.data); ogStartPolling(); } else { $bstatus.css('color','#b32d2e').text(r.data||'Error'); $b.prop('disabled', false); } })
+						.then(function(r){
+							if ( ! r.success ) { $bstatus.css('color','#b32d2e').text(r.data||'Error'); $b.prop('disabled', false); return; }
+							// An idle reply with nothing queued means there was nothing
+							// to generate — say so instead of leaving "Finding posts…".
+							if ( r.data.status !== 'running' && ! (r.data.total > 0) ) {
+								$bstatus.css('color', '#646970').text('<?php echo esc_js( __( 'Nothing to generate — every page, post and product already has a social description.', 'twt-aeo-ultimate' ) ); ?>');
+								$b.prop('disabled', false);
+								return;
+							}
+							ogRender(r.data); ogStartPolling();
+						})
 						.catch(function(){ $bstatus.css('color','#b32d2e').text('<?php echo esc_js( __( 'Request failed.', 'twt-aeo-ultimate' ) ); ?>'); $b.prop('disabled', false); });
 				});
 

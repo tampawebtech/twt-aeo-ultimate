@@ -1030,11 +1030,60 @@ class TWTAEO_Page_Command_Center {
 							<tr>
 								<th scope="row"><label for="twt-aeo-gsc-url"><?php esc_html_e( 'Search Console Site URL', 'twt-aeo-ultimate' ); ?></label></th>
 								<td>
-									<input type="url" id="twt-aeo-gsc-url" name="gsc_site_url"
-										   value="<?php echo esc_attr( $google_config['gsc_site_url'] ?? '' ); ?>"
-										   class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>"
-										   <?php echo ! $google_connected ? 'disabled' : ''; ?> />
-									<p class="description"><?php esc_html_e( 'The exact URL of your verified property in Google Search Console.', 'twt-aeo-ultimate' ); ?></p>
+									<?php
+									// A dropdown of the properties this Google account can use:
+									// a typed address has to match one exactly, and rarely does.
+									$gsc_saved   = $google_config['gsc_site_url'] ?? '';
+									$gsc_choices = $google_connected ? TWTAEO_Google_OAuth::gsc_property_choices() : null;
+									?>
+									<?php if ( is_array( $gsc_choices ) && $gsc_choices ) : ?>
+										<?php $gsc_selected = TWTAEO_Google_OAuth::gsc_preselect( $gsc_choices, $gsc_saved ); ?>
+										<select id="twt-aeo-gsc-url" name="gsc_site_url" class="regular-text">
+											<option value=""><?php esc_html_e( '— Choose a property —', 'twt-aeo-ultimate' ); ?></option>
+											<?php foreach ( $gsc_choices as $choice ) : ?>
+												<option value="<?php echo esc_attr( $choice['url'] ); ?>" <?php selected( $gsc_selected, $choice['url'] ); ?>><?php echo esc_html( $choice['label'] ); ?></option>
+											<?php endforeach; ?>
+										</select>
+										<p class="description">
+											<?php esc_html_e( 'These are the Search Console properties the connected Google account can use. Choose the one for this site — a domain property covers every version of it (www, non-www, http, https).', 'twt-aeo-ultimate' ); ?>
+											<?php if ( '' !== (string) $gsc_saved && $gsc_selected !== TWTAEO_Google_OAuth::normalize_gsc_site( $gsc_saved ) ) : ?>
+												<br /><strong style="color:#996800;">
+													<?php
+													echo esc_html(
+														'' !== $gsc_selected
+															/* translators: 1: saved address, 2: matching property. */
+															? sprintf( __( 'Saved address %1$s is not a property on this account; %2$s is selected instead. Click Save to use it.', 'twt-aeo-ultimate' ), $gsc_saved, $gsc_selected )
+															/* translators: %s: saved address. */
+															: sprintf( __( 'Saved address %s is not a property on this account, which is why Google refuses it. Choose one of these and click Save.', 'twt-aeo-ultimate' ), $gsc_saved )
+													);
+													?>
+												</strong>
+											<?php endif; ?>
+										</p>
+									<?php else : ?>
+										<input type="text" id="twt-aeo-gsc-url" name="gsc_site_url"
+											   value="<?php echo esc_attr( $gsc_saved ); ?>"
+											   class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>"
+											   <?php echo ! $google_connected ? 'disabled' : ''; ?> />
+										<?php if ( is_wp_error( $gsc_choices ) ) : ?>
+											<p class="description" style="color:#d63638;">
+												<?php
+												/* translators: %s: Google's error message. */
+												echo esc_html( sprintf( __( 'Could not load your Search Console properties from Google: %s', 'twt-aeo-ultimate' ), $gsc_choices->get_error_message() ) );
+												?>
+											</p>
+										<?php elseif ( is_array( $gsc_choices ) ) : ?>
+											<p class="description" style="color:#d63638;">
+												<?php esc_html_e( 'The Google account connected here has no Search Console properties, so Google refuses every address. Connect the Google account that owns this site in Search Console, or add this account as a user there (Search Console → Settings → Users and permissions).', 'twt-aeo-ultimate' ); ?>
+											</p>
+										<?php endif; ?>
+										<p class="description">
+											<?php esc_html_e( 'Must match the property in Search Console. URL-prefix property: the exact URL, e.g.', 'twt-aeo-ultimate' ); ?>
+											<code><?php echo esc_html( home_url( '/' ) ); ?></code>.
+											<?php esc_html_e( 'Domain property (DNS-verified): use', 'twt-aeo-ultimate' ); ?>
+											<code>sc-domain:<?php echo esc_html( wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></code>
+										</p>
+									<?php endif; ?>
 								</td>
 							</tr>
 						</table>
@@ -3168,13 +3217,17 @@ class TWTAEO_Page_Command_Center {
 				if ( ! check_admin_referer( self::NONCE_SAVE_GOOGLE, '_twtaeo_cc_nonce' ) ) {
 					return;
 				}
-				TWTAEO_Google_OAuth::save_config(
+				$gsc = TWTAEO_Google_OAuth::save_config(
 					sanitize_text_field( wp_unslash( $_POST['ga4_property_id'] ?? '' ) ),
 					sanitize_text_field( wp_unslash( $_POST['gsc_site_url']    ?? '' ) )
 				);
 				// Bust data cache when config changes.
 				self::clear_data_cache();
-				self::set_notice( 'updated', __( 'Google configuration saved.', 'twt-aeo-ultimate' ) );
+				// A property the account cannot see is saved, but flagged: Google will refuse it.
+				self::set_notice(
+					$gsc['refused'] ? 'error' : 'updated',
+					trim( __( 'Google configuration saved.', 'twt-aeo-ultimate' ) . ' ' . $gsc['note'] )
+				);
 				break;
 
 			case 'save_google_sa':

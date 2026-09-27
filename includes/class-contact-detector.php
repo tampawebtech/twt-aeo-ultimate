@@ -157,15 +157,40 @@ class TWTAEO_Contact_Detector {
 	}
 
 	/**
-	 * Scan all published pages/posts for contact content.
+	 * How many posts one scan block covers; the screen pages through blocks
+	 * instead of stopping at the first one.
+	 */
+	const SCAN_BLOCK = 200;
+
+	/**
+	 * How many published items the scan can see in total, regardless of blocks.
 	 *
+	 * @return int
+	 */
+	public static function total_items() {
+		$total = 0;
+		foreach ( array( 'page', 'post' ) as $type ) {
+			$counts = wp_count_posts( $type );
+			$total += (int) ( $counts->publish ?? 0 );
+		}
+		return $total;
+	}
+
+	/**
+	 * Scan one block of published pages/posts, newest first, and return those
+	 * with contact content.
+	 *
+	 * @param int $block 1-based block number; block N covers items
+	 *                   ((N-1)*SCAN_BLOCK)+1 through N*SCAN_BLOCK.
 	 * @return array[] Each entry: { post, contact_data }
 	 */
-	public static function scan_all() {
+	public static function scan_all( $block = 1 ) {
 		$posts = get_posts( array(
 			'post_type'      => array( 'page', 'post' ),
 			'post_status'    => 'publish',
-			'posts_per_page' => 200,
+			'posts_per_page' => self::SCAN_BLOCK,
+			'paged'          => max( 1, (int) $block ),
+			'orderby'        => array( 'date' => 'DESC', 'ID' => 'DESC' ),
 		) );
 
 		$results = array();
@@ -186,10 +211,15 @@ class TWTAEO_Contact_Detector {
 	/**
 	 * Get summary counts.
 	 *
+	 * @param array[]|null $all A block already returned by scan_all(), so the
+	 *                          caller does not pay for a second scan. Null scans
+	 *                          the first block.
 	 * @return array { total, complete, needs_work }
 	 */
-	public static function get_summary() {
-		$all       = self::scan_all();
+	public static function get_summary( $all = null ) {
+		if ( null === $all ) {
+			$all = self::scan_all();
+		}
 		$complete  = 0;
 		$needs     = 0;
 

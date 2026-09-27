@@ -1,214 +1,92 @@
-# TWT AEO Ultimate — External Services & Outbound Links
+# External Services — TWT AEO Ultimate
 
-This document is the complete inventory of every external service this plugin can connect to and every outbound link it can display, with each provider's terms of service and privacy policy. A summary appears in readme.txt (FAQ: "What external services does this plugin connect to?").
+This plugin connects to outside services **only when you configure them and trigger a feature**. Nothing is sent on activation, and no site-visitor personal data is ever transmitted. Every AI and API request uses your own key or your own connected account.
 
-This plugin can optionally connect to third-party providers to power AI content generation, image (vision) analysis, structured-data enrichment, indexing, and PR distribution. Connections stay dormant unless you explicitly enable a feature and add your own API credentials in the settings panel. AI requests are only made when you click an AI action; nothing is sent automatically or on activation.
+This file has two parts:
 
-## Anthropic Claude API
-* **Used by:** PR Bridge AI, AI meta descriptions, WooCommerce product enrichment (attribute extraction, description rewriting, attribute standardization), and Image SEO / product image analysis.
-* **Data sent:** Your content and prompt text, plus your Anthropic API key. For image features (vision tagging, alt-text generation), the URLs and contents of your own post/product images are also sent. No visitor identity data is sent.
-* **Triggers:** Only when you click an AI action (generate content, enhance a description, extract attributes, generate alt text, etc.).
-* **Endpoint:** api.anthropic.com (API host — not a browsable page)
-* **Resources:** [Anthropic Acceptable Use Policy](https://www.anthropic.com/legal/aup) | [Anthropic Privacy Policy](https://www.anthropic.com/legal/privacy)
+1. **Services that receive data** — what is sent, when, and each provider's terms and privacy policy.
+2. **Sites that are only linked** — directories and documentation the admin screens link to. No data is sent to them; clicking a link opens the site in your browser under that site's own terms.
 
-## OpenAI API
-* **Used by:** AI meta descriptions, AI Open Graph image generation, WooCommerce product enrichment, and Image SEO / product image analysis.
-* **Data sent:** A content or image prompt and your OpenAI API key. For image analysis features, the URLs and contents of your own post/product images are also sent.
-* **Triggers:** Only when you click an AI action, if an OpenAI key is configured.
-* **Endpoint:** api.openai.com (API host — not a browsable page)
-* **Resources:** [OpenAI Terms of Use](https://openai.com/policies/terms-of-use) | [OpenAI Privacy Policy](https://openai.com/policies/privacy-policy)
+---
 
-## Google Gemini API
-* **Used by:** AI meta descriptions, WooCommerce product enrichment, Image SEO / product image analysis, and web-grounded brand authority (sameAs) and competitive-gap lookups.
-* **Data sent:** Your content and prompt text, image URLs/contents for vision features, brand/product names for grounded lookups, and your Gemini API key. Sent to `generativelanguage.googleapis.com`. No visitor identity data is sent.
-* **Triggers:** Only when you click an AI action, if a Gemini key is configured.
-* **Resources:** [Google Terms of Service](https://policies.google.com/terms) | [Google Privacy Policy](https://policies.google.com/privacy)
+## 1. Services that receive data
 
-## Perplexity AI API
-* **Used by:** (optional) WooCommerce brand authority (sameAs) resolution and competitive-gap analysis.
-* **Data sent:** A brand or product name, plus your Perplexity API key.
-* **Triggers:** Only on explicit AI actions, if a Perplexity key is configured.
-* **Endpoint:** api.perplexity.ai (API host — not a browsable page)
-* **Resources:** [Perplexity Terms of Service](https://www.perplexity.ai/hub/legal/terms-of-service) | [Perplexity Privacy Policy](https://www.perplexity.ai/hub/legal/privacy-policy)
+### AI providers (your own API keys)
 
-## Google APIs (OAuth 2.0, Search Console, Analytics, Knowledge Graph, Business Profile, Merchant Center, Sitemap Ping)
-* **Used by:** Command Center reporting, Local Pack NAP checks, WooCommerce product sync, and sitemap notifications.
-* **Data sent:** OAuth tokens, property/account identifiers, product data, or URLs — over standard Google OAuth flows. No end-user personal data is sent.
-* **Triggers:** On dashboard reporting, scheduled product sync, or manual checks.
-* **Endpoints:** accounts.google.com, oauth2.googleapis.com, www.googleapis.com, searchconsole.googleapis.com, analyticsadmin.googleapis.com, analyticsdata.googleapis.com, kgsearch.googleapis.com, mybusinessaccountmanagement.googleapis.com, mybusinessbusinessinformation.googleapis.com, shoppingcontent.googleapis.com. Admin pages also link out (no data sent) to Google dashboards: business.google.com, search.google.com, console.cloud.google.com, maps.google.com, g.page.
-* **Resources:** [Google Terms of Service](https://policies.google.com/terms) | [Google Privacy Policy](https://policies.google.com/privacy)
+| Service | Endpoint | Used by | What is sent | Terms | Privacy |
+|---|---|---|---|---|---|
+| **Anthropic Claude** | `api.anthropic.com` | Meta descriptions, product enrichment, PR tools, AI Visibility, RAG Engine document labels (only when switched on) | The prompt for the action you ran: page or product title and text, or an AI Visibility question. For a document label: the file name and the first ~8,000 characters of the document, once | [Terms](https://www.anthropic.com/legal/aup) | [Privacy](https://www.anthropic.com/legal/privacy) |
+| **OpenAI** | `api.openai.com` | Meta descriptions, Open Graph image generation, image analysis, AI Visibility, RAG Engine document labels (only when switched on) | Same as above; for images, the image URL or prompt | [Terms](https://openai.com/policies/terms-of-use) | [Privacy](https://openai.com/policies/privacy-policy) |
+| **Google Gemini** | `generativelanguage.googleapis.com` | Meta descriptions, vision, web-grounded lookups (brand links, Smart 404), AI Visibility, RAG Engine document labels (only when switched on) and law check | Same as above; for vision, the image data. For the law check: a law or code's citation, place, date and section headings — never the document's text | [Terms](https://policies.google.com/terms) | [Privacy](https://policies.google.com/privacy) |
+| **Perplexity** | `api.perplexity.ai` (Agent API) | Brand and gap research, AI Visibility, RAG Engine law check | The question or lookup prompt. For the law check: a law or code's citation, place, date and section headings — never the document's text | [Terms](https://www.perplexity.ai/hub/legal/terms-of-service) | [Privacy](https://www.perplexity.ai/hub/legal/privacy-policy) |
+| **xAI Grok** | `api.x.ai` | AI Visibility only | An AI Visibility question | [Terms](https://x.ai/legal/terms-of-service-enterprise) | [Privacy](https://x.ai/legal/privacy-policy) |
+| **Mistral (Le Chat)** | `api.mistral.ai` | AI Visibility only | An AI Visibility question | [Terms](https://legal.mistral.ai/terms/commercial-terms-of-service) | [Privacy](https://legal.mistral.ai/terms/privacy-policy) |
 
-## Microsoft / Bing APIs (OAuth, Merchant Center, Maps Local Search, Webmaster Tools, IndexNow)
-* **Used by:** E-commerce feed sync, Local Pack NAP/address consistency checks (Bing Maps Local Search, `dev.virtualearth.net`), and indexing.
-* **Data sent:** OAuth tokens, structured product data, your business name/address for NAP checks (with your Bing Maps API key), or published URLs sent to the relevant API endpoints.
-* **Triggers:** On content publish/update events, catalog sync intervals, or a manual NAP check.
-* **Endpoints:** login.microsoftonline.com (OAuth), ssl.bing.com (Webmaster API), content.api.bingads.microsoft.com (Merchant Center), dev.virtualearth.net (Maps Local Search). Admin pages also link out (no data sent) to Microsoft dashboards: ads.microsoft.com, www.bing.com/webmasters, www.bingplaces.com.
-* **Resources:** [Microsoft Services Agreement](https://www.microsoft.com/en-us/servicesagreement) | [Microsoft Privacy Statement](https://www.microsoft.com/en-us/privacy/privacystatement)
+When no plugin key is set and WordPress 7.0's built-in AI Client is available, Claude and OpenAI requests go through the provider you connected under **Settings → Connectors** instead.
 
-## IndexNow Network Protocol
-* **Used by:** IndexNow module.
-* **Data sent:** Your IndexNow key and the public URLs of published or updated posts, sent to supporting search engines.
-* **Triggers:** On post publish/update or manual submission.
-* **Resources:** [IndexNow Protocol](https://www.indexnow.org/) | [IndexNow Terms & Privacy](https://www.indexnow.org/terms)
+### Google APIs (your own connected Google account)
 
-## EIN Presswire
-* **Used by:** PR Bridge AI distribution.
-* **Data sent:** Press release headline and body, the source post URL, and your EIN Presswire API key.
-* **Triggers:** Only when you click submit on the PR Bridge page.
-* **Resources:** [EIN Presswire Terms](https://www.einpresswire.com/legal/terms) | [EIN Presswire Privacy Policy](https://www.einpresswire.com/legal/privacy)
+Terms: [Google Terms](https://policies.google.com/terms) · [Google APIs Terms](https://developers.google.com/terms) · Privacy: [Google Privacy Policy](https://policies.google.com/privacy)
 
-## EasyPRwire
-* **Used by:** PR Bridge AI distribution (alternative provider).
-* **Data sent:** Press release headline and body, the source post URL, and your EasyPRwire API key.
-* **Triggers:** Only when you click submit on the PR Bridge page.
-* **Resources:** [EasyPRWire Terms](https://easyprwire.com/terms-and-condition) | [EasyPRWire Privacy Policy](https://easyprwire.com/privacy-policy)
+| API | Endpoint | Used by | What is sent |
+|---|---|---|---|
+| Google sign-in (OAuth) | `accounts.google.com`, `oauth2.googleapis.com` | Connecting a Google account | Standard OAuth authorization and token exchange |
+| Search Console | `searchconsole.googleapis.com` | Not Indexed report, Command Center, RAG Engine Search Placement, the property dropdown in Settings | Your site's URLs for inspection and query reports; a request for the account's list of properties |
+| Analytics (GA4) | `analyticsdata.googleapis.com`, `analyticsadmin.googleapis.com` | Command Center, traffic-leak scan | Property ID and report requests |
+| PageSpeed Insights | `www.googleapis.com/pagespeedonline` | Command Center performance audits | The page URL being audited |
+| Knowledge Graph Search | `kgsearch.googleapis.com` | Local SEO NAP audit, entity lookups | Your business or entity name |
+| Business Profile | `mybusinessaccountmanagement.googleapis.com`, `mybusinessbusinessinformation.googleapis.com` | Local SEO NAP audit | Account and location requests |
+| Merchant API | `merchantapi.googleapis.com` | Google Merchant Center sync (WooCommerce) | Product IDs, prices, availability, promotions |
 
-## TWT Agency (optional)
-* **Used by:** Optional dashboard sync and remote monitoring.
-* **Data sent:** Site AEO metrics, AI-crawler events, schema and content activity, analytics summaries, plugin/site info, and your TWT Agency API key. No site-visitor personal data is sent.
-* **Triggers:** A daily snapshot plus event-driven pushes, only when a TWT Agency API key and Dashboard URL are configured.
-* **Resources:** [TWT Terms of Use](https://tampawebtech.com/plugin-terms/) | [TWT Privacy Policy](https://tampawebtech.com/plugin-privacy-policies/)
+### Microsoft / Bing APIs (your own connected account or key)
 
-## TWT AEO Token Telemetry (optional)
-* **Used by:** AI features (anonymous usage reporting to improve the plugin).
-* **Data sent:** AI provider name, model slug, plugin version, and token counts only. No content, URLs, titles, API keys, or visitor data.
-* **Triggers:** On an AI generation, only if you opt in via Settings.
-* **Endpoint:** tampawebtech.com/wp-json/twt-aeo/v1/token-telemetry (POST-only REST endpoint — not a browsable page)
-* **Resources:** [TWT Privacy Policy](https://tampawebtech.com/plugin-privacy-policies/)
+Terms: [Microsoft Services Agreement](https://www.microsoft.com/en-us/servicesagreement) · Privacy: [Microsoft Privacy Statement](https://www.microsoft.com/en-us/privacy/privacystatement)
 
-## Industry Directory Links (optional)
-The plugin provides optional integrations with major industry directories to enhance your AEO and local-search footprint. Depending on the industry you select in the settings, the plugin may link out to the following external platforms. These are outbound links only — no data is transmitted to these services by the plugin, and you choose which industry (if any) to enable.
+| API | Endpoint | Used by | What is sent |
+|---|---|---|---|
+| Microsoft sign-in | `login.microsoftonline.com` | Connecting Bing Merchant Center | Standard OAuth authorization and token exchange |
+| Bing Webmaster Tools | `ssl.bing.com/webmaster/api.svc` | Command Center, keyword history, RAG Engine Search Placement | Your site URL and report requests |
+| Bing Merchant Center | `content.api.bingads.microsoft.com` | Bing Merchant Center sync (WooCommerce) | Product IDs, prices, availability |
+| Bing Maps Local Search | `dev.virtualearth.net` | Local SEO NAP audit | Your business name and location |
 
-**Home Services**
+### Search-engine notification
 
-* Angi — https://www.angi.com | [Privacy](https://legal.angi.com/#privacy-policy) | [Terms](https://legal.angi.com/#contract-skmav5s0l)
-* Thumbtack — https://www.thumbtack.com | [Privacy](https://www.thumbtack.com/privacy) | [Terms](https://www.thumbtack.com/terms)
-* HomeAdvisor — https://pro.homeadvisor.com | [Privacy](https://legal.angi.com/#privacy-policy) | [Terms](https://legal.angi.com/#contract-skmav5s0l)
-* Houzz — https://www.houzz.com | [Privacy](https://www.houzz.com/privacyPolicy) | [Terms](https://www.houzz.com/termsOfUse)
-* BuildZoom — https://www.buildzoom.com | [Privacy](https://www.buildzoom.com/privacy-policy) | [Terms](https://www.buildzoom.com/terms-of-service)
+| Service | Endpoint | Used by | What is sent | Terms & Privacy |
+|---|---|---|---|---|
+| **IndexNow** | `api.indexnow.org` (or the engines you choose) | Publishing a post, manual submission | The published URL, your site host and the IndexNow key. Not sent from local, development or staging sites. | [IndexNow terms](https://www.indexnow.org/terms) |
 
-**Restaurant & Food**
+### Press-release distribution (your own accounts)
 
-* Yelp — https://biz.yelp.com | [Privacy](https://terms.yelp.com/privacy/en_us/) | [Terms](https://terms.yelp.com/tos/en_us/)
-* TripAdvisor — https://www.tripadvisor.com | [Privacy](https://tripadvisor.mediaroom.com/us-privacy-policy) | [Terms](https://www.tripadvisor.com/pages/terms.html)
-* OpenTable — https://restaurant.opentable.com | [Privacy](https://www.opentable.com/c/legal/privacy-policy/) | [Terms](https://www.opentable.com/c/legal/terms-and-conditions/)
-* Zomato — https://www.zomato.com | [Privacy](https://www.zomato.com/policies/privacy/) | [Terms](https://www.zomato.com/policies/terms-of-service/)
-* Foursquare — https://business.foursquare.com | [Privacy](https://foursquare.com/legal/privacy) | [Terms](https://foursquare.com/legal/terms)
-* Grubhub — https://restaurant.grubhub.com | [Privacy](https://www.grubhub.com/legal/privacy-policy) | [Terms](https://www.grubhub.com/legal/terms-of-use)
+| Service | Used by | What is sent | Terms | Privacy |
+|---|---|---|---|---|
+| **EIN Presswire** | PR Bridge | The press release you choose to distribute | [Terms](https://www.einpresswire.com/legal/terms) | [Privacy](https://www.einpresswire.com/legal/privacy) |
+| **EasyPRwire** | PR Bridge | The press release you choose to distribute | [Terms](https://easyprwire.com/terms-and-condition) | [Privacy](https://easyprwire.com/privacy-policy) |
 
-**Legal**
+### Tampa Web Technologies (optional, opt-in)
 
-* Avvo — https://www.avvo.com | [Privacy](https://www.internetbrands.com/privacy) | [Terms](https://www.internetbrands.com/ibterms)
-* FindLaw — https://lawyers.findlaw.com | [Privacy](https://www.findlaw.com/company/privacy/privacy-statement.html) | [Terms](https://www.findlaw.com/company/findlaw-terms-of-service.html)
-* Justia — https://lawyers.justia.com | [Privacy](https://www.justia.com/privacy-policy/) | [Terms](https://www.justia.com/terms-of-use/)
-* Martindale-Hubbell — https://www.martindale.com | [Privacy](https://www.internetbrands.com/privacy) | [Terms](https://www.internetbrands.com/ibterms)
-* Super Lawyers — https://www.superlawyers.com | [Privacy](https://www.internetbrands.com/privacy) | [Terms](https://www.internetbrands.com/ibterms)
+Terms: [Plugin Terms](https://tampawebtech.com/plugin-terms/) · Privacy: [Plugin Privacy Policy](https://tampawebtech.com/plugin-privacy-policies/)
 
-**Healthcare**
+| Feature | Endpoint | What is sent |
+|---|---|---|
+| **Token telemetry** (off by default; Settings → Usage Telemetry) | `tampawebtech.com/wp-json/twt-aeo/v1/token-telemetry` | AI provider name, model name, token counts and plugin version. Never content, titles, URLs or site details. |
+| **TWT Agency dashboard** (off by default; Settings → Pro Dashboard) | The dashboard URL you enter | Scores, scan results and events for the site you connected |
 
-* Healthgrades — https://www.healthgrades.com | [Privacy](https://www.healthgrades.com/content/privacy-policy) | [Terms](https://www.healthgrades.com/content/terms-of-use)
-* WebMD — https://doctor.webmd.com | [Privacy](https://www.webmd.com/about-webmd-policies/about-privacy-policy) | [Terms](https://www.webmd.com/about-webmd-policies/about-terms-and-conditions-of-use)
-* Vitals — https://www.vitals.com | [Privacy](https://www.vitals.com/privacy) | [Terms](https://www.vitals.com/terms-of-use)
-* Zocdoc — https://www.zocdoc.com | [Privacy](https://www.zocdoc.com/privacy) | [Terms](https://www.zocdoc.com/terms)
-* RateMDs — https://www.ratemds.com | [Privacy](https://www.ratemds.com/privacy/) | [Terms](https://www.ratemds.com/terms/)
+### Pages you ask the plugin to fetch
 
-**Real Estate**
+**Bot View**, **Chunk View** and the crawler tester fetch the URLs you enter or that your own site links to, the way a search crawler would. That is an ordinary web request to that URL; no key or site data is attached.
 
-* Zillow — https://www.zillow.com | [Privacy](https://www.zillowgroup.com/privacy-policy/) | [Terms](https://www.zillowgroup.com/terms-of-use/)
-* Realtor.com — https://www.realtor.com | [Privacy](https://www.realtor.com/privacy-policy/) | [Terms](https://www.realtor.com/terms-of-service/)
-* Homes.com — https://www.homes.com | [Privacy](https://www.homes.com/about/policies/) | [Terms](https://www.homes.com/about/homesterms-of-use/)
-* Trulia — https://www.trulia.com | [Privacy](https://www.zillowgroup.com/privacy-policy/) | [Terms](https://www.zillowgroup.com/terms-of-use/)
-* LoopNet — https://www.loopnet.com | [Privacy](https://www.costar.com/about/privacy-notice) | [Terms](https://www.loopnet.com/solutions/LoopNetTerms-of-Use)
+The **RAG Engine law check** loads the official-source page its search names (usually a government or code-publisher site) once, only to confirm the link works before showing it. Nothing is sent but the request for that page.
 
-**Automotive**
+---
 
-* Cars.com — https://www.cars.com | [Privacy](https://www.cars.com/about/privacy/) | [Terms](https://www.cars.com/about/terms/)
-* RepairPal — https://repairpal.com | [Privacy](https://repairpal.com/privacy_policy) | [Terms](https://repairpal.com/terms_of_service)
-* CarGurus — https://www.cargurus.com | [Privacy](https://www.cargurus.com/about/privacy-policy) | [Terms](https://www.cargurus.com/about/terms-of-use)
-* CARFAX — https://www.carfax.com | [Privacy](https://www.carfax.com/company/privacy-statement) | [Terms](https://www.carfax.com/company/terms-of-use)
-* DealerRater — https://www.dealerrater.com | [Privacy](https://help.dealerrater.com/kb/guide/en/dealerrater-privacy-notice-Peam1MNQXJ/Steps/2549540) | [Terms](https://www.dealerrater.com/info/tou/)
-* Edmunds — https://dealer.edmunds.com | [Privacy](https://www.edmunds.com/about/privacy.html) | [Terms](https://www.edmunds.com/about/visitor-agreement.html)
+## 2. Sites that are only linked
 
-**Beauty & Wellness**
+The admin screens link to these sites for setup help, profile claiming and citation-building. **No data is sent to any of them** — a link opens in your browser only when you click it, and your use of each site is governed by that site's own terms and privacy policy.
 
-* StyleSeat — https://www.styleseat.com | [Privacy](https://www.styleseat.com/privacy) | [Terms](https://www.styleseat.com/tos-for-professionals)
-* Vagaro — https://www.vagaro.com | [Privacy](https://www.vagaro.com/pro/privacy) | [Terms](https://www.vagaro.com/pro/user-agreement)
-* Fresha — https://www.fresha.com | [Privacy](https://terms.fresha.com/privacy-policy) | [Terms](https://terms.fresha.com/terms-service)
-* Booksy — https://booksy.com | [Privacy](https://booksy.com/en-us/p/privacy) | [Terms](https://booksy.com/en-us/p/terms)
-* Mindbody — https://www.mindbodyonline.com | [Privacy](https://www.mindbodyonline.com/company/legal/privacy-policy) | [Terms](https://www.mindbodyonline.com/company/legal/terms-of-service)
+**Business listings and review directories:** airbnb.com, angi.com, pro.angi.com, avvo.com, bbb.org, bingplaces.com, biz.yelp.com, booksy.com, bringfido.com, buildzoom.com, business.foursquare.com, business.google.com, business.linkedin.com, business.nextdoor.com, business.trustpilot.com, capterra.com, carfax.com, cargurus.com, cars.com, dealer.cars.com, dealer.edmunds.com, dealerrater.com, doctor.webmd.com, fresha.com, g.page, greatschools.org, healthgrades.com, homes.com, pro.homeadvisor.com, houzz.com, justia.com, lawyers.justia.com, lawyer.findlaw.com, lawyers.findlaw.com, loopnet.com, mapsconnect.apple.com, martindale.com, mindbodyonline.com, colleges.niche.com, partner.booking.com, petmd.com, ratemds.com, realtor.com, repairpal.com, restaurant.grubhub.com, restaurant.opentable.com, rover.com, sell.g2.com, sitejabber.com, styleseat.com, superlawyers.com, thumbtack.com, tripadvisor.com, trulia.com, trustradius.com, vagaro.com, vitals.com, wagwalking.com, welcome.expediagroup.com, wyzant.com, classgap.com, zillow.com, zocdoc.com, zomato.com, clutch.co
 
-**Financial**
+**Professional and financial directories:** cfp.net, napfa.org, nerdwallet.com, smartasset.com, wallethub.com, xyplanningnetwork.com
 
-* NAPFA — https://www.napfa.org | [Privacy](https://www.napfa.org/privacy-policy-legal-disclaimer) | [Terms](https://www.napfa.org/privacy-policy-legal-disclaimer)
-* CFP Board — https://www.cfp.net | [Privacy](https://www.cfp.net/privacy-policy) | [Terms](https://www.cfp.net/terms-of-use)
-* NerdWallet — https://www.nerdwallet.com | [Privacy](https://legal.atomicvest.com/usa.privacy.de3d0277-78f7-4741-9e9f-755f6b4f03ba.pdf) | [Terms](https://www.nerdwallet.com/p/terms-of-use)
-* SmartAsset — https://smartasset.com | [Privacy](https://smartasset.com/privacy) | [Terms](https://smartasset.com/terms)
-* XY Planning Network — https://www.xyplanningnetwork.com | [Privacy](https://www.xyplanningnetwork.com/data-privacy-policy) | [Terms](https://www.xyplanningnetwork.com/data-privacy-policy)
-* WalletHub — https://wallethub.com | [Privacy](https://wallethub.com/terms/privacy) | [Terms](https://wallethub.com/terms)
+**Social and identity profiles:** facebook.com, instagram.com, linkedin.com, pinterest.com, twitter.com, x.com, youtube.com, gravatar.com, en.wikipedia.org, wikidata.org
 
-**Education**
-
-* GreatSchools — https://www.greatschools.org | [Privacy](https://www.greatschools.org/gk/privacy/) | [Terms](https://www.greatschools.org/gk/terms/)
-* Niche — https://www.niche.com | [Privacy](https://www.niche.com/about/privacy/) | [Terms](https://www.niche.com/about/terms/)
-* Wyzant — https://www.wyzant.com | [Privacy](https://support.wyzant.com/policies-and-contact-us/privacy-policy-and-terms-of-use/privacy-policy/) | [Terms](https://support.wyzant.com/policies-and-contact-us/privacy-policy-and-terms-of-use/terms-of-use/)
-* Classgap — https://www.classgap.com | [Privacy](https://www.classgap.com/en/info/privacy) | [Terms](https://www.classgap.com/en/info/terms)
-
-**Lodging**
-
-* TripAdvisor — https://www.tripadvisor.com | [Privacy](https://tripadvisor.mediaroom.com/us-privacy-policy) | [Terms](https://www.tripadvisor.com/pages/terms.html)
-* Booking.com — https://partner.booking.com | [Privacy](https://www.booking.com/content/privacy.html) | [Terms](https://www.booking.com/content/privacy.html)
-* Expedia — https://welcome.expediagroup.com | [Privacy](https://legal.expediagroup.com/privacy/privacy-and-cookies-statements/other/expedia-group-privacy) | [Terms](https://www.expediagroup.com/en-us/terms-of-use)
-* Google Hotel Center — https://www.google.com/hotelprices/ | [Privacy](https://policies.google.com/privacy) | [Terms](https://policies.google.com/terms)
-* Airbnb — https://www.airbnb.com | [Privacy](https://www.airbnb.com/help/article/2855) | [Terms](https://www.airbnb.com/help/article/2908)
-
-**Pet Services**
-
-* Rover — https://www.rover.com | [Privacy](https://www.rover.com/terms/privacy/) | [Terms](https://www.rover.com/terms/tos/)
-* Wag! — https://www.wagwalking.com | [Privacy](https://safety.wagwalking.com/privacy) | [Terms](https://safety.wagwalking.com/terms)
-* PetMD — https://www.petmd.com | [Privacy](https://www.petmd.com/petmd-privacy-policy) | [Terms](https://www.petmd.com/legal/conditions-of-use)
-* Yelp — https://biz.yelp.com | [Privacy](https://terms.yelp.com/privacy/en_us/) | [Terms](https://terms.yelp.com/tos/en_us/)
-* BringFido — https://www.bringfido.com | [Privacy](https://www.bringfido.com/privacy/) | [Terms](https://www.bringfido.com/terms/)
-
-**General Business & Review Platforms**
-
-Cross-industry platform links that appear on the Local Pack, Reviews, and Command Center pages. Outbound links only — no data is transmitted.
-
-* Google Business Profile — https://business.google.com | [Privacy](https://policies.google.com/privacy) | [Terms](https://policies.google.com/terms)
-* Bing Places — https://www.bingplaces.com | [Privacy](https://www.microsoft.com/en-us/privacy/privacystatement) | [Terms](https://www.microsoft.com/en-us/servicesagreement)
-* Apple Business Connect — https://mapsconnect.apple.com | [Privacy](https://www.apple.com/legal/privacy/) | [Terms](https://www.apple.com/legal/internet-services/terms/site.html)
-* Facebook (Meta) — https://www.facebook.com/business | [Privacy](https://www.facebook.com/privacy/policy/) | [Terms](https://www.facebook.com/legal/terms)
-* Nextdoor — https://business.nextdoor.com | [Privacy](https://nextdoor.com/privacy_policy/) | [Terms](https://nextdoor.com/member_agreement/)
-* LinkedIn — https://business.linkedin.com | [Privacy](https://www.linkedin.com/legal/privacy-policy) | [Terms](https://www.linkedin.com/legal/user-agreement)
-* Trustpilot — https://business.trustpilot.com | [Privacy](https://corporate.trustpilot.com/legal/for-reviewers/privacy-policy-end-user) | [Terms](https://corporate.trustpilot.com/legal/for-businesses/terms-of-use-and-sale-for-businesses)
-* Better Business Bureau — https://www.bbb.org | [Privacy](https://www.bbb.org/privacy-policy) | [Terms](https://www.bbb.org/terms-of-use)
-* Sitejabber — https://www.sitejabber.com | [Privacy](https://www.sitejabber.com/privacy) | [Terms](https://www.sitejabber.com/terms)
-
-**B2B & Software Reviews**
-
-* Clutch — https://clutch.co | [Privacy](https://clutch.co/privacy) | [Terms](https://clutch.co/terms)
-* G2 — https://sell.g2.com | [Privacy](https://legal.g2.com/privacy-policy) | [Terms](https://legal.g2.com/terms-of-use)
-* Capterra — https://www.capterra.com | [Privacy](https://www.capterra.com/legal/privacy-policy) | [Terms](https://www.capterra.com/legal/terms-of-use)
-* TrustRadius — https://www.trustradius.com | [Privacy](https://www.trustradius.com/static/privacy-policy) | [Terms](https://www.trustradius.com/static/terms-of-use)
-
-**Social Profile Links**
-
-Social platform URLs appear as profile-link fields and in `sameAs` schema output for profiles you enter. Outbound links only — no data is transmitted.
-
-* Instagram — https://www.instagram.com | [Privacy](https://privacycenter.instagram.com/policy) | [Terms](https://help.instagram.com/581066165581870)
-* Pinterest — https://www.pinterest.com | [Privacy](https://policy.pinterest.com/en/privacy-policy) | [Terms](https://policy.pinterest.com/en/terms-of-service)
-* X (Twitter) — https://x.com (formerly twitter.com) | [Privacy](https://x.com/en/privacy) | [Terms](https://x.com/en/tos)
-* YouTube — https://www.youtube.com | [Privacy](https://policies.google.com/privacy) | [Terms](https://www.youtube.com/t/terms)
-* Facebook / Meta developer docs — https://developers.facebook.com | [Privacy](https://www.facebook.com/privacy/policy/) | [Terms](https://www.facebook.com/legal/terms)
-
-**Documentation & Standards References**
-
-Links to specifications and documentation that appear in plugin help text and generated discovery files. These are references only — the plugin sends no data to them.
-
-* Schema.org — https://schema.org | [Terms](https://schema.org/docs/terms.html)
-* Wikipedia / Wikidata (Wikimedia) — https://en.wikipedia.org, https://www.wikidata.org | [Privacy](https://foundation.wikimedia.org/wiki/Policy:Privacy_policy) | [Terms](https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use)
-* IETF / RFC Editor — https://datatracker.ietf.org, https://www.rfc-editor.org | [Privacy](https://www.ietf.org/privacy-statement/)
-* Content Signals — https://contentsignals.org (robots.txt policy specification)
-* WordPress.org developer documentation — https://developer.wordpress.org | [Privacy](https://wordpress.org/about/privacy/)
-* GitHub — [Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) | [Terms](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service)
-* Gravatar (Automattic) — https://gravatar.com | [Privacy](https://automattic.com/privacy/) | [Terms](https://wordpress.com/tos/)
-* IsItAgentReady — https://isitagentready.com (agent-readiness checker; also used as the link-relation identifier for agent-skills discovery) | [Privacy](https://www.cloudflare.com/privacypolicy/) | [Terms](https://www.cloudflare.com/website-terms/)
+**Account consoles and documentation:** console.cloud.google.com, search.google.com, google.com (the law check's "Search for the current version" link), maps.google.com, ads.microsoft.com, bing.com, developers.facebook.com, developer.wordpress.org, wordpress.org, woocommerce.com, github.com, datatracker.ietf.org, rfc-editor.org, contentsignals.org, isitagentready.com, aeoultimate.com, tampawebtech.com

@@ -47,7 +47,7 @@ class TWTAEO_Page_Schema_Detector {
 						<?php esc_html_e( 'Schema Detector', 'twt-aeo-ultimate' ); ?>
 					</h1>
 					<a href="<?php echo esc_url( add_query_arg( array( 'tab' => $active_tab, 'rescanned' => time() ), $base_url ) ); ?>"
-					   class="button" style="margin-left:auto;">
+					   class="twt-aeo-btn twt-aeo-btn--primary" style="margin-left:auto;text-decoration:none;">
 						&#8635; <?php esc_html_e( 'Rescan', 'twt-aeo-ultimate' ); ?>
 					</a>
 				</div>
@@ -107,8 +107,14 @@ class TWTAEO_Page_Schema_Detector {
 	// ── FAQ tab ──────────────────────────────────────────────────────────────
 
 	private static function render_faq() {
-		$results = TWTAEO_FAQ_Detector::scan_all();
-		$summary = TWTAEO_FAQ_Detector::get_summary();
+		$total_items = TWTAEO_FAQ_Detector::total_items();
+		$block       = TWTAEO_Scan_Pager::current_block( $total_items, TWTAEO_FAQ_Detector::SCAN_BLOCK );
+		$results     = TWTAEO_FAQ_Detector::scan_all( $block );
+		$summary     = TWTAEO_FAQ_Detector::get_summary( $results );
+		$pager_url   = add_query_arg(
+			array( 'page' => 'twt-aeo-schema-detector', 'tab' => 'faq' ),
+			admin_url( 'admin.php' )
+		);
 		?>
 
 		<section class="twt-aeo-section">
@@ -149,13 +155,35 @@ class TWTAEO_Page_Schema_Detector {
 
 		<?php $generate_nonce = wp_create_nonce( TWTAEO_FAQ_Detector::NONCE_GENERATE ); ?>
 		<section class="twt-aeo-section">
-			<h2 class="twt-aeo-section__title"><?php esc_html_e( 'Pages with FAQ Content', 'twt-aeo-ultimate' ); ?></h2>
+			<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+				<h2 class="twt-aeo-section__title" style="margin:0;"><?php esc_html_e( 'Pages with FAQ Content', 'twt-aeo-ultimate' ); ?></h2>
+				<?php if ( $summary['needs_schema'] > 0 ) : ?>
+				<button type="button" id="twt-aeo-faq-gen-all"
+					data-nonce="<?php echo esc_attr( $generate_nonce ); ?>"
+					class="button button-primary">
+					<?php
+					printf(
+						// translators: %d: number of pages missing FAQPage schema.
+						esc_html__( 'Generate All (%d missing)', 'twt-aeo-ultimate' ),
+						absint( $summary['needs_schema'] )
+					);
+					?>
+				</button>
+				<span id="twt-aeo-faq-gen-all-status" style="font-size:13px;"></span>
+				<?php endif; ?>
+			</div>
+			<?php if ( $summary['needs_schema'] > 0 ) : ?>
+			<p style="margin:0 0 12px;font-size:13px;color:#646970;max-width:820px;">
+				<?php esc_html_e( 'Generate All builds FAQPage schema from the Q&A content already detected on each page — free and instant, no AI calls, nothing is billed. Pages where the Q&A pairs cannot be extracted cleanly are skipped and keep their per-row button.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<?php endif; ?>
 
 			<?php if ( empty( $results ) ) : ?>
 				<div class="twt-aeo-card">
 					<p class="twt-aeo-empty"><?php esc_html_e( 'No pages with FAQ-style content were detected. Once you add FAQ blocks, accordion sections, or Q&A-style headings to a page, it will appear here.', 'twt-aeo-ultimate' ); ?></p>
 				</div>
 			<?php else : ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_FAQ_Detector::SCAN_BLOCK, $pager_url ); ?>
 			<div class="twt-aeo-page-table-wrap">
 				<table class="twt-aeo-page-table">
 					<thead>
@@ -231,6 +259,7 @@ class TWTAEO_Page_Schema_Detector {
 				</table>
 			</div>
 			<?php endif; ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_FAQ_Detector::SCAN_BLOCK, $pager_url ); ?>
 		</section>
 
 		<?php if ( $summary['needs_schema'] > 0 ) : ?>
@@ -259,6 +288,67 @@ class TWTAEO_Page_Schema_Detector {
 		?>
 		(function($){
 			var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+
+			$('#twt-aeo-faq-gen-all').on('click', function(){
+				var btn    = $(this);
+				var nonce  = btn.data('nonce');
+				var status = $('#twt-aeo-faq-gen-all-status');
+
+				// Collect post IDs for all rows that still need schema.
+				var ids = [];
+				$('.twt-aeo-faq-gen-one').each(function(){
+					ids.push( $(this).data('post-id') );
+				});
+
+				if ( ! ids.length ) {
+					status.css('color','#16a34a').text('<?php echo esc_js( __( 'Nothing to generate.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				btn.prop('disabled', true);
+				var done = 0, skipped = 0, total = ids.length;
+
+				function processNext() {
+					if ( ! ids.length ) {
+						btn.prop('disabled', false);
+						status.css('color','#16a34a').text(
+							'<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?> — ' +
+							done + ' <?php echo esc_js( __( 'saved', 'twt-aeo-ultimate' ) ); ?>' +
+							( skipped ? ', ' + skipped + ' <?php echo esc_js( __( 'skipped', 'twt-aeo-ultimate' ) ); ?>' : '' )
+						);
+						return;
+					}
+
+					var postId = ids.shift();
+					status.css('color','').text(
+						'<?php echo esc_js( __( 'Processing', 'twt-aeo-ultimate' ) ); ?> ' +
+						( total - ids.length ) + ' / ' + total + '…'
+					);
+
+					$.post( ajaxurl, {
+						action:  'twtaeo_faq_generate_batch',
+						nonce:   nonce,
+						post_id: postId
+					}, function(r){
+						if ( r.success && ! r.data.skipped ) {
+							done++;
+							var rowBtn    = $('.twt-aeo-faq-gen-one[data-post-id="' + postId + '"]');
+							var rowResult = $('.twt-aeo-faq-gen-one-result[data-post-id="' + postId + '"]');
+							rowBtn.text('<?php echo esc_js( __( 'Regenerate', 'twt-aeo-ultimate' ) ); ?>');
+							rowResult.css('color','#16a34a').text(' ✓ ' + r.data.qa_count + ' Q&A saved');
+						} else {
+							skipped++;
+						}
+						processNext();
+					}).fail(function(){
+						skipped++;
+						processNext();
+					});
+				}
+
+				processNext();
+			});
+
 			$(document).on('click', '.twt-aeo-faq-gen-one', function(){
 				var btn    = $(this);
 				var postId = btn.data('post-id');
@@ -289,10 +379,13 @@ class TWTAEO_Page_Schema_Detector {
 
 	private static function render_service( $base_url ) {
 		$include_posts = isset( $_GET['include_posts'] ) && '1' === sanitize_key( wp_unslash( $_GET['include_posts'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$results       = TWTAEO_Service_Detector::scan_all( $include_posts );
-		$summary       = TWTAEO_Service_Detector::get_summary( $include_posts );
+		$total_items   = TWTAEO_Service_Detector::total_items( $include_posts );
+		$block         = TWTAEO_Scan_Pager::current_block( $total_items, TWTAEO_Service_Detector::SCAN_BLOCK );
+		$results       = TWTAEO_Service_Detector::scan_all( $include_posts, $block );
+		$summary       = TWTAEO_Service_Detector::get_summary( $include_posts, $results );
 
 		$tab_url     = add_query_arg( 'tab', 'service', $base_url );
+		$pager_url   = $include_posts ? add_query_arg( 'include_posts', '1', $tab_url ) : $tab_url;
 		$toggle_url  = $include_posts ? $tab_url : add_query_arg( 'include_posts', '1', $tab_url );
 		$toggle_text = $include_posts
 			? __( 'Showing Pages + Posts — Show Pages Only', 'twt-aeo-ultimate' )
@@ -349,18 +442,38 @@ class TWTAEO_Page_Schema_Detector {
 		</section>
 
 		<section class="twt-aeo-section">
-			<h2 class="twt-aeo-section__title">
-				<?php echo $include_posts
-					? esc_html__( 'Pages & Posts with Service Content', 'twt-aeo-ultimate' )
-					: esc_html__( 'Pages with Service Content', 'twt-aeo-ultimate' );
-				?>
-			</h2>
+			<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+				<h2 class="twt-aeo-section__title" style="margin:0;">
+					<?php echo $include_posts
+						? esc_html__( 'Pages & Posts with Service Content', 'twt-aeo-ultimate' )
+						: esc_html__( 'Pages with Service Content', 'twt-aeo-ultimate' );
+					?>
+				</h2>
+				<?php if ( $summary['needs_schema'] > 0 ) : ?>
+				<button type="button" id="twt-aeo-service-gen-all" class="button button-primary">
+					<?php
+					printf(
+						// translators: %d: number of pages missing Service schema.
+						esc_html__( 'Generate All (%d missing)', 'twt-aeo-ultimate' ),
+						absint( $summary['needs_schema'] )
+					);
+					?>
+				</button>
+				<span id="twt-aeo-service-gen-all-status" style="font-size:13px;"></span>
+				<?php endif; ?>
+			</div>
+			<?php if ( $summary['needs_schema'] > 0 ) : ?>
+			<p style="margin:0 0 12px;font-size:13px;color:#646970;max-width:820px;">
+				<?php esc_html_e( 'Generate All auto-fills each page\'s Service schema from its own title and content plus your business info — free and instant, no AI calls, nothing is billed. You can open any page\'s "Edit Schema" afterwards to refine the wording.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<?php endif; ?>
 
 			<?php if ( empty( $results ) ) : ?>
 				<div class="twt-aeo-card">
 					<p class="twt-aeo-empty"><?php esc_html_e( 'No pages with service content were detected. Pages with service-related slugs, keywords, or intent classification will appear here.', 'twt-aeo-ultimate' ); ?></p>
 				</div>
 			<?php else : ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_Service_Detector::SCAN_BLOCK, $pager_url ); ?>
 			<div class="twt-aeo-page-table-wrap">
 				<table class="twt-aeo-page-table">
 					<thead>
@@ -424,7 +537,8 @@ class TWTAEO_Page_Schema_Detector {
 								·
 								<button type="button" class="button button-small twt-aeo-generate-schema"
 									data-post-id="<?php echo esc_attr( $post->ID ); ?>"
-									data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>">
+									data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>"
+									data-needs-schema="<?php echo $service['needs_schema'] ? '1' : '0'; ?>">
 									<?php echo $has_written ? esc_html__( 'Edit Schema', 'twt-aeo-ultimate' ) : esc_html__( 'Generate Schema', 'twt-aeo-ultimate' ); ?>
 								</button>
 								<?php if ( $has_written ) : ?>
@@ -441,6 +555,7 @@ class TWTAEO_Page_Schema_Detector {
 				</table>
 			</div>
 			<?php endif; ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_Service_Detector::SCAN_BLOCK, $pager_url ); ?>
 		</section>
 
 		<!-- Service Schema Modal -->
@@ -485,6 +600,59 @@ class TWTAEO_Page_Schema_Detector {
 		?>
 		jQuery(document).ready(function($) {
 			var nonce = '<?php echo esc_js( wp_create_nonce( 'twtaeo_service_schema_nonce' ) ); ?>';
+
+			// Bulk: one-click Service schema for every page still missing it.
+			// Reuses the same auto-prefill endpoint the editor metabox uses.
+			$('#twt-aeo-service-gen-all').on('click', function(){
+				var btn    = $(this);
+				var status = $('#twt-aeo-service-gen-all-status');
+
+				var ids = [];
+				$('.twt-aeo-generate-schema[data-needs-schema="1"]').each(function(){
+					ids.push( $(this).data('post-id') );
+				});
+
+				if ( ! ids.length ) {
+					status.css('color','#16a34a').text('<?php echo esc_js( __( 'Nothing to generate.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				btn.prop('disabled', true);
+				var done = 0, failed = 0, total = ids.length;
+
+				function processNext() {
+					if ( ! ids.length ) {
+						status.css('color','#16a34a').text(
+							'<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?> — ' +
+							done + ' <?php echo esc_js( __( 'saved', 'twt-aeo-ultimate' ) ); ?>' +
+							( failed ? ', ' + failed + ' <?php echo esc_js( __( 'skipped', 'twt-aeo-ultimate' ) ); ?>' : '' ) +
+							' — <?php echo esc_js( __( 'reloading…', 'twt-aeo-ultimate' ) ); ?>'
+						);
+						setTimeout(function(){ location.reload(); }, 1200);
+						return;
+					}
+
+					var postId = ids.shift();
+					status.css('color','').text(
+						'<?php echo esc_js( __( 'Processing', 'twt-aeo-ultimate' ) ); ?> ' +
+						( total - ids.length ) + ' / ' + total + '…'
+					);
+
+					$.post(ajaxurl, {
+						action:  'twtaeo_service_generate_one',
+						nonce:   nonce,
+						post_id: postId
+					}, function(r){
+						if ( r.success ) { done++; } else { failed++; }
+						processNext();
+					}).fail(function(){
+						failed++;
+						processNext();
+					});
+				}
+
+				processNext();
+			});
 
 			$('#twt-aeo-schema-modal').dialog({
 				autoOpen:  false,
@@ -569,8 +737,14 @@ class TWTAEO_Page_Schema_Detector {
 	// ── Contact tab ──────────────────────────────────────────────────────────
 
 	private static function render_contact() {
-		$results = TWTAEO_Contact_Detector::scan_all();
-		$summary = TWTAEO_Contact_Detector::get_summary();
+		$total_items = TWTAEO_Contact_Detector::total_items();
+		$block       = TWTAEO_Scan_Pager::current_block( $total_items, TWTAEO_Contact_Detector::SCAN_BLOCK );
+		$results     = TWTAEO_Contact_Detector::scan_all( $block );
+		$summary     = TWTAEO_Contact_Detector::get_summary( $results );
+		$pager_url   = add_query_arg(
+			array( 'page' => 'twt-aeo-schema-detector', 'tab' => 'contact' ),
+			admin_url( 'admin.php' )
+		);
 
 		// Business profile defaults for the top panel (shared with Local Pack).
 		$lp = class_exists( 'TWTAEO_Local_Pack' ) ? TWTAEO_Local_Pack::get_settings() : array();
@@ -613,6 +787,23 @@ class TWTAEO_Page_Schema_Detector {
 				<p class="twt-aeo-card__note">
 					<?php esc_html_e( 'Fill this in once. Use "Create from this info" on any contact page below to add complete Organization, PostalAddress, and ContactPoint schema instantly — no editor needed. Saving also updates your central Local Pack business profile.', 'twt-aeo-ultimate' ); ?>
 				</p>
+				<?php if ( $summary['needs_work'] > 0 ) : ?>
+				<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;">
+					<button type="button" id="twt-aeo-contact-create-all" class="button button-primary">
+						<?php
+						printf(
+							// translators: %d: number of contact pages needing schema work.
+							esc_html__( 'Create for All (%d need attention)', 'twt-aeo-ultimate' ),
+							absint( $summary['needs_work'] )
+						);
+						?>
+					</button>
+					<span id="twt-aeo-contact-create-all-status" style="font-size:13px;"></span>
+				</div>
+				<p style="margin:8px 0 0;font-size:13px;color:#646970;max-width:820px;">
+					<?php esc_html_e( 'Applies the business info above to every contact page that still needs attention — free and instant, no AI calls, nothing is billed.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<?php endif; ?>
 				<table class="form-table" style="margin-top:8px;">
 					<tbody>
 						<tr>
@@ -677,6 +868,7 @@ class TWTAEO_Page_Schema_Detector {
 					<p class="twt-aeo-empty"><?php esc_html_e( 'No contact pages detected. Pages with "contact" in the slug, title, or content will appear here.', 'twt-aeo-ultimate' ); ?></p>
 				</div>
 			<?php else : ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_Contact_Detector::SCAN_BLOCK, $pager_url ); ?>
 			<div class="twt-aeo-page-table-wrap">
 				<table class="twt-aeo-page-table">
 					<thead>
@@ -749,6 +941,7 @@ class TWTAEO_Page_Schema_Detector {
 								<br />
 								<button type="button" class="button button-small button-primary twt-aeo-contact-create"
 									data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+									data-needs-work="<?php echo empty( $contact['missing'] ) ? '0' : '1'; ?>"
 									style="margin-top:4px;">
 									<?php echo $has_written ? esc_html__( 'Recreate from info', 'twt-aeo-ultimate' ) : esc_html__( 'Create from this info', 'twt-aeo-ultimate' ); ?>
 								</button>
@@ -773,6 +966,7 @@ class TWTAEO_Page_Schema_Detector {
 				</table>
 			</div>
 			<?php endif; ?>
+			<?php TWTAEO_Scan_Pager::render( $block, $total_items, TWTAEO_Contact_Detector::SCAN_BLOCK, $pager_url ); ?>
 		</section>
 
 		<?php if ( $summary['needs_work'] > 0 ) : ?>
@@ -875,6 +1069,66 @@ class TWTAEO_Page_Schema_Detector {
 				$('.twt-aeo-contact-row-msg[data-post-id="' + postId + '"]')
 					.css('color', ok ? '#16a34a' : '#dc2626').text(msg);
 			}
+
+			// Bulk: apply the top-panel business info to every contact page
+			// that still needs attention, one save at a time, reload at the end.
+			$('#twt-aeo-contact-create-all').on('click', function() {
+				var btn    = $(this);
+				var status = $('#twt-aeo-contact-create-all-status');
+				var data   = panelData();
+
+				if ( ! data.name ) {
+					status.css('color','#dc2626').text('<?php echo esc_js( __( 'Business Name is required (top panel).', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				var ids = [];
+				$('.twt-aeo-contact-create[data-needs-work="1"]').each(function(){
+					ids.push( $(this).data('post-id') );
+				});
+
+				if ( ! ids.length ) {
+					status.css('color','#16a34a').text('<?php echo esc_js( __( 'Nothing to create.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				btn.prop('disabled', true);
+				var done = 0, failed = 0, total = ids.length;
+
+				function processNext() {
+					if ( ! ids.length ) {
+						status.css('color','#16a34a').text(
+							'<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?> — ' +
+							done + ' <?php echo esc_js( __( 'saved', 'twt-aeo-ultimate' ) ); ?>' +
+							( failed ? ', ' + failed + ' <?php echo esc_js( __( 'failed', 'twt-aeo-ultimate' ) ); ?>' : '' ) +
+							' — <?php echo esc_js( __( 'reloading…', 'twt-aeo-ultimate' ) ); ?>'
+						);
+						setTimeout(function(){ location.reload(); }, 1200);
+						return;
+					}
+
+					var postId  = ids.shift();
+					status.css('color','').text(
+						'<?php echo esc_js( __( 'Processing', 'twt-aeo-ultimate' ) ); ?> ' +
+						( total - ids.length ) + ' / ' + total + '…'
+					);
+
+					var payload     = panelData();
+					payload.action  = 'twtaeo_save_contact_schema';
+					payload.nonce   = nonce;
+					payload.post_id = postId;
+
+					$.post(ajaxurl, payload, function(r) {
+						if ( r.success ) { done++; } else { failed++; }
+						processNext();
+					}).fail(function() {
+						failed++;
+						processNext();
+					});
+				}
+
+				processNext();
+			});
 
 			// "Create from this info" — save straight from the top panel, no modal.
 			$(document).on('click', '.twt-aeo-contact-create', function() {

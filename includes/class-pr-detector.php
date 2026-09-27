@@ -159,11 +159,10 @@ class TWTAEO_PR_Detector {
 			);
 		}
 
-		// Signal 3 — Claude intent (only if API key is available).
-		$api_key = TWTAEO_Key_Resolver::get( 'claude' );
-
-		if ( $api_key ) {
-			$claude_result = self::analyze_with_claude( $post, $api_key );
+		// Signal 3 — Claude intent. Reachable with a key, or on WordPress 7.0+
+		// through the platform AI Client without one.
+		if ( '' !== TWTAEO_Key_Resolver::get( 'claude' ) || TWTAEO_Key_Resolver::ai_client_available() ) {
+			$claude_result = self::analyze_with_claude( $post );
 			if ( $claude_result ) {
 				return array(
 					'detected'   => true,
@@ -236,38 +235,28 @@ class TWTAEO_PR_Detector {
 		return false;
 	}
 
-	private static function analyze_with_claude( WP_Post $post, $api_key ) {
+	private static function analyze_with_claude( WP_Post $post ) {
 		$excerpt = wp_trim_words( wp_strip_all_tags( $post->post_content ), 120 );
 		$prompt  = 'Analyze this post title and excerpt. Reply with only "YES" if it reads like a press release announcing a major event (product launch, partnership, acquisition, executive hire, funding round, award, or official statement). Reply "NO" otherwise.'
 			. "\n\nTitle: " . $post->post_title
 			. "\n\nExcerpt: " . $excerpt;
 
-		$response = wp_remote_post(
-			'https://api.anthropic.com/v1/messages',
+		// 15 seconds, not the client default of 60: this is a five-token yes/no
+		// running inside a detection pass, and it must not hang the request.
+		$text = TWTAEO_AI_Client::complete(
+			'claude',
+			$prompt,
 			array(
-				'timeout' => 15,
-				'headers' => array(
-					'x-api-key'         => $api_key,
-					'anthropic-version' => '2023-06-01',
-					'content-type'      => 'application/json',
-				),
-				'body'    => wp_json_encode( array(
-					'model'      => 'claude-haiku-4-5-20251001',
-					'max_tokens' => 5,
-					'messages'   => array(
-						array( 'role' => 'user', 'content' => $prompt ),
-					),
-				) ),
+				'model'      => 'claude-haiku-4-5-20251001',
+				'max_tokens' => 5,
+				'timeout'    => 15,
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
+		if ( is_wp_error( $text ) ) {
 			return false;
 		}
 
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		$text = strtoupper( trim( $body['content'][0]['text'] ?? '' ) );
-
-		return strpos( $text, 'YES' ) !== false;
+		return false !== strpos( strtoupper( trim( (string) $text ) ), 'YES' );
 	}
 }

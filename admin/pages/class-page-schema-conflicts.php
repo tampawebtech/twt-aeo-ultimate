@@ -86,8 +86,134 @@ class TWTAEO_Page_Schema_Conflicts {
 				</p>
 			</div>
 
+			<?php self::render_output_control(); ?>
+
 			<?php self::render_tab_content(); ?>
 
+		</div>
+		<?php
+	}
+
+	// ── What this plugin writes ──────────────────────────────────────────────
+
+	const NONCE_OUTPUT = 'twtaeo_output_control';
+
+	/**
+	 * Save the merchant's output switches.
+	 *
+	 * Unchecked checkboxes are not submitted, so the form posts an explicit list of
+	 * every key it rendered (`known[]`) and anything absent from `on[]` is off.
+	 * Reading only the ticked boxes would silently switch off any key this form did
+	 * not happen to render — a delegated one, or a new one added later.
+	 */
+	public static function handle_output_control_post() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do this.', 'twt-aeo-ultimate' ) );
+		}
+		check_admin_referer( self::NONCE_OUTPUT );
+
+		$known = isset( $_POST['known'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['known'] ) ) : array();
+		$on    = isset( $_POST['on'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['on'] ) ) : array();
+
+		foreach ( $known as $key ) {
+			TWTAEO_Output_Control::set( $key, in_array( $key, $on, true ) );
+		}
+
+		wp_safe_redirect( add_query_arg( 'twtaeo_saved', '1', wp_get_referer() ? wp_get_referer() : admin_url() ) );
+		exit;
+	}
+
+	/**
+	 * The panel listing everything this plugin writes, who else writes it, and a
+	 * switch for each.
+	 */
+	public static function render_output_control() {
+		$outputs = TWTAEO_Output_Control::outputs();
+
+		if ( isset( $_GET['twtaeo_saved'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only notice flag.
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html__( 'Saved.', 'twt-aeo-ultimate' ) . '</p></div>';
+		}
+		?>
+		<div class="twt-aeo-card" style="margin-bottom:20px;padding:18px;background:#fff;border:1px solid #e2e4e7;border-radius:6px;">
+			<h2 style="font-size:16px;font-weight:700;margin:0 0 6px;">
+				<?php esc_html_e( 'What this plugin writes', 'twt-aeo-ultimate' ); ?>
+			</h2>
+			<p style="margin:0 0 4px;color:#50575e;">
+				<?php esc_html_e( 'Everything below is switched on by default. If another plugin already writes one of these, you can switch this plugin’s version off here — nothing is turned off for you.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<p style="margin:0 0 14px;color:#787c82;font-size:12px;">
+				<?php esc_html_e( 'Detected from each plugin’s own settings and the schema types it says it writes, not by reading your rendered pages — so a plugin listed here may only write it on some page types.', 'twt-aeo-ultimate' ); ?>
+			</p>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="twtaeo_output_control">
+				<?php wp_nonce_field( self::NONCE_OUTPUT ); ?>
+				<table class="widefat striped" style="border:0;">
+					<thead>
+						<tr>
+							<th style="width:34px;"></th>
+							<th><?php esc_html_e( 'Output', 'twt-aeo-ultimate' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'twt-aeo-ultimate' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php foreach ( $outputs as $key => $spec ) : ?>
+						<?php
+						$status     = TWTAEO_Output_Control::status( $key );
+						$delegated  = TWTAEO_Output_Control::is_delegated( $key );
+						$handed     = 'handed_over' === $status['state'];
+						// A delegated switch lives on its own screen and a handed-over
+						// one is decided in the other plugin. Rendering an editable box
+						// for either would be a second control that cannot win — the
+						// two-flags-that-disagree failure. Show it, disabled, and say why.
+						$disabled   = $delegated || $handed;
+						$colour     = 'conflict' === $status['state'] ? '#b32d2e'
+							: ( 'off' === $status['state'] || $handed ? '#787c82' : '#2271b1' );
+						?>
+						<tr>
+							<td style="vertical-align:top;padding-top:12px;">
+								<?php if ( ! $disabled ) : ?>
+									<input type="hidden" name="known[]" value="<?php echo esc_attr( $key ); ?>">
+								<?php endif; ?>
+								<input type="checkbox"
+									id="twtaeo-oc-<?php echo esc_attr( $key ); ?>"
+									name="on[]"
+									value="<?php echo esc_attr( $key ); ?>"
+									<?php checked( TWTAEO_Output_Control::enabled( $key ) ); ?>
+									<?php disabled( $disabled ); ?>>
+							</td>
+							<td style="vertical-align:top;">
+								<label for="twtaeo-oc-<?php echo esc_attr( $key ); ?>" style="font-weight:600;">
+									<?php echo esc_html( $spec['label'] ); ?>
+								</label>
+								<p style="margin:2px 0 0;color:#50575e;"><?php echo esc_html( $spec['what'] ); ?></p>
+								<?php if ( ! empty( $spec['gated'] ) ) : ?>
+									<p style="margin:4px 0 0;color:#787c82;font-size:12px;"><?php echo esc_html( $spec['gated'] ); ?></p>
+								<?php endif; ?>
+							</td>
+							<td style="vertical-align:top;color:<?php echo esc_attr( $colour ); ?>;">
+								<?php echo esc_html( $status['summary'] ); ?>
+								<?php if ( $delegated ) : ?>
+									<p style="margin:4px 0 0;color:#787c82;font-size:12px;">
+										<?php
+										printf(
+											/* translators: %s: settings screen name. */
+											esc_html__( 'This one is switched on the %s screen, so it is shown here but changed there.', 'twt-aeo-ultimate' ),
+											'<a href="' . esc_url( admin_url( 'admin.php?page=twt-aeo-ai-ready' ) ) . '">' . esc_html__( 'AI Ready', 'twt-aeo-ultimate' ) . '</a>'
+										);
+										?>
+									</p>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+				<p style="margin:14px 0 0;">
+					<button type="submit" class="button button-primary"><?php esc_html_e( 'Save', 'twt-aeo-ultimate' ); ?></button>
+				</p>
+			</form>
 		</div>
 		<?php
 	}

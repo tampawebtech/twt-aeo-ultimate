@@ -106,10 +106,12 @@
 			+ '<thead><tr><th>Engine</th><th style="width:80px;">Status</th><th>Message</th></tr></thead><tbody>';
 
 		rows.forEach( function ( row ) {
-			var ok = row.status >= 200 && row.status < 300;
+			var ok      = row.status >= 200 && row.status < 300;
+			// Engine "none": deliberately not sent (local/staging site), not a failure.
+			var skipped = 'none' === row.engine;
 			html += '<tr>'
-				+ '<td>' + escHtml( row.engine ) + '</td>'
-				+ '<td style="color:' + ( ok ? '#00a32a' : '#d63638' ) + ';font-weight:600;">' + ( row.status || 'ERR' ) + '</td>'
+				+ '<td>' + escHtml( skipped ? '—' : row.engine ) + '</td>'
+				+ '<td style="color:' + ( skipped ? '#646970' : ( ok ? '#00a32a' : '#d63638' ) ) + ';font-weight:600;">' + ( skipped ? escHtml( __( 'Skipped', 'twt-aeo-ultimate' ) ) : ( row.status || 'ERR' ) ) + '</td>'
 				+ '<td>' + escHtml( row.message ) + '</td>'
 				+ '</tr>';
 		} );

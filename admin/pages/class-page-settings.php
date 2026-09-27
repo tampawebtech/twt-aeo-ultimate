@@ -26,7 +26,7 @@ class TWTAEO_Page_Settings {
 		$settings = get_option( 'twtaeo_settings', array() );
 
 		// Decrypt secret fields for display (stored encrypted at rest).
-		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
+		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_xai', 'api_mistral', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
 			if ( ! empty( $settings[ $secret_field ] ) ) {
 				$settings[ $secret_field ] = TWTAEO_Crypt::decrypt( (string) $settings[ $secret_field ] );
 			}
@@ -135,6 +135,22 @@ class TWTAEO_Page_Settings {
 								<?php $render_key_field( 'perplexity', 'twtaeo_settings[api_perplexity]', $settings['api_perplexity'] ?? '', 'pplx-…', __( 'Brand & gap research', 'twt-aeo-ultimate' ) ); ?>
 							</div>
 
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#000;"></span>
+									<?php esc_html_e( 'Grok (xAI)', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'xai', 'twtaeo_settings[api_xai]', $settings['api_xai'] ?? '', 'xai-…', __( 'AI Visibility checks', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#ff7000;"></span>
+									<?php esc_html_e( 'Mistral (Le Chat)', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'mistral', 'twtaeo_settings[api_mistral]', $settings['api_mistral'] ?? '', '…', __( 'AI Visibility checks', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
 						</div>
 					</div>
 				</section>
@@ -181,6 +197,53 @@ class TWTAEO_Page_Settings {
 									<p class="description"><?php esc_html_e( 'Used for web-grounded lookups such as brand sameAs authority links.', 'twt-aeo-ultimate' ); ?></p>
 								</td>
 							</tr>
+						</table>
+					</div>
+				</section>
+
+				<section class="twt-aeo-section">
+					<h2 class="twt-aeo-section__title"><?php esc_html_e( 'AI Models', 'twt-aeo-ultimate' ); ?></h2>
+					<div class="twt-aeo-card">
+						<p class="twt-aeo-card__note">
+							<?php esc_html_e( 'Which model each provider uses for meta descriptions, enrichment and extraction. Stronger models write better but cost more per request. AI Visibility checks are not affected — they always use each app\'s own default model, so results match what your customers see.', 'twt-aeo-ultimate' ); ?>
+						</p>
+						<table class="form-table" style="margin-top:4px;">
+							<?php
+							$provider_labels = array(
+								'claude' => __( 'Claude (Anthropic)', 'twt-aeo-ultimate' ),
+								'openai' => __( 'OpenAI (ChatGPT)', 'twt-aeo-ultimate' ),
+								'gemini' => __( 'Gemini (Google)', 'twt-aeo-ultimate' ),
+							);
+							foreach ( TWTAEO_AI_Models::choices() as $provider => $models ) :
+								$current = TWTAEO_AI_Models::get( $provider );
+								$listed  = isset( $models[ $current ] );
+								$field   = 'twtaeo_ai_model_' . $provider;
+								?>
+								<tr>
+									<th style="width:220px;">
+										<label for="<?php echo esc_attr( $field ); ?>"><?php echo esc_html( $provider_labels[ $provider ] ); ?></label>
+									</th>
+									<td>
+										<select id="<?php echo esc_attr( $field ); ?>" name="twtaeo_settings[ai_model_<?php echo esc_attr( $provider ); ?>]">
+											<?php foreach ( $models as $id => $label ) : ?>
+												<option value="<?php echo esc_attr( $id ); ?>" <?php selected( $current, $id ); ?>><?php echo esc_html( $label ); ?></option>
+											<?php endforeach; ?>
+											<?php if ( ! $listed ) : ?>
+												<option value="<?php echo esc_attr( $current ); ?>" selected>
+													<?php
+													/* translators: %s: model ID. */
+													echo esc_html( sprintf( __( '%s (your current model)', 'twt-aeo-ultimate' ), $current ) );
+													?>
+												</option>
+											<?php endif; ?>
+										</select>
+										<p class="description">
+											<label for="<?php echo esc_attr( $field ); ?>_custom"><?php esc_html_e( 'Or enter any model ID (for models released after this plugin version):', 'twt-aeo-ultimate' ); ?></label><br />
+											<input type="text" id="<?php echo esc_attr( $field ); ?>_custom" name="twtaeo_settings[ai_model_<?php echo esc_attr( $provider ); ?>_custom]" value="" class="regular-text" autocomplete="off" spellcheck="false" placeholder="<?php echo esc_attr( TWTAEO_AI_Models::DEFAULTS[ $provider ] ); ?>" />
+										</p>
+									</td>
+								</tr>
+							<?php endforeach; ?>
 						</table>
 					</div>
 				</section>
@@ -379,6 +442,8 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 			'openai'        => 'api_openai',
 			'gemini'        => 'api_gemini',
 			'perplexity'    => 'api_perplexity',
+			'xai'           => 'api_xai',
+			'mistral'       => 'api_mistral',
 			'ein_presswire' => 'api_ein_presswire',
 			'easypwire'     => 'api_easypwire',
 		);
@@ -397,6 +462,20 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 		$existing['ai_enrich_provider'] = in_array( $enrich, array( 'claude', 'openai', 'gemini' ), true ) ? $enrich : '';
 		$retrieval = $posted['ai_retrieval_provider'] ?? 'gemini';
 		$existing['ai_retrieval_provider'] = in_array( $retrieval, array( 'gemini', 'perplexity' ), true ) ? $retrieval : 'gemini';
+
+		// Model per provider. A typed ID wins over the dropdown; an empty or
+		// malformed value falls back to the default rather than breaking calls.
+		foreach ( TWTAEO_AI_Models::PROVIDERS as $provider ) {
+			$field  = TWTAEO_AI_Models::SETTING_PREFIX . $provider;
+			$custom = TWTAEO_AI_Models::sanitize_id( $posted[ $field . '_custom' ] ?? '' );
+			$picked = TWTAEO_AI_Models::sanitize_id( $posted[ $field ] ?? '' );
+			if ( '' !== $custom || '' !== $picked ) {
+				$existing[ $field ] = '' !== $custom ? $custom : $picked;
+			}
+		}
+		// Anyone who has saved this form has chosen; the legacy pin must never
+		// run over their choice.
+		$existing[ TWTAEO_AI_Models::SETTING_PINNED ] = 1;
 
 		// Telemetry opt-in
 		$existing['token_telemetry'] = ! empty( $posted['token_telemetry'] ) ? 1 : 0;

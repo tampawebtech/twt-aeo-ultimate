@@ -304,9 +304,15 @@ class TWTAEO_Page_Index_Now {
 							<?php
 							$status      = (int) $entry['status'];
 							$ok          = ( $status >= 200 && $status < 300 );
-							$status_html = $ok
-								? '<span style="color:#00a32a;font-weight:600;">' . esc_html( $status ) . '</span>'
-								: '<span style="color:#d63638;font-weight:600;">' . ( $status ?: 'ERR' ) . '</span>';
+							$skipped     = 'none' === ( $entry['engine'] ?? '' );
+							if ( $skipped ) {
+								// Deliberately not sent (local/staging site) — not a failure.
+								$status_html = '<span style="color:#646970;font-weight:600;" title="' . esc_attr( $entry['message'] ?? '' ) . '">' . esc_html__( 'Skipped', 'twt-aeo-ultimate' ) . '</span>';
+							} else {
+								$status_html = $ok
+									? '<span style="color:#00a32a;font-weight:600;">' . esc_html( $status ) . '</span>'
+									: '<span style="color:#d63638;font-weight:600;">' . ( $status ?: 'ERR' ) . '</span>';
+							}
 							$url_count   = count( (array) $entry['urls'] );
 							$url_preview = implode( ', ', array_slice( (array) $entry['urls'], 0, 2 ) );
 							if ( $url_count > 2 ) {
@@ -315,7 +321,7 @@ class TWTAEO_Page_Index_Now {
 							?>
 							<tr>
 								<td><?php echo esc_html( wp_date( 'M j, g:i a', $entry['timestamp'] ) ); ?></td>
-								<td><?php echo esc_html( $entry['engine'] ); ?></td>
+								<td><?php echo esc_html( $skipped ? '—' : $entry['engine'] ); ?></td>
 								<td><?php echo $status_html; // phpcs:ignore ?></td>
 								<td title="<?php echo esc_attr( implode( "\n", (array) $entry['urls'] ) ); ?>" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;">
 									<?php echo esc_html( $url_preview ); ?>

@@ -67,23 +67,36 @@ class TWTAEO_Background_Scan {
 	// ── Start ────────────────────────────────────────────────────────────────
 
 	/**
-	 * Queue every scannable post beyond the dashboard's foreground cap.
+	 * Queue scannable posts for background scanning.
 	 * No-op (returns the in-flight state) when a scan is already running.
 	 *
+	 * The default offset skips the head of the list because the Dashboard scans
+	 * those in the foreground while the page is open, and queueing them twice
+	 * would scan them twice.
+	 *
+	 * A caller with NO foreground loop — the Agency Connector driving a scan
+	 * remotely, where there is no browser on this site at all — must pass 0.
+	 * Leaving the default would silently skip the newest FOREGROUND_CAP posts,
+	 * which are usually the ones that matter most, and the site would look
+	 * scanned while its best pages were not.
+	 *
+	 * @param int|null $offset Posts to skip. Null uses the foreground cap.
 	 * @return array Current state.
 	 */
-	public static function start() {
+	public static function start( $offset = null ) {
 		$state = self::get_state();
 		if ( self::is_running( $state ) ) {
 			return $state;
 		}
 
-		// Same query/order as the dashboard's embedded list, minus its head.
+		$offset = ( null === $offset ) ? self::FOREGROUND_CAP : max( 0, (int) $offset );
+
+		// Same query/order as the dashboard's embedded list.
 		$ids = get_posts( array(
 			'post_type'      => TWTAEO_Scan_Store::get_scannable_post_types(),
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
-			'offset'         => self::FOREGROUND_CAP,
+			'offset'         => $offset,
 			'fields'         => 'ids',
 		) );
 

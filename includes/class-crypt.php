@@ -26,6 +26,7 @@
  * @package TWTAEO_Connector
  */
 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -62,6 +63,30 @@ class TWTAEO_Crypt {
 	 * @param string $plaintext
 	 * @return string Prefixed, base64 ciphertext — or '' on empty/failure.
 	 */
+	/**
+	 * Best-effort wipe of key material.
+	 *
+	 * WordPress bundles the pure-PHP sodium_compat polyfill, so sodium_memzero()
+	 * *exists* on hosts with no ext-sodium — but the polyfill throws, because PHP
+	 * cannot truly wipe memory. function_exists() is therefore not a safe guard
+	 * on its own: it was letting a throw escape and fatal the request on every
+	 * secret read and write. Require the real extension, still catch, and fall
+	 * back to overwriting the variable.
+	 *
+	 * @param string $key Key material, cleared by reference.
+	 */
+	private static function memzero( &$key ) {
+		if ( extension_loaded( 'sodium' ) && function_exists( 'sodium_memzero' ) ) {
+			try {
+				sodium_memzero( $key );
+				return;
+			} catch ( \Throwable $e ) {
+				$key = '';
+			}
+		}
+		$key = '';
+	}
+
 	public static function encrypt( $plaintext ) {
 		$plaintext = (string) $plaintext;
 		if ( '' === $plaintext ) {
@@ -73,9 +98,7 @@ class TWTAEO_Crypt {
 		if ( function_exists( 'sodium_crypto_secretbox' ) ) {
 			$nonce  = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 			$cipher = sodium_crypto_secretbox( $plaintext, $nonce, $key );
-			if ( function_exists( 'sodium_memzero' ) ) {
-				sodium_memzero( $key );
-			}
+			self::memzero( $key );
 			return self::PREFIX_SODIUM . base64_encode( $nonce . $cipher ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Base64 transport encoding for binary ciphertext, not obfuscation.
 		}
 
@@ -123,9 +146,7 @@ class TWTAEO_Crypt {
 			$nonce  = substr( $raw, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 			$cipher = substr( $raw, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
 			$plain  = sodium_crypto_secretbox_open( $cipher, $nonce, $key );
-			if ( function_exists( 'sodium_memzero' ) ) {
-				sodium_memzero( $key );
-			}
+			self::memzero( $key );
 			return false === $plain ? '' : $plain;
 		}
 

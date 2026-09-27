@@ -177,15 +177,55 @@ class TWTAEO_FAQ_Detector {
 	}
 
 	/**
-	 * Scan all published pages/posts and return those with FAQ gaps.
+	 * How many posts one scan block covers; the screen pages through blocks
+	 * instead of stopping at the first one.
+	 */
+	const SCAN_BLOCK = 200;
+
+	/**
+	 * The post types this detector covers. Products carry FAQ content too —
+	 * sizing questions, care instructions — and a product FAQ an answer engine
+	 * can quote is a citation a bare spec sheet never earns.
 	 *
+	 * @return string[]
+	 */
+	public static function post_types() {
+		$types = array( 'page', 'post' );
+		if ( class_exists( 'WooCommerce' ) ) {
+			$types[] = 'product';
+		}
+		return $types;
+	}
+
+	/**
+	 * How many published items the scan can see in total, regardless of blocks.
+	 *
+	 * @return int
+	 */
+	public static function total_items() {
+		$total = 0;
+		foreach ( self::post_types() as $type ) {
+			$counts = wp_count_posts( $type );
+			$total += (int) ( $counts->publish ?? 0 );
+		}
+		return $total;
+	}
+
+	/**
+	 * Scan one block of published pages/posts (and products, when WooCommerce
+	 * is active), newest first, and return those with FAQ content.
+	 *
+	 * @param int $block 1-based block number; block N covers items
+	 *                   ((N-1)*SCAN_BLOCK)+1 through N*SCAN_BLOCK.
 	 * @return array[] Each entry: { post, faq_data }
 	 */
-	public static function scan_all() {
+	public static function scan_all( $block = 1 ) {
 		$posts = get_posts( array(
-			'post_type'      => array( 'page', 'post' ),
+			'post_type'      => self::post_types(),
 			'post_status'    => 'publish',
-			'posts_per_page' => 200,
+			'posts_per_page' => self::SCAN_BLOCK,
+			'paged'          => max( 1, (int) $block ),
+			'orderby'        => array( 'date' => 'DESC', 'ID' => 'DESC' ),
 		) );
 
 		$results = array();
@@ -206,10 +246,15 @@ class TWTAEO_FAQ_Detector {
 	/**
 	 * Get a summary count: pages with FAQ content, pages missing FAQPage schema.
 	 *
+	 * @param array[]|null $all A block already returned by scan_all(), so the
+	 *                          caller does not pay for a second scan. Null scans
+	 *                          the first block.
 	 * @return array { total_with_faq, needs_schema, has_schema }
 	 */
-	public static function get_summary() {
-		$all          = self::scan_all();
+	public static function get_summary( $all = null ) {
+		if ( null === $all ) {
+			$all = self::scan_all();
+		}
 		$needs_schema = 0;
 		$has_schema   = 0;
 
@@ -309,6 +354,32 @@ class TWTAEO_FAQ_Detector {
 
 	// ── Private helpers ──────────────────────────────────────────────────────
 
+	/**
+	 * Whether a heading actually reads as a question.
+	 *
+	 * Heading-based detection used to accept any h3/h4 followed by a paragraph,
+	 * which swept feature-card titles, step headings, and section labels into
+	 * FAQPage schema as fake questions ("Suppresses duplicates", "🕸️ Connected
+	 * Product Graph"). A published Q&A set full of non-questions misinforms
+	 * every answer engine that reads it — worse than no FAQ schema at all.
+	 *
+	 * The rule is deliberately strict: the text must end with a question mark
+	 * and be question-length. A section heading that merely starts with "How"
+	 * ("How It Works") is a title, not a question, and stays out.
+	 *
+	 * @param string $text Plain heading text (tags already stripped).
+	 * @return bool
+	 */
+	private static function looks_like_question( $text ) {
+		$text = trim( (string) $text );
+		// 200 bytes ≈ a long single-sentence question; anything bigger is a
+		// swallowed content block, not a question.
+		if ( '' === $text || strlen( $text ) > 200 ) {
+			return false;
+		}
+		return substr( $text, -1 ) === '?';
+	}
+
 	private static function extract_from_rank_math_block( $content ) {
 		preg_match_all( '/<!-- wp:rank-math\/faq-block\s+({[^}]*(?:{[^}]*}[^}]*)*})\s*-->/s', $content, $matches );
 		$pairs = array();
@@ -352,7 +423,7 @@ class TWTAEO_FAQ_Detector {
 		foreach ( $matches as $match ) {
 			$q = trim( wp_strip_all_tags( $match[1] ) );
 			$a = trim( wp_strip_all_tags( $match[2] ) );
-			if ( $q && strlen( $a ) >= 20 ) {
+			if ( self::looks_like_question( $q ) && strlen( $a ) >= 20 ) {
 				$pairs[] = array( 'question' => $q, 'answer' => $a );
 			}
 		}
@@ -367,7 +438,7 @@ class TWTAEO_FAQ_Detector {
 		foreach ( $headings[0] as $i => $heading_match ) {
 			$q = trim( wp_strip_all_tags( $headings[1][ $i ][0] ) );
 			$first_word = strtolower( strtok( $q, ' ' ) );
-			if ( ! in_array( $first_word, $question_words, true ) ) {
+			if ( ! in_array( $first_word, $question_words, true ) || ! self::looks_like_question( $q ) ) {
 				continue;
 			}
 			$after = substr( $content, $heading_match[1] + strlen( $heading_match[0] ) );
@@ -407,10 +478,18 @@ class TWTAEO_FAQ_Detector {
 	 * @return int
 	 */
 	private static function count_heading_qa_pairs( $content ) {
-		// Find h3 or h4 followed by a p tag within reasonable proximity.
-		$pattern = '/<h[34][^>]*>[^<]+<\/h[34]>\s*(?:<[^>]+>\s*)*<p[^>]*>[^<]{20,}<\/p>/i';
+		// Find h3 or h4 followed by a p tag within reasonable proximity — but
+		// only count headings that actually read as questions, matching what
+		// extract_heading_qa_pairs() would publish.
+		$pattern = '/<h[34][^>]*>([^<]+)<\/h[34]>\s*(?:<[^>]+>\s*)*<p[^>]*>[^<]{20,}<\/p>/i';
 		preg_match_all( $pattern, $content, $matches );
-		return count( $matches[0] );
+		$count = 0;
+		foreach ( $matches[1] as $heading ) {
+			if ( self::looks_like_question( trim( wp_strip_all_tags( $heading ) ) ) ) {
+				$count++;
+			}
+		}
+		return $count;
 	}
 
 	/**
@@ -432,7 +511,7 @@ class TWTAEO_FAQ_Detector {
 		foreach ( $matches[1] as $heading ) {
 			$text  = strtolower( trim( wp_strip_all_tags( $heading ) ) );
 			$first = strtok( $text, ' ' );
-			if ( in_array( $first, $question_words, true ) ) {
+			if ( in_array( $first, $question_words, true ) && self::looks_like_question( $text ) ) {
 				$count++;
 			}
 		}
@@ -496,6 +575,21 @@ class TWTAEO_FAQ_Detector {
 			}
 		}
 
+		// Strategy 1c: the Product FAQ writer. On product pages every FAQ source
+		// is assembled into one FAQPage node at #product-faq — but only when a
+		// commerce writer is actually publishing (our woocommerce-detector module,
+		// or AEO Ultimate for WooCommerce claiming the surface). With no writer
+		// active the pairs exist but no schema reaches the page, and reporting
+		// "present" then would hide a real gap.
+		if ( 'product' === $post->post_type && class_exists( 'TWTAEO_Product_FAQ' ) ) {
+			$modules = isset( $GLOBALS['twtaeo_plugin'] ) ? $GLOBALS['twtaeo_plugin']->get_modules() : null;
+			$emits   = ( $modules && $modules->is_active( 'woocommerce-detector' ) )
+				|| function_exists( 'aeowc_claims_surface' );
+			if ( $emits && ! empty( TWTAEO_Product_FAQ::collect( $post->ID ) ) ) {
+				return true;
+			}
+		}
+
 		// Strategy 2: Check Rank Math schema postmeta.
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
 			$meta = get_post_meta( $post->ID );
@@ -540,7 +634,8 @@ class TWTAEO_FAQ_Detector {
 
 		// Strategy 5: Broad SASWP catch-all.
 		// Covers any other SASWP postmeta keys such as saswp_schema_faq_field.
-		$all_meta = get_post_meta( $post->ID );
+		// (array) guard: get_post_meta() returns false, not [], for an invalid post.
+		$all_meta = (array) get_post_meta( $post->ID );
 		foreach ( $all_meta as $key => $values ) {
 			if ( strpos( $key, 'saswp_' ) === 0 ) {
 				foreach ( $values as $value ) {

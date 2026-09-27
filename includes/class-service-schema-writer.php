@@ -19,6 +19,7 @@
  * @package TWTAEO_Connector
  */
 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,7 +35,14 @@ class TWTAEO_Service_Schema_Writer {
 	 * Register hooks.
 	 */
 	public static function register_hooks() {
+		// See TWTAEO_Output_Control — one question covering both the merchant's
+		// switch and any hand-over to AEO Ultimate for WooCommerce.
+		if ( ! TWTAEO_Output_Control::should_write( 'schema_service' ) ) {
+			return;
+		}
 		add_action( 'wp_head', array( __CLASS__, 'output_schema' ), 20 );
+		// Fold the Service node into the Knowledge Graph when active.
+		add_filter( 'twtaeo_kg_nodes', array( __CLASS__, 'kg_nodes' ), 10, 2 );
 	}
 
 	// ── Public API ────────────────────────────────────────────────────────────
@@ -45,6 +53,10 @@ class TWTAEO_Service_Schema_Writer {
 	 * based on whichever SEO plugin is currently active.
 	 */
 	public static function output_schema() {
+		// The Knowledge Graph module folds this node into its unified @graph.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' ) && TWTAEO_Knowledge_Graph::is_folding() ) {
+			return;
+		}
 		if ( ! is_singular() ) {
 			return;
 		}
@@ -169,6 +181,49 @@ class TWTAEO_Service_Schema_Writer {
 			'provider_source' => $provider['source'],
 			'has_existing'    => ( $existing !== null ),
 		);
+	}
+
+	// ── Knowledge Graph contribution ──────────────────────────────────────────
+
+	/**
+	 * Contribute the Service node to the unified @graph. The fallback Organization
+	 * that build_graph() would add is dropped when the spine already owns one — its
+	 * @id ( home_url()/#organization ) is the same node the provider ref resolves to.
+	 *
+	 * @param array $nodes
+	 * @param array $context
+	 * @return array
+	 */
+	public static function kg_nodes( $nodes, $context ) {
+		$post_id = (int) ( $context['post_id'] ?? 0 );
+		if ( ! $post_id || ! is_singular() ) {
+			return $nodes;
+		}
+
+		$stored = self::get( $post_id );
+		if ( ! $stored ) {
+			return $nodes;
+		}
+
+		$graph = self::build_graph( $post_id, $stored );
+		if ( empty( $graph ) ) {
+			return $nodes;
+		}
+
+		$out = array();
+		foreach ( $graph as $node ) {
+			$type = $node['@type'] ?? '';
+			// The spine already emits the Organization — skip our fallback copy.
+			if ( 'Organization' === $type && ! empty( $context['has_org'] ) ) {
+				continue;
+			}
+			if ( 'Service' === $type && ! empty( $context['webpage_id'] ) && empty( $node['isPartOf'] ) ) {
+				$node['isPartOf'] = array( '@id' => $context['webpage_id'] );
+			}
+			$out[] = $node;
+		}
+
+		return array_merge( $nodes, $out );
 	}
 
 	// ── Private helpers ───────────────────────────────────────────────────────

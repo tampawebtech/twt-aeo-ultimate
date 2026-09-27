@@ -23,14 +23,25 @@ class TWTAEO_Plugin {
 	}
 
 	public function run() {
+		// Role access control — register the capability filter before menus build.
+		TWTAEO_Roles::register_hooks();
+
 		add_action( 'admin_menu', array( $this->admin_menu, 'register_menus' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_to_wizard' ) );
 		add_action( 'admin_init', array( 'TWTAEO_Page_Command_Center', 'maybe_handle_post' ) );
+		// The output switches on the Schema Conflict Detector page. Nonce and
+		// capability are both checked inside the handler.
+		add_action( 'admin_post_twtaeo_output_control', array( 'TWTAEO_Page_Schema_Conflicts', 'handle_output_control_post' ) );
 		add_filter( 'admin_body_class', array( $this, 'wizard_body_class' ) );
 		add_action( 'wp_ajax_twtaeo_wizard_autopilot', array( 'TWTAEO_Page_Setup_Wizard', 'ajax_autopilot' ) );
+		add_action( 'wp_ajax_twtaeo_autopilot_status', array( 'TWTAEO_Page_Setup_Wizard', 'ajax_autopilot_status' ) );
+		// The cron hook must always be bound, or a queued autopilot event fires
+		// into nothing after a reload.
+		TWTAEO_Autopilot::register_hooks();
 		add_action( 'admin_enqueue_scripts', array( 'TWTAEO_Admin_Assets', 'enqueue' ) );
 		add_action( 'init', array( 'TWTAEO_Scan_Store', 'register_hooks' ) );
 		add_action( 'init', array( 'TWTAEO_AI_Crawler_Logger', 'register_hooks' ) );
+		add_action( 'init', array( 'TWTAEO_Review_Notice', 'register_hooks' ) );
 
 		// Invalidate the cached E-E-A-T scan when the active plugin set changes.
 		TWTAEO_EEAT_Detector::register_hooks();
@@ -43,6 +54,10 @@ class TWTAEO_Plugin {
 
 		// Article schema on blog posts (NewsArticle handles posts marked as news).
 		add_action( 'init', array( 'TWTAEO_Article_Schema_Writer', 'register_hooks' ) );
+
+		// Content provenance (digitalSourceType) — editor declaration of how a
+		// post was produced, published on its Article/NewsArticle node.
+		add_action( 'init', array( 'TWTAEO_Content_Provenance', 'register_hooks' ) );
 
 		// AI meta descriptions — editor metabox, auto-on-save, front-end output.
 		add_action( 'init', array( 'TWTAEO_AI_Description', 'register_hooks' ) );
@@ -82,9 +97,58 @@ class TWTAEO_Plugin {
 		if ( $this->modules->is_active( 'contact-detector' ) ) {
 			add_action( 'init', array( 'TWTAEO_Contact_Detector', 'register_hooks' ) );
 		}
+		// ⚠️ AEO Ultimate for WooCommerce handshake — only that plugin defines
+		// aeowc_claims_surface(), during its plugins_loaded bootstrap. When it is
+		// active, the commerce writers ported from it stay unregistered here:
+		// running both would publish every node twice. Detection/scanning still
+		// runs; only front-end emission stands down.
+		$aeowc_active = function_exists( 'aeowc_claims_surface' );
+
 		if ( $this->modules->is_active( 'woocommerce-detector' ) ) {
 			add_action( 'init', array( 'TWTAEO_WooCommerce_Detector', 'register_hooks' ) );
+			// Extension-aware price semantics (Bookings/Subscriptions/Bundles read
+			// "From: $X", not a definite price). Self-guards on WooCommerce.
+			add_action( 'init', array( 'TWTAEO_WC_Extensions', 'register_hooks' ) );
+			if ( ! $aeowc_active ) {
+				// Assembles every FAQ source on a product page into one FAQPage
+				// node. Registered after the sources it collects from.
+				TWTAEO_Product_FAQ_Generator::register_hooks();
+				TWTAEO_Product_FAQ::register_hooks();
+			}
 		}
+
+		// Content Gap Engine documents ride on the Chunk View module: same
+		// chunker, same host governor, same default-off switch.
+		if ( $this->modules->is_active( 'chunk-view' ) ) {
+			TWTAEO_Doc_Library::register_hooks();
+			TWTAEO_Page_Documents::register_hooks();
+			TWTAEO_Page_RAG_Engine::register_hooks();
+		}
+
+		if ( $this->modules->is_active( 'smart-collections' ) && ! $aeowc_active ) {
+			add_action( 'init', array( 'TWTAEO_Collection_Schema_Writer', 'register_hooks' ) );
+		}
+
+		if ( $this->modules->is_active( 'promotions' ) && ! $aeowc_active ) {
+			add_action( 'init', array( 'TWTAEO_Offer_Pricing', 'register_hooks' ) );
+			add_action( 'init', array( 'TWTAEO_Dynamic_Pricing', 'register_hooks' ) );
+			// Weekly re-derivation of dynamic-pricing detection. A discount rule is
+			// not a product, so no product hook fires when one ends — without this,
+			// a cached price outlives the rule that produced it indefinitely.
+			TWTAEO_Pricing_Refresh::init();
+		}
+
+		// Drafts a Smart Collection for a query. Returns a proposal and writes
+		// nothing — creation is a separate, nonced POST the merchant makes after
+		// reading it.
+		add_action( 'wp_ajax_twtaeo_collection_draft', array( 'TWTAEO_Page_Smart_Collections', 'ajax_draft' ) );
+
+		// Bing promotions feed download. On admin_post so the file headers are sent
+		// before any admin HTML; the handler checks the nonce and the capability.
+		add_action( 'admin_post_twtaeo_promotions_bing_feed', array( 'TWTAEO_Page_Promotions', 'download_bing_feed' ) );
+
+		add_action( 'wp_ajax_twtaeo_generate_product_faqs_php', array( $this, 'ajax_generate_product_faqs_php' ) );
+		add_action( 'wp_ajax_twtaeo_generate_product_faqs_ai',  array( $this, 'ajax_generate_product_faqs_ai' ) );
 
 		if ( $this->modules->is_active( 'social-graph' ) ) {
 			add_action( 'init', array( 'TWTAEO_OG_Writer', 'register_hooks' ) );
@@ -115,6 +179,18 @@ class TWTAEO_Plugin {
 			add_action( 'init', array( 'TWTAEO_Rate_Limiter', 'register_hooks' ) );
 		}
 
+		if ( $this->modules->is_active( TWTAEO_Visibility_Types::MODULE_SLUG ) ) {
+			add_action( 'init', array( 'TWTAEO_Visibility', 'register_hooks' ) );
+		}
+
+		if ( $this->modules->is_active( 'smart-404' ) ) {
+			add_action( 'init', array( 'TWTAEO_Smart_404', 'register_hooks' ) );
+		}
+
+		// The unified Knowledge Graph is always on. It decides per-page whether to
+		// fold (when 2+ schema blocks would otherwise appear) or stay out of the way.
+		add_action( 'init', array( 'TWTAEO_Knowledge_Graph', 'register_hooks' ) );
+
 		add_action( 'wp_ajax_twtaeo_save_social_graph',    array( $this, 'ajax_save_social_graph' ) );
 		add_action( 'wp_ajax_twtaeo_save_twitter_site',    array( $this, 'ajax_save_twitter_site' ) );
 		add_action( 'wp_ajax_twtaeo_save_linkedin_company', array( $this, 'ajax_save_linkedin_company' ) );
@@ -130,8 +206,12 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_remove_robots',          array( $this, 'ajax_remove_robots' ) );
 		add_action( 'wp_ajax_twtaeo_toggle_module',         array( $this, 'ajax_toggle_module' ) );
 		add_action( 'wp_ajax_twtaeo_scan_page',             array( $this, 'ajax_scan_page' ) );
+		add_action( 'wp_ajax_twtaeo_get_page_score',        array( $this, 'ajax_get_page_score' ) );
+		add_action( 'wp_ajax_twtaeo_autofill_schemas',      array( $this, 'ajax_autofill_schemas' ) );
+		add_action( 'wp_ajax_twtaeo_ai_schema_summary',     array( $this, 'ajax_ai_schema_summary' ) );
 		add_action( 'wp_ajax_twtaeo_scan_all',              array( $this, 'ajax_scan_all' ) );
 		add_action( 'wp_ajax_twtaeo_bg_scan_start',         array( $this, 'ajax_bg_scan_start' ) );
+		add_action( 'wp_ajax_twtaeo_dashboard_generate_product', array( $this, 'ajax_dashboard_generate_product' ) );
 		add_action( 'wp_ajax_twtaeo_bg_scan_status',        array( $this, 'ajax_bg_scan_status' ) );
 		add_action( 'wp_ajax_twtaeo_data_handshake',        array( $this, 'ajax_data_handshake' ) );
 		add_action( 'wp_ajax_twtaeo_get_service_prefill',   array( $this, 'ajax_get_service_prefill' ) );
@@ -164,12 +244,14 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_wc_ai_vision',             array( $this, 'ajax_wc_ai_vision' ) );
 		add_action( 'wp_ajax_twtaeo_wc_ai_describe',           array( $this, 'ajax_wc_ai_describe' ) );
 		add_action( 'wp_ajax_twtaeo_wc_ai_sameas',             array( $this, 'ajax_wc_ai_sameas' ) );
+		add_action( 'wp_ajax_twtaeo_wc_ai_google_category',    array( $this, 'ajax_wc_ai_google_category' ) );
 		add_action( 'wp_ajax_twtaeo_wc_ai_standardize',        array( $this, 'ajax_wc_ai_standardize' ) );
 		add_action( 'wp_ajax_twtaeo_wc_ai_competitive',        array( $this, 'ajax_wc_ai_competitive' ) );
 		add_action( 'wp_ajax_twtaeo_wc_ai_alt',                array( $this, 'ajax_wc_ai_alt' ) );
 		add_action( 'wp_ajax_twtaeo_img_get_post_images',      array( $this, 'ajax_img_get_post_images' ) );
 		add_action( 'wp_ajax_twtaeo_img_generate_alt',         array( $this, 'ajax_img_generate_alt' ) );
 		add_action( 'wp_ajax_twtaeo_img_save_alt',             array( $this, 'ajax_img_save_alt' ) );
+		add_action( 'wp_ajax_twtaeo_img_set_featured',         array( $this, 'ajax_img_set_featured' ) );
 		add_action( 'wp_ajax_twtaeo_diagnose_server',       array( $this, 'ajax_diagnose_server' ) );
 		add_action( 'wp_ajax_twtaeo_apply_apache_fix',      array( $this, 'ajax_apply_apache_fix' ) );
 		add_action( 'wp_ajax_twtaeo_gsc_inspect',           array( $this, 'ajax_gsc_inspect' ) );
@@ -192,8 +274,10 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_get_sameas',         array( $this, 'ajax_get_sameas' ) );
 		add_action( 'wp_ajax_twtaeo_save_sameas',        array( $this, 'ajax_save_sameas' ) );
 		add_action( 'wp_ajax_twtaeo_kg_search',          array( $this, 'ajax_kg_search' ) );
+		add_action( 'wp_ajax_twtaeo_kg_resolve_sameas',  array( $this, 'ajax_kg_resolve_sameas' ) );
 		add_action( 'wp_ajax_twtaeo_get_author_meta',    array( $this, 'ajax_get_author_meta' ) );
 		add_action( 'wp_ajax_twtaeo_save_author_meta',   array( $this, 'ajax_save_author_meta' ) );
+		add_action( 'wp_ajax_twtaeo_generate_authority', array( 'TWTAEO_Author_Meta', 'ajax_generate_snippet' ) );
 
 		add_action( 'wp_ajax_twtaeo_ai_desc_generate',   array( $this, 'ajax_ai_desc_generate' ) );
 		add_action( 'wp_ajax_twtaeo_ai_desc_bulk',       array( $this, 'ajax_ai_desc_bulk' ) );
@@ -205,6 +289,7 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_ai_og_image',        array( $this, 'ajax_ai_og_image' ) );
 		add_action( 'wp_ajax_twtaeo_set_featured',       array( $this, 'ajax_set_featured_image' ) );
 		add_action( 'wp_ajax_twtaeo_og_fill_from_meta',  array( $this, 'ajax_og_fill_from_meta' ) );
+		add_action( 'wp_ajax_twtaeo_og_census_block',    array( $this, 'ajax_og_census_block' ) );
 
 		add_action( 'wp_ajax_twtaeo_gmc_save_settings', array( $this, 'ajax_gmc_save_settings' ) );
 		add_action( 'wp_ajax_twtaeo_gmc_sync',          array( $this, 'ajax_gmc_sync' ) );
@@ -285,6 +370,12 @@ class TWTAEO_Plugin {
 		$slug   = sanitize_key( wp_unslash( $_POST['slug'] ?? '' ) );
 		$active = rest_sanitize_boolean( wp_unslash( $_POST['active'] ?? false ) );
 		$this->modules->toggle( $slug, $active );
+
+		// Tear down the Smart 404 scan cron when its module is switched off.
+		if ( 'smart-404' === $slug && ! $active && class_exists( 'TWTAEO_Smart_404' ) ) {
+			TWTAEO_Smart_404::clear_schedule();
+		}
+
 		wp_send_json_success( array( 'slug' => $slug, 'active' => $active ) );
 	}
 
@@ -340,7 +431,65 @@ class TWTAEO_Plugin {
 			'missing'    => $result['evaluation']['missing'] ?? array(),
 			'present'    => $result['evaluation']['present'] ?? array(),
 			'scanned_at' => $result['scanned_at'] ?? '',
+			'score'      => $result['aeo_score']['score'] ?? null,
 		) );
+	}
+
+	/**
+	 * AJAX: full AEO Score breakdown for one page — every line item with its
+	 * points, the citation reason, and the fix link. The score is the sum of
+	 * these lines; nothing hidden.
+	 */
+	public function ajax_get_page_score() {
+		check_ajax_referer( TWTAEO_Custom_Schema_Writer::NONCE_ACTION, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		$breakdown = TWTAEO_Aeo_Score::get_breakdown( $post_id );
+		if ( ! $breakdown ) {
+			wp_send_json_error( __( 'No score yet — scan this page first.', 'twt-aeo-ultimate' ) );
+		}
+		wp_send_json_success( $breakdown );
+	}
+
+	/**
+	 * AJAX: one batch of the Dashboard's bulk schema autofill. The client
+	 * loops until done=true, accumulating per-type counts.
+	 */
+	public function ajax_autofill_schemas() {
+		check_ajax_referer( TWTAEO_Custom_Schema_Writer::NONCE_ACTION, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$offset = absint( wp_unslash( $_POST['offset'] ?? 0 ) );
+		wp_send_json_success( TWTAEO_Schema_Autofill::run_batch( $offset ) );
+	}
+
+	/**
+	 * AJAX: AI-written summary for a schema modal description field. One API
+	 * call per click, always user-initiated — never run in bulk from here.
+	 */
+	public function ajax_ai_schema_summary() {
+		check_ajax_referer( TWTAEO_Custom_Schema_Writer::NONCE_ACTION, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+		}
+		if ( ! class_exists( 'TWTAEO_AI_Description' ) || ! TWTAEO_AI_Description::is_enabled() ) {
+			wp_send_json_error( array( 'message' => __( 'AI descriptions are not enabled — configure a provider under Settings first.', 'twt-aeo-ultimate' ) ) );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid post ID.', 'twt-aeo-ultimate' ) ) );
+		}
+		$text = TWTAEO_AI_Description::generate_for_post( $post_id );
+		if ( is_wp_error( $text ) ) {
+			wp_send_json_error( array( 'message' => $text->get_error_message() ) );
+		}
+		wp_send_json_success( array( 'text' => $text ) );
 	}
 
 	/**
@@ -835,6 +984,28 @@ class TWTAEO_Plugin {
 		$schema_types = array();
 		$sources      = array();
 
+		// Strategy 0 — this plugin's own stored schemas. These are published on
+		// wp_head (or folded into the Knowledge Graph), but the HTTP/wp_head
+		// strategies below cannot be relied on inside AJAX or CLI scans — and a
+		// scan that cannot see the plugin's own output reports pages as missing
+		// schema they already publish, forever.
+		if ( $post ) {
+			$own = array_keys( TWTAEO_Custom_Schema_Writer::get_all( $post->ID ) );
+			if ( class_exists( 'TWTAEO_Service_Schema_Writer' )
+				&& TWTAEO_Service_Schema_Writer::get( $post->ID ) ) {
+				$own[] = 'Service';
+			}
+			$own = array_unique( $own );
+			if ( ! empty( $own ) ) {
+				foreach ( $own as $type ) {
+					if ( ! in_array( $type, $schema_types, true ) ) {
+						$schema_types[] = $type;
+					}
+				}
+				$sources[] = 'TWT AEO';
+			}
+		}
+
 		// Strategy 1 — Rank Math postmeta.
 		if ( defined( 'RANK_MATH_VERSION' ) && $post ) {
 			$result = $this->detect_schema_rank_math( $post );
@@ -1238,7 +1409,12 @@ class TWTAEO_Plugin {
 		}
 		$post_id     = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
 		$type        = sanitize_text_field( wp_unslash( $_POST['schema_type'] ?? '' ) );
-		$json_string = sanitize_textarea_field( wp_unslash( $_POST['json'] ?? '' ) );
+		// The payload is JSON, not free text: text-field sanitizers strip legitimate
+		// JSON (escape sequences, HTML in answer strings). Safety comes from save(),
+		// which rejects anything json_decode() can't parse and re-encodes before
+		// storage — the raw string itself is never stored or output.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated and re-encoded in TWTAEO_Custom_Schema_Writer::save().
+		$json_string = trim( (string) wp_unslash( $_POST['json'] ?? '' ) );
 		if ( ! $post_id || ! $type || ! $json_string ) {
 			wp_send_json_error( 'Missing required fields.' );
 		}
@@ -1395,10 +1571,11 @@ class TWTAEO_Plugin {
 			),
 			'shipping'       => TWTAEO_WooCommerce_Detector::get_shipping_defaults(),
 			'return'         => TWTAEO_WooCommerce_Detector::get_return_defaults(),
-			'ai_attributes'  => TWTAEO_Product_Enricher::get_cached_attributes( $post_id ),
-			'ai_vision'      => TWTAEO_Product_Enricher::get_cached_vision( $post_id ),
-			'image_alt'      => TWTAEO_Product_Enricher::image_alt_summary( $post_id ),
-			'brand_sameas'   => array_values( (array) get_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_SAMEAS, true ) ),
+			'ai_attributes'      => TWTAEO_Product_Enricher::get_cached_attributes( $post_id ),
+			'ai_vision'          => TWTAEO_Product_Enricher::get_cached_vision( $post_id ),
+			'ai_google_category' => ( $gcat = TWTAEO_Product_Enricher::get_cached_google_category( $post_id ) ) ? $gcat['data'] : null,
+			'image_alt'          => TWTAEO_Product_Enricher::image_alt_summary( $post_id ),
+			'brand_sameas'       => array_values( (array) get_post_meta( $post_id, TWTAEO_WooCommerce_Detector::META_SAMEAS, true ) ),
 		) );
 	}
 
@@ -1532,6 +1709,30 @@ class TWTAEO_Plugin {
 	}
 
 	/**
+	 * AJAX: Resolve the product's official Google Product Category (CategoryCode)
+	 * via web-grounded retrieval.
+	 */
+	public function ajax_wc_ai_google_category() {
+		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+
+		$result = TWTAEO_Product_Enricher::resolve_google_category( $post_id );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( $result->get_error_message() );
+		}
+		wp_send_json_success( array(
+			'category' => $result,
+			'provider' => TWTAEO_AI_Client::retrieval_provider(),
+		) );
+	}
+
+	/**
 	 * AJAX: Extract visual attributes from a product's image via AI vision.
 	 */
 	public function ajax_wc_ai_vision() {
@@ -1618,6 +1819,39 @@ class TWTAEO_Plugin {
 		}
 		$result['cov_html'] = TWTAEO_Product_Enricher::alt_badge_html( TWTAEO_Image_Optimizer::image_summary( $post_id ) );
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX: Set a media-library image as a post's featured image.
+	 *
+	 * Backs the "Add an image" button on the Image SEO screen for pages that
+	 * have no images at all — the featured image is the one every theme
+	 * outputs and the one og:image and schema fall back to.
+	 */
+	public function ajax_img_set_featured() {
+		check_ajax_referer( TWTAEO_Page_Image_SEO::NONCE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Unauthorized' );
+		}
+		$post_id       = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		$attachment_id = absint( wp_unslash( $_POST['attachment_id'] ?? 0 ) );
+		if ( ! $post_id || ! get_post( $post_id ) ) {
+			wp_send_json_error( 'Invalid post ID.' );
+		}
+		if ( ! $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+			wp_send_json_error( 'The selected item is not an image.' );
+		}
+
+		if ( ! set_post_thumbnail( $post_id, $attachment_id ) ) {
+			wp_send_json_error( 'Could not set the featured image.' );
+		}
+
+		$summary = TWTAEO_Image_Optimizer::image_summary( $post_id );
+		wp_send_json_success( array(
+			'total'    => $summary['total'],
+			'missing'  => $summary['missing'],
+			'cov_html' => TWTAEO_Product_Enricher::alt_badge_html( $summary ),
+		) );
 	}
 
 	/**
@@ -1836,7 +2070,12 @@ class TWTAEO_Plugin {
 	}
 
 	/**
-	 * AJAX: Auto-generate and save Product/Service schema for all products that need it.
+	 * AJAX: Auto-generate and save Product/Service schema, one batch per call.
+	 *
+	 * ⚠️ Walks the WHOLE catalogue via product_ids_page(), never scan_all() —
+	 * scan_all() stops at DISPLAY_CAP (200), and looping it here is why a large
+	 * store generated exactly 179 of 200 and silently ignored the rest of the
+	 * catalogue. The client re-calls with the returned cursor until done.
 	 */
 	public function ajax_wc_generate_all() {
 		check_ajax_referer( 'twtaeo_wc_nonce', 'nonce' );
@@ -1844,14 +2083,23 @@ class TWTAEO_Plugin {
 			wp_send_json_error( 'Unauthorized' );
 		}
 
-		$results = TWTAEO_WooCommerce_Detector::scan_all();
+		$offset = isset( $_POST['offset'] ) ? absint( wp_unslash( $_POST['offset'] ) ) : 0;
+		$batch  = TWTAEO_WooCommerce_Detector::GENERATE_BATCH;
+
+		$total = TWTAEO_WooCommerce_Detector::total_products();
+		$ids   = TWTAEO_WooCommerce_Detector::product_ids_page( $offset, $batch );
+
 		$saved   = 0;
 		$skipped = 0;
 		$errors  = array();
 
-		foreach ( $results as $item ) {
-			$post        = $item['post'];
-			$wc_data     = $item['wc_data'];
+		foreach ( $ids as $post_id ) {
+			$post = get_post( $post_id );
+			if ( ! $post ) {
+				continue;
+			}
+
+			$wc_data     = TWTAEO_WooCommerce_Detector::scan( $post );
 			$recommended = $wc_data['recommended_schema'];
 
 			if ( TWTAEO_Custom_Schema_Writer::get_by_type( $post->ID, $recommended ) ) {
@@ -1875,10 +2123,19 @@ class TWTAEO_Plugin {
 			}
 		}
 
+		$processed = $offset + count( $ids );
+
 		wp_send_json_success( array(
-			'saved'   => $saved,
-			'skipped' => $skipped,
-			'errors'  => $errors,
+			'saved'     => $saved,
+			'skipped'   => $skipped,
+			'errors'    => $errors,
+			// Cursor state. `done` is driven by an empty page rather than by
+			// processed >= total, so a product deleted mid-run cannot leave the
+			// client looping against a total it will never reach.
+			'offset'    => $offset,
+			'next'      => $processed,
+			'total'     => $total,
+			'done'      => empty( $ids ),
 		) );
 	}
 
@@ -1929,7 +2186,7 @@ class TWTAEO_Plugin {
 	 * @param string  $type  'Product' or 'Service'
 	 * @return array|null
 	 */
-	private static function build_wc_auto_schema( WP_Post $post, $type ) {
+	public static function build_wc_auto_schema( WP_Post $post, $type ) {
 		// Product schema is assembled by the central rich builder so the bulk path
 		// and the per-product modal stay in sync.
 		if ( $type === 'Product' ) {
@@ -2398,6 +2655,27 @@ class TWTAEO_Plugin {
 		wp_send_json_success( array( 'entities' => $result ) );
 	}
 
+	/**
+	 * AJAX: Ground an entity or topic name to authority sameAs URLs (Wikipedia /
+	 * Wikidata / official site) for the Knowledge Graph admin page.
+	 */
+	public function ajax_kg_resolve_sameas() {
+		check_ajax_referer( TWTAEO_KG_Entities::NONCE_AJAX, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unauthorized', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$name = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+		$type = sanitize_text_field( wp_unslash( $_POST['type'] ?? 'thing' ) );
+
+		$urls = TWTAEO_KG_Entities::resolve_same_as( $name, $type );
+		if ( is_wp_error( $urls ) ) {
+			wp_send_json_error( array( 'message' => $urls->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'urls' => $urls ) );
+	}
+
 	public function ajax_get_author_meta() {
 		check_ajax_referer( 'twtaeo_eeat_nonce', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -2568,6 +2846,47 @@ class TWTAEO_Plugin {
 	 * Bulk-fill Open Graph descriptions from each post's existing meta
 	 * description (no AI call). Free and instant.
 	 */
+	/**
+	 * AJAX: scan one block for the site-wide Social Graph census.
+	 *
+	 * The browser calls this once per block (1..N); counts accumulate
+	 * server-side in the census option, and the final block stamps
+	 * completed_at. One block per request keeps each call safely inside
+	 * PHP's time limit no matter how large the site is.
+	 */
+	public function ajax_og_census_block() {
+		check_ajax_referer( 'twtaeo_social_graph_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( __( 'Permission denied.', 'twt-aeo-ultimate' ) );
+		}
+
+		$block        = max( 1, absint( wp_unslash( $_POST['block'] ?? 1 ) ) );
+		$total_items  = TWTAEO_OG_Detector::total_items();
+		$total_blocks = max( 1, (int) ceil( $total_items / TWTAEO_OG_Detector::SCAN_BLOCK ) );
+		$block        = min( $block, $total_blocks );
+
+		$counts = TWTAEO_OG_Detector::census_block( $block );
+
+		$empty_totals = array( 'scanned' => 0, 'complete' => 0, 'missing_image' => 0, 'missing_text' => 0, 'needs_work' => 0, 'tw_explicit' => 0 );
+		$state        = ( 1 === $block ) ? array() : get_option( TWTAEO_OG_Detector::CENSUS_OPTION, array() );
+		$totals       = ( is_array( $state ) && isset( $state['totals'] ) ) ? $state['totals'] : $empty_totals;
+		foreach ( $counts as $k => $v ) {
+			$totals[ $k ] = ( $totals[ $k ] ?? 0 ) + $v;
+		}
+
+		$state = array(
+			'totals'       => $totals,
+			'total_items'  => $total_items,
+			'blocks_done'  => $block,
+			'total_blocks' => $total_blocks,
+			'started_at'   => ( 1 === $block || empty( $state['started_at'] ) ) ? time() : $state['started_at'],
+			'completed_at' => ( $block >= $total_blocks ) ? time() : 0,
+		);
+		update_option( TWTAEO_OG_Detector::CENSUS_OPTION, $state, false );
+
+		wp_send_json_success( $state );
+	}
+
 	public function ajax_og_fill_from_meta() {
 		check_ajax_referer( 'twtaeo_social_graph_nonce', 'nonce' );
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -2874,5 +3193,79 @@ class TWTAEO_Plugin {
 
 		TWTAEO_Bing_Merchant_Center::disconnect();
 		wp_send_json_success();
+	}
+
+	/**
+	 * AJAX: one-click Product schema from the Dashboard's missing-schema tag.
+	 *
+	 * The dashboard's schema modal is a form, and a Product node is not
+	 * formable by hand — offers, identifiers, shipping and returns all come
+	 * from the product itself. This reuses the WooCommerce tab's generator so
+	 * a product on the dashboard is never a dead end.
+	 */
+	public function ajax_dashboard_generate_product() {
+		check_ajax_referer( TWTAEO_Custom_Schema_Writer::NONCE_ACTION, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+		}
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		$post    = $post_id ? get_post( $post_id ) : null;
+		if ( ! $post || 'product' !== $post->post_type ) {
+			wp_send_json_error( array( 'message' => __( 'This is not a WooCommerce product.', 'twt-aeo-ultimate' ) ) );
+		}
+		if ( ! TWTAEO_WooCommerce_Detector::is_woocommerce_active() ) {
+			wp_send_json_error( array( 'message' => __( 'WooCommerce is not active.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$item        = TWTAEO_WooCommerce_Detector::scan( $post );
+		$recommended = $item['recommended_schema'] ?? 'Product';
+
+		$schema = self::build_wc_auto_schema( $post, $recommended );
+		if ( ! $schema ) {
+			wp_send_json_error( array( 'message' => __( 'Could not build schema for this product.', 'twt-aeo-ultimate' ) ) );
+		}
+
+		$json   = wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		$result = TWTAEO_Custom_Schema_Writer::save( $post_id, $recommended, $json );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+		}
+
+		wp_send_json_success( array( 'post_id' => $post_id, 'type' => $recommended ) );
+	}
+
+	public function ajax_generate_product_faqs_php() {
+		check_ajax_referer( 'twtaeo_product_faqs_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+		}
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( array( 'message' => 'Missing product ID.' ) );
+		}
+
+		$faqs = TWTAEO_Product_FAQ_Generator::generate_php_faqs( $post_id );
+		wp_send_json_success( $faqs );
+	}
+
+	public function ajax_generate_product_faqs_ai() {
+		check_ajax_referer( 'twtaeo_product_faqs_nonce', 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+		}
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id ) {
+			wp_send_json_error( array( 'message' => 'Missing product ID.' ) );
+		}
+
+		$faqs = TWTAEO_Product_FAQ_Generator::generate_ai_faqs( $post_id );
+		if ( is_wp_error( $faqs ) ) {
+			wp_send_json_error( array( 'message' => $faqs->get_error_message() ) );
+		}
+
+		wp_send_json_success( $faqs );
 	}
 }

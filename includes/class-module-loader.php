@@ -17,6 +17,13 @@ class TWTAEO_Module_Loader {
 	const OPTION_KEY = 'twtaeo_active_modules';
 
 	/**
+	 * Ledger of every module slug this install has ever registered. Lets an
+	 * upgrade tell "new module, never seen" (enable it if its default is on)
+	 * apart from "user turned it off" (leave it off). Introduced 2.17.0.
+	 */
+	const KNOWN_KEY = 'twtaeo_known_modules';
+
+	/**
 	 * All registered modules.
 	 *
 	 * @var array
@@ -33,6 +40,39 @@ class TWTAEO_Module_Loader {
 	public function __construct() {
 		$this->active = get_option( self::OPTION_KEY, array() );
 		$this->register_modules();
+		$this->adopt_new_modules();
+	}
+
+	/**
+	 * Enable default-on modules this install has never seen. The first-activation
+	 * seeding above only runs when twtaeo_active_modules is absent, so a site
+	 * upgrading from an older version would otherwise never get a module added
+	 * later (ai-visibility was invisible on every upgraded site). Deliberate
+	 * offs survive: once a slug is in the ledger it is never re-enabled here.
+	 */
+	private function adopt_new_modules() {
+		$registered = array_keys( $this->modules );
+		$known      = get_option( self::KNOWN_KEY, false );
+		if ( ! is_array( $known ) ) {
+			// Ledger predates nothing but itself: every module except the ones
+			// shipped alongside it existed before 2.17.0 and may carry a
+			// deliberate off, so only the truly-new slugs count as unseen.
+			$known = array_diff( $registered, array( 'ai-visibility' ) );
+		}
+
+		$changed = false;
+		foreach ( array_diff( $registered, $known ) as $slug ) {
+			if ( ! empty( $this->modules[ $slug ]['default'] ) && ! in_array( $slug, $this->active, true ) ) {
+				$this->active[] = $slug;
+				$changed        = true;
+			}
+		}
+		if ( $changed ) {
+			update_option( self::OPTION_KEY, $this->active );
+		}
+		if ( array_values( array_diff( $registered, $known ) ) !== array() ) {
+			update_option( self::KNOWN_KEY, $registered );
+		}
 	}
 
 	/**
@@ -140,7 +180,7 @@ class TWTAEO_Module_Loader {
 			'woocommerce-gmc' => array(
 				'slug'        => 'woocommerce-gmc',
 				'title'       => 'Google Merchant Center Sync',
-				'description' => 'Compares your WooCommerce catalog against your live Google Merchant Center feed. Tracks price and availability mismatches, GTIN/MPN/SKU gaps, feed sync latency, and surfaces rejection error codes directly from the Content API.',
+				'description' => 'Compares your WooCommerce catalog against your live Google Merchant Center feed. Tracks price and availability mismatches, GTIN/MPN/SKU gaps, feed sync latency, and surfaces rejection error codes directly from the Merchant API.',
 				'icon'        => 'dashicons-update-alt',
 				'phase'       => 'free',
 				'default'     => false,
@@ -152,6 +192,26 @@ class TWTAEO_Module_Loader {
 				'title'       => 'Bing Merchant Center Sync',
 				'description' => 'Compares your WooCommerce catalog against your live Bing Merchant Center feed via the Microsoft Advertising Shopping Content API. Tracks price and availability mismatches, GTIN/MPN/SKU gaps, sync latency, and surfaces item-level disapproval codes.',
 				'icon'        => 'dashicons-update-alt',
+				'phase'       => 'free',
+				'default'     => false,
+				'requires'    => 'woocommerce',
+			),
+
+			'smart-collections' => array(
+				'slug'        => 'smart-collections',
+				'title'       => 'Smart Collections',
+				'description' => 'Turns the categories you already built — Starter Kits, Pro Setups, Under $500 — into published Collections: a CollectionPage with an ItemList, a written explanation of who the group is for, and an entry in llms.txt. Aimed at the shopper who is still asking what to buy rather than which one. Reads your Search Console queries to suggest which categories qualify, takes over the empty collection schema your SEO plugin writes on those archives, and creates no pages or categories of its own. Off until you switch it on.',
+				'icon'        => 'dashicons-screenoptions',
+				'phase'       => 'free',
+				'default'     => false,
+				'requires'    => 'woocommerce',
+			),
+
+			'promotions' => array(
+				'slug'        => 'promotions',
+				'title'       => 'Promotions & Price Rules',
+				'description' => 'Describes your discounts honestly. Publishes the two conditional prices that can be stated without contradicting the page — quantity breaks and member pricing — as UnitPriceSpecification entries carrying their own conditions, and sends coupon codes to Google Merchant Center, which is the channel Google built for them. Reads WooCommerce coupons directly, so coupons made by Advanced Coupons, Smart Coupons and the rest are covered, and names any plugin that can change a price without a code so a feed price mismatch never comes as a surprise. Never writes a discount into your offer price. Off until you switch it on.',
+				'icon'        => 'dashicons-tag',
 				'phase'       => 'free',
 				'default'     => false,
 				'requires'    => 'woocommerce',
@@ -239,6 +299,15 @@ class TWTAEO_Module_Loader {
 				'default'     => false,
 			),
 
+			'smart-404' => array(
+				'slug'        => 'smart-404',
+				'title'       => 'Smart 404 Rescue',
+				'description' => 'Turns 404s into fixes instead of database bloat. Skips hacker/bot probe traffic outright, then for genuine visitor 404s finds the closest published page by typo-distance, auto-corrects broken internal links at their source (with an undo log), and redirects the visitor. Recovers renamed/moved pages by matching your Search Console 404s to live content and creating permanent 301s. No per-404 logging.',
+				'icon'        => 'dashicons-controls-repeat',
+				'phase'       => 'free',
+				'default'     => false,
+			),
+
 			'ai-rate-limiter' => array(
 				'slug'        => 'ai-rate-limiter',
 				'title'       => 'AI Prompt Rate Limiter',
@@ -246,6 +315,42 @@ class TWTAEO_Module_Loader {
 				'icon'        => 'dashicons-shield',
 				'phase'       => 'free',
 				'default'     => false,
+			),
+
+			'ai-visibility' => array(
+				'slug'        => 'ai-visibility',
+				'title'       => 'AI Visibility — citation engine',
+				'description' => 'Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions shoppers ask, on your own keys, and shows whether your site was cited, named or absent — and who was cited instead.',
+				'icon'        => 'dashicons-visibility',
+				'phase'       => 'free',
+				'default'     => true,
+			),
+
+			'bot-view' => array(
+				'slug'        => 'bot-view',
+				'title'       => 'Bot View',
+				'description' => 'Fetches any page exactly the way no-JavaScript AI crawlers (GPTBot, ClaudeBot, PerplexityBot) do and reports which schema and content they can see, which is JavaScript-locked (tag-manager schema, review widgets, client-rendered apps), and which data hiding inside scripts could be lifted into server-rendered schema.',
+				'icon'        => 'dashicons-welcome-view-site',
+				'phase'       => 'free',
+				'default'     => true,
+			),
+
+			'chunk-view' => array(
+				'slug'        => 'chunk-view',
+				'title'       => 'RAG Engine',
+				'description' => 'AI engines do not read whole pages — they retrieve passages (retrieval-augmented generation). Chunk View shows how each page is split into those passages and flags the ones that fall apart on their own. Upload your spec sheets, manuals and FAQs as Documents, then compare them with the Google and Bing searches you nearly rank for and the questions AI engines answered without citing you, to see exactly which answers your site is missing. Documents are processed on your own server; AI labelling and the online law check are optional.',
+				'icon'        => 'dashicons-editor-ol',
+				'phase'       => 'free',
+				'default'     => false,
+			),
+
+			'funnel-audit' => array(
+				'slug'        => 'funnel-audit',
+				'title'       => 'Funnel Audit',
+				'description' => 'The Money Page Funnel & Citability Auditor. AI engines cite informational posts, not money pages — this audit connects AI attention (crawler hits + referrals from ChatGPT, Perplexity, Claude, Gemini) with your internal link graph to find money pages that are buried or orphaned, generic anchor text, missing schema on conversion pages, and cited posts with no CTA bridge to a money page.',
+				'icon'        => 'dashicons-filter',
+				'phase'       => 'free',
+				'default'     => true,
 			),
 
 		);

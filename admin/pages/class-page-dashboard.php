@@ -50,6 +50,14 @@ class TWTAEO_Page_Dashboard {
 		$bg_state     = TWTAEO_Background_Scan::get_state();
 		$bg_running   = TWTAEO_Background_Scan::is_running( $bg_state );
 
+		// AEO Score rollup — reads stored per-page scores; scoring itself
+		// happens at scan time.
+		$score_summary = class_exists( 'TWTAEO_Aeo_Score' ) ? TWTAEO_Aeo_Score::site_summary() : null;
+		if ( $score_summary ) {
+			TWTAEO_Aeo_Score::maybe_record_snapshot( $score_summary );
+		}
+		$score_history = class_exists( 'TWTAEO_Aeo_Score' ) ? TWTAEO_Aeo_Score::get_history() : array();
+
 		?>
 		<div class="wrap twt-aeo-wrap">
 
@@ -57,7 +65,7 @@ class TWTAEO_Page_Dashboard {
 				<div class="twt-aeo-header__inner">
 					<h1 class="twt-aeo-header__title">
 						<span class="twt-aeo-logo">AEO</span>
-						<?php esc_html_e( 'Dashboard', 'twt-aeo-ultimate' ); ?>
+						<?php esc_html_e( 'Score', 'twt-aeo-ultimate' ); ?>
 					</h1>
 					<div class="twt-aeo-header__meta">
 						<span class="twt-aeo-badge <?php echo $conflict ? 'twt-aeo-badge--conflict' : 'twt-aeo-badge--plugin'; ?>">
@@ -260,11 +268,136 @@ class TWTAEO_Page_Dashboard {
 				</div>
 			</section>
 
+			<?php if ( $score_summary ) : ?>
+			<!-- AEO Score -->
+			<section class="twt-aeo-section" id="twt-aeo-score-section">
+				<h2 class="twt-aeo-section__title"><?php esc_html_e( 'AEO Score', 'twt-aeo-ultimate' ); ?></h2>
+				<div class="twt-aeo-card" style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;">
+
+					<?php
+					$site_score = $score_summary['site_score'];
+					$ring_color = static function ( $s ) {
+						return $s >= 80 ? '#16a34a' : ( $s >= 50 ? '#d97706' : '#dc2626' );
+					};
+					?>
+					<div style="text-align:center;min-width:140px;">
+						<?php
+						if ( null !== $site_score ) :
+							$c = $ring_color( $site_score );
+							/* translators: %d: site-wide AEO score out of 100. */
+							$ring_label = sprintf( __( 'Site AEO score %d out of 100', 'twt-aeo-ultimate' ), $site_score );
+						?>
+						<svg viewBox="0 0 80 80" width="110" height="110" role="img" aria-label="<?php echo esc_attr( $ring_label ); ?>">
+							<circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+							<circle cx="40" cy="40" r="34" fill="none" stroke="<?php echo esc_attr( $c ); ?>" stroke-width="8" stroke-linecap="round"
+								stroke-dasharray="<?php echo esc_attr( round( 213.6 * $site_score / 100, 1 ) ); ?> 213.6" transform="rotate(-90 40 40)"/>
+							<text x="40" y="48" text-anchor="middle" font-size="24" font-weight="700" fill="<?php echo esc_attr( $c ); ?>"><?php echo esc_html( $site_score ); ?></text>
+						</svg>
+						<p style="margin:6px 0 0;font-size:12px;color:#646970;">
+							<?php
+							printf(
+								/* translators: 1: average page score, 2: site checklist percentage. */
+								esc_html__( '70%% pages (avg %1$d) + 30%% site setup (%2$d%%)', 'twt-aeo-ultimate' ),
+								(int) $score_summary['avg_page'],
+								(int) $score_summary['checklist_pct']
+							);
+							?>
+							<br/>
+							<?php
+							printf(
+								/* translators: %d: number of scored pages. */
+								esc_html__( '%d pages scored', 'twt-aeo-ultimate' ),
+								(int) $score_summary['scored_pages']
+							);
+							?>
+						</p>
+						<?php else : ?>
+						<p class="twt-aeo-muted" style="max-width:140px;"><?php esc_html_e( 'Run "Scan All Pages" to compute your first AEO Score.', 'twt-aeo-ultimate' ); ?></p>
+						<?php endif; ?>
+					</div>
+
+					<?php if ( ! empty( $score_summary['categories'] ) ) : ?>
+					<div style="flex:1;min-width:260px;">
+						<p style="margin:0 0 8px;font-weight:600;font-size:13px;"><?php esc_html_e( 'Where points are lost (site-wide)', 'twt-aeo-ultimate' ); ?></p>
+						<?php foreach ( $score_summary['categories'] as $cat ) : $pc = (int) $cat['pct']; ?>
+						<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+							<span style="width:150px;font-size:12px;color:#50575e;flex-shrink:0;"><?php echo esc_html( $cat['label'] ); ?></span>
+							<span style="flex:1;background:#e5e7eb;border-radius:4px;height:10px;overflow:hidden;display:block;">
+								<span style="display:block;height:100%;width:<?php echo esc_attr( $pc ); ?>%;background:<?php echo esc_attr( $ring_color( $pc ) ); ?>;"></span>
+							</span>
+							<span style="width:38px;font-size:12px;color:#50575e;text-align:right;"><?php echo esc_html( $pc ); ?>%</span>
+						</div>
+						<?php endforeach; ?>
+						<p style="margin:10px 0 0;font-size:12px;color:#646970;">
+							<?php esc_html_e( 'Click any page\'s score ring below for its line-by-line breakdown — every point named, every gap linked to its fix.', 'twt-aeo-ultimate' ); ?>
+						</p>
+					</div>
+					<?php endif; ?>
+
+					<div style="min-width:240px;">
+						<p style="margin:0 0 8px;font-weight:600;font-size:13px;"><?php esc_html_e( 'Score over time', 'twt-aeo-ultimate' ); ?></p>
+						<?php if ( count( $score_history ) >= 2 ) :
+							$w = 240; $h = 70; $n = count( $score_history );
+							$pts = array();
+							foreach ( array_values( $score_history ) as $i => $snap ) {
+								$x     = round( $i * ( $w - 10 ) / max( 1, $n - 1 ) + 5, 1 );
+								$y     = round( $h - 5 - ( $h - 15 ) * max( 0, min( 100, (int) $snap['score'] ) ) / 100, 1 );
+								$pts[] = $x . ',' . $y;
+							}
+							$last_snap = end( $score_history );
+						?>
+						<svg viewBox="0 0 <?php echo (int) $w; ?> <?php echo (int) $h; ?>" width="<?php echo (int) $w; ?>" height="<?php echo (int) $h; ?>" role="img" aria-label="<?php esc_attr_e( 'AEO score history', 'twt-aeo-ultimate' ); ?>">
+							<polyline points="<?php echo esc_attr( implode( ' ', $pts ) ); ?>" fill="none" stroke="#2271b1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+							<?php $last_xy = explode( ',', end( $pts ) ); ?>
+							<circle cx="<?php echo esc_attr( $last_xy[0] ); ?>" cy="<?php echo esc_attr( $last_xy[1] ); ?>" r="3" fill="#2271b1"/>
+						</svg>
+						<p style="margin:4px 0 0;font-size:11px;color:#646970;">
+							<?php echo esc_html( $score_history[0]['date'] ); ?> → <?php echo esc_html( $last_snap['date'] ); ?>
+						</p>
+						<?php else : ?>
+						<p class="twt-aeo-muted" style="font-size:12px;"><?php esc_html_e( 'History starts today — one point is saved per day, so the trend line appears from tomorrow.', 'twt-aeo-ultimate' ); ?></p>
+						<?php endif; ?>
+					</div>
+
+					<?php if ( ! empty( $score_summary['checklist'] ) ) : ?>
+					<div style="flex-basis:100%;border-top:1px solid #f0f0f1;padding-top:14px;">
+						<p style="margin:0 0 8px;font-weight:600;font-size:13px;"><?php esc_html_e( 'Site setup (30% of the score)', 'twt-aeo-ultimate' ); ?></p>
+						<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px 24px;">
+							<?php foreach ( $score_summary['checklist'] as $item ) :
+								$full = $item['pts'] >= $item['max'];
+							?>
+							<div style="font-size:12px;display:flex;gap:8px;align-items:baseline;">
+								<span style="color:<?php echo $full ? '#16a34a' : '#dc2626'; ?>;font-weight:700;flex-shrink:0;"><?php echo $full ? '✓' : '✕'; ?></span>
+								<span>
+									<strong><?php echo esc_html( $item['label'] ); ?></strong>
+									<span style="color:#646970;">(<?php echo esc_html( $item['pts'] . '/' . $item['max'] ); ?>)</span>
+									— <?php echo esc_html( $item['why'] ); ?>
+									<?php if ( ! $full && ! empty( $item['fix'] ) ) : ?>
+										<a href="<?php echo esc_url( $item['fix'] ); ?>" class="twt-aeo-link"><?php echo esc_html( $item['fix_label'] ); ?></a>
+									<?php endif; ?>
+								</span>
+							</div>
+							<?php endforeach; ?>
+						</div>
+					</div>
+					<?php endif; ?>
+
+				</div>
+			</section>
+			<?php endif; ?>
+
 			<!-- Page-by-Page Results -->
 			<section class="twt-aeo-section">
-				<h2 class="twt-aeo-section__title">
+				<h2 class="twt-aeo-section__title" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
 					<?php esc_html_e( 'Page AEO Status', 'twt-aeo-ultimate' ); ?>
+					<button type="button" id="twt-aeo-autofill-btn" class="twt-aeo-btn twt-aeo-btn--primary"
+						data-nonce="<?php echo esc_attr( wp_create_nonce( TWTAEO_Custom_Schema_Writer::NONCE_ACTION ) ); ?>"
+						title="<?php esc_attr_e( 'Create every missing schema that can be built from data the site already has — titles, authors, company profile, business info, detected FAQs, WooCommerce products. Types needing facts only you know (event dates, prices outside WooCommerce) are reported, never guessed.', 'twt-aeo-ultimate' ); ?>">
+						⚡ <?php esc_html_e( 'Auto-Fill Missing Schema', 'twt-aeo-ultimate' ); ?>
+					</button>
+					<span id="twt-aeo-autofill-status" style="font-size:12px;font-weight:400;color:#646970;"></span>
 				</h2>
+				<div id="twt-aeo-autofill-summary" class="twt-aeo-card" style="display:none;margin-bottom:14px;font-size:13px;"></div>
 
 				<?php if ( empty( $all_pages ) ) : ?>
 					<div class="twt-aeo-card">
@@ -276,6 +409,7 @@ class TWTAEO_Page_Dashboard {
 						<thead>
 							<tr>
 								<th><?php esc_html_e( 'Page', 'twt-aeo-ultimate' ); ?></th>
+								<th><?php esc_html_e( 'Score', 'twt-aeo-ultimate' ); ?></th>
 								<th><?php esc_html_e( 'Intent', 'twt-aeo-ultimate' ); ?></th>
 								<th><?php esc_html_e( 'Confidence', 'twt-aeo-ultimate' ); ?></th>
 								<th><?php esc_html_e( 'Schema Present', 'twt-aeo-ultimate' ); ?></th>
@@ -305,6 +439,31 @@ class TWTAEO_Page_Dashboard {
 									<span class="twt-aeo-page-row__type"><?php echo esc_html( $post->post_type ); ?></span>
 								</td>
 
+								<td class="twt-aeo-score-cell" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
+									<?php
+									$page_score = class_exists( 'TWTAEO_Aeo_Score' )
+										? get_post_meta( $post->ID, TWTAEO_Aeo_Score::META_SCORE, true )
+										: '';
+									if ( '' !== $page_score && false !== $page_score ) :
+										$ps  = (int) $page_score;
+										$psc = $ps >= 80 ? '#16a34a' : ( $ps >= 50 ? '#d97706' : '#dc2626' );
+									?>
+									<button type="button" class="twt-aeo-score-ring" data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+										data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>"
+										title="<?php esc_attr_e( 'See the full score breakdown', 'twt-aeo-ultimate' ); ?>"
+										style="background:none;border:0;padding:0;cursor:pointer;">
+										<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true">
+											<circle cx="16" cy="16" r="12" fill="none" stroke="#e5e7eb" stroke-width="3.5"/>
+											<circle cx="16" cy="16" r="12" fill="none" stroke="<?php echo esc_attr( $psc ); ?>" stroke-width="3.5" stroke-linecap="round"
+												stroke-dasharray="<?php echo esc_attr( round( 75.4 * $ps / 100, 1 ) ); ?> 75.4" transform="rotate(-90 16 16)"/>
+											<text x="16" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="<?php echo esc_attr( $psc ); ?>"><?php echo esc_html( $ps ); ?></text>
+										</svg>
+									</button>
+									<?php else : ?>
+									<span class="twt-aeo-muted">—</span>
+									<?php endif; ?>
+								</td>
+
 								<td>
 									<?php if ( $intent ) : ?>
 										<span class="twt-aeo-intent-pill"><?php echo esc_html( $intent['label'] ); ?></span>
@@ -324,10 +483,52 @@ class TWTAEO_Page_Dashboard {
 								</td>
 
 								<td>
-									<?php if ( ! empty( $present ) ) : ?>
+									<?php
+									$saved_present = TWTAEO_Custom_Schema_Writer::get_all( $post->ID );
+									// Saved schemas whose type is neither detected-present nor
+									// intent-recommended would otherwise be invisible here — and an
+									// invisible saved schema is an undeletable one (there is no other
+									// UI that reaches it). List them with their ✏ so they can always
+									// be edited or removed.
+									$extra_saved = array_diff( array_keys( $saved_present ), $present, $missing );
+									?>
+									<?php if ( ! empty( $present ) || ! empty( $extra_saved ) ) : ?>
 										<div class="twt-aeo-tag-list twt-aeo-tag-list--compact">
 											<?php foreach ( $present as $type ) : ?>
-												<span class="twt-aeo-tag twt-aeo-tag--present"><?php echo esc_html( $type ); ?></span>
+												<span class="twt-aeo-missing-item">
+													<span class="twt-aeo-tag twt-aeo-tag--present"><?php echo esc_html( $type ); ?></span>
+													<?php
+													// Generator-owned nodes (WooCommerce Product/ProductGroup) are
+													// richer than the modal form — hand-editing would clobber
+													// offers/shipping/identifiers, so no ✏ for them here.
+													$generator_owned = 'product' === $post->post_type
+														&& in_array( $type, array( 'Product', 'ProductGroup' ), true );
+													if ( isset( $saved_present[ $type ] ) && ! $generator_owned ) :
+													?>
+													<button type="button"
+														class="twt-aeo-schema-create-btn"
+														data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+														data-post-type="<?php echo esc_attr( $post->post_type ); ?>"
+														data-schema-type="<?php echo esc_attr( $type ); ?>"
+														data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>"
+														data-saved="1"
+														title="<?php esc_attr_e( 'Edit schema', 'twt-aeo-ultimate' ); ?>">✏</button>
+													<?php endif; ?>
+												</span>
+											<?php endforeach; ?>
+											<?php foreach ( $extra_saved as $type ) : ?>
+												<span class="twt-aeo-missing-item">
+													<span class="twt-aeo-tag twt-aeo-tag--present twt-aeo-tag--saved"
+														title="<?php esc_attr_e( 'Saved schema — publishing, but not one of this page\'s recommended types', 'twt-aeo-ultimate' ); ?>"><?php echo esc_html( $type ); ?></span>
+													<button type="button"
+														class="twt-aeo-schema-create-btn"
+														data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+														data-post-type="<?php echo esc_attr( $post->post_type ); ?>"
+														data-schema-type="<?php echo esc_attr( $type ); ?>"
+														data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>"
+														data-saved="1"
+														title="<?php esc_attr_e( 'Edit schema', 'twt-aeo-ultimate' ); ?>">✏</button>
+												</span>
 											<?php endforeach; ?>
 										</div>
 									<?php elseif ( $scan ) : ?>
@@ -350,6 +551,7 @@ class TWTAEO_Page_Dashboard {
 												<button type="button"
 													class="twt-aeo-schema-create-btn"
 													data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+													data-post-type="<?php echo esc_attr( $post->post_type ); ?>"
 													data-schema-type="<?php echo esc_attr( $type ); ?>"
 													data-post-title="<?php echo esc_attr( get_the_title( $post ) ); ?>"
 													title="<?php echo $is_saved ? esc_attr__( 'Edit schema', 'twt-aeo-ultimate' ) : esc_attr__( 'Create schema', 'twt-aeo-ultimate' ); ?>">
@@ -478,14 +680,23 @@ class TWTAEO_Page_Dashboard {
 			<p id="twt-aeo-dialog-msg" style="display:none;padding:8px 12px;border-radius:4px;margin-top:8px;"></p>
 		</div>
 
+		<!-- AEO Score breakdown dialog (jQuery UI) -->
+		<div id="twt-aeo-score-dialog" style="display:none;">
+			<div id="twt-aeo-score-dialog-body"></div>
+		</div>
+
 		<?php
 		ob_start();
 		?>
 		var twtAeoSchemas = <?php echo wp_json_encode( array(
-			'nonce'    => wp_create_nonce( TWTAEO_Custom_Schema_Writer::NONCE_ACTION ),
-			'ajaxurl'  => admin_url( 'admin-ajax.php' ),
-			'siteName' => get_bloginfo( 'name' ),
-			'siteUrl'  => home_url(),
+			'nonce'     => wp_create_nonce( TWTAEO_Custom_Schema_Writer::NONCE_ACTION ),
+			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+			'siteName'  => get_bloginfo( 'name' ),
+			'siteUrl'   => home_url(),
+			'aiEnabled' => class_exists( 'TWTAEO_AI_Description' )
+				&& TWTAEO_AI_Description::is_enabled()
+				&& class_exists( 'TWTAEO_Key_Resolver' )
+				&& '' !== (string) TWTAEO_Key_Resolver::get( TWTAEO_AI_Description::get_provider() ),
 		) ); ?>;
 		<?php
 		$js = ob_get_clean();
@@ -731,6 +942,104 @@ class TWTAEO_Page_Dashboard {
 					}
 				},
 
+				WebSite: {
+					desc: 'Identify the site itself — its name, URL, and tagline — so AI engines anchor every page to one site entity.',
+					fields: [
+						{ id:'name',          label:'Site Name',      type:'text',     required:true, ph:'My Website' },
+						{ id:'alternateName', label:'Alternate Name', type:'text',     ph:'Short or abbreviated name' },
+						{ id:'description',   label:'Description',    type:'textarea', ph:'What this site is about…' },
+						{ id:'url',           label:'Site URL',       type:'text',     ph:'https://yoursite.com' },
+					],
+					toJson: function(v, ctx) {
+						var s = { '@context':'https://schema.org', '@type':'WebSite', name:v.name, url:v.url||ctx.siteUrl };
+						if (v.alternateName) s.alternateName = v.alternateName;
+						if (v.description)   s.description   = v.description;
+						return s;
+					},
+					fromJson: function(j) {
+						return { name:j.name||'', alternateName:j.alternateName||'', description:j.description||'', url:j.url||'' };
+					}
+				},
+
+				PostalAddress: {
+					desc: 'Publish the address for this location so AI engines can place it on the map.',
+					fields: [
+						{ id:'street',  label:'Street Address', type:'text', ph:'123 Main St' },
+						{ id:'city',    label:'City',           type:'text', required:true, ph:'Tampa' },
+						{ id:'state',   label:'State / Region', type:'text', ph:'FL' },
+						{ id:'zip',     label:'ZIP / Postal',   type:'text', ph:'33601' },
+						{ id:'country', label:'Country',        type:'text', ph:'US' },
+					],
+					toJson: function(v) {
+						var s = { '@context':'https://schema.org', '@type':'PostalAddress', addressLocality:v.city };
+						if (v.street)  s.streetAddress  = v.street;
+						if (v.state)   s.addressRegion  = v.state;
+						if (v.zip)     s.postalCode     = v.zip;
+						if (v.country) s.addressCountry = v.country;
+						return s;
+					},
+					fromJson: function(j) {
+						return { street:j.streetAddress||'', city:j.addressLocality||'', state:j.addressRegion||'', zip:j.postalCode||'', country:j.addressCountry||'' };
+					}
+				},
+
+				Review: {
+					desc: 'Publish a review of the thing this page covers — rating, reviewer, and verdict, quotable by answer engines.',
+					fields: [
+						{ id:'item',   label:'What is reviewed',  type:'text',     required:true, ph:'Product or service name' },
+						{ id:'rating', label:'Rating (out of 5)', type:'select',   options:['5','4.5','4','3.5','3','2.5','2','1.5','1'] },
+						{ id:'author', label:'Reviewer Name',     type:'text',     required:true, ph:'Jane Smith' },
+						{ id:'body',   label:'Review Text',       type:'textarea', ph:'The verdict in a paragraph or two…' },
+						{ id:'date',   label:'Review Date',       type:'date' },
+					],
+					toJson: function(v, ctx) {
+						var s = {
+							'@context':'https://schema.org', '@type':'Review',
+							itemReviewed: { '@type':'Thing', name:v.item },
+							reviewRating: { '@type':'Rating', ratingValue:v.rating||'5', bestRating:'5' },
+							author: { '@type':'Person', name:v.author }
+						};
+						if (v.body) s.reviewBody     = v.body;
+						if (v.date) s.datePublished  = v.date;
+						return s;
+					},
+					fromJson: function(j) {
+						return {
+							item:   (j.itemReviewed&&j.itemReviewed.name)||'',
+							rating: (j.reviewRating&&String(j.reviewRating.ratingValue))||'5',
+							author: (j.author&&j.author.name)||'',
+							body:   j.reviewBody||'',
+							date:   j.datePublished||''
+						};
+					}
+				},
+
+				HowTo: {
+					desc: 'Turn this page\'s instructions into HowTo schema — steps an AI assistant can walk a user through.',
+					fields: [
+						{ id:'name',        label:'What it teaches', type:'text',     required:true, ph:'How to descale a coffee machine' },
+						{ id:'description', label:'Description',     type:'textarea', ph:'One-line summary of the task…' },
+						{ id:'steps',       label:'Steps (one per line)', type:'textarea', required:true, ph:'Unplug the machine\nEmpty the tank\nFill with descaler…' },
+					],
+					toJson: function(v, ctx) {
+						var steps = (v.steps||'').split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+						var s = {
+							'@context':'https://schema.org', '@type':'HowTo',
+							name: v.name,
+							step: steps.map(function(t, i){ return { '@type':'HowToStep', position:i+1, text:t }; })
+						};
+						if (v.description) s.description = v.description;
+						return s;
+					},
+					fromJson: function(j) {
+						return {
+							name:        j.name||'',
+							description: j.description||'',
+							steps:       (j.step||[]).map(function(st){ return st.text||''; }).join('\n')
+						};
+					}
+				},
+
 				Event: {
 					desc: 'Describe an event on this page — date, location, and organizer so AI can surface it.',
 					fields: [
@@ -882,6 +1191,9 @@ class TWTAEO_Page_Dashboard {
 					var input = '';
 					if (f.type === 'textarea') {
 						input = '<textarea id="twt-f-' + f.id + '" class="large-text" rows="3" placeholder="' + esc(f.ph||'') + '">' + esc(vals[f.id]||'') + '</textarea>';
+						if (twtAeoSchemas.aiEnabled) {
+							input += '<p style="margin:4px 0 0;font-size:11px;"><a href="#" class="twt-aeo-link twt-aeo-ai-fill" data-target="twt-f-' + f.id + '">✨ Generate with AI from page content (1 API call)</a></p>';
+						}
 					} else if (f.type === 'select') {
 						var opts = (f.options||[]).map(function(o){
 							return '<option value="' + esc(o) + '"' + (vals[f.id]===o?' selected':'') + '>' + esc(o) + '</option>';
@@ -996,12 +1308,67 @@ class TWTAEO_Page_Dashboard {
 				return null;
 			}
 
+			// ── AI summary for a description field ──────────────────────────
+			$(document).on('click', '.twt-aeo-ai-fill', function(e) {
+				e.preventDefault();
+				var $link = $(this);
+				if ($link.data('busy')) { return; }
+				var target = $link.data('target');
+				var orig   = $link.text();
+				$link.data('busy', 1).text('Generating…');
+				$.post(twtAeoSchemas.ajaxurl, {
+					action:  'twtaeo_ai_schema_summary',
+					nonce:   twtAeoSchemas.nonce,
+					post_id: modalPostId
+				}, function(r) {
+					$link.removeData('busy').text(orig);
+					if (r.success && r.data && r.data.text) {
+						$('#' + target).val(r.data.text);
+					} else {
+						alert((r.data && r.data.message) || r.data || 'Could not generate a summary.');
+					}
+				}).fail(function() {
+					$link.removeData('busy').text(orig);
+					alert('Request failed.');
+				});
+			});
+
 			// ── Open dialog ─────────────────────────────────────────────────
 			$(document).on('click', '.twt-aeo-schema-create-btn', function() {
 				modalPostId = $(this).data('post-id');
 				modalType   = $(this).data('schema-type');
 				var title   = $(this).data('post-title');
 				var cfg     = schemaConfig[modalType];
+
+				// WooCommerce products get a generated Product node — the
+				// detector derives offers, identifiers, shipping and returns
+				// from the product itself, same as the WooCommerce tab. Pages
+				// that only *read* as products (product intent, no Woo CPT)
+				// fall through to the manual Product form below instead, and
+				// an edit (✏) on an already-saved node always opens the editor.
+				if ( modalType === 'Product' && $(this).data('post-type') === 'product' && !$(this).data('saved') ) {
+					var $pbtn = $(this);
+					if ( $pbtn.data('twt-generating') ) { return; }
+					$pbtn.data('twt-generating', 1).text('…');
+					$.post(twtAeoSchemas.ajaxurl, {
+						action:  'twtaeo_dashboard_generate_product',
+						nonce:   twtAeoSchemas.nonce,
+						post_id: modalPostId,
+						schema_type: modalType
+					}, function(r) {
+						$pbtn.removeData('twt-generating');
+						if (r.success) {
+							updateRowTag(modalPostId, modalType, true);
+						} else {
+							$pbtn.text('+');
+							alert((r.data && r.data.message) || r.data || 'Could not generate schema.');
+						}
+					}).fail(function(){
+						$pbtn.removeData('twt-generating').text('+');
+						alert('Request failed.');
+					});
+					return;
+				}
 
 				if (!cfg) { alert('No form defined for schema type: ' + modalType); return; }
 
@@ -1076,6 +1443,12 @@ class TWTAEO_Page_Dashboard {
 						return { name: d.post_title || '' };
 					case 'WebPage':
 						return { name: d.post_title || '', url: d.post_url || '' };
+					case 'WebSite':
+						return { name: d.site_name || '', description: d.site_description || '', url: d.site_url || '' };
+					case 'Review':
+						return { item: d.post_title || '', rating: '5', date: d.post_modified || d.post_date || '' };
+					case 'HowTo':
+						return { name: d.post_title || '' };
 					case 'Event':
 						return { name: d.post_title || '', startDate: d.post_date || '', organizer: d.site_name || '' };
 					case 'BreadcrumbList':
@@ -1107,10 +1480,9 @@ class TWTAEO_Page_Dashboard {
 				}, function(res) {
 					$('#twt-aeo-dlg-save').prop('disabled', false).text('Save Schema');
 					if (res.success) {
-						showMsg('Schema saved — it will appear on the frontend of this page.', 'success');
 						updateRowTag(modalPostId, modalType, true);
 						modalHasSchema = true;
-						$('#twt-aeo-dlg-delete').show();
+						$dlg.dialog('close');
 					} else {
 						showMsg(res.data || 'Save failed.', 'error');
 					}
@@ -1190,9 +1562,10 @@ class TWTAEO_Page_Dashboard {
 							.addClass('twt-aeo-confidence--' + confClass)
 							.text( d.confidence.charAt(0).toUpperCase() + d.confidence.slice(1) );
 
-						var $missingCell  = $row.find('td').eq(4);
+						var $missingCell  = $row.find('td').eq(5);
 						var rowPostId     = $link.data('post-id');
 						var rowTitle      = $row.find('.twt-aeo-page-row__title a').text().trim();
+						var rowPostType   = $row.find('.twt-aeo-page-row__type').text().trim();
 
 						if ( d.missing.length ) {
 							var tags = d.missing.map(function(t){
@@ -1200,6 +1573,7 @@ class TWTAEO_Page_Dashboard {
 									+ '<span class="twt-aeo-tag twt-aeo-tag--missing">' + $('<span>').text(t).html() + '</span>'
 									+ '<button type="button" class="twt-aeo-schema-create-btn"'
 									+ ' data-post-id="' + rowPostId + '"'
+									+ ' data-post-type="' + $('<span>').text(rowPostType).html() + '"'
 									+ ' data-schema-type="' + $('<span>').text(t).html() + '"'
 									+ ' data-post-title="' + $('<span>').text(rowTitle).html() + '"'
 									+ ' title="Create schema">+</button>'
@@ -1212,13 +1586,17 @@ class TWTAEO_Page_Dashboard {
 							$row.removeClass('twt-aeo-page-row--issues twt-aeo-page-row--unscanned').addClass('twt-aeo-page-row--ok');
 						}
 
-						var $presentCell = $row.find('td').eq(3);
+						var $presentCell = $row.find('td').eq(4);
 						if ( d.present.length ) {
 							var ptags = d.present.map(function(t){ return '<span class="twt-aeo-tag twt-aeo-tag--present">' + $('<span>').text(t).html() + '</span>'; }).join('');
 							$presentCell.html('<div class="twt-aeo-tag-list twt-aeo-tag-list--compact">' + ptags + '</div>');
 						}
 
-						$row.find('td').eq(5).text('Just now');
+						$row.find('td').eq(6).text('Just now');
+
+						if (typeof d.score === 'number' && window.twtAeoRenderScoreRing) {
+							window.twtAeoRenderScoreRing($row.find('.twt-aeo-score-cell'), d.score, rowPostId, rowTitle);
+						}
 						$link.text('Scan Now').css('opacity', '1');
 						$link.data('nonce', nonce);
 
@@ -1229,11 +1607,68 @@ class TWTAEO_Page_Dashboard {
 			});
 
 			// ── Scan All Pages ──────────────────────────────────────────────
+			// ── Background scan polling ─────────────────────────────────────
+			// Posts beyond the foreground cap are scanned server-side; this
+			// watches the state and paints progress. Without it the handoff
+			// was invisible — the bar stopped at the foreground block and the
+			// rest of the site scanned with no feedback at all.
+			function pollBgScan( nonce ) {
+				$.post( ajaxurl, {
+					action: 'twtaeo_bg_scan_status',
+					nonce:  nonce
+				}, function( res ) {
+					if ( ! res.success ) {
+						setTimeout(function(){ pollBgScan( nonce ); }, 10000);
+						return;
+					}
+					var s = res.data;
+					if ( s.status === 'done' ) {
+						$('#twt-aeo-progress-fill').css('width', '100%');
+						$('#twt-aeo-progress-label').text(
+							'Background scan complete — ' + s.done + ' pages scanned'
+							+ ( s.errors > 0 ? ' (' + s.errors + ' errors)' : '' ) + ' — reloading…'
+						);
+						setTimeout(function(){ location.reload(); }, 1500);
+						return;
+					}
+					if ( s.running ) {
+						var pct = s.total > 0 ? Math.round( (s.done / s.total) * 100 ) : 0;
+						$('#twt-aeo-progress-fill').css('width', pct + '%');
+						$('#twt-aeo-progress-label').text(
+							'Background scan… ' + s.done + ' / ' + s.total + ' remaining pages (you can leave this page)'
+						);
+					}
+					setTimeout(function(){ pollBgScan( nonce ); }, 5000);
+				}).fail(function(){
+					setTimeout(function(){ pollBgScan( nonce ); }, 10000);
+				});
+			}
+
+			// Resume the progress display when a background scan was already
+			// running when this page loaded.
+			(function() {
+				var $prog = $('#twt-aeo-scan-progress');
+				if ( String($prog.data('bg-running')) !== '1' ) { return; }
+				var done  = parseInt( $prog.data('bg-done'), 10 )  || 0;
+				var total = parseInt( $prog.data('bg-total'), 10 ) || 0;
+				var pct   = total > 0 ? Math.round( (done / total) * 100 ) : 0;
+				$('#twt-aeo-scan-all-btn').prop('disabled', true).css('opacity', '0.6');
+				$('#twt-aeo-progress-fill').css('width', pct + '%');
+				$('#twt-aeo-progress-label').text('Background scan… ' + done + ' / ' + total + ' remaining pages');
+				$prog.show();
+				pollBgScan( $('#twt-aeo-scan-all-btn').data('nonce') );
+			})();
+
 			$('#twt-aeo-scan-all-btn').on('click', function() {
-				var $btn    = $(this);
-				var nonce   = $btn.data('nonce');
-				var ids     = $btn.data('ids');
-				var total   = ids.length;
+				var $btn      = $(this);
+				var nonce     = $btn.data('nonce');
+				var ids       = $btn.data('ids');
+				var total     = ids.length;
+				// The label and bar always speak in SITE totals — the foreground
+				// pass covers only the newest block, but presenting its size as
+				// the total made "…/ 200" read as the whole site on large ones.
+				var remaining = parseInt( $btn.data('remaining'), 10 ) || 0;
+				var siteTotal = total + remaining;
 
 				if ( total === 0 ) { return; }
 
@@ -1244,13 +1679,36 @@ class TWTAEO_Page_Dashboard {
 				var errors = 0;
 
 				function updateProgress() {
-					var pct = Math.round( (done / total) * 100 );
+					var pct = Math.round( (done / siteTotal) * 100 );
 					$('#twt-aeo-progress-fill').css('width', pct + '%');
-					$('#twt-aeo-progress-label').text( 'Scanning… ' + done + ' / ' + total );
+					$('#twt-aeo-progress-label').text(
+						'Scanning… ' + done + ' / ' + siteTotal
+						+ ( remaining > 0 ? ' (newest ' + total + ' first, then ' + remaining + ' in the background)' : '' )
+					);
 				}
 
 				function scanNext( index ) {
 					if ( index >= total ) {
+						// ⚠️ The foreground pass covers only the FOREGROUND_CAP most
+						// recent posts. Everything beyond it is handed to the
+						// server-side background scanner here — without this call
+						// "Scan All Pages" on a large site scanned exactly 200 and
+						// silently stopped.
+						if ( remaining > 0 ) {
+							$('#twt-aeo-progress-label').text(
+								done + ' pages scanned — continuing ' + remaining + ' more in the background…'
+							);
+							$.post( ajaxurl, { action: 'twtaeo_bg_scan_start', nonce: nonce }, function( res ) {
+								if ( res && res.success ) {
+									pollBgScan( nonce );
+								} else {
+									setTimeout(function(){ location.reload(); }, 1500 );
+								}
+							}).fail(function(){
+								setTimeout(function(){ location.reload(); }, 1500 );
+							});
+							return;
+						}
 						$('#twt-aeo-progress-label').text(
 							done + ' pages scanned' + ( errors > 0 ? ' (' + errors + ' errors)' : '' ) + ' — reloading…'
 						);
@@ -1448,6 +1906,188 @@ class TWTAEO_Page_Dashboard {
 
 			// Resume the live view if a job is already running when the page loads.
 			if (String($wrap.data('running')) === '1'){ startPolling(); }
+		});
+		<?php
+		$js = ob_get_clean();
+		wp_add_inline_script( 'twt-aeo-admin', $js );
+		ob_start();
+		?>
+		jQuery(document).ready(function($) {
+
+			// ── AEO Score: ring rendering + breakdown dialog ────────────────
+			function ringColor(s) { return s >= 80 ? '#16a34a' : (s >= 50 ? '#d97706' : '#dc2626'); }
+
+			function esc(s) {
+				return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			}
+
+			// Redraws a row's score cell — also called by Scan Now with the fresh score.
+			window.twtAeoRenderScoreRing = function($cell, score, postId, title) {
+				var c = ringColor(score), dash = Math.round(75.4 * score / 100 * 10) / 10;
+				$cell.html(
+					'<button type="button" class="twt-aeo-score-ring" data-post-id="' + postId + '"'
+					+ ' data-post-title="' + esc(title||'') + '"'
+					+ ' title="See the full score breakdown" style="background:none;border:0;padding:0;cursor:pointer;">'
+					+ '<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true">'
+					+ '<circle cx="16" cy="16" r="12" fill="none" stroke="#e5e7eb" stroke-width="3.5"/>'
+					+ '<circle cx="16" cy="16" r="12" fill="none" stroke="' + c + '" stroke-width="3.5" stroke-linecap="round"'
+					+ ' stroke-dasharray="' + dash + ' 75.4" transform="rotate(-90 16 16)"/>'
+					+ '<text x="16" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="' + c + '">' + score + '</text>'
+					+ '</svg></button>'
+				);
+			};
+
+			var $scoreDlg = $('#twt-aeo-score-dialog');
+			$scoreDlg.dialog({
+				autoOpen: false,
+				modal: true,
+				width: 640,
+				maxHeight: 560,
+				buttons: [ { text: 'Close', click: function(){ $scoreDlg.dialog('close'); } } ]
+			});
+
+			function breakdownHtml(b) {
+				var h = '<p style="margin:0 0 4px;font-size:13px;color:#50575e;">'
+					+ 'Scored as <strong>' + esc(b.intent || 'General Page') + '</strong> — pages are only measured against surfaces their intent calls for. '
+					+ 'The score is the sum of the lines below; nothing is hidden.</p>';
+				(b.categories || []).forEach(function(cat) {
+					var pct = cat.max > 0 ? Math.round(100 * cat.earned / cat.max) : 0;
+					h += '<h4 style="margin:14px 0 4px;font-size:13px;">' + esc(cat.label)
+						+ ' <span style="color:' + ringColor(pct) + ';">' + cat.earned + ' / ' + cat.max + '</span></h4>';
+					h += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+					(cat.items || []).forEach(function(it) {
+						var full = it.pts >= it.max;
+						var fixHtml = '';
+						if (!full) {
+							// Company/Author moved to tabs of the E-E-A-T page; rewrite
+							// links stored in breakdowns from before the move.
+							if (it.fix) {
+								it.fix = it.fix
+									.replace('page=twt-aeo-company', 'page=twt-aeo-eeat&tab=company')
+									.replace('page=twt-aeo-author',  'page=twt-aeo-eeat&tab=author');
+							}
+							if (it.create) {
+								// Created from this page's own dashboard row — trigger it
+								// directly instead of linking back to the page we're on.
+								fixHtml = ' <a href="#" class="twt-aeo-link twt-aeo-score-create" data-type="' + esc(it.create) + '">' + esc(it.fix_label || 'Create it now') + '</a>';
+							} else if (it.fix && it.fix.indexOf('page=twt-aeo') > -1 && (it.fix.indexOf('#missing-') > -1 || /page=twt-aeo\/?$/.test(it.fix))) {
+								// Legacy breakdown (stored before create-links existed):
+								// the fix pointed at this same dashboard — dead link, show text.
+								fixHtml = ' <span style="color:#646970;">' + esc(it.fix_label || '') + '</span>';
+							} else if (it.fix) {
+								fixHtml = ' <a href="' + esc(it.fix) + '" class="twt-aeo-link">' + esc(it.fix_label || 'Fix') + '</a>';
+							}
+						}
+						h += '<tr style="border-top:1px solid #f0f0f1;">'
+							+ '<td style="padding:5px 8px 5px 0;width:18px;color:' + (full ? '#16a34a' : '#dc2626') + ';font-weight:700;">' + (full ? '✓' : '✕') + '</td>'
+							+ '<td style="padding:5px 8px 5px 0;white-space:nowrap;vertical-align:top;"><strong>' + esc(it.label) + '</strong><br/><span style="color:#646970;">' + it.pts + ' / ' + it.max + '</span></td>'
+							+ '<td style="padding:5px 0;color:#50575e;">' + esc(it.why) + fixHtml
+							+ '</td></tr>';
+					});
+					h += '</table>';
+				});
+				return h;
+			}
+
+			// "Create it now" inside the breakdown: close this dialog and open the
+			// create modal for that type. A synthesized trigger is used because
+			// recommended types have no + button on the row and the row itself
+			// may be on another table page — the modal needs neither.
+			var scoreDialogPostId = 0;
+			var scoreDialogTitle  = '';
+			$(document).on('click', '.twt-aeo-score-create', function(e) {
+				e.preventDefault();
+				var type = $(this).data('type');
+				$scoreDlg.dialog('close');
+				var $tmp = $('<button type="button" class="twt-aeo-schema-create-btn" style="display:none"></button>')
+					.attr('data-post-id', scoreDialogPostId)
+					.attr('data-schema-type', type)
+					.attr('data-post-title', scoreDialogTitle)
+					.appendTo('body');
+				$tmp.trigger('click');
+				$tmp.remove();
+			});
+
+			// ── Bulk schema autofill ─────────────────────────────────────────
+			$('#twt-aeo-autofill-btn').on('click', function() {
+				var $btn    = $(this);
+				var $status = $('#twt-aeo-autofill-status');
+				var created = {}, needs = {}, pages = 0;
+
+				$btn.prop('disabled', true);
+				$status.text('Filling…');
+
+				function fmtCounts(obj) {
+					return Object.keys(obj).sort().map(function(k){ return obj[k] + ' ' + k; }).join(', ');
+				}
+
+				function batch(offset) {
+					$.post(twtAeoSchemas.ajaxurl, {
+						action: 'twtaeo_autofill_schemas',
+						nonce:  twtAeoSchemas.nonce,
+						offset: offset
+					}, function(r) {
+						if (!r.success) {
+							$btn.prop('disabled', false);
+							$status.text((r.data && r.data.message) || r.data || 'Autofill failed.');
+							return;
+						}
+						var d = r.data;
+						Object.keys(d.created).forEach(function(k){ created[k] = (created[k]||0) + d.created[k]; });
+						Object.keys(d.needs_data).forEach(function(k){ needs[k] = (needs[k]||0) + d.needs_data[k]; });
+						pages += d.pages_changed;
+
+						if (!d.done) {
+							$status.text('Filling… ' + Math.min(d.next_offset, d.total) + ' of ' + d.total + ' pages checked');
+							batch(d.next_offset);
+							return;
+						}
+
+						$btn.prop('disabled', false);
+						$status.text('');
+						var createdTotal = Object.keys(created).reduce(function(s,k){ return s + created[k]; }, 0);
+						var html = '';
+						if (createdTotal) {
+							html += '<p style="margin:0 0 6px;"><strong>✓ Created ' + createdTotal + ' schema' + (createdTotal===1?'':'s') + ' across ' + pages + ' page' + (pages===1?'':'s') + ':</strong> ' + fmtCounts(created) + '.</p>';
+						} else {
+							html += '<p style="margin:0 0 6px;"><strong>Nothing to fill</strong> — every auto-fillable schema already exists on the scanned pages.</p>';
+						}
+						if (Object.keys(needs).length) {
+							html += '<p style="margin:0 0 6px;color:#646970;">Left for you (needs facts only you know — dates, prices, addresses not on file): ' + fmtCounts(needs) + '. These still show + buttons on their rows.</p>';
+						}
+						html += '<p style="margin:0;"><a href="#" onclick="location.reload();return false;" class="twt-aeo-link">Reload to see updated rows and scores</a></p>';
+						$('#twt-aeo-autofill-summary').html(html).show();
+					}).fail(function(){
+						$btn.prop('disabled', false);
+						$status.text('Request failed — anything already created is saved; run again to continue.');
+					});
+				}
+
+				batch(0);
+			});
+
+			$(document).on('click', '.twt-aeo-score-ring', function() {
+				var postId = $(this).data('post-id');
+				var title  = $(this).data('post-title') || '';
+				scoreDialogPostId = postId;
+				scoreDialogTitle  = title;
+				$('#twt-aeo-score-dialog-body').html('<p class="twt-aeo-muted">Loading…</p>');
+				$scoreDlg.dialog('option', 'title', 'AEO Score — ' + title);
+				$scoreDlg.dialog('open');
+				$.post(twtAeoSchemas.ajaxurl, {
+					action:  'twtaeo_get_page_score',
+					nonce:   twtAeoSchemas.nonce,
+					post_id: postId
+				}, function(r) {
+					if (r.success) {
+						$('#twt-aeo-score-dialog-body').html(breakdownHtml(r.data));
+					} else {
+						$('#twt-aeo-score-dialog-body').html('<p class="twt-aeo-muted">' + esc((r.data && r.data.message) || r.data || 'Could not load the breakdown.') + '</p>');
+					}
+				}).fail(function(){
+					$('#twt-aeo-score-dialog-body').html('<p class="twt-aeo-muted">Request failed.</p>');
+				});
+			});
 		});
 		<?php
 		$js = ob_get_clean();

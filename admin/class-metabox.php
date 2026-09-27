@@ -265,7 +265,7 @@ class TWTAEO_Metabox {
 	 * @param int $post_id
 	 */
 	private static function gen_button( $action, $nonce_action, $label, $post_id ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_twtaeo' ) ) {
 			return;
 		}
 		?>
@@ -304,7 +304,7 @@ class TWTAEO_Metabox {
 	private static function tag_with_fix( $type, $tag_class ) {
 		$link = self::fix_link_for_type( $type );
 		echo '<span class="twt-aeo-metabox__tag ' . esc_attr( $tag_class ) . '">' . esc_html( $type ) . '</span>';
-		if ( $link && current_user_can( 'manage_options' ) ) {
+		if ( $link && current_user_can( 'manage_twtaeo' ) ) {
 			echo ' <a href="' . esc_url( $link ) . '" class="twt-aeo-metabox__link" style="font-size:11px;">' . esc_html__( 'Fix', 'twt-aeo-ultimate' ) . '</a>';
 		}
 	}

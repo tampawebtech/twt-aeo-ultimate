@@ -41,5 +41,15 @@ class TWTAEO_Deactivator {
 		if ( class_exists( 'TWTAEO_Background_Scan' ) ) {
 			TWTAEO_Background_Scan::clear_schedule();
 		}
+
+		// Stop the Smart 404 AI scan cron; queue/redirect stores are preserved.
+		if ( class_exists( 'TWTAEO_Smart_404' ) ) {
+			TWTAEO_Smart_404::clear_schedule();
+		}
+
+		// Stop the AI Visibility background worker; runs stay resumable.
+		if ( class_exists( 'TWTAEO_Visibility' ) ) {
+			TWTAEO_Visibility::clear_schedule();
+		}
 	}
 }

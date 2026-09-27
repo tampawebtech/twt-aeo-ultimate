@@ -24,6 +24,32 @@ class TWTAEO_Company_Schema_Writer {
 	}
 
 	public static function output_schema() {
+		// When the Knowledge Graph module is active it is the identity source and
+		// emits the Organization inside its unified @graph — defer to avoid a
+		// duplicate Organization node.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' ) && TWTAEO_Knowledge_Graph::is_folding() ) {
+			return;
+		}
+
+		// Switched off on the Schema Conflicts screen. This is the merchant saying so
+		// directly, so no replacement check applies — unlike the hand-over below.
+		if ( ! TWTAEO_Output_Control::enabled( 'schema_identity' ) ) {
+			return;
+		}
+
+		// Handed to AEO Ultimate for WooCommerce — but only stand down once that
+		// plugin is confirmed to be publishing an Organization at the shared @id on
+		// *this* request.
+		//
+		// ⚠️ The second test is not belt-and-braces. This block emits precisely when
+		// no graph is folding, and the other plugin's own answer is empty in that
+		// state too, so a choice-only check would delete the store's Organization on
+		// exactly the pages where nothing replaces it.
+		if ( TWTAEO_Commerce_Handoff::stands_down( 'schema_identity' )
+			&& TWTAEO_Commerce_Handoff::superseded( home_url( '/#organization' ) ) ) {
+			return;
+		}
+
 		$company = TWTAEO_Company_Profile::get();
 
 		if ( empty( $company['output_org_schema'] ) ) {

@@ -65,6 +65,16 @@
 						if ( results[ taskId ] === 'done' ) {
 							badge.className  = 'twt-aeo-wizard__status-badge twt-aeo-wizard__status-badge--done';
 							badge.textContent = twtAeoWizard.doneText || 'Done';
+						} else if ( results[ taskId ] === 'queued' ) {
+							// Background half: heavy no-AI work continues on a
+							// cron event; the completion screen reports on it.
+							badge.className  = 'twt-aeo-wizard__status-badge twt-aeo-wizard__status-badge--done';
+							badge.textContent = twtAeoWizard.queuedText || 'Running in background';
+						} else if ( results[ taskId ] === 'skipped' ) {
+							// Another plugin owns this surface — skipping is the
+							// correct outcome, not a failure.
+							badge.className  = 'twt-aeo-wizard__status-badge twt-aeo-wizard__status-badge--pending';
+							badge.textContent = twtAeoWizard.skippedText || 'Skipped — handled by another plugin';
 						} else {
 							badge.className  = 'twt-aeo-wizard__status-badge twt-aeo-wizard__status-badge--error';
 							badge.textContent = twtAeoWizard.errorText || 'Error';

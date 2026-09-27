@@ -58,9 +58,12 @@ class TWTAEO_OG_Writer {
 		if ( empty( $title ) ) $title = get_the_title( $post_id );
 		if ( empty( $type )  ) $type  = 'website';
 		if ( empty( $image ) ) {
-			$image = get_the_post_thumbnail_url( $post_id, 'large' );
-			if ( $image && empty( $image_alt ) ) {
-				$image_alt = self::image_label( get_post_thumbnail_id( $post_id ) );
+			$resolved = self::effective_image( $post_id );
+			if ( $resolved ) {
+				$image = $resolved['url'];
+				if ( empty( $image_alt ) && $resolved['id'] ) {
+					$image_alt = self::image_label( $resolved['id'] );
+				}
 			}
 		}
 
@@ -82,6 +85,39 @@ class TWTAEO_OG_Writer {
 				echo '<meta property="og:image:alt" content="' . esc_attr( $image_alt ) . '">' . "\n";
 			}
 		}
+	}
+
+	/**
+	 * The image this page will actually share, walking the whole fallback
+	 * chain: saved og:image → featured image → first WooCommerce gallery
+	 * image. One chain, used by the OG output, the Twitter Card downgrade
+	 * decision, and the Social Graph screen — three surfaces disagreeing
+	 * about "has an image" is how a merchant stops trusting all of them.
+	 *
+	 * @param int $post_id
+	 * @return array|null { url: string, id: int } — id is 0 for a saved URL
+	 *                    with no known attachment. Null when no image exists.
+	 */
+	public static function effective_image( $post_id ) {
+		$saved = get_post_meta( $post_id, self::META_IMAGE, true );
+		if ( ! empty( $saved ) ) {
+			return array( 'url' => $saved, 'id' => 0 );
+		}
+		$thumb = get_the_post_thumbnail_url( $post_id, 'large' );
+		if ( $thumb ) {
+			return array( 'url' => $thumb, 'id' => (int) get_post_thumbnail_id( $post_id ) );
+		}
+		if ( 'product' === get_post_type( $post_id ) && function_exists( 'wc_get_product' ) ) {
+			$product = wc_get_product( $post_id );
+			$gallery = $product ? $product->get_gallery_image_ids() : array();
+			if ( ! empty( $gallery ) ) {
+				$url = wp_get_attachment_image_url( $gallery[0], 'large' );
+				if ( $url ) {
+					return array( 'url' => $url, 'id' => (int) $gallery[0] );
+				}
+			}
+		}
+		return null;
 	}
 
 	/**

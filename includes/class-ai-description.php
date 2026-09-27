@@ -42,10 +42,7 @@ class TWTAEO_AI_Description {
 	const JOB_GAP    = 12;  // Seconds between batches — eases rate limits.
 	const JOB_MAX_NET_FAILS = 5; // Consecutive network errors before giving up.
 
-	// Lean, low-cost models suited to short summaries.
-	const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
-	const OPENAI_MODEL = 'gpt-5.4-mini';
-	const GEMINI_MODEL = 'gemini-2.5-flash';
+	// Text models are the site's choice — see TWTAEO_AI_Models.
 
 	// OpenAI image generation (used for AI-generated og:image).
 	const OPENAI_IMAGE_MODEL = 'gpt-image-2';
@@ -212,17 +209,17 @@ class TWTAEO_AI_Description {
 		return array(
 			'claude' => array(
 				'label' => 'Claude',
-				'model' => self::CLAUDE_MODEL,
+				'model' => TWTAEO_AI_Models::get( 'claude' ),
 				'note'  => __( 'Fast and reliable. Haiku is tuned for short summaries — usually a second or two per post.', 'twt-aeo-ultimate' ),
 			),
 			'openai' => array(
 				'label' => 'OpenAI (ChatGPT)',
-				'model' => self::OPENAI_MODEL,
-				'note'  => __( 'Fast and low-cost. GPT-4o mini is quick for this task — comparable to Claude.', 'twt-aeo-ultimate' ),
+				'model' => TWTAEO_AI_Models::get( 'openai' ),
+				'note'  => __( 'Fast and low-cost. The Luna and mini models are quick for this task — comparable to Claude.', 'twt-aeo-ultimate' ),
 			),
 			'gemini' => array(
 				'label' => 'Gemini',
-				'model' => self::GEMINI_MODEL,
+				'model' => TWTAEO_AI_Models::get( 'gemini' ),
 				'note'  => __( 'Slower than Claude or OpenAI, especially on the free tier — a large bulk run can take several minutes. It keeps working in the background, so you can leave this page and check back later.', 'twt-aeo-ultimate' ),
 			),
 		);
@@ -302,6 +299,13 @@ class TWTAEO_AI_Description {
 		$content  = wp_strip_all_tags( wp_strip_all_tags( apply_filters( 'the_content', $post->post_content ) ) );
 		$content  = trim( preg_replace( '/\s+/', ' ', $content ) );
 
+		// Fold in the excerpt — for products that is the short description, often
+		// the whole sales pitch, and without it many products read as "thin".
+		$excerpt = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $post->post_excerpt ) ) );
+		if ( '' !== $excerpt && false === strpos( $content, $excerpt ) ) {
+			$content = trim( $excerpt . ' ' . $content );
+		}
+
 		if ( '' === $content && '' === $title ) {
 			return new WP_Error( 'empty', __( 'This post has no content to summarise.', 'twt-aeo-ultimate' ) );
 		}
@@ -363,116 +367,20 @@ class TWTAEO_AI_Description {
 			);
 		}
 
-		switch ( $provider ) {
-			case 'claude':
-				return self::call_claude( $key, $prompt );
-			case 'openai':
-				return self::call_openai( $key, $prompt );
-			case 'gemini':
-				return self::call_gemini( $key, $prompt );
+		if ( ! in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ) {
+			return new WP_Error( 'unknown_provider', __( 'Unknown AI provider.', 'twt-aeo-ultimate' ) );
 		}
 
-		return new WP_Error( 'unknown_provider', __( 'Unknown AI provider.', 'twt-aeo-ultimate' ) );
-	}
-
-	private static function call_claude( $api_key, $prompt ) {
-		$response = wp_remote_post( 'https://api.anthropic.com/v1/messages', array(
-			'timeout' => 60,
-			'headers' => array(
-				'x-api-key'         => $api_key,
-				'anthropic-version' => '2023-06-01',
-				'content-type'      => 'application/json',
-			),
-			'body'    => wp_json_encode( array(
-				'model'      => self::CLAUDE_MODEL,
-				'max_tokens' => 200,
-				'messages'   => array( array( 'role' => 'user', 'content' => $prompt ) ),
-			) ),
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( 200 !== $code ) {
-			return new WP_Error( 'claude_error', $body['error']['message'] ?? "Claude API error (HTTP $code)" );
-		}
-		return $body['content'][0]['text'] ?? new WP_Error( 'claude_empty', __( 'Claude returned no content.', 'twt-aeo-ultimate' ) );
-	}
-
-	private static function call_openai( $api_key, $prompt ) {
-		$response = wp_remote_post( 'https://api.openai.com/v1/chat/completions', array(
-			'timeout' => 60,
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $api_key,
-				'Content-Type'  => 'application/json',
-			),
-			'body'    => wp_json_encode( array(
-				'model'                 => self::OPENAI_MODEL,
-				// GPT-5 reasoning models use max_completion_tokens (not max_tokens)
-				// and reject temperature; minimal reasoning keeps short summaries fast.
-				'max_completion_tokens' => 512,
-				'reasoning_effort'      => 'minimal',
-				'messages'              => array( array( 'role' => 'user', 'content' => $prompt ) ),
-			) ),
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( 200 !== $code ) {
-			return new WP_Error( 'openai_error', $body['error']['message'] ?? "OpenAI API error (HTTP $code)" );
-		}
-		return $body['choices'][0]['message']['content'] ?? new WP_Error( 'openai_empty', __( 'OpenAI returned no content.', 'twt-aeo-ultimate' ) );
-	}
-
-	private static function call_gemini( $api_key, $prompt ) {
-		$endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/'
-			. self::GEMINI_MODEL . ':generateContent?key=' . rawurlencode( $api_key );
-
-		$response = wp_remote_post( $endpoint, array(
-			'timeout' => 60,
-			'headers' => array( 'Content-Type' => 'application/json' ),
-			'body'    => wp_json_encode( array(
-				'contents'         => array(
-					array( 'parts' => array( array( 'text' => $prompt ) ) ),
-				),
-				'generationConfig' => array(
-					// gemini-2.5-* are reasoning models: by default they spend output
-					// tokens "thinking" before answering, which on a small budget
-					// leaves little room for the actual text. Disable thinking so the
-					// whole budget goes to the description, and give it headroom.
-					'maxOutputTokens' => 512,
-					'temperature'     => 0.7,
-					'thinkingConfig'  => array( 'thinkingBudget' => 0 ),
-				),
-			) ),
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( 200 !== $code ) {
-			return new WP_Error( 'gemini_error', $body['error']['message'] ?? "Gemini API error (HTTP $code)" );
-		}
-		$text = $body['candidates'][0]['content']['parts'][0]['text'] ?? '';
-		if ( '' !== $text ) {
-			return $text;
-		}
-		// Empty text usually means the response was cut off — surface the reason
-		// (e.g. MAX_TOKENS) so a thin/empty result is diagnosable, not generic.
-		$reason = $body['candidates'][0]['finishReason'] ?? '';
-		return new WP_Error(
-			'gemini_empty',
-			$reason
-				/* translators: %s: Gemini finishReason, e.g. MAX_TOKENS. */
-				? sprintf( __( 'Gemini returned no usable text (finishReason: %s).', 'twt-aeo-ultimate' ), $reason )
-				: __( 'Gemini returned no content.', 'twt-aeo-ultimate' )
+		// The shared client knows each model family's request rules (temperature,
+		// thinking, reasoning effort), so descriptions follow the model picked in
+		// Settings without a second copy of those rules here.
+		return TWTAEO_AI_Client::complete(
+			$provider,
+			$prompt,
+			array(
+				'max_tokens'  => 200,
+				'temperature' => 0.7,
+			)
 		);
 	}
 
@@ -482,21 +390,38 @@ class TWTAEO_AI_Description {
 			return new WP_Error( 'no_ai_client', __( 'The WordPress AI Client is not available.', 'twt-aeo-ultimate' ) );
 		}
 
-		$model = ( 'openai' === $provider ) ? self::OPENAI_MODEL : self::CLAUDE_MODEL;
+		$model = TWTAEO_AI_Models::get( $provider );
 
 		try {
 			$builder = $ai_prompt( $prompt );
 			if ( ! is_object( $builder ) ) {
 				return new WP_Error( 'ai_client_shape', __( 'The WordPress AI Client returned an unexpected response.', 'twt-aeo-ultimate' ) );
 			}
-			if ( method_exists( $builder, 'using_model_preference' ) ) {
-				$builder = $builder->using_model_preference( $model );
+			// 🛑 The WP wrapper serves every fluent method through `__call`, mapping
+			// snake_case onto the SDK's camelCase builder — so `is_callable()` is
+			// true for ANY name. Calling a name the SDK lacks does NOT throw: the
+			// wrapper records a `prompt_builder_error` internally and the eventual
+			// generate_text() returns it ("Method using_max_output_tokens does not
+			// exist on WordPress\AiClient\Builders\PromptBuilder"), aborting the
+			// generation. try/catch cannot save a poisoned builder, so the ONLY
+			// safe probe is method_exists() on the underlying SDK class itself.
+			// (This SDK's real cap method is usingMaxTokens; usingMaxOutputTokens
+			// never existed.)
+			$sdk_builder = '\\WordPress\\AiClient\\Builders\\PromptBuilder';
+			$sdk_has     = static function ( $camel ) use ( $sdk_builder ) {
+				return class_exists( $sdk_builder ) && method_exists( $sdk_builder, $camel );
+			};
+			if ( $sdk_has( 'usingModelPreference' ) ) {
+				$preferred = $builder->using_model_preference( $model );
+				if ( is_object( $preferred ) ) {
+					$builder = $preferred;
+				}
 			}
-			if ( method_exists( $builder, 'using_max_output_tokens' ) ) {
-				$builder = $builder->using_max_output_tokens( 200 );
-			}
-			if ( ! method_exists( $builder, 'generate_text' ) ) {
-				return new WP_Error( 'ai_client_unsupported', __( 'This WordPress AI Client version cannot generate text.', 'twt-aeo-ultimate' ) );
+			if ( $sdk_has( 'usingMaxTokens' ) ) {
+				$capped = $builder->using_max_tokens( 200 );
+				if ( is_object( $capped ) ) {
+					$builder = $capped;
+				}
 			}
 			$text = $builder->generate_text();
 		} catch ( \Throwable $e ) {
@@ -947,6 +872,17 @@ class TWTAEO_AI_Description {
 			return;
 		}
 
+		// Switched off on the Schema Conflicts screen, or handed to AEO Ultimate for
+		// WooCommerce.
+		//
+		// That plugin is deliberately *not* added to seo_plugin_active() above: that
+		// list is the five general SEO plugins this one has always stepped aside for
+		// automatically, and adding a sixth would mean deferring whenever it is
+		// installed rather than when the merchant asked.
+		if ( ! TWTAEO_Output_Control::should_write( 'meta_description' ) ) {
+			return;
+		}
+
 		$desc = get_post_meta( get_the_ID(), self::META_KEY, true );
 		if ( empty( $desc ) ) {
 			return;
@@ -971,9 +907,25 @@ class TWTAEO_AI_Description {
 	 * @param int $limit
 	 * @return int[] Post IDs.
 	 */
+	/**
+	 * Post types the bulk description tools cover. Must match what the Social
+	 * Graph screen scans (TWTAEO_OG_Detector::post_types()) — on a store, most
+	 * rows on that screen ARE products, and a bulk button that silently skips
+	 * them reports "0 created" to a merchant staring at 900 missing rows.
+	 *
+	 * @return string[]
+	 */
+	private static function bulk_post_types() {
+		$types = array( 'post', 'page' );
+		if ( class_exists( 'WooCommerce' ) ) {
+			$types[] = 'product';
+		}
+		return $types;
+	}
+
 	public static function get_posts_missing_description( $limit = 200 ) {
 		$posts = get_posts( array(
-			'post_type'      => array( 'post', 'page' ),
+			'post_type'      => self::bulk_post_types(),
 			'post_status'    => 'publish',
 			'posts_per_page' => $limit,
 			'fields'         => 'ids',
@@ -994,7 +946,7 @@ class TWTAEO_AI_Description {
 	 */
 	public static function get_posts_missing_og( $limit = 200 ) {
 		$posts = get_posts( array(
-			'post_type'      => array( 'post', 'page' ),
+			'post_type'      => self::bulk_post_types(),
 			'post_status'    => 'publish',
 			'posts_per_page' => $limit,
 			'fields'         => 'ids',
@@ -1231,13 +1183,24 @@ class TWTAEO_AI_Description {
 			);
 			$class = 'notice-warning';
 		} else {
-			$message = sprintf(
-				/* translators: 1: feature label, 2: number of descriptions created. */
-				__( '%1$s finished — %2$d created.', 'twt-aeo-ultimate' ),
-				$label,
-				(int) $state['created']
-			);
-			$class = 'notice-success';
+			$skips = (int) $state['errors'];
+			if ( $skips > 0 ) {
+				$message = sprintf(
+					/* translators: 1: feature label, 2: number created, 3: number skipped. */
+					__( '%1$s finished — %2$d created, %3$d skipped (not enough content to summarise).', 'twt-aeo-ultimate' ),
+					$label,
+					(int) $state['created'],
+					$skips
+				);
+			} else {
+				$message = sprintf(
+					/* translators: 1: feature label, 2: number of descriptions created. */
+					__( '%1$s finished — %2$d created.', 'twt-aeo-ultimate' ),
+					$label,
+					(int) $state['created']
+				);
+			}
+			$class = ( (int) $state['created'] > 0 ) ? 'notice-success' : 'notice-warning';
 		}
 
 		$dismiss_url = wp_nonce_url( add_query_arg( 'twtaeo_ai_desc_dismiss', 1 ), 'twtaeo_ai_desc_dismiss' );

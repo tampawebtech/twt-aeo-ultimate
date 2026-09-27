@@ -91,29 +91,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 				</div>
 			</div>
 
-			<?php if ( $show_tabs ) : ?>
-			<nav class="twt-aeo-tabs">
-				<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-woocommerce', 'tab' => 'products' ), admin_url( 'admin.php' ) ) ); ?>"
-				   class="twt-aeo-tab <?php echo $tab === 'products' ? 'twt-aeo-tab--active' : ''; ?>">
-					<span class="dashicons dashicons-cart"></span>
-					<?php esc_html_e( 'Products', 'twt-aeo-ultimate' ); ?>
-				</a>
-				<?php if ( $gmc_active ) : ?>
-				<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-woocommerce', 'tab' => 'gmc' ), admin_url( 'admin.php' ) ) ); ?>"
-				   class="twt-aeo-tab <?php echo $tab === 'gmc' ? 'twt-aeo-tab--active' : ''; ?>">
-					<span class="dashicons dashicons-google"></span>
-					<?php esc_html_e( 'Google Merchant Center', 'twt-aeo-ultimate' ); ?>
-				</a>
-				<?php endif; ?>
-				<?php if ( $bmc_active ) : ?>
-				<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-woocommerce', 'tab' => 'bmc' ), admin_url( 'admin.php' ) ) ); ?>"
-				   class="twt-aeo-tab <?php echo $tab === 'bmc' ? 'twt-aeo-tab--active' : ''; ?>">
-					<span class="dashicons dashicons-search"></span>
-					<?php esc_html_e( 'Bing Merchant Center', 'twt-aeo-ultimate' ); ?>
-				</a>
-				<?php endif; ?>
-			</nav>
-			<?php endif; ?>
+			<?php self::render_commerce_tabs( $tab ); ?>
 
 			<?php if ( $tab === 'gmc' ) : ?>
 				<?php self::render_gmc_tab(); ?>
@@ -127,37 +105,288 @@ class TWTAEO_Page_WooCommerce_Detector {
 		<?php
 	}
 
+	/**
+	 * The shared commerce tab bar: Products / GMC / BMC render in-page on this
+	 * screen; Smart Collections and Promotions are their own admin pages (they
+	 * carry sub-tabs of their own, so their `tab` param cannot nest inside this
+	 * page's) — hidden from the sidebar and reached only through this bar, so
+	 * the merchant experiences one tabbed WooCommerce screen.
+	 *
+	 * @param string $active One of products|gmc|bmc|collections|promotions.
+	 */
+	public static function render_commerce_tabs( $active ) {
+		$modules = isset( $GLOBALS['twtaeo_plugin'] ) ? $GLOBALS['twtaeo_plugin']->get_modules() : null;
+
+		$wc_url = static function ( $tab ) {
+			return add_query_arg( array( 'page' => 'twt-aeo-woocommerce', 'tab' => $tab ), admin_url( 'admin.php' ) );
+		};
+
+		// Every commerce feature is always a tab. A module that is off renders as
+		// a dimmed tab pointing at Modules — hiding it would hide the gap, and a
+		// merchant who never learns Promotions exists never publishes the data.
+		$tabs = array(
+			'products' => array(
+				'label'  => __( 'Products', 'twt-aeo-ultimate' ),
+				'icon'   => 'dashicons-cart',
+				'url'    => $wc_url( 'products' ),
+				'active' => true,
+			),
+			'gmc' => array(
+				'label'  => __( 'Google Merchant Center', 'twt-aeo-ultimate' ),
+				'icon'   => 'dashicons-google',
+				'url'    => $wc_url( 'gmc' ),
+				'active' => $modules ? $modules->is_active( 'woocommerce-gmc' ) : false,
+			),
+			'bmc' => array(
+				'label'  => __( 'Bing Merchant Center', 'twt-aeo-ultimate' ),
+				'icon'   => 'dashicons-search',
+				'url'    => $wc_url( 'bmc' ),
+				'active' => $modules ? $modules->is_active( 'woocommerce-bmc' ) : false,
+			),
+			'collections' => array(
+				'label'  => __( 'Smart Collections', 'twt-aeo-ultimate' ),
+				'icon'   => 'dashicons-screenoptions',
+				'url'    => admin_url( 'admin.php?page=twt-aeo-collections' ),
+				'active' => $modules ? $modules->is_active( 'smart-collections' ) : false,
+			),
+			'promotions' => array(
+				'label'  => __( 'Promotions', 'twt-aeo-ultimate' ),
+				'icon'   => 'dashicons-tag',
+				'url'    => admin_url( 'admin.php?page=' . TWTAEO_Page_Promotions::PAGE_SLUG ),
+				'active' => $modules ? $modules->is_active( 'promotions' ) : false,
+			),
+		);
+
+		$modules_url = admin_url( 'admin.php?page=twt-aeo-modules' );
+		?>
+		<nav class="twt-aeo-tabs">
+			<?php foreach ( $tabs as $slug => $t ) : ?>
+				<?php if ( $t['active'] ) : ?>
+				<a href="<?php echo esc_url( $t['url'] ); ?>"
+				   class="twt-aeo-tab <?php echo $slug === $active ? 'twt-aeo-tab--active' : ''; ?>">
+					<span class="dashicons <?php echo esc_attr( $t['icon'] ); ?>"></span>
+					<?php echo esc_html( $t['label'] ); ?>
+				</a>
+				<?php else : ?>
+				<a href="<?php echo esc_url( $modules_url ); ?>"
+				   class="twt-aeo-tab twt-aeo-tab--off"
+				   title="<?php esc_attr_e( 'This module is off — click to enable it on the Modules page.', 'twt-aeo-ultimate' ); ?>">
+					<span class="dashicons <?php echo esc_attr( $t['icon'] ); ?>"></span>
+					<?php echo esc_html( $t['label'] ); ?>
+					<span class="twt-aeo-tab__off-chip"><?php esc_html_e( 'Off', 'twt-aeo-ultimate' ); ?></span>
+				</a>
+				<?php endif; ?>
+			<?php endforeach; ?>
+		</nav>
+		<?php
+	}
+
 	// ── Products Tab ─────────────────────────────────────────────────────────
 
 	private static function render_products_tab() {
-		$results      = TWTAEO_WooCommerce_Detector::scan_all();
-		$summary      = TWTAEO_WooCommerce_Detector::get_summary();
+		// Merchant's answer to "who publishes Product schema?" — saved before any
+		// other output so the card below renders the state that was just chosen.
+		if ( isset( $_POST['twtaeo_wc_takeover'] )
+			&& check_admin_referer( 'twtaeo_wc_takeover', 'twtaeo_wc_takeover_nonce' ) ) {
+			$choice = sanitize_key( wp_unslash( $_POST['twtaeo_wc_takeover'] ) );
+			if ( in_array( $choice, array( 'aeo', 'both' ), true ) ) {
+				update_option( TWTAEO_WooCommerce_Detector::OPTION_SCHEMA_TAKEOVER, $choice );
+			}
+		}
+
+		// The scan walks the catalogue DISPLAY_CAP products at a time — scanning
+		// everything in one page load times out on large stores, so pagination
+		// is how every product past the first page gets seen at all. A search
+		// term narrows the walk to matches (title, content, SKU) across the
+		// WHOLE catalogue — the product being hunted is almost never on the
+		// page already on screen.
+		$per_page = TWTAEO_WooCommerce_Detector::DISPLAY_CAP;
+		$s_term   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$paged    = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$results = TWTAEO_WooCommerce_Detector::scan_all( $paged, $s_term );
+		$total   = ( '' !== $s_term )
+			? TWTAEO_WooCommerce_Detector::last_found()
+			: TWTAEO_WooCommerce_Detector::total_products();
+
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		if ( $paged > $total_pages ) {
+			// The requested page fell off the end (usually a search with fewer
+			// matches than the page number carried over) — reload the last one.
+			$paged   = $total_pages;
+			$results = TWTAEO_WooCommerce_Detector::scan_all( $paged, $s_term );
+		}
+		$first_item = ( $paged - 1 ) * $per_page + 1;
+
+		$summary      = TWTAEO_WooCommerce_Detector::get_summary( $results );
+		$last_item    = $first_item + count( $results ) - 1;
 		$wc_nonce     = wp_create_nonce( self::NONCE );
 		$schema_nonce = wp_create_nonce( TWTAEO_Custom_Schema_Writer::NONCE_ACTION );
 		$ship         = TWTAEO_WooCommerce_Detector::get_shipping_defaults();
 		$ret          = TWTAEO_WooCommerce_Detector::get_return_defaults();
+
+		$page_url = static function ( $p ) use ( $s_term ) {
+			$args = array( 'page' => 'twt-aeo-woocommerce', 'tab' => 'products', 'paged' => (int) $p );
+			if ( '' !== $s_term ) {
+				$args['s'] = $s_term;
+			}
+			return add_query_arg( $args, admin_url( 'admin.php' ) );
+		};
+
+		$render_pager = static function () use ( $paged, $total_pages, $page_url, $first_item, $last_item, $total ) {
+			if ( $total_pages <= 1 ) {
+				return;
+			}
+			?>
+			<div class="twt-og-pagination">
+				<?php if ( $paged > 1 ) : ?>
+					<a href="<?php echo esc_url( $page_url( $paged - 1 ) ); ?>">&laquo; <?php esc_html_e( 'Prev', 'twt-aeo-ultimate' ); ?></a>
+				<?php endif; ?>
+				<?php
+				$window = array( 1, $total_pages );
+				for ( $p = $paged - 2; $p <= $paged + 2; $p++ ) {
+					$window[] = $p;
+				}
+				$window = array_values( array_unique( array_filter( $window, static function ( $p ) use ( $total_pages ) {
+					return $p >= 1 && $p <= $total_pages;
+				} ) ) );
+				sort( $window );
+				$prev = 0;
+				foreach ( $window as $p ) :
+					if ( $p > $prev + 1 ) : ?>
+						<span style="color:#8c8f94;">&hellip;</span>
+					<?php endif;
+					$prev = $p;
+					if ( $p === $paged ) : ?>
+						<span class="current"><?php echo esc_html( $p ); ?></span>
+					<?php else : ?>
+						<a href="<?php echo esc_url( $page_url( $p ) ); ?>"><?php echo esc_html( $p ); ?></a>
+					<?php endif;
+				endforeach; ?>
+				<?php if ( $paged < $total_pages ) : ?>
+					<a href="<?php echo esc_url( $page_url( $paged + 1 ) ); ?>"><?php esc_html_e( 'Next', 'twt-aeo-ultimate' ); ?> &raquo;</a>
+				<?php endif; ?>
+				<span style="font-size:12px;color:#666;margin-left:6px;">
+					<?php
+					// translators: %1$d: first product on page. %2$d: last product on page. %3$d: catalogue total.
+					printf( esc_html__( '%1$d–%2$d of %3$d', 'twt-aeo-ultimate' ), absint( $first_item ), absint( max( $first_item, $last_item ) ), absint( $total ) ); ?>
+				</span>
+			</div>
+			<?php
+		};
 		?>
 
-		<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-			<p style="margin:0;color:#50575e;">
+		<?php if ( isset( $_GET['rescanned'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only UI confirmation, no state change. ?>
+		<div class="notice notice-success is-dismissible" style="margin:0 0 16px;">
+			<p>
 				<?php
 				printf(
-					// translators: %1$d: total products. %2$d: products missing schema.
-					esc_html__( '%1$d products — %2$d missing schema', 'twt-aeo-ultimate' ),
-					absint( $summary['total'] ),
+					// translators: %1$d: products scanned on this page. %2$d: products missing schema among them.
+					esc_html__( 'Rescan complete — %1$d products scanned, %2$d missing schema.', 'twt-aeo-ultimate' ),
+					absint( $summary['scanned'] ),
 					absint( $summary['needs_schema'] )
-				); ?>
+				);
+				?>
 			</p>
-			<?php if ( $summary['needs_schema'] > 0 ) : ?>
+		</div>
+		<?php endif; ?>
+
+		<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+			<p style="margin:0;color:#50575e;">
+				<?php
+				// $total is search-aware: matches when a term is set, the whole
+				// catalogue otherwise. $summary['total'] is always the catalogue
+				// and would misreport a narrowed view.
+				if ( $total_pages > 1 ) {
+					printf(
+						// translators: %1$d: first product shown. %2$d: last product shown. %3$d: total in view. %4$d: products missing schema on this page.
+						esc_html__( 'Products %1$d–%2$d of %3$d (newest first) — %4$d on this page missing schema', 'twt-aeo-ultimate' ),
+						absint( $first_item ),
+						absint( $last_item ),
+						absint( $total ),
+						absint( $summary['needs_schema'] )
+					);
+				} else {
+					printf(
+						// translators: %1$d: total products in view. %2$d: products missing schema.
+						esc_html__( '%1$d products — %2$d missing schema', 'twt-aeo-ultimate' ),
+						absint( $total ),
+						absint( $summary['needs_schema'] )
+					);
+				}
+				?>
+			</p>
+			<a href="<?php echo esc_url( add_query_arg( 'rescanned', time(), $page_url( $paged ) ) ); ?>" class="button">
+				<span class="dashicons dashicons-update" style="font-size:14px;width:14px;height:14px;line-height:1.4;vertical-align:middle;margin-right:2px;"></span>
+				<?php esc_html_e( 'Scan Again', 'twt-aeo-ultimate' ); ?>
+			</a>
+			<?php // The bulk generator walks the WHOLE catalogue, so it must stay
+			// reachable even when the current page happens to be clean — only a
+			// fully-scanned, fully-clean catalogue can hide it. ?>
+			<?php if ( $summary['needs_schema'] > 0 || $summary['truncated'] ) : ?>
 			<button type="button" id="twt-aeo-wc-gen-all" class="button button-primary">
 				<?php esc_html_e( 'Generate Schema for All', 'twt-aeo-ultimate' ); ?>
 			</button>
 			<?php endif; ?>
+			<button type="button" id="twt-aeo-wc-alt-all" class="button">
+				&#10024; <?php esc_html_e( 'Fill All Missing Alt Text (AI)', 'twt-aeo-ultimate' ); ?>
+			</button>
+			<button type="button" id="twt-aeo-wc-alt-all-stop" class="button" style="display:none;">
+				<?php esc_html_e( 'Stop', 'twt-aeo-ultimate' ); ?>
+			</button>
+			<span id="twt-aeo-wc-alt-all-status" style="font-size:12px;color:#646970;"></span>
 		</div>
 
 		<div id="twt-aeo-wc-gen-all-result" style="display:none;margin:0 0 16px;" class="notice"></div>
 
+		<?php
+		// Who publishes Product schema on product pages? WooCommerce ships a
+		// basic block of its own; ours is the connected @graph. Two Product
+		// blocks on one page is a real conflict (rich-results warnings), but
+		// removing another plugin's output without asking is not our call.
+		$takeover = get_option( TWTAEO_WooCommerce_Detector::OPTION_SCHEMA_TAKEOVER, '' );
+		?>
+		<?php if ( 'aeo' === $takeover ) : ?>
+		<div class="twt-aeo-card" style="border-left:3px solid #16a34a;margin-bottom:16px;padding:12px 16px;">
+			<form method="post" style="margin:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+				<?php wp_nonce_field( 'twtaeo_wc_takeover', 'twtaeo_wc_takeover_nonce' ); ?>
+				<p style="margin:0;font-size:13px;color:#50575e;">
+					<span class="dashicons dashicons-yes-alt" style="color:#16a34a;font-size:16px;width:16px;height:16px;vertical-align:text-bottom;"></span>
+					<?php esc_html_e( 'AEO publishes the only Product schema on product pages; WooCommerce’s built-in block is suppressed so the two never compete.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<button type="submit" name="twtaeo_wc_takeover" value="both" class="button-link" style="font-size:12px;">
+					<?php esc_html_e( 'Restore WooCommerce’s built-in block', 'twt-aeo-ultimate' ); ?>
+				</button>
+			</form>
+		</div>
+		<?php else : ?>
+		<div class="twt-aeo-card" style="border-left:3px solid <?php echo 'both' === $takeover ? '#dba617' : '#2271b1'; ?>;margin-bottom:16px;">
+			<p style="margin:0 0 10px;font-size:13px;color:#50575e;line-height:1.55;max-width:820px;">
+				<strong><?php esc_html_e( 'Who publishes your Product schema?', 'twt-aeo-ultimate' ); ?></strong>
+				<?php esc_html_e( 'WooCommerce ships a basic Product block of its own — classic themes publish it on every product page; some block themes don’t. Where it appears alongside AEO’s connected graph (variants, shipping, returns, identifiers, reviews), search engines see two competing descriptions of the same product and may warn about it — a conflicted signal cites worse than a clear one. Letting AEO be the only Product schema suppresses WooCommerce’s block where it exists and changes nothing where it doesn’t. Keep both if another tool depends on WooCommerce’s block.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<form method="post" style="margin:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+				<?php wp_nonce_field( 'twtaeo_wc_takeover', 'twtaeo_wc_takeover_nonce' ); ?>
+				<button type="submit" name="twtaeo_wc_takeover" value="aeo" class="button button-primary">
+					<?php esc_html_e( 'Make AEO the only Product schema (recommended)', 'twt-aeo-ultimate' ); ?>
+				</button>
+				<?php if ( 'both' !== $takeover ) : ?>
+				<button type="submit" name="twtaeo_wc_takeover" value="both" class="button">
+					<?php esc_html_e( 'Keep both', 'twt-aeo-ultimate' ); ?>
+				</button>
+				<?php endif; ?>
+			</form>
+		</div>
+		<?php endif; ?>
+
 		<!-- Summary Cards -->
+		<?php
+		// Every card except "Total Products" counts only what THIS page scanned.
+		// On a paginated catalogue the labels must say so — "0 Missing Schema"
+		// beside "949 Total Products" would otherwise read as a site-wide
+		// verdict the scan never made.
+		$scoped = $summary['truncated'];
+		?>
 		<section class="twt-aeo-section">
 			<div class="twt-aeo-summary-grid">
 				<div class="twt-aeo-summary-card">
@@ -166,21 +395,33 @@ class TWTAEO_Page_WooCommerce_Detector {
 				</div>
 				<div class="twt-aeo-summary-card <?php echo $summary['needs_schema'] > 0 ? 'twt-aeo-summary-card--alert' : 'twt-aeo-summary-card--good'; ?>">
 					<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['needs_schema'] ); ?></div>
-					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Missing Schema', 'twt-aeo-ultimate' ); ?></div>
+					<div class="twt-aeo-summary-card__label"><?php echo esc_html( $scoped ? __( 'Missing Schema (this page)', 'twt-aeo-ultimate' ) : __( 'Missing Schema', 'twt-aeo-ultimate' ) ); ?></div>
 				</div>
 				<div class="twt-aeo-summary-card twt-aeo-summary-card--good">
 					<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['has_schema'] ); ?></div>
-					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Schema Present', 'twt-aeo-ultimate' ); ?></div>
+					<div class="twt-aeo-summary-card__label"><?php echo esc_html( $scoped ? __( 'Schema Present (this page)', 'twt-aeo-ultimate' ) : __( 'Schema Present', 'twt-aeo-ultimate' ) ); ?></div>
 				</div>
 				<div class="twt-aeo-summary-card">
 					<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['product_intent'] ); ?></div>
-					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Physical Products', 'twt-aeo-ultimate' ); ?></div>
+					<div class="twt-aeo-summary-card__label"><?php echo esc_html( $scoped ? __( 'Physical Products (this page)', 'twt-aeo-ultimate' ) : __( 'Physical Products', 'twt-aeo-ultimate' ) ); ?></div>
 				</div>
 				<div class="twt-aeo-summary-card">
 					<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['service_intent'] ); ?></div>
-					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'Service Products', 'twt-aeo-ultimate' ); ?></div>
+					<div class="twt-aeo-summary-card__label"><?php echo esc_html( $scoped ? __( 'Service Products (this page)', 'twt-aeo-ultimate' ) : __( 'Service Products', 'twt-aeo-ultimate' ) ); ?></div>
 				</div>
 			</div>
+			<?php if ( $scoped ) : ?>
+			<p style="margin:8px 0 0;font-size:12px;color:#646970;">
+				<?php
+				printf(
+					// translators: %1$d: products scanned on this page. %2$d: catalogue total.
+					esc_html__( 'These cards describe the %1$d products scanned on this page. Page through below to cover all %2$d — or use "Generate Schema for All", which always walks the whole catalogue.', 'twt-aeo-ultimate' ),
+					absint( $summary['scanned'] ),
+					absint( $summary['total'] )
+				);
+				?>
+			</p>
+			<?php endif; ?>
 		</section>
 
 		<!-- Site-wide Shipping & Returns Defaults -->
@@ -277,15 +518,47 @@ class TWTAEO_Page_WooCommerce_Detector {
 
 		<!-- Products Table -->
 		<section class="twt-aeo-section">
-			<h2 class="twt-aeo-section__title"><?php esc_html_e( 'Products', 'twt-aeo-ultimate' ); ?></h2>
+			<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+				<h2 class="twt-aeo-section__title" style="margin:0;"><?php esc_html_e( 'Products', 'twt-aeo-ultimate' ); ?></h2>
+				<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:flex;align-items:center;gap:6px;margin:0;">
+					<input type="hidden" name="page" value="twt-aeo-woocommerce">
+					<input type="hidden" name="tab" value="products">
+					<label class="screen-reader-text" for="twt-aeo-wc-search"><?php esc_html_e( 'Search products', 'twt-aeo-ultimate' ); ?></label>
+					<input type="search" id="twt-aeo-wc-search" name="s" value="<?php echo esc_attr( $s_term ); ?>"
+						placeholder="<?php esc_attr_e( 'Search by product name or SKU…', 'twt-aeo-ultimate' ); ?>"
+						class="regular-text" autocomplete="off">
+					<button type="submit" class="button"><?php esc_html_e( 'Search', 'twt-aeo-ultimate' ); ?></button>
+					<?php if ( '' !== $s_term ) : ?>
+						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'twt-aeo-woocommerce', 'tab' => 'products' ), admin_url( 'admin.php' ) ) ); ?>" class="button-link">
+							<?php esc_html_e( 'Clear', 'twt-aeo-ultimate' ); ?>
+						</a>
+					<?php endif; ?>
+				</form>
+			</div>
+
+			<?php if ( '' !== $s_term ) : ?>
+			<p style="margin:0 0 8px;font-size:13px;color:#50575e;">
+				<?php
+				printf(
+					// translators: %1$d: matching products. %2$s: the search term.
+					esc_html( _n( '%1$d product matches “%2$s” — searched across the whole catalogue.', '%1$d products match “%2$s” — searched across the whole catalogue.', $total, 'twt-aeo-ultimate' ) ),
+					absint( $total ),
+					esc_html( $s_term )
+				);
+				?>
+			</p>
+			<?php endif; ?>
 
 			<?php if ( empty( $results ) ) : ?>
 				<div class="twt-aeo-card">
 					<p class="twt-aeo-empty">
-						<?php esc_html_e( 'No published products found. Add products in WooCommerce to see them here.', 'twt-aeo-ultimate' ); ?>
+						<?php echo '' !== $s_term
+							? esc_html__( 'No products match that search. It looked at every product’s name, content and SKU.', 'twt-aeo-ultimate' )
+							: esc_html__( 'No published products found. Add products in WooCommerce to see them here.', 'twt-aeo-ultimate' ); ?>
 					</p>
 				</div>
 			<?php else : ?>
+			<?php $render_pager(); ?>
 			<div class="twt-aeo-page-table-wrap">
 				<table class="twt-aeo-page-table twt-aeo-wc-table">
 					<thead>
@@ -308,9 +581,11 @@ class TWTAEO_Page_WooCommerce_Detector {
 						$edit_url   = get_edit_post_link( $post->ID, 'raw' );
 						$missing    = self::get_product_missing( $wc_product, $edit_url );
 						$has_custom = (bool) TWTAEO_Custom_Schema_Writer::get_by_type( $post->ID, $wc['recommended_schema'] );
+						$alt_sum    = TWTAEO_Product_Enricher::image_alt_summary( $post->ID );
 					?>
 						<tr class="twt-aeo-page-row <?php echo esc_attr( $row_cls ); ?>"
-							data-post-id="<?php echo esc_attr( $post->ID ); ?>">
+							data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+							data-alt-missing="<?php echo esc_attr( $alt_sum['missing'] ); ?>">
 
 							<td class="twt-aeo-page-row__title">
 								<a href="<?php echo esc_url( $edit_url ); ?>">
@@ -365,10 +640,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 							</td>
 
 							<td class="twt-aeo-wc-alt-cell">
-								<?php
-								echo wp_kses_post( TWTAEO_Product_Enricher::alt_badge_html(
-									TWTAEO_Product_Enricher::image_alt_summary( $post->ID )
-								) ); ?>
+								<?php echo wp_kses_post( TWTAEO_Product_Enricher::alt_badge_html( $alt_sum ) ); ?>
 							</td>
 
 							<td class="twt-aeo-wc-opt-cell">
@@ -403,6 +675,8 @@ class TWTAEO_Page_WooCommerce_Detector {
 					</tbody>
 				</table>
 			</div>
+
+			<?php $render_pager(); ?>
 			<?php endif; ?>
 		</section>
 
@@ -667,11 +941,20 @@ class TWTAEO_Page_WooCommerce_Detector {
 					'<div id="wc-competitive-list" style="margin-top:6px;"></div>' +
 					'<p class="description" style="margin:4px 0 0;">Flags attributes similar products commonly list that yours is missing.</p>';
 
+				// Google Product Category → schema.org CategoryCode.
+				var gcat    = (d && d.ai_google_category) || null;
+				var gcatMsg = gcat ? ('Current: ' + esc(gcat.path || gcat.code) + ' (#' + esc(gcat.code) + ')') : '';
+				var gcatHtml =
+					'<button type="button" class="button button-small" id="wc-ai-gcat">&#10024; Resolve Google category (AI)</button>' +
+					'<span id="wc-ai-gcat-status" style="margin-left:8px;font-size:12px;color:' + (gcat ? '#16a34a' : '#6b7280') + ';">' + gcatMsg + '</span>' +
+					'<p class="description" style="margin:4px 0 0;">Maps this product to Google&rsquo;s official Product Taxonomy and adds it to your schema as a <code>CategoryCode</code> — so Google Shopping and AI shopping agents read the same category. Saved automatically.</p>';
+
 				return core +
 					detailsSection('Identifiers &amp; Attributes', attrs, true) +
 					detailsSection('Relationships', relSummary + relManual, false) +
 					detailsSection('Reviews', revHtml, false) +
 					detailsSection('Competitive Gaps', compHtml, false) +
+					detailsSection('Google Product Category', gcatHtml, false) +
 					detailsSection('Image Alt Text', altHtml, true) +
 					detailsSection('Shipping &amp; Returns', logisticsNote, false);
 			}
@@ -722,6 +1005,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 				$('#wc-ai-sameas').on('click', doAiSameas);
 				$('#wc-ai-standardize').on('click', doAiStandardize);
 				$('#wc-ai-competitive').on('click', doAiCompetitive);
+				$('#wc-ai-gcat').on('click', doAiGoogleCategory);
 				$('#wc-ai-alt').on('click', doAiAlt);
 
 				// Pre-fill saved brand authority links.
@@ -786,6 +1070,17 @@ class TWTAEO_Page_WooCommerce_Detector {
 					$('#wc-f-additional').empty();
 					(d.additional || []).forEach(function(r){ addPropRow(r.name, r.value); });
 					$st.css('color', '#16a34a').text('Standardized — ' + moved + ' promoted to schema field(s).');
+				}).fail(function(){ $btn.prop('disabled', false); $st.css('color', '#d63638').text('Request failed.'); });
+			}
+
+			function doAiGoogleCategory() {
+				var $btn = $('#wc-ai-gcat').prop('disabled', true);
+				var $st  = $('#wc-ai-gcat-status').css('color', '#6b7280').text('Matching Google’s taxonomy…');
+				$.post(ajaxurl, { action: 'twtaeo_wc_ai_google_category', nonce: wcNonce, post_id: dlgPostId }, function(resp){
+					$btn.prop('disabled', false);
+					if (!resp.success) { $st.css('color', '#d63638').text(resp.data || 'Lookup failed.'); return; }
+					var c = resp.data.category || {};
+					$st.css('color', '#16a34a').text('Matched: ' + (c.path || c.code) + ' (#' + c.code + ') via ' + (resp.data.provider || 'AI') + ' — saved to schema.');
 				}).fail(function(){ $btn.prop('disabled', false); $st.css('color', '#d63638').text('Request failed.'); });
 			}
 
@@ -1092,23 +1387,131 @@ class TWTAEO_Page_WooCommerce_Detector {
 			}
 
 			$('#twt-aeo-wc-gen-all').on('click', function() {
-				var $btn = $(this).prop('disabled', true).text('Generating…');
+				var $btn = $(this).prop('disabled', true);
 				var $msg = $('#twt-aeo-wc-gen-all-result').hide().removeClass('notice-success notice-error');
-				$.post(ajaxurl, { action: 'twtaeo_wc_generate_all', nonce: wcNonce }, function(resp) {
+				var tally = { saved: 0, skipped: 0, errors: [] };
+
+				function finish(ok, html) {
 					$btn.prop('disabled', false).text('Generate Schema for All');
-					if (resp.success) {
+					$msg.addClass(ok ? 'notice-success' : 'notice-error').html('<p>' + html + '</p>').show();
+				}
+
+				// Batched: one GENERATE_BATCH page of the catalogue per request,
+				// cursor-driven until the server reports an empty page — so the
+				// whole catalogue is covered, not just the first 200.
+				function runBatch(offset) {
+					$.post(ajaxurl, {
+						action: 'twtaeo_wc_generate_all',
+						nonce:  wcNonce,
+						offset: offset
+					}, function(resp) {
+						if (!resp.success) {
+							finish(false, esc(resp.data || 'Generation failed.'));
+							return;
+						}
 						var d = resp.data;
-						var text = d.saved + ' schema' + (d.saved !== 1 ? 's' : '') + ' generated';
-						if (d.skipped) text += ', ' + d.skipped + ' skipped (already have schema)';
-						if (d.errors && d.errors.length) text += '. Errors: ' + esc(d.errors.join(', '));
-						$msg.addClass('notice-success').html('<p>' + text + '. <a href="">Reload to see updated statuses.</a></p>').show();
-					} else {
-						$msg.addClass('notice-error').html('<p>' + esc(resp.data || 'Generation failed.') + '</p>').show();
+						tally.saved   += d.saved;
+						tally.skipped += d.skipped;
+						if (d.errors && d.errors.length) tally.errors = tally.errors.concat(d.errors);
+
+						if (!d.done) {
+							$btn.text('Generating… ' + d.next + ' of ' + d.total);
+							runBatch(d.next);
+							return;
+						}
+
+						var text = tally.saved + ' schema' + (tally.saved !== 1 ? 's' : '') + ' generated';
+						if (tally.skipped) text += ', ' + tally.skipped + ' already had schema';
+						text += ' across ' + d.total + ' product' + (d.total !== 1 ? 's' : '');
+						if (tally.errors.length) {
+							text += '. Could not generate for: ' + esc(tally.errors.join(', ')) + ' — open each product to see what is missing.';
+						}
+						finish(true, text + '. <a href="">Reload to see updated statuses.</a>');
+					}).fail(function() {
+						// Report what actually completed. Claiming nothing happened
+						// would be as wrong as the silent truncation this replaced.
+						finish(false, 'Request failed after ' + tally.saved + ' generated. Press again to resume.');
+					});
+				}
+
+				$btn.text('Generating…');
+				runBatch(0);
+			});
+
+			// Bulk AI alt text — sequential, one billed call per product, stoppable.
+			var altBulkStopped = false;
+			$('#twt-aeo-wc-alt-all').on('click', function() {
+				var $btn    = $(this);
+				var $stop   = $('#twt-aeo-wc-alt-all-stop');
+				var $status = $('#twt-aeo-wc-alt-all-status');
+
+				var ids = [], imgCount = 0;
+				$('tr.twt-aeo-page-row').each(function() {
+					var m = parseInt($(this).attr('data-alt-missing'), 10) || 0;
+					if ( m > 0 ) {
+						ids.push( $(this).data('post-id') );
+						imgCount += m;
 					}
-				}).fail(function() {
-					$btn.prop('disabled', false).text('Generate Schema for All');
-					$msg.addClass('notice-error').html('<p>Request failed.</p>').show();
 				});
+
+				if ( ! ids.length ) {
+					$status.css('color', '#16a34a').text('<?php echo esc_js( __( 'All product images already have alt text.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				var confirmMsg = '<?php
+					/* translators: %1$d: number of product images missing alt text. %2$d: number of products they belong to. */
+					echo esc_js( __( 'This will run AI vision over %1$d image(s) across %2$d product(s) — one billed AI call per image. Continue?', 'twt-aeo-ultimate' ) );
+				?>'
+					.replace('%1$d', imgCount).replace('%2$d', ids.length);
+				if ( ! window.confirm(confirmMsg) ) { return; }
+
+				altBulkStopped = false;
+				$btn.prop('disabled', true);
+				$stop.show();
+				var done = 0, filled = 0, failed = 0, total = ids.length;
+
+				function finish(stopped) {
+					$btn.prop('disabled', false);
+					$stop.hide();
+					$status.css('color', failed ? '#d63638' : '#16a34a').text(
+						( stopped ? '<?php echo esc_js( __( 'Stopped', 'twt-aeo-ultimate' ) ); ?>' : '<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?>' ) +
+						' — ' + filled + ' <?php echo esc_js( __( 'image(s) filled across', 'twt-aeo-ultimate' ) ); ?> ' + done + ' <?php echo esc_js( __( 'product(s)', 'twt-aeo-ultimate' ) ); ?>' +
+						( failed ? ', ' + failed + ' <?php echo esc_js( __( 'failed', 'twt-aeo-ultimate' ) ); ?>' : '' )
+					);
+				}
+
+				function processNext() {
+					if ( altBulkStopped ) { finish(true); return; }
+					if ( ! ids.length ) { finish(false); return; }
+
+					var postId = ids.shift();
+					var $row   = $('tr[data-post-id="' + postId + '"]');
+					$status.css('color', '#646970').text(
+						'<?php echo esc_js( __( 'Processing product', 'twt-aeo-ultimate' ) ); ?> ' + ( total - ids.length ) + ' / ' + total + '…'
+					);
+
+					$.post(ajaxurl, { action: 'twtaeo_wc_ai_alt', nonce: wcNonce, post_id: postId }, function(resp) {
+						if ( resp.success ) {
+							done++;
+							filled += parseInt(resp.data.filled, 10) || 0;
+							if ( resp.data.alt_html ) { $row.find('.twt-aeo-wc-alt-cell').html(resp.data.alt_html); }
+							$row.attr('data-alt-missing', '0');
+						} else {
+							failed++;
+						}
+						processNext();
+					}).fail(function() {
+						failed++;
+						processNext();
+					});
+				}
+
+				processNext();
+			});
+
+			$('#twt-aeo-wc-alt-all-stop').on('click', function() {
+				altBulkStopped = true;
 			});
 
 			function showMsg(text, type) {
@@ -1238,6 +1641,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 							<?php self::score_pill( $counts['rejected'] ?? 0,        'Rejected',       '#d63638' ); ?>
 							<?php self::score_pill( $counts['price_mismatch'] ?? 0,  'Price Mismatch', '#f59e0b' ); ?>
 							<?php self::score_pill( $counts['avail_mismatch'] ?? 0,  'Avail Mismatch', '#f59e0b' ); ?>
+							<?php self::score_pill( $counts['category_mismatch'] ?? 0, 'Category Mismatch', '#f59e0b' ); ?>
 							<?php self::score_pill( $counts['schema_issues'] ?? 0,   'Schema Issues',  '#6366f1' ); ?>
 						</div>
 						<?php else : ?>
@@ -1374,7 +1778,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 							continue;
 						}
 					?>
-						<tr class="twt-aeo-page-row <?php echo ( ! $snap['matched'] || $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['rejection_codes'] ) ) ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok'; ?>">
+						<tr class="twt-aeo-page-row <?php echo ( ! $snap['matched'] || $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['category_mismatch'] ) || ! empty( $snap['rejection_codes'] ) ) ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok'; ?>">
 
 							<td>
 								<a href="<?php echo esc_url( $row['edit_url'] ); ?>" style="font-weight:500;">
@@ -1454,7 +1858,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 									<span class="twt-aeo-badge" style="background:rgba(107,114,128,.1);color:#6b7280;">Not Found</span>
 								<?php elseif ( ! empty( $snap['rejection_codes'] ) ) : ?>
 									<span class="twt-aeo-badge twt-aeo-badge--warn"><?php echo esc_html( count( $snap['rejection_codes'] ) ); ?> Rejection<?php echo count( $snap['rejection_codes'] ) > 1 ? 's' : ''; ?></span>
-								<?php elseif ( $snap['price_mismatch'] || $snap['avail_mismatch'] || $snap['schema_discrepancy'] ) : ?>
+								<?php elseif ( $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['category_mismatch'] ) || $snap['schema_discrepancy'] ) : ?>
 									<span class="twt-aeo-badge twt-aeo-badge--warn">Data Gap</span>
 								<?php else : ?>
 									<span class="twt-aeo-badge" style="background:rgba(22,163,74,.1);color:#16a34a;">In Sync ✓</span>
@@ -1687,6 +2091,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 							<?php self::score_pill( $counts['rejected'] ?? 0,        'Rejected',       '#d63638' ); ?>
 							<?php self::score_pill( $counts['price_mismatch'] ?? 0,  'Price Mismatch', '#f59e0b' ); ?>
 							<?php self::score_pill( $counts['avail_mismatch'] ?? 0,  'Avail Mismatch', '#f59e0b' ); ?>
+							<?php self::score_pill( $counts['category_mismatch'] ?? 0, 'Category Mismatch', '#f59e0b' ); ?>
 							<?php self::score_pill( $counts['schema_issues'] ?? 0,   'Schema Issues',  '#6366f1' ); ?>
 						</div>
 						<?php else : ?>
@@ -1828,7 +2233,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 					<?php foreach ( $rows as $row ) :
 						$snap = $row['snap'];
 						if ( ! $snap ) continue;
-						$has_issue = ! $snap['matched'] || $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['rejection_codes'] );
+						$has_issue = ! $snap['matched'] || $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['category_mismatch'] ) || ! empty( $snap['rejection_codes'] );
 					?>
 						<tr class="twt-aeo-page-row <?php echo $has_issue ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok'; ?>">
 
@@ -1910,7 +2315,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 									<span class="twt-aeo-badge" style="background:rgba(107,114,128,.1);color:#6b7280;">Not Found</span>
 								<?php elseif ( ! empty( $snap['rejection_codes'] ) ) : ?>
 									<span class="twt-aeo-badge twt-aeo-badge--warn"><?php echo esc_html( count( $snap['rejection_codes'] ) ); ?> Rejection<?php echo count( $snap['rejection_codes'] ) > 1 ? 's' : ''; ?></span>
-								<?php elseif ( $snap['price_mismatch'] || $snap['avail_mismatch'] || $snap['schema_discrepancy'] ) : ?>
+								<?php elseif ( $snap['price_mismatch'] || $snap['avail_mismatch'] || ! empty( $snap['category_mismatch'] ) || $snap['schema_discrepancy'] ) : ?>
 									<span class="twt-aeo-badge twt-aeo-badge--warn">Data Gap</span>
 								<?php else : ?>
 									<span class="twt-aeo-badge" style="background:rgba(22,163,74,.1);color:#16a34a;">In Sync ✓</span>

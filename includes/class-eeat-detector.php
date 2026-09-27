@@ -431,16 +431,29 @@ class TWTAEO_EEAT_Detector {
 	 * @return bool
 	 */
 	private static function check_article_dates() {
-		// If Rank Math or Yoast is active they output datePublished automatically on posts.
-		if ( defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' ) ) {
-			$posts = get_posts( array(
-				'post_type'      => 'post',
-				'post_status'    => 'publish',
-				'posts_per_page' => 1,
-			) );
-			if ( ! empty( $posts ) ) {
-				return true;
-			}
+		$posts = get_posts( array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+		) );
+		if ( empty( $posts ) ) {
+			return false;
+		}
+
+		// This plugin's own Article writer emits datePublished + dateModified on
+		// every blog post whenever its output surface is on — and when it defers
+		// to an active SEO plugin, that plugin outputs the dates instead. Either
+		// way the signal is satisfied without any third-party plugin.
+		if ( class_exists( 'TWTAEO_Article_Schema_Writer' )
+			&& class_exists( 'TWTAEO_Output_Control' )
+			&& TWTAEO_Output_Control::should_write( 'schema_article' ) ) {
+			return true;
+		}
+
+		// Major SEO plugins output datePublished/dateModified automatically on posts.
+		if ( defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' )
+			|| defined( 'AIOSEO_VERSION' ) || defined( 'SEOPRESS_VERSION' ) ) {
+			return true;
 		}
 
 		return false;

@@ -23,6 +23,15 @@ class TWTAEO_Product_Enricher {
 	/** Cached AI vision suggestions: { provider, time, data }. */
 	const META_VISION = '_twtaeo_ai_vision';
 
+	/** Cached Google Product Taxonomy resolution: { provider, time, data:{ code, path } }. */
+	const META_GCATEGORY = '_twtaeo_ai_google_category';
+
+	/**
+	 * Official Google Product Taxonomy code set (numeric-id edition). Emitted as the
+	 * `inCodeSet` of the CategoryCode object so the id is unambiguously resolvable.
+	 */
+	const GOOGLE_TAXONOMY_URL = 'https://www.google.com/basepages/producttype/taxonomy-with-ids.en-US.txt';
+
 	/**
 	 * Extract structured attributes from a product's text via the AI client.
 	 *
@@ -288,6 +297,94 @@ class TWTAEO_Product_Enricher {
 			}
 		}
 		return array_values( array_unique( $urls ) );
+	}
+
+	// ── Google Product Taxonomy resolution ───────────────────────────────────────
+
+	/**
+	 * Resolve a product to its official Google Product Category using web-grounded
+	 * retrieval, so the page can emit the new schema.org CategoryCode object and
+	 * mirror the exact taxonomy value used in the Merchant Center feed.
+	 *
+	 * @param int         $post_id
+	 * @param string|null $provider Override; defaults to the retrieval provider.
+	 * @return array|WP_Error  { code:string, path:string } — code is the numeric ID.
+	 */
+	public static function resolve_google_category( $post_id, $provider = null ) {
+		$post = get_post( $post_id );
+		if ( ! $post || $post->post_type !== 'product' ) {
+			return new WP_Error( 'bad_product', __( 'Product not found.', 'twt-aeo-ultimate' ) );
+		}
+
+		$name = html_entity_decode( get_the_title( $post_id ), ENT_QUOTES, 'UTF-8' );
+		$cats = wp_get_post_terms( $post_id, 'product_cat', array( 'fields' => 'names' ) );
+		$cat  = ( is_array( $cats ) && ! empty( $cats ) ) ? implode( ', ', $cats ) : '';
+
+		$product = function_exists( 'wc_get_product' ) ? wc_get_product( $post_id ) : null;
+		$desc    = '';
+		if ( $product ) {
+			$desc = wp_strip_all_tags( $product->get_short_description() );
+			if ( '' === $desc ) {
+				$desc = wp_strip_all_tags( $post->post_content );
+			}
+			$desc = mb_substr( trim( $desc ), 0, 500 );
+		}
+
+		$provider = $provider ?: TWTAEO_AI_Client::retrieval_provider();
+
+		$prompt = "Map this product to the single most specific matching category in Google's official "
+			. "Product Taxonomy (the taxonomy-with-ids list).\n\n"
+			. "Product: \"$name\".\n"
+			. ( '' !== $cat ? "Store category: $cat.\n" : '' )
+			. ( '' !== $desc ? "Description: $desc\n" : '' )
+			. "\nReturn strict JSON: {\"code\":\"\",\"path\":\"\"} where code is the numeric Google Product "
+			. "Category ID (e.g. \"2271\") and path is its full category path (e.g. "
+			. "\"Apparel & Accessories > Clothing > Shirts & Tops\"). Choose the deepest category that is clearly "
+			. "correct — never guess a more specific leaf than the product supports. If you cannot confidently "
+			. "identify the category, return {\"code\":\"\",\"path\":\"\"}. Output JSON only.";
+
+		$raw = TWTAEO_AI_Client::complete( $provider, $prompt, array(
+			'grounding'   => true,
+			'max_tokens'  => 300,
+			'temperature' => 0,
+			'system'      => 'You classify e-commerce products into Google\'s official Product Taxonomy. Use live web '
+				. 'knowledge of the current taxonomy. Return only the numeric ID and full path of a category you are '
+				. 'confident matches. Never invent an ID. Return raw JSON only.',
+		) );
+		if ( is_wp_error( $raw ) ) {
+			return $raw;
+		}
+
+		$data = TWTAEO_AI_Client::extract_json( $raw );
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+
+		$code = preg_replace( '/\D/', '', self::clean_scalar( $data['code'] ?? '' ) );
+		$path = self::clean_scalar( $data['path'] ?? '' );
+		if ( '' === $code ) {
+			return new WP_Error( 'no_category', __( 'Could not confidently match a Google Product Category.', 'twt-aeo-ultimate' ) );
+		}
+
+		$result = array( 'code' => $code, 'path' => $path );
+		update_post_meta( $post_id, self::META_GCATEGORY, array(
+			'provider' => $provider,
+			'time'     => time(),
+			'data'     => $result,
+		) );
+
+		return $result;
+	}
+
+	/**
+	 * Return the cached Google Product Category resolution, or null if none.
+	 *
+	 * @param int $post_id
+	 * @return array|null { provider, time, data:{ code, path } }
+	 */
+	public static function get_cached_google_category( $post_id ) {
+		$cached = get_post_meta( $post_id, self::META_GCATEGORY, true );
+		return ( is_array( $cached ) && ! empty( $cached['data']['code'] ) ) ? $cached : null;
 	}
 
 	// ── Description enhancement ──────────────────────────────────────────────────
@@ -572,7 +669,13 @@ class TWTAEO_Product_Enricher {
 		$total   = (int) ( $summary['total'] ?? 0 );
 		$missing = (int) ( $summary['missing'] ?? 0 );
 		if ( 0 === $total ) {
-			return '<span class="twt-aeo-muted" title="' . esc_attr__( 'No images', 'twt-aeo-ultimate' ) . '">&mdash;</span>';
+			// An explicit warning, not a muted dash: no image means nothing for
+			// rich results, social shares, or AI answers to show — a worse gap
+			// than missing alt text, and one a "—" successfully hid from every
+			// merchant who read it as "nothing to do here".
+			return '<span class="twt-aeo-badge twt-aeo-badge--warn" title="'
+				. esc_attr__( 'No images at all. Answer engines cite the pages that give them the most to work with — an image plus its description is data a text-only page simply does not have. Add an image in the editor.', 'twt-aeo-ultimate' ) . '">'
+				. esc_html__( 'No image', 'twt-aeo-ultimate' ) . '</span>';
 		}
 		$have = $total - $missing;
 		if ( 0 === $missing ) {

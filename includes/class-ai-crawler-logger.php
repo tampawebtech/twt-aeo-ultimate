@@ -45,7 +45,14 @@ class TWTAEO_AI_Crawler_Logger {
 	// ── Registration ─────────────────────────────────────────────────────────
 
 	public static function register_hooks() {
-		add_action( 'wp', array( __CLASS__, 'detect_and_log' ) );
+		// ⚠️ Only the *recording* is switched off. The notice and the daily prune stay
+		// registered on purpose: a merchant who stops logging still has whatever was
+		// logged already, and it should keep ageing out of the table rather than
+		// sitting there forever because the switch that stopped new rows also
+		// stopped the cleanup.
+		if ( TWTAEO_Output_Control::should_write( 'crawler_log' ) ) {
+			add_action( 'wp', array( __CLASS__, 'detect_and_log' ) );
+		}
 		add_action( 'admin_notices', array( __CLASS__, 'maybe_show_admin_notice' ) );
 
 		add_action( self::CRON_HOOK, array( __CLASS__, 'prune_old_entries' ) );
@@ -59,6 +66,9 @@ class TWTAEO_AI_Crawler_Logger {
 	public static function detect_and_log() {
 		$ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 		if ( $ua === '' ) return;
+
+		// Bot View's self-audits impersonate crawler user agents — never log them as real visits.
+		if ( isset( $_SERVER['HTTP_X_TWTAEO_BOT_VIEW'] ) ) return;
 
 		$bot_key     = null;
 		$bot_company = null;

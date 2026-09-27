@@ -54,19 +54,240 @@ class TWTAEO_Google_OAuth {
 	}
 
 	public static function get_config() {
-		return get_option( self::OPTION_CONFIG, array() );
+		$config = get_option( self::OPTION_CONFIG, array() );
+		// Repairs a property saved before addresses were normalised:
+		// "https://example.com" is filed by Google as "https://example.com/".
+		if ( is_array( $config ) && ! empty( $config['gsc_site_url'] ) ) {
+			$config['gsc_site_url'] = self::normalize_gsc_site( $config['gsc_site_url'] );
+		}
+		return $config;
 	}
 
+	/**
+	 * Save the GA4 property and Search Console property.
+	 *
+	 * The Search Console address must match a property exactly, or Google
+	 * answers "User does not have sufficient permission". So it is matched
+	 * against the properties the connected account can see, and saved the way
+	 * Google spells it.
+	 *
+	 * @return array { note: string (for the owner, or ''), refused: bool (Google will refuse this property) }
+	 */
 	public static function save_config( $ga4_property_id, $gsc_site_url ) {
+		$resolved = self::resolve_gsc_site( $gsc_site_url );
 		update_option( self::OPTION_CONFIG, array(
 			'ga4_property_id' => sanitize_text_field( $ga4_property_id ),
-			'gsc_site_url'    => esc_url_raw( $gsc_site_url ),
+			'gsc_site_url'    => $resolved['site'],
 		) );
 		delete_transient( 'twtaeo_ga4_totals' );
 		delete_transient( 'twtaeo_ga4_top_pages' );
 		delete_transient( 'twtaeo_gsc_totals' );
 		delete_transient( 'twtaeo_gsc_top_queries' );
+
+		return array(
+			'note'    => $resolved['note'],
+			'refused' => ! empty( $resolved['refused'] ),
+		);
 	}
+
+	/**
+	 * A Search Console property in the form Google files it: a domain
+	 * property as "sc-domain:example.com" (not a web address, so never run
+	 * through esc_url_raw), a URL-prefix property ending in "/".
+	 *
+	 * @param string $value
+	 * @return string
+	 */
+	public static function normalize_gsc_site( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) {
+			return '';
+		}
+		if ( preg_match( '/^sc-domain:\s*(.+)$/i', $value, $m ) ) {
+			return 'sc-domain:' . strtolower( (string) preg_replace( '/[^a-z0-9.\-]/i', '', $m[1] ) );
+		}
+		if ( ! preg_match( '#^https?://#i', $value ) ) {
+			$value = 'https://' . $value;
+		}
+		$value = esc_url_raw( $value );
+		$path  = (string) wp_parse_url( $value, PHP_URL_PATH );
+
+		return '' === $path ? $value . '/' : $value;
+	}
+
+	/**
+	 * The Search Console properties the connected account can use, for the
+	 * settings dropdown. Cached for ten minutes: the settings screen should
+	 * not call Google on every load.
+	 *
+	 * @param bool $fresh Skip the cache.
+	 * @return array[]|WP_Error { url, label } sorted domain properties first, then by address.
+	 */
+	public static function gsc_property_choices( $fresh = false ) {
+		$cached = $fresh ? false : get_transient( 'twtaeo_gsc_properties' );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+		if ( ! self::is_connected() ) {
+			return new WP_Error( 'not_connected', __( 'Google is not connected.', 'twt-aeo-ultimate' ) );
+		}
+		$list = self::gsc_list_sites();
+		if ( is_wp_error( $list ) ) {
+			return $list;
+		}
+		if ( ! is_array( $list ) ) {
+			return new WP_Error( 'gsc_list', __( 'Search Console did not return a list of properties.', 'twt-aeo-ultimate' ) );
+		}
+		if ( isset( $list['error']['message'] ) ) {
+			return new WP_Error( 'gsc_list', (string) $list['error']['message'] );
+		}
+
+		$levels = array(
+			'siteOwner'           => __( 'owner', 'twt-aeo-ultimate' ),
+			'siteFullUser'        => __( 'full user', 'twt-aeo-ultimate' ),
+			'siteRestrictedUser'  => __( 'restricted user', 'twt-aeo-ultimate' ),
+		);
+		$out = array();
+		foreach ( (array) ( $list['siteEntry'] ?? array() ) as $entry ) {
+			$url   = isset( $entry['siteUrl'] ) ? (string) $entry['siteUrl'] : '';
+			$level = isset( $entry['permissionLevel'] ) ? (string) $entry['permissionLevel'] : '';
+			if ( '' === $url || 'siteUnverifiedUser' === $level ) {
+				continue; // Google refuses data for unverified properties.
+			}
+			$domain = 0 === strpos( $url, 'sc-domain:' );
+			$out[]  = array(
+				'url'   => $url,
+				'label' => ( $domain
+					/* translators: %s: domain name. */
+					? sprintf( __( '%s — domain property (every version of the site)', 'twt-aeo-ultimate' ), substr( $url, 10 ) )
+					/* translators: %s: address. */
+					: sprintf( __( '%s — URL-prefix property', 'twt-aeo-ultimate' ), $url ) )
+					. ( isset( $levels[ $level ] ) ? ' · ' . $levels[ $level ] : '' ),
+			);
+		}
+		usort(
+			$out,
+			static function ( $a, $b ) {
+				$da = 0 === strpos( $a['url'], 'sc-domain:' );
+				$db = 0 === strpos( $b['url'], 'sc-domain:' );
+				return $da === $db ? strcmp( $a['url'], $b['url'] ) : ( $da ? -1 : 1 );
+			}
+		);
+		set_transient( 'twtaeo_gsc_properties', $out, 10 * MINUTE_IN_SECONDS );
+
+		return $out;
+	}
+
+	/**
+	 * Which of the account's properties to show selected: the saved one, or
+	 * failing that the best match for it — or for this site when nothing is
+	 * saved yet.
+	 *
+	 * @param array[] $choices From gsc_property_choices().
+	 * @param string  $saved
+	 * @return string
+	 */
+	public static function gsc_preselect( array $choices, $saved ) {
+		$urls   = wp_list_pluck( $choices, 'url' );
+		$target = '' !== (string) $saved ? self::normalize_gsc_site( $saved ) : self::normalize_gsc_site( home_url( '/' ) );
+		if ( in_array( $target, $urls, true ) ) {
+			return $target;
+		}
+		$match = self::best_match( $target, $urls );
+
+		return '' !== $match ? $match : '';
+	}
+
+	/**
+	 * The property among $sites that covers $site: the same address, then the
+	 * domain property, then a www or http variant. '' when none does.
+	 */
+	private static function best_match( $site, array $sites ) {
+		$key = static function ( $url ) {
+			$url = strtolower( (string) $url );
+			$url = preg_replace( '#^(?:sc-domain:|https?://)#', '', $url );
+			$url = preg_replace( '#^www\.#', '', (string) $url );
+			return rtrim( (string) $url, '/' );
+		};
+		$rank = static function ( $s ) use ( $site ) {
+			if ( strtolower( $s ) === strtolower( $site ) ) {
+				return 3;
+			}
+			return 0 === strpos( $s, 'sc-domain:' ) ? 2 : 1;
+		};
+		$matches = array_values(
+			array_filter(
+				$sites,
+				static function ( $s ) use ( $key, $site ) {
+					return $key( $s ) === $key( $site );
+				}
+			)
+		);
+		usort(
+			$matches,
+			static function ( $a, $b ) use ( $rank ) {
+				return $rank( $b ) <=> $rank( $a );
+			}
+		);
+
+		return $matches ? $matches[0] : '';
+	}
+
+	/**
+	 * Match what the owner typed to a property the account can see.
+	 *
+	 * @param string $typed
+	 * @return array { site: string, note: string, refused?: bool }
+	 */
+	private static function resolve_gsc_site( $typed ) {
+		$site = self::normalize_gsc_site( $typed );
+		if ( '' === $site || ! self::is_connected() ) {
+			return array( 'site' => $site, 'note' => '' );
+		}
+		$choices = self::gsc_property_choices( true );
+		if ( is_wp_error( $choices ) ) {
+			// Google answered with an error of its own (a missing permission,
+			// an expired sign-in): say what it said.
+			return array(
+				'site'    => $site,
+				'refused' => true,
+				/* translators: %s: Google's error message. */
+				'note'    => sprintf( __( 'Google would not list this account\'s Search Console properties: %s', 'twt-aeo-ultimate' ), $choices->get_error_message() ),
+			);
+		}
+		$sites = wp_list_pluck( $choices, 'url' );
+		if ( ! $sites ) {
+			return array(
+				'site'    => $site,
+				'refused' => true,
+				'note'    => __( 'The Google account connected here has no Search Console properties, so Google refuses every address. Connect the Google account that owns this site in Search Console, or add this account as a user there (Search Console → Settings → Users and permissions).', 'twt-aeo-ultimate' ),
+			);
+		}
+		if ( in_array( $site, $sites, true ) ) {
+			return array( 'site' => $site, 'note' => '' );
+		}
+
+		$match = self::best_match( $site, $sites );
+		if ( '' !== $match ) {
+			return array(
+				'site' => $match,
+				/* translators: 1: property as saved, 2: what was typed. */
+				'note' => sprintf( __( 'Search Console property saved as %1$s, the way Google lists it (you entered %2$s).', 'twt-aeo-ultimate' ), $match, trim( (string) $typed ) ),
+			);
+		}
+
+		return array(
+			'site'    => $site,
+			'refused' => true,
+			'note'    => sprintf(
+				/* translators: 1: property entered, 2: properties the account can see. */
+				__( 'The connected Google account cannot see %1$s in Search Console, so Google will refuse it. Properties this account can use: %2$s', 'twt-aeo-ultimate' ),
+				$site,
+				implode( ', ', array_slice( $sites, 0, 8 ) )
+			),
+		);
+	}
+
 
 	// ── Simple API Key (Knowledge Graph + PageSpeed Insights) ────────────────
 	//
@@ -118,6 +339,7 @@ class TWTAEO_Google_OAuth {
 		delete_transient( 'twtaeo_ga4_top_pages' );
 		delete_transient( 'twtaeo_gsc_totals' );
 		delete_transient( 'twtaeo_gsc_top_queries' );
+		delete_transient( 'twtaeo_gsc_properties' );
 	}
 
 	// ── OAuth Flow ───────────────────────────────────────────────────────────
@@ -205,6 +427,8 @@ class TWTAEO_Google_OAuth {
 			'refresh_token' => $body['refresh_token'] ?? '',
 			'expires_at'    => time() + (int) ( $body['expires_in'] ?? 3600 ),
 		) );
+		// A different Google account may see different properties.
+		delete_transient( 'twtaeo_gsc_properties' );
 
 		// Bust cached data — new account may differ from the previous connection.
 		delete_transient( 'twtaeo_ga4_totals' );

@@ -163,6 +163,65 @@ class TWTAEO_SEO_Compatibility {
 	}
 
 	/**
+	 * Whether SASWP (Schema & Structured Data for WP) publishes a given schema
+	 * @type on a specific post via its per-post custom markup field.
+	 *
+	 * SASWP custom schema is per-post JSON stored in postmeta and printed
+	 * directly into the page — invisible to the homepage-only conflict scan, so
+	 * without this check our writers double-publish against it (two Article
+	 * nodes on one URL). Cached per request.
+	 *
+	 * @param int    $post_id
+	 * @param string $type Schema @type to look for (e.g. 'Article').
+	 * @return bool
+	 */
+	public static function saswp_post_has_type( $post_id, $type ) {
+		if ( ! defined( 'SASWP_VERSION' ) || ! $post_id ) {
+			return false;
+		}
+
+		static $cache = array();
+		$key = $post_id . '|' . $type;
+		if ( isset( $cache[ $key ] ) ) {
+			return $cache[ $key ];
+		}
+
+		// SASWP stores schema under several meta keys depending on feature
+		// (saswp_custom_schema_field, custom-markup keys, per-type fields), so
+		// scan every saswp_* value that parses as JSON rather than betting on
+		// one key and silently missing the rest.
+		$found    = false;
+		$all_meta = (array) get_post_meta( $post_id );
+		foreach ( $all_meta as $meta_key => $values ) {
+			if ( 0 !== strpos( $meta_key, 'saswp' ) ) {
+				continue;
+			}
+			foreach ( (array) $values as $raw ) {
+				if ( ! is_string( $raw ) || false === strpos( $raw, '"@type"' ) ) {
+					continue;
+				}
+				$data = json_decode( $raw, true );
+				if ( ! is_array( $data ) ) {
+					continue;
+				}
+				$items = isset( $data['@graph'] ) ? $data['@graph'] : array( $data );
+				foreach ( $items as $item ) {
+					$types = isset( $item['@type'] )
+						? ( is_array( $item['@type'] ) ? $item['@type'] : array( $item['@type'] ) )
+						: array();
+					if ( in_array( $type, $types, true ) ) {
+						$found = true;
+						break 3;
+					}
+				}
+			}
+		}
+
+		$cache[ $key ] = $found;
+		return $found;
+	}
+
+	/**
 	 * Check for conflicts — multiple SEO plugins active simultaneously.
 	 *
 	 * @return array|null Conflict data, or null if no conflict.

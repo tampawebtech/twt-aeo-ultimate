@@ -95,12 +95,13 @@ class TWTAEO_BMC_Sync_Engine {
 	public static function diff_chunk( array $post_ids, array $by_sku, array $by_gtin, array $statuses ) {
 		$summary = array(
 			'total'          => count( $post_ids ),
-			'matched'        => 0,
-			'unmatched'      => 0,
-			'price_mismatch' => 0,
-			'avail_mismatch' => 0,
-			'rejected'       => 0,
-			'schema_issues'  => 0,
+			'matched'           => 0,
+			'unmatched'         => 0,
+			'price_mismatch'    => 0,
+			'avail_mismatch'    => 0,
+			'category_mismatch' => 0,
+			'rejected'          => 0,
+			'schema_issues'     => 0,
 		);
 
 		foreach ( $post_ids as $post_id ) {
@@ -119,6 +120,7 @@ class TWTAEO_BMC_Sync_Engine {
 			}
 			if ( $snapshot['price_mismatch'] )               $summary['price_mismatch']++;
 			if ( $snapshot['avail_mismatch'] )               $summary['avail_mismatch']++;
+			if ( ! empty( $snapshot['category_mismatch'] ) ) $summary['category_mismatch']++;
 			if ( ! empty( $snapshot['rejection_codes'] ) )   $summary['rejected']++;
 			if ( $snapshot['schema_discrepancy'] )           $summary['schema_issues']++;
 		}
@@ -151,10 +153,11 @@ class TWTAEO_BMC_Sync_Engine {
 			'synced'         => 0,
 			'matched'        => 0,
 			'unmatched'      => 0,
-			'price_mismatch' => 0,
-			'avail_mismatch' => 0,
-			'rejected'       => 0,
-			'schema_issues'  => 0,
+			'price_mismatch'    => 0,
+			'avail_mismatch'    => 0,
+			'category_mismatch' => 0,
+			'rejected'          => 0,
+			'schema_issues'     => 0,
 		);
 
 		foreach ( $rows as $row ) {
@@ -163,20 +166,22 @@ class TWTAEO_BMC_Sync_Engine {
 				continue;
 			}
 			$counts['synced']++;
-			if ( $snap['matched'] )                      $counts['matched']++;
-			else                                         $counts['unmatched']++;
-			if ( $snap['price_mismatch'] )               $counts['price_mismatch']++;
-			if ( $snap['avail_mismatch'] )               $counts['avail_mismatch']++;
-			if ( ! empty( $snap['rejection_codes'] ) )   $counts['rejected']++;
-			if ( $snap['schema_discrepancy'] )           $counts['schema_issues']++;
+			if ( $snap['matched'] )                        $counts['matched']++;
+			else                                           $counts['unmatched']++;
+			if ( $snap['price_mismatch'] )                 $counts['price_mismatch']++;
+			if ( $snap['avail_mismatch'] )                 $counts['avail_mismatch']++;
+			if ( ! empty( $snap['category_mismatch'] ) )   $counts['category_mismatch']++;
+			if ( ! empty( $snap['rejection_codes'] ) )     $counts['rejected']++;
+			if ( $snap['schema_discrepancy'] )             $counts['schema_issues']++;
 		}
 
 		$deductions = 0;
-		$deductions += min( $counts['rejected']       * 5, 40 );
-		$deductions += min( $counts['price_mismatch'] * 2, 20 );
-		$deductions += min( $counts['avail_mismatch'] * 1, 10 );
-		$deductions += min( $counts['unmatched']      * 1, 10 );
-		$deductions += min( $counts['schema_issues']  * 2, 20 );
+		$deductions += min( $counts['rejected']          * 5, 40 );
+		$deductions += min( $counts['price_mismatch']    * 2, 20 );
+		$deductions += min( $counts['avail_mismatch']    * 1, 10 );
+		$deductions += min( $counts['category_mismatch'] * 1, 10 );
+		$deductions += min( $counts['unmatched']         * 1, 10 );
+		$deductions += min( $counts['schema_issues']     * 2, 20 );
 
 		$score = max( 0, 100 - $deductions );
 
@@ -298,6 +303,7 @@ class TWTAEO_BMC_Sync_Engine {
 		$rejection_codes    = array();
 		$price_mismatch     = false;
 		$avail_mismatch     = false;
+		$category_mismatch  = false;
 		$schema_discrepancy = false;
 		$sync_latency       = 0;
 
@@ -325,6 +331,26 @@ class TWTAEO_BMC_Sync_Engine {
 			$avail_bmc_norm  = strtolower( str_replace( '_', ' ', $avail_bmc ) );
 			$avail_local_bmc = self::wc_avail_to_bmc( $avail_local );
 			$avail_mismatch  = ( $avail_local_bmc !== $avail_bmc_norm );
+
+			// Category alignment: compare the on-page AI-resolved Google Product
+			// Category against the feed value. Only flags when an on-page value has
+			// been resolved (raw WooCommerce names aren't comparable to the taxonomy).
+			if ( '' !== $category_bmc && class_exists( 'TWTAEO_Product_Enricher' ) ) {
+				$page_gcat = TWTAEO_Product_Enricher::get_cached_google_category( $post_id );
+				if ( $page_gcat ) {
+					$page_code = (string) ( $page_gcat['data']['code'] ?? '' );
+					$page_path = (string) ( $page_gcat['data']['path'] ?? '' );
+					$feed_cat  = trim( (string) $category_bmc );
+					if ( ctype_digit( $feed_cat ) ) {
+						$category_mismatch = ( '' !== $page_code && $feed_cat !== $page_code );
+					} else {
+						$norm = static function ( $s ) {
+							return strtolower( trim( preg_replace( '/\s*>\s*/', ' > ', preg_replace( '/\s+/', ' ', (string) $s ) ) ) );
+						};
+						$category_mismatch = ( '' !== $page_path && $norm( $feed_cat ) !== $norm( $page_path ) );
+					}
+				}
+			}
 
 			if ( ( $gtin_local && ! $gtin_bmc ) || ( $mpn_local && ! $mpn_bmc ) ) {
 				$schema_discrepancy = true;
@@ -375,6 +401,7 @@ class TWTAEO_BMC_Sync_Engine {
 			'avail_mismatch'     => $avail_mismatch,
 			'category_local'     => $cat_local,
 			'category_bmc'       => $category_bmc,
+			'category_mismatch'  => $category_mismatch,
 			'schema_discrepancy' => $schema_discrepancy,
 			'rejection_codes'    => $rejection_codes,
 			'last_sync_local'    => $modified_ts,

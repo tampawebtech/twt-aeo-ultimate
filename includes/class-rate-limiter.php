@@ -34,7 +34,23 @@ class TWTAEO_Rate_Limiter {
 
 		$bot       = self::get_current_bot_signature();
 		$ip        = self::get_user_ip();
-		$ability   = method_exists( $builder, 'get_ability_name' ) ? $builder->get_ability_name() : 'unknown';
+		// ⚠️ Same trap as TWTAEO_AI_Client::call_via_ai_client(): the builder handed to
+		// this filter serves its methods through `__call`, so `method_exists()` is
+		// false and this always logged 'unknown'. Note `is_callable()` is true for
+		// *any* name on a class with `__call`, so it cannot confirm the method really
+		// exists — only the try/catch can. Logging detail only; the rate limiting
+		// below never depended on it.
+		$ability = 'unknown';
+		try {
+			if ( is_callable( array( $builder, 'get_ability_name' ) ) ) {
+				$name = $builder->get_ability_name();
+				if ( is_string( $name ) && '' !== $name ) {
+					$ability = $name;
+				}
+			}
+		} catch ( \Throwable $e ) {
+			$ability = 'unknown';
+		}
 
 		if ( self::is_bot_blocked( $bot ) ) {
 			self::log_blocked_visit( $bot, $ip, $ability, 'explicit_block' );

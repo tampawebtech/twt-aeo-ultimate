@@ -192,6 +192,30 @@ class TWTAEO_Index_Heuristics {
 				'detail'   => 'No meta description found in Yoast, Rank Math, AIOSEO, or SEOPress. Add one to improve CTR and give Google context.',
 				'severity' => 'warning',
 			);
+		} else {
+			// Identical meta description shared with other published pages — reads
+			// as templated/duplicate content and correlates with "Discovered — not
+			// indexed". Fixable inline: the modal writes a unique AI description.
+			$dupes = self::duplicate_description_posts( $post->ID, $meta );
+			if ( ! empty( $dupes ) ) {
+				$names = array();
+				foreach ( array_slice( $dupes, 0, 3 ) as $dupe_id ) {
+					$names[] = get_the_title( $dupe_id );
+				}
+				$extra   = count( $dupes ) - count( $names );
+				$flags[] = array(
+					'type'     => 'duplicate_meta_desc',
+					'label'    => 'Duplicate Meta Description',
+					'detail'   => sprintf(
+						'This page\'s meta description is identical to %s%s. Identical descriptions read as templated duplicate content — each page needs one that describes what only that page covers.',
+						implode( ', ', array_map( static function ( $n ) { return '"' . $n . '"'; }, $names ) ),
+						$extra > 0 ? sprintf( ' and %d more page(s)', $extra ) : ''
+					),
+					'severity' => 'warning',
+					'fix'      => 'meta_desc',
+					'current'  => $meta,
+				);
+			}
 		}
 
 		// Alt tags — scan img elements in content.
@@ -212,6 +236,7 @@ class TWTAEO_Index_Heuristics {
 					$missing_alt
 				),
 				'severity' => 'warning',
+				'fix'      => 'alt',
 			);
 		}
 
@@ -260,6 +285,94 @@ class TWTAEO_Index_Heuristics {
 			'meta_desc'    => $meta,
 			'missing_alt'  => $missing_alt,
 		);
+	}
+
+	/**
+	 * Other published posts whose effective meta description is identical to
+	 * this one (whitespace-collapsed, case-insensitive compare).
+	 *
+	 * @param int    $post_id Post being analyzed — excluded from the result.
+	 * @param string $meta    That post's effective meta description.
+	 * @return int[] Post IDs sharing the identical description.
+	 */
+	public static function duplicate_description_posts( $post_id, $meta ) {
+		$map = self::description_map();
+		$key = self::normalize_description( $meta );
+		if ( '' === $key || empty( $map[ $key ] ) ) {
+			return array();
+		}
+		return array_values( array_diff( $map[ $key ], array( (int) $post_id ) ) );
+	}
+
+	/** @var array<string,int[]>|null Normalized description => post IDs. Built once per request. */
+	private static $desc_map = null;
+
+	/**
+	 * Map every published post/page/product's effective meta description to the
+	 * post IDs carrying it. One query over the known description meta keys; each
+	 * post resolves to its highest-priority non-empty value — the same priority
+	 * order the per-post check above uses — so two posts only group together
+	 * when the description a visitor would actually get is the same.
+	 *
+	 * @return array<string,int[]>
+	 */
+	private static function description_map() {
+		if ( null !== self::$desc_map ) {
+			return self::$desc_map;
+		}
+
+		global $wpdb;
+		// Priority order matters: index 0 wins when a post has several keys.
+		$keys = array(
+			'_twtaeo_meta_description',
+			'_yoast_wpseo_metadesc',
+			'rank_math_description',
+			'_aioseop_description',
+			'seopress_titles_desc',
+		);
+
+		$placeholders = implode( ',', array_fill( 0, count( $keys ), '%s' ) );
+		// One read per request over specific meta keys, memoised in self::$desc_map —
+		// no core API fetches several meta keys across all posts in one round trip.
+		// $placeholders is only literal %s markers; every value goes through prepare().
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT pm.post_id, pm.meta_key, pm.meta_value
+			 FROM {$wpdb->postmeta} pm
+			 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+			 WHERE pm.meta_key IN ( $placeholders )
+			   AND pm.meta_value <> ''
+			   AND p.post_status = 'publish'
+			   AND p.post_type IN ( 'post', 'page', 'product' )",
+			$keys
+		) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+		$priority = array_flip( $keys );
+		$per_post = array();
+		foreach ( (array) $rows as $row ) {
+			$pid  = (int) $row->post_id;
+			$rank = $priority[ $row->meta_key ];
+			if ( ! isset( $per_post[ $pid ] ) || $rank < $per_post[ $pid ]['rank'] ) {
+				$per_post[ $pid ] = array( 'rank' => $rank, 'value' => $row->meta_value );
+			}
+		}
+
+		$map = array();
+		foreach ( $per_post as $pid => $entry ) {
+			$key = self::normalize_description( $entry['value'] );
+			if ( '' !== $key ) {
+				$map[ $key ][] = $pid;
+			}
+		}
+
+		self::$desc_map = $map;
+		return $map;
+	}
+
+	/** Whitespace-collapsed, lowercased description for identity comparison. */
+	private static function normalize_description( $text ) {
+		return strtolower( trim( preg_replace( '/\s+/u', ' ', (string) $text ) ) );
 	}
 
 	/**

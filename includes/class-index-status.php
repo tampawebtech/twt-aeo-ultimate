@@ -79,6 +79,50 @@ class TWTAEO_Index_Status {
 	// ── Scannable URL List ───────────────────────────────────────────────────
 
 	/**
+	 * Whether a page should be left out of index-status reporting entirely.
+	 *
+	 * WooCommerce's and Easy Digital Downloads' utility pages (cart, checkout,
+	 * receipt/success, failure, my account, purchase history) are transactional
+	 * and noindex by design — "not indexed" is correct behaviour there, not a
+	 * problem to surface or spend GSC inspection quota on. A child of one of
+	 * those pages (e.g. a receipt page nested under checkout) is part of the
+	 * same flow and equally excluded.
+	 *
+	 * @param int $post_id
+	 * @return bool
+	 */
+	public static function is_excluded_page( $post_id ) {
+		$post_id  = (int) $post_id;
+		$excluded = array();
+
+		if ( function_exists( 'wc_get_page_id' ) ) {
+			foreach ( array( 'cart', 'checkout', 'myaccount' ) as $wc_page ) {
+				$excluded[] = (int) wc_get_page_id( $wc_page );
+			}
+		}
+
+		if ( function_exists( 'edd_get_option' ) ) {
+			foreach ( array( 'purchase_page', 'success_page', 'failure_page', 'purchase_history_page' ) as $edd_page ) {
+				$excluded[] = (int) edd_get_option( $edd_page, 0 );
+			}
+		}
+
+		$excluded = array_filter( $excluded );
+		if ( empty( $excluded ) ) {
+			return false;
+		}
+		if ( in_array( $post_id, $excluded, true ) ) {
+			return true;
+		}
+		foreach ( get_post_ancestors( $post_id ) as $ancestor ) {
+			if ( in_array( (int) $ancestor, $excluded, true ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Returns published posts and pages to scan.
 	 *
 	 * @param int $limit
@@ -95,6 +139,9 @@ class TWTAEO_Index_Status {
 
 		$urls = array();
 		foreach ( $posts as $post ) {
+			if ( self::is_excluded_page( $post->ID ) ) {
+				continue;
+			}
 			$urls[] = array(
 				'post_id'  => $post->ID,
 				'url'      => get_permalink( $post ),
@@ -139,6 +186,9 @@ class TWTAEO_Index_Status {
 		$payload = array();
 
 		foreach ( $scan as $post_id => $result ) {
+			if ( self::is_excluded_page( $post_id ) ) {
+				continue;
+			}
 			if ( ! empty( $result['gsc']['not_indexed'] ) ) {
 				$payload[] = array(
 					'post_id'        => (int) $post_id,

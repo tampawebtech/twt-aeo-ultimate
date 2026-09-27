@@ -47,17 +47,26 @@ class TWTAEO_Image_Optimizer {
 		$rows = array();
 		foreach ( $posts as $post ) {
 			$images = self::collect( $post );
-			if ( empty( $images ) ) {
-				continue;
-			}
+			// Pages with NO images at all are a finding, not a page to skip:
+			// there is nothing to describe and nothing for a social share or an
+			// AI answer to show. They were silently omitted here, so a store
+			// whose pages lack images saw an empty screen and concluded the
+			// scanner was broken. They rank below alt-text gaps (no_images
+			// flag), because a missing image cannot be fixed from this screen.
 			$rows[] = array(
 				'post'    => $post,
 				'summary' => self::summarize( $images ),
 			);
 		}
 
-		// Worst coverage (most missing) first.
+		// Worst alt coverage first; image-less pages after those, since their
+		// fix (adding an image) lives in the editor, not here.
 		usort( $rows, function( $a, $b ) {
+			$a_empty = ( 0 === $a['summary']['total'] );
+			$b_empty = ( 0 === $b['summary']['total'] );
+			if ( $a_empty !== $b_empty ) {
+				return $a_empty ? 1 : -1;
+			}
 			return $b['summary']['missing'] - $a['summary']['missing'];
 		} );
 

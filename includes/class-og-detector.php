@@ -128,6 +128,19 @@ class TWTAEO_OG_Detector {
 				$signals[] = 'og:image falls back to featured image';
 			}
 		}
+		// Products: a gallery image counts when there is no featured image —
+		// mirrors the same fallback in TWTAEO_OG_Writer::output_meta().
+		if ( empty( $og_image ) && 'product' === $post->post_type && function_exists( 'wc_get_product' ) ) {
+			$wc_product = wc_get_product( $post->ID );
+			$gallery    = $wc_product ? $wc_product->get_gallery_image_ids() : array();
+			if ( ! empty( $gallery ) ) {
+				$g_url = wp_get_attachment_image_url( $gallery[0], 'large' );
+				if ( $g_url ) {
+					$og_image  = $g_url;
+					$signals[] = 'og:image falls back to product gallery image';
+				}
+			}
+		}
 
 		// ── AEO saved overrides ──────────────────────────────────────────────────
 		// Values saved through the AEO Open Graph editor (modal / bulk job) take
@@ -194,21 +207,91 @@ class TWTAEO_OG_Detector {
 	}
 
 	/**
-	 * Scan all published pages and posts.
-	 *
-	 * @return array[] Each entry: { post, og_data }
+	 * How many posts one scan block covers. Scanning the whole catalogue in one
+	 * page load times out on large stores, so the screen walks the catalogue in
+	 * blocks of this size instead of stopping at the first one.
 	 */
-	public static function scan_all() {
+	const SCAN_BLOCK = 200;
+
+	/**
+	 * The post types this detector covers.
+	 *
+	 * @return string[]
+	 */
+	public static function post_types() {
 		$post_types = array( 'page', 'post' );
 		if ( class_exists( 'WooCommerce' ) ) {
 			$post_types[] = 'product';
 		}
+		return $post_types;
+	}
 
-		$posts = get_posts( array(
-			'post_type'      => $post_types,
+	/**
+	 * How many published items are in the catalogue, regardless of any scan cap.
+	 *
+	 * @return int
+	 */
+	public static function total_items() {
+		$catalogue = 0;
+		foreach ( self::post_types() as $type ) {
+			$counts     = wp_count_posts( $type );
+			$catalogue += (int) ( $counts->publish ?? 0 );
+		}
+		return $catalogue;
+	}
+
+	/**
+	 * Items matched by the last scan_all() call across all blocks — what the
+	 * pager needs when a search narrows the catalogue.
+	 *
+	 * @var int
+	 */
+	private static $last_found = 0;
+
+	/**
+	 * How many items the last scan_all() query matched in total.
+	 *
+	 * @return int
+	 */
+	public static function last_found() {
+		return self::$last_found;
+	}
+
+	/**
+	 * Scan one block of published pages and posts, newest first.
+	 *
+	 * @param int    $block  1-based block number; block N covers items
+	 *                       ((N-1)*SCAN_BLOCK)+1 through N*SCAN_BLOCK.
+	 * @param string $search Optional term matched against title, content and
+	 *                       product SKU, across the whole catalogue. Blocks
+	 *                       then page through the MATCHES, newest first.
+	 * @return array[] Each entry: { post, og_data }
+	 */
+	public static function scan_all( $block = 1, $search = '' ) {
+		$args = array(
+			'post_type'      => self::post_types(),
 			'post_status'    => 'publish',
-			'posts_per_page' => 200,
-		) );
+			'posts_per_page' => self::SCAN_BLOCK,
+			'paged'          => max( 1, (int) $block ),
+			'orderby'        => array( 'date' => 'DESC', 'ID' => 'DESC' ),
+		);
+
+		$search = trim( (string) $search );
+		if ( '' !== $search ) {
+			$args['s'] = $search;
+			// SKU matching rides along; on non-product types the extra OR
+			// simply never matches.
+			add_filter( 'posts_search', array( 'TWTAEO_WooCommerce_Detector', 'search_sku' ), 10, 2 );
+		}
+
+		$query = new WP_Query( $args );
+
+		if ( '' !== $search ) {
+			remove_filter( 'posts_search', array( 'TWTAEO_WooCommerce_Detector', 'search_sku' ), 10 );
+		}
+
+		self::$last_found = (int) $query->found_posts;
+		$posts            = $query->posts;
 
 		$results = array();
 
@@ -223,15 +306,21 @@ class TWTAEO_OG_Detector {
 	}
 
 	/**
-	 * Get summary counts across all published content.
+	 * Get summary counts for one scanned block.
 	 *
-	 * @return array { total, complete, missing_image, missing_description, needs_work }
+	 * @param array[]|null $all A block already returned by scan_all(), so the
+	 *                          caller does not pay for a second scan. Null scans
+	 *                          the first block.
+	 * @return array { total, scanned, truncated, complete, missing_image, missing_description, needs_work }
 	 */
-	public static function get_summary() {
-		$all             = self::scan_all();
+	public static function get_summary( $all = null ) {
+		if ( null === $all ) {
+			$all = self::scan_all();
+		}
 		$complete        = 0;
 		$missing_image   = 0;
 		$missing_desc    = 0;
+		$missing_text    = 0;
 		$needs_work      = 0;
 
 		foreach ( $all as $item ) {
@@ -242,16 +331,83 @@ class TWTAEO_OG_Detector {
 				$needs_work++;
 				if ( ! $og['has_og_image'] )       $missing_image++;
 				if ( ! $og['has_og_description'] ) $missing_desc++;
+				if ( ! $og['has_og_title'] || ! $og['has_og_description'] ) $missing_text++;
 			}
 		}
 
+		// One block covers at most SCAN_BLOCK posts; the site may hold far more.
+		// Counted from the database so the UI can say "200 of 1,400 scanned"
+		// instead of presenting the block as the whole story — a store with
+		// 1,400 products reading "200 missing image" would rightly call that
+		// number wrong.
+		$catalogue = self::total_items();
+
 		return array(
-			'total'               => count( $all ),
+			'total'               => $catalogue,
+			'scanned'             => count( $all ),
+			'truncated'           => $catalogue > count( $all ),
 			'complete'            => $complete,
 			'missing_image'       => $missing_image,
 			'missing_description' => $missing_desc,
+			'missing_text'        => $missing_text,
 			'needs_work'          => $needs_work,
 		);
+	}
+
+	/**
+	 * Option holding the last full-site census: every block scanned, counts
+	 * aggregated. The summary cards read this — a single block's counts on a
+	 * 1,000-page site say almost nothing about the site.
+	 */
+	const CENSUS_OPTION = 'twtaeo_og_census';
+
+	/**
+	 * Scan one block and return its counts, for the site-wide census walk.
+	 *
+	 * @param int $block 1-based block number.
+	 * @return array { scanned, complete, missing_image, missing_text, needs_work, tw_explicit }
+	 */
+	public static function census_block( $block ) {
+		$items  = self::scan_all( $block );
+		$counts = array(
+			'scanned'       => count( $items ),
+			'complete'      => 0,
+			'missing_image' => 0,
+			'missing_text'  => 0,
+			'needs_work'    => 0,
+			'tw_explicit'   => 0,
+		);
+		foreach ( $items as $item ) {
+			$og = $item['og_data'];
+			if ( empty( $og['missing'] ) ) {
+				$counts['complete']++;
+			} else {
+				$counts['needs_work']++;
+				if ( ! $og['has_og_image'] ) {
+					$counts['missing_image']++;
+				}
+				if ( ! $og['has_og_title'] || ! $og['has_og_description'] ) {
+					$counts['missing_text']++;
+				}
+			}
+			if ( class_exists( 'TWTAEO_Twitter_Writer' ) ) {
+				$tw = TWTAEO_Twitter_Writer::get( $item['post']->ID );
+				if ( ! empty( $tw['tw_card'] ) ) {
+					$counts['tw_explicit']++;
+				}
+			}
+		}
+		return $counts;
+	}
+
+	/**
+	 * The stored census, or an empty array when none has completed yet.
+	 *
+	 * @return array { totals: array, total_items: int, completed_at: int } | array{}
+	 */
+	public static function get_census() {
+		$census = get_option( self::CENSUS_OPTION, array() );
+		return ( is_array( $census ) && ! empty( $census['completed_at'] ) ) ? $census : array();
 	}
 
 	/**

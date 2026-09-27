@@ -649,12 +649,37 @@
 	margin-bottom: 8px;
 }
 
+/* Compact variant: fits five or six cards on one row by trading padding and
+   number size. Used where a screen carries more metrics than the default 4. */
+.twt-aeo-summary-grid--compact {
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 12px;
+}
+
+.twt-aeo-summary-grid--compact .twt-aeo-summary-card {
+	padding: 14px 16px;
+}
+
+.twt-aeo-summary-grid--compact .twt-aeo-summary-card__number {
+	font-size: 26px;
+}
+
+.twt-aeo-summary-grid--compact .twt-aeo-summary-card__label {
+	font-size: 12px;
+}
+
 .twt-aeo-summary-card {
 	background: var(--aeo-card-bg);
 	border: 1px solid var(--aeo-border);
 	border-radius: var(--aeo-radius);
 	padding: 20px 24px;
 	text-align: center;
+	transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.twt-aeo-summary-card:hover {
+	box-shadow: 0 4px 12px rgba(15,23,42,0.08);
+	transform: translateY(-2px);
 }
 
 .twt-aeo-summary-card--alert {
@@ -1518,12 +1543,13 @@
 .twt-aeo-tabs {
 	display: flex;
 	align-items: center;
-	gap: 3px;
-	background: #f1f5f9;
-	padding: 5px;
-	border-radius: 12px;
+	gap: 4px;
+	background: #eef2f7;
+	padding: 6px;
+	border-radius: 14px;
 	margin-bottom: 24px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid #dde5ee;
+	box-shadow: inset 0 1px 2px rgba(15,23,42,0.04);
 	width: fit-content;
 	flex-wrap: wrap;
 }
@@ -1531,50 +1557,88 @@
 .twt-aeo-tab {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	padding: 8px 18px;
-	border-radius: 8px;
+	gap: 7px;
+	padding: 10px 20px;
+	border-radius: 9px;
 	font-size: 13px;
-	font-weight: 600;
+	font-weight: 700;
+	letter-spacing: 0.01em;
 	color: #64748b;
 	text-decoration: none !important;
-	transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+	transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
 	border: 1px solid transparent;
 	line-height: 1;
 	cursor: pointer;
 }
 
 .twt-aeo-tab:hover {
-	color: #334155;
-	background: rgba(255,255,255,0.7);
+	color: #1e293b;
+	background: rgba(255,255,255,0.85);
+	box-shadow: 0 1px 2px rgba(15,23,42,0.08);
+	transform: translateY(-1px);
 	text-decoration: none !important;
 }
 
 .twt-aeo-tab--active {
-	background: #ffffff;
-	color: #1d4ed8;
-	border-color: #dbeafe;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+	background: linear-gradient(180deg, #2f6fed 0%, #1d4ed8 100%);
+	color: #ffffff;
+	border-color: #1d4ed8;
+	box-shadow: 0 2px 6px rgba(29,78,216,0.35), 0 1px 2px rgba(15,23,42,0.1);
 }
 
 .twt-aeo-tab--active:hover {
-	background: #ffffff;
-	color: #1d4ed8;
+	background: linear-gradient(180deg, #2f6fed 0%, #1d4ed8 100%);
+	color: #ffffff;
+	transform: none;
+}
+
+.twt-aeo-tab--active .dashicons {
+	color: #ffffff;
 }
 
 .twt-aeo-tab .dashicons {
-	font-size: 14px;
-	width: 14px;
-	height: 14px;
-	line-height: 14px;
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
 	margin-top: 0;
 }
 
 .twt-aeo-tab--conflicts.twt-aeo-tab--active {
-	color: #b91c1c;
-	border-color: #fee2e2;
+	background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+	color: #ffffff;
+	border-color: #b91c1c;
+	box-shadow: 0 2px 6px rgba(185,28,28,0.35), 0 1px 2px rgba(15,23,42,0.1);
 }
 
 .twt-aeo-tab--conflicts.twt-aeo-tab--active .dashicons {
-	color: #b91c1c;
+	color: #ffffff;
+}
+
+/* A module that is off still gets its tab — hiding it would hide the feature.
+   The tab reads dimmed, carries an "Off" chip, and routes to Modules. */
+.twt-aeo-tab--off {
+	color: #94a3b8;
+}
+
+.twt-aeo-tab--off:hover {
+	color: #475569;
+}
+
+.twt-aeo-tab__off-chip {
+	display: inline-block;
+	padding: 2px 7px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	color: #64748b;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.3;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.twt-aeo-tab--off:hover .twt-aeo-tab__off-chip {
+	background: #dbeafe;
+	color: #1d4ed8;
 }

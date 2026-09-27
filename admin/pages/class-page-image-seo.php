@@ -27,13 +27,20 @@ class TWTAEO_Page_Image_SEO {
 
 		$total_imgs   = 0;
 		$missing_imgs = 0;
+		$no_image     = 0;
 		foreach ( $rows as $r ) {
 			$total_imgs   += $r['summary']['total'];
 			$missing_imgs += $r['summary']['missing'];
+			if ( 0 === $r['summary']['total'] ) {
+				$no_image++;
+			}
 		}
 
 		wp_enqueue_script( 'jquery-ui-dialog' );
 		wp_enqueue_style( 'wp-jquery-ui-dialog' );
+		// "Add an image" opens the native WordPress media modal and sets the
+		// chosen attachment as the page's featured image.
+		wp_enqueue_media();
 		?>
 		<div class="wrap twt-aeo-wrap">
 
@@ -46,17 +53,58 @@ class TWTAEO_Page_Image_SEO {
 				</div>
 			</div>
 
-			<div style="display:flex;align-items:center;gap:12px;margin:0 0 16px;">
+			<div style="display:flex;align-items:center;gap:12px;margin:0 0 16px;flex-wrap:wrap;">
 				<p style="margin:0;color:#50575e;">
 					<?php
 					printf(
-						/* translators: %1$d: pages with images, %2$d: images missing alt text. */
-						esc_html__( '%1$d pages with images — %2$d images missing alt text', 'twt-aeo-ultimate' ),
+						/* translators: %1$d: pages scanned, %2$d: images missing alt text, %3$d: pages with no images at all. */
+						esc_html__( '%1$d pages scanned — %2$d images missing alt text, %3$d pages have no images at all', 'twt-aeo-ultimate' ),
 						count( $rows ),
-						absint( $missing_imgs )
+						absint( $missing_imgs ),
+						absint( $no_image )
 					); ?>
 				</p>
+				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+				<p style="margin:0;color:#646970;font-size:12px;">
+					<?php
+					printf(
+						/* translators: %s: link to the WooCommerce products tab. */
+						esc_html__( 'Product images are audited on the %s tab.', 'twt-aeo-ultimate' ),
+						'<a href="' . esc_url( admin_url( 'admin.php?page=twt-aeo-woocommerce' ) ) . '">' . esc_html__( 'WooCommerce', 'twt-aeo-ultimate' ) . '</a>'
+					); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- link assembled from escaped parts.
+					?>
+				</p>
+				<?php endif; ?>
 			</div>
+
+			<?php if ( $missing_imgs > 0 ) : ?>
+			<!-- Bulk AI alt text -->
+			<div class="twt-aeo-card" style="border-left:3px solid #2271b1;margin-bottom:16px;">
+				<p style="margin:0 0 10px;font-size:13px;color:#50575e;line-height:1.55;max-width:820px;">
+					<strong><?php esc_html_e( 'Fill all missing alt text with AI', 'twt-aeo-ultimate' ); ?></strong> —
+					<?php esc_html_e( 'runs AI vision over every page listed below that still has images without alt text, instead of clicking each row one by one. Images that already have alt text are never touched.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+					<button type="button" class="button button-primary" id="twt-aeo-img-gen-bulk">
+						<?php
+						printf(
+							/* translators: %1$d: images missing alt text. %2$d: pages affected. */
+							esc_html__( 'Generate all missing alt text (%1$d images across %2$d pages)', 'twt-aeo-ultimate' ),
+							absint( $missing_imgs ),
+							absint( count( array_filter( $rows, function( $r ) { return $r['summary']['missing'] > 0; } ) ) )
+						);
+						?>
+					</button>
+					<button type="button" class="button" id="twt-aeo-img-gen-bulk-stop" style="display:none;">
+						<?php esc_html_e( 'Stop', 'twt-aeo-ultimate' ); ?>
+					</button>
+					<span id="twt-aeo-img-gen-bulk-status" style="font-size:12px;color:#646970;"></span>
+				</div>
+				<p style="margin:10px 0 0;font-size:13px;color:#646970;line-height:1.55;">
+					<?php esc_html_e( 'This uses AI: one billed API call per image that is missing alt text. You will be asked to confirm the count before anything runs, and you can stop at any time — pages already processed keep their new alt text.', 'twt-aeo-ultimate' ); ?>
+				</p>
+			</div>
+			<?php endif; ?>
 
 			<section class="twt-aeo-section">
 				<?php if ( empty( $rows ) ) : ?>
@@ -79,10 +127,10 @@ class TWTAEO_Page_Image_SEO {
 						<?php foreach ( $rows as $r ) :
 							$post     = $r['post'];
 							$summary  = $r['summary'];
-							$row_cls  = $summary['missing'] > 0 ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok';
+							$row_cls  = ( $summary['missing'] > 0 || 0 === $summary['total'] ) ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok';
 							$edit_url = get_edit_post_link( $post->ID, 'raw' );
 						?>
-							<tr class="twt-aeo-page-row <?php echo esc_attr( $row_cls ); ?>" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
+							<tr class="twt-aeo-page-row <?php echo esc_attr( $row_cls ); ?>" data-post-id="<?php echo esc_attr( $post->ID ); ?>" data-missing="<?php echo esc_attr( $summary['missing'] ); ?>">
 								<td class="twt-aeo-page-row__title">
 									<a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( get_the_title( $post ) ); ?></a>
 								</td>
@@ -92,13 +140,22 @@ class TWTAEO_Page_Image_SEO {
 									<?php echo wp_kses_post( TWTAEO_Product_Enricher::alt_badge_html( $summary ) ); ?>
 								</td>
 								<td class="twt-aeo-img-actions-cell" style="white-space:nowrap;">
-									<button type="button" class="button button-primary twt-aeo-img-gen-btn" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
-										<?php esc_html_e( 'Generate alt (AI)', 'twt-aeo-ultimate' ); ?>
-									</button>
-									<button type="button" class="button twt-aeo-img-edit-btn" data-post-id="<?php echo esc_attr( $post->ID ); ?>" data-title="<?php echo esc_attr( get_the_title( $post ) ); ?>">
-										<?php esc_html_e( 'Edit', 'twt-aeo-ultimate' ); ?>
-									</button>
-									<span class="twt-aeo-img-status" style="margin-left:6px;font-size:12px;color:#6b7280;"></span>
+									<?php if ( 0 === $summary['total'] ) : ?>
+										<button type="button" class="button button-primary twt-aeo-img-add-btn"
+											data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+											data-title="<?php echo esc_attr( get_the_title( $post ) ); ?>">
+											<?php esc_html_e( 'Add an image', 'twt-aeo-ultimate' ); ?>
+										</button>
+										<span class="twt-aeo-img-status" style="margin-left:6px;font-size:12px;color:#6b7280;"><?php esc_html_e( 'Less data = fewer citations. An image plus its description is content an answer engine can use; this page gives it neither.', 'twt-aeo-ultimate' ); ?></span>
+									<?php else : ?>
+										<button type="button" class="button button-primary twt-aeo-img-gen-btn" data-post-id="<?php echo esc_attr( $post->ID ); ?>">
+											<?php esc_html_e( 'Generate alt (AI)', 'twt-aeo-ultimate' ); ?>
+										</button>
+										<button type="button" class="button twt-aeo-img-edit-btn" data-post-id="<?php echo esc_attr( $post->ID ); ?>" data-title="<?php echo esc_attr( get_the_title( $post ) ); ?>">
+											<?php esc_html_e( 'Edit', 'twt-aeo-ultimate' ); ?>
+										</button>
+										<span class="twt-aeo-img-status" style="margin-left:6px;font-size:12px;color:#6b7280;"></span>
+									<?php endif; ?>
 									<a href="<?php echo esc_url( get_permalink( $post->ID ) ); ?>" target="_blank" class="twt-aeo-link" style="margin-left:6px;"><?php esc_html_e( 'View', 'twt-aeo-ultimate' ); ?></a>
 								</td>
 							</tr>
@@ -143,6 +200,89 @@ class TWTAEO_Page_Image_SEO {
 				$row.find('.twt-aeo-img-status').css('color', color || '#6b7280').text(text);
 			}
 
+			// Bulk AI generation — sequential, one billed call per page, stoppable.
+			var bulkStopped = false;
+			$('#twt-aeo-img-gen-bulk').on('click', function() {
+				var $btn    = $(this);
+				var $stop   = $('#twt-aeo-img-gen-bulk-stop');
+				var $status = $('#twt-aeo-img-gen-bulk-status');
+
+				var ids = [], imgCount = 0;
+				$('tr.twt-aeo-page-row').each(function() {
+					var m = parseInt($(this).attr('data-missing'), 10) || 0;
+					if ( m > 0 ) {
+						ids.push( $(this).data('post-id') );
+						imgCount += m;
+					}
+				});
+
+				if ( ! ids.length ) {
+					$status.css('color', '#16a34a').text('<?php echo esc_js( __( 'Nothing to generate — all images have alt text.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+
+				var confirmMsg = '<?php
+					/* translators: %1$d: number of images missing alt text. %2$d: number of pages they are on. */
+					echo esc_js( __( 'This will run AI vision over %1$d image(s) across %2$d page(s) — one billed AI call per image. Continue?', 'twt-aeo-ultimate' ) );
+				?>'
+					.replace('%1$d', imgCount).replace('%2$d', ids.length);
+				if ( ! window.confirm(confirmMsg) ) { return; }
+
+				bulkStopped = false;
+				$btn.prop('disabled', true);
+				$stop.show();
+				var done = 0, filled = 0, failed = 0, total = ids.length;
+
+				function finish(stopped) {
+					$btn.prop('disabled', false);
+					$stop.hide();
+					$status.css('color', failed ? '#d63638' : '#16a34a').text(
+						( stopped ? '<?php echo esc_js( __( 'Stopped', 'twt-aeo-ultimate' ) ); ?>' : '<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?>' ) +
+						' — ' + filled + ' <?php echo esc_js( __( 'image(s) filled across', 'twt-aeo-ultimate' ) ); ?> ' + done + ' <?php echo esc_js( __( 'page(s)', 'twt-aeo-ultimate' ) ); ?>' +
+						( failed ? ', ' + failed + ' <?php echo esc_js( __( 'failed', 'twt-aeo-ultimate' ) ); ?>' : '' )
+					);
+				}
+
+				function processNext() {
+					if ( bulkStopped ) { finish(true); return; }
+					if ( ! ids.length ) { finish(false); return; }
+
+					var postId = ids.shift();
+					var $row   = $('tr[data-post-id="' + postId + '"]');
+					$status.css('color', '#646970').text(
+						'<?php echo esc_js( __( 'Processing page', 'twt-aeo-ultimate' ) ); ?> ' + ( total - ids.length ) + ' / ' + total + '…'
+					);
+					setStatus($row, 'Generating…', '#6b7280');
+
+					$.post(ajaxurl, { action: 'twtaeo_img_generate_alt', nonce: imgNonce, post_id: postId }, function(resp) {
+						if ( resp.success ) {
+							done++;
+							filled += parseInt(resp.data.filled, 10) || 0;
+							if ( resp.data.cov_html ) { $row.find('.twt-aeo-img-cov-cell').html(resp.data.cov_html); }
+							$row.attr('data-missing', '0').data('missing', 0);
+							setStatus($row, 'Filled ' + resp.data.filled + ' image(s).', '#16a34a');
+						} else {
+							failed++;
+							setStatus($row, resp.data || 'Failed.', '#d63638');
+						}
+						processNext();
+					}).fail(function() {
+						failed++;
+						setStatus($row, 'Request failed.', '#d63638');
+						processNext();
+					});
+				}
+
+				processNext();
+			});
+
+			$('#twt-aeo-img-gen-bulk-stop').on('click', function() {
+				bulkStopped = true;
+				$(this).prop('disabled', true).text('<?php echo esc_js( __( 'Stopping…', 'twt-aeo-ultimate' ) ); ?>');
+				var self = this;
+				setTimeout(function(){ $(self).prop('disabled', false).text('<?php echo esc_js( __( 'Stop', 'twt-aeo-ultimate' ) ); ?>'); }, 1500);
+			});
+
 			// Per-row AI generation.
 			$(document).on('click', '.twt-aeo-img-gen-btn', function() {
 				var $btn = $(this), postId = $btn.data('post-id'), $row = $btn.closest('tr');
@@ -180,6 +320,54 @@ class TWTAEO_Page_Image_SEO {
 					});
 					$('#twt-aeo-img-dialog-body').html(html);
 				}).fail(function() { $('#twt-aeo-img-dialog-body').html('<p style="color:#d63638;">Request failed.</p>'); });
+			});
+
+			// "Add an image" — native WordPress media modal; the chosen image
+			// becomes the page's featured image.
+			var mediaFrame = null, mediaPostId = null, mediaTitle = '';
+			$(document).on('click', '.twt-aeo-img-add-btn', function() {
+				mediaPostId = $(this).data('post-id');
+				mediaTitle  = $(this).data('title');
+				if ( ! window.wp || ! wp.media ) {
+					window.alert('<?php echo esc_js( __( 'The WordPress media library could not be loaded on this screen.', 'twt-aeo-ultimate' ) ); ?>');
+					return;
+				}
+				if ( ! mediaFrame ) {
+					mediaFrame = wp.media({
+						title: '<?php echo esc_js( __( 'Choose an image for this page', 'twt-aeo-ultimate' ) ); ?>',
+						library: { type: 'image' },
+						multiple: false,
+						button: { text: '<?php echo esc_js( __( 'Use this image', 'twt-aeo-ultimate' ) ); ?>' }
+					});
+					mediaFrame.on('select', function() {
+						var att  = mediaFrame.state().get('selection').first().toJSON();
+						var $row = $('tr[data-post-id="' + mediaPostId + '"]');
+						setStatus($row, '<?php echo esc_js( __( 'Saving…', 'twt-aeo-ultimate' ) ); ?>', '#6b7280');
+						$.post(ajaxurl, {
+							action: 'twtaeo_img_set_featured',
+							nonce: imgNonce,
+							post_id: mediaPostId,
+							attachment_id: att.id
+						}, function(resp) {
+							if (!resp.success) { setStatus($row, resp.data || 'Failed.', '#d63638'); return; }
+							var d = resp.data;
+							$row.find('td').eq(2).text(d.total);
+							if (d.cov_html) { $row.find('.twt-aeo-img-cov-cell').html(d.cov_html); }
+							$row.attr('data-missing', d.missing).data('missing', d.missing);
+							// The page has an image now — swap "Add an image" for the
+							// standard Generate / Edit actions, keeping the View link.
+							var $cell = $row.find('.twt-aeo-img-actions-cell');
+							var $view = $cell.find('a.twt-aeo-link').last().detach();
+							$cell.html(
+								'<button type="button" class="button button-primary twt-aeo-img-gen-btn" data-post-id="' + mediaPostId + '"><?php echo esc_js( __( 'Generate alt (AI)', 'twt-aeo-ultimate' ) ); ?></button> ' +
+								'<button type="button" class="button twt-aeo-img-edit-btn" data-post-id="' + mediaPostId + '" data-title="' + esc(mediaTitle) + '"><?php echo esc_js( __( 'Edit', 'twt-aeo-ultimate' ) ); ?></button>' +
+								'<span class="twt-aeo-img-status" style="margin-left:6px;font-size:12px;color:#16a34a;"><?php echo esc_js( __( 'Featured image set.', 'twt-aeo-ultimate' ) ); ?></span>'
+							);
+							if ($view.length) { $cell.append($view.css('margin-left', '6px')); }
+						}).fail(function() { setStatus($row, 'Request failed.', '#d63638'); });
+					});
+				}
+				mediaFrame.open();
 			});
 
 			function doSave() {

@@ -137,16 +137,42 @@ class TWTAEO_Service_Detector {
 	}
 
 	/**
-	 * Scan all published scannable posts and return those with service content.
+	 * How many posts one scan block covers; the screen pages through blocks
+	 * instead of stopping at the first one.
+	 */
+	const SCAN_BLOCK = 200;
+
+	/**
+	 * How many published items the scan can see in total, regardless of blocks.
+	 *
+	 * @param bool $include_posts Whether blog posts are part of the scan.
+	 * @return int
+	 */
+	public static function total_items( $include_posts = false ) {
+		$total = 0;
+		foreach ( self::get_scannable_post_types( $include_posts ) as $type ) {
+			$counts = wp_count_posts( $type );
+			$total += (int) ( $counts->publish ?? 0 );
+		}
+		return $total;
+	}
+
+	/**
+	 * Scan one block of published scannable posts, newest first, and return
+	 * those with service content.
 	 *
 	 * @param bool $include_posts Whether to include blog posts (default: pages only).
+	 * @param int  $block         1-based block number; block N covers items
+	 *                            ((N-1)*SCAN_BLOCK)+1 through N*SCAN_BLOCK.
 	 * @return array[] Each entry: { post, service_data }
 	 */
-	public static function scan_all( $include_posts = false ) {
+	public static function scan_all( $include_posts = false, $block = 1 ) {
 		$posts = get_posts( array(
 			'post_type'      => self::get_scannable_post_types( $include_posts ),
 			'post_status'    => 'publish',
-			'posts_per_page' => 200,
+			'posts_per_page' => self::SCAN_BLOCK,
+			'paged'          => max( 1, (int) $block ),
+			'orderby'        => array( 'date' => 'DESC', 'ID' => 'DESC' ),
 		) );
 
 		$results = array();
@@ -167,11 +193,16 @@ class TWTAEO_Service_Detector {
 	/**
 	 * Get summary counts.
 	 *
-	 * @param bool $include_posts Whether to include blog posts (default: pages only).
+	 * @param bool         $include_posts Whether to include blog posts (default: pages only).
+	 * @param array[]|null $all           A block already returned by scan_all(), so the
+	 *                                    caller does not pay for a second scan. Null
+	 *                                    scans the first block.
 	 * @return array { total_with_service, needs_schema, has_schema }
 	 */
-	public static function get_summary( $include_posts = false ) {
-		$all         = self::scan_all( $include_posts );
+	public static function get_summary( $include_posts = false, $all = null ) {
+		if ( null === $all ) {
+			$all = self::scan_all( $include_posts );
+		}
 		$needs       = 0;
 		$has         = 0;
 

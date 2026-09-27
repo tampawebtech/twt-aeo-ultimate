@@ -227,6 +227,29 @@ class TWTAEO_Page_Setup_Wizard {
 					: __( 'Will enable the author entity module. Add a bio to your WordPress profile to complete your author box.', 'twt-aeo-ultimate' ),
 				'skip'  => false,
 			),
+			array(
+				'id'   => 'page_schema',
+				'icon' => '<svg viewBox="0 0 20 20" fill="none"><path d="M4 3h9l3 3v11H4V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 9h6M7 12h6M7 15h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+				'title' => __( 'Fill Missing Page Schema', 'twt-aeo-ultimate' ),
+				'desc'  => __( 'Builds FAQ and Service schema for every detected page still missing it, from content already on the page — free, no AI. Pages that already carry schema from another plugin are never touched. Runs in the background.', 'twt-aeo-ultimate' ),
+				'skip'  => false,
+			),
+			array(
+				'id'   => 'contact_schema',
+				'icon' => '<svg viewBox="0 0 20 20" fill="none"><path d="M3 4h14v10H8l-4 3V4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 8h6M7 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+				'title' => __( 'Contact Page Schema', 'twt-aeo-ultimate' ),
+				'desc'  => __( 'Adds Organization and ContactPoint schema to contact pages with gaps, using your business profile. Skipped automatically if no business details are on file yet, or where another plugin already provides it. Runs in the background.', 'twt-aeo-ultimate' ),
+				'skip'  => false,
+			),
+			array(
+				'id'   => 'og_descriptions',
+				'icon' => '<svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 8h16M6 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+				'title' => __( 'Social Share Descriptions', 'twt-aeo-ultimate' ),
+				'desc'  => TWTAEO_OG_Writer::seo_plugin_active()
+					? __( 'Your SEO plugin owns Open Graph output — this step will be skipped so the two never disagree.', 'twt-aeo-ultimate' )
+					: __( 'Fills missing og:description tags from the meta descriptions you already have — free, no AI. Runs in the background.', 'twt-aeo-ultimate' ),
+				'skip'  => TWTAEO_OG_Writer::seo_plugin_active(),
+			),
 		);
 		?>
 		<div class="twt-aeo-wizard__intro">
@@ -778,6 +801,65 @@ class TWTAEO_Page_Setup_Wizard {
 				<?php esc_html_e( 'TWT AEO Ultimate is configured and running. Here\'s where to go next.', 'twt-aeo-ultimate' ); ?>
 			</p>
 
+			<?php
+			// Background autopilot report. Rendered from whatever state exists
+			// right now; while tasks are still running, the inline script below
+			// polls until the report lands. Absent report (expert/basics path):
+			// nothing shows.
+			$autopilot = class_exists( 'TWTAEO_Autopilot' ) ? get_option( TWTAEO_Autopilot::OPTION_REPORT, array() ) : array();
+			if ( ! empty( $autopilot['state'] ) ) :
+				$labels = array(
+					'page_schema'     => __( 'Page schema (FAQ + Service)', 'twt-aeo-ultimate' ),
+					'contact_schema'  => __( 'Contact page schema', 'twt-aeo-ultimate' ),
+					'og_descriptions' => __( 'Social share descriptions', 'twt-aeo-ultimate' ),
+				);
+			?>
+			<div id="twt-aeo-autopilot-report" class="twt-aeo-wizard__card" style="text-align:left;max-width:640px;margin:16px auto 0;padding:16px 20px;border:1px solid #e2e4e7;border-radius:8px;"
+				data-state="<?php echo esc_attr( $autopilot['state'] ); ?>"
+				data-nonce="<?php echo esc_attr( wp_create_nonce( self::NONCE_AUTOPILOT ) ); ?>">
+				<strong style="display:block;margin-bottom:8px;"><?php esc_html_e( 'Background setup', 'twt-aeo-ultimate' ); ?></strong>
+				<div id="twt-aeo-autopilot-rows">
+				<?php if ( 'done' === $autopilot['state'] ) : ?>
+					<?php foreach ( $labels as $id => $label ) :
+						$row = $autopilot['tasks'][ $id ] ?? null;
+						if ( ! $row ) { continue; }
+					?>
+					<p style="margin:6px 0;font-size:13px;">
+						<strong><?php echo esc_html( $label ); ?>:</strong>
+						<?php echo esc_html( ( 'skipped' === $row['status'] ? __( 'Skipped — ', 'twt-aeo-ultimate' ) : '' ) . $row['detail'] ); ?>
+					</p>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<p style="margin:6px 0;font-size:13px;color:#646970;">
+						<?php esc_html_e( 'Filling missing schema and social descriptions in the background — no AI, nothing billed. This page updates when it finishes.', 'twt-aeo-ultimate' ); ?>
+					</p>
+				<?php endif; ?>
+				</div>
+			</div>
+			<script>
+			( function () {
+				var box = document.getElementById( 'twt-aeo-autopilot-report' );
+				if ( ! box || box.getAttribute( 'data-state' ) === 'done' ) { return; }
+				var tries = 0;
+				var timer = setInterval( function () {
+					if ( ++tries > 20 ) { clearInterval( timer ); return; }
+					var body = new FormData();
+					body.append( 'action', 'twtaeo_autopilot_status' );
+					body.append( 'nonce', box.getAttribute( 'data-nonce' ) );
+					fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: body } )
+						.then( function ( r ) { return r.json(); } )
+						.then( function ( data ) {
+							if ( data.success && data.data && data.data.state === 'done' ) {
+								clearInterval( timer );
+								window.location.reload();
+							}
+						} )
+						.catch( function () {} );
+				}, 4000 );
+			} )();
+			</script>
+			<?php endif; ?>
+
 			<div class="twt-aeo-wizard__next-steps">
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo-command-center' ) ); ?>"
 				   class="twt-aeo-wizard__next-step">
@@ -955,7 +1037,7 @@ class TWTAEO_Page_Setup_Wizard {
 			foreach ( $posted['social'] as $net => $url ) {
 				$existing[ sanitize_key( $net ) ] = esc_url_raw( (string) $url );
 			}
-			update_user_meta( $user_id, 'twtaeo_social', wp_json_encode( $existing ) );
+			update_user_meta( $user_id, 'twtaeo_social', TWTAEO_Custom_Schema_Writer::encode_for_meta( $existing ) );
 		}
 	}
 
@@ -1092,11 +1174,33 @@ class TWTAEO_Page_Setup_Wizard {
 			update_option( TWTAEO_Module_Loader::OPTION_KEY, array_values( array_unique( $active ) ) );
 		}
 
+		// 5. Queue the background half: everything that can be done without AI
+		// (page schema, contact schema, social descriptions from meta) runs on
+		// a cron event so this response stays instant on large sites. Each task
+		// checks whether another plugin already provides the surface and skips
+		// itself if so — see TWTAEO_Autopilot.
+		TWTAEO_Autopilot::queue();
+		$results['page_schema']     = 'queued';
+		$results['contact_schema']  = 'queued';
+		$results['og_descriptions'] = TWTAEO_OG_Writer::seo_plugin_active() ? 'skipped' : 'queued';
+
 		update_option( self::OPTION_COMPLETE, time() );
 
 		wp_send_json_success( array(
 			'results'  => $results,
 			'redirect' => admin_url( 'admin.php?page=twt-aeo-setup-wizard&mode=complete' ),
 		) );
+	}
+
+	/**
+	 * AJAX: report on the queued background tasks. Polled by the completion
+	 * screen; the poll also drives the run when WP-Cron is not firing.
+	 */
+	public static function ajax_autopilot_status() {
+		check_ajax_referer( self::NONCE_AUTOPILOT, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'twt-aeo-ultimate' ) ) );
+		}
+		wp_send_json_success( TWTAEO_Autopilot::status() );
 	}
 }

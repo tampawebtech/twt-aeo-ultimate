@@ -14,6 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// The OKF bundle rides on this module's rewrite/serve plumbing, so it is
+// loaded here rather than from the main plugin file.
+require_once __DIR__ . '/class-okf.php';
+
 class TWTAEO_AI_Ready {
 
 	const OPTION_KEY    = 'twtaeo_ai_ready';
@@ -59,6 +63,7 @@ class TWTAEO_AI_Ready {
 			'markdown_negotiation'    => 1,
 			'url_fallback'            => 1,
 			'llms_txt'                => 1,
+			'okf'                     => 1,
 			'agent_skills_index'      => 1,
 			'content_signal_ai_train' => 'no',
 			'content_signal_search'   => 'yes',
@@ -169,9 +174,28 @@ class TWTAEO_AI_Ready {
 		// Trailing /? makes each rule match with or without a trailing slash so
 		// WordPress's "add trailing slash" permalink setting doesn't 301-redirect
 		// these file-like URLs to a slash version that then 404s.
-		if ( ! empty( $s['llms_txt'] ) ) {
+		// ⚠️ Two plugins cannot share one URL, and the winner is decided by whichever
+		// rewrite was registered first — an accident of plugin load order, not a
+		// decision. So when /llms.txt is switched off or handed to AEO Ultimate for
+		// WooCommerce, this rule must not be registered at all; gating only the
+		// template_redirect handler would still leave our rule shadowing theirs.
+		//
+		// `should_write( 'llms_txt' )` reads the `llms_txt` setting below through
+		// TWTAEO_Output_Control's delegation, so the two cannot disagree.
+		if ( TWTAEO_Output_Control::should_write( 'llms_txt' ) ) {
 			add_rewrite_rule( '^llms\.txt/?$', 'index.php?twtaeo_llms_txt=1', 'top' );
 		}
+
+		// /okf/ — the Open Knowledge Format bundle (index.md, organization.md,
+		// products/*.md, …). Same registration rule as /llms.txt: gated at the
+		// rewrite, not just the handler. `$matches[1]` is empty for the bare
+		// /okf/ and render_path() treats that as index.md.
+		if ( TWTAEO_Output_Control::should_write( 'okf' ) ) {
+			add_rewrite_rule( '^okf(?:/(.*))?/?$', 'index.php?twtaeo_okf=1&twtaeo_okf_path=$matches[1]', 'top' );
+		}
+		// Cache invalidation stays registered even when the bundle is off, so a
+		// stale copy can never be served the moment it is switched back on.
+		TWTAEO_OKF::register_invalidation_hooks();
 
 		// These .well-known endpoints are always registered — their content is safe
 		// to expose publicly (public keys, catalog of public APIs).
@@ -298,7 +322,9 @@ class TWTAEO_AI_Ready {
 
 		// /sitemap.xml — register a virtual endpoint that redirects to the real sitemap
 		// (or serves a fallback) unless a physical sitemap.xml already exists on disk.
-		if ( ! file_exists( self::get_site_root() . DIRECTORY_SEPARATOR . 'sitemap.xml' ) ) {
+		// Same rewrite-order reasoning as /llms.txt above.
+		if ( ! file_exists( self::get_site_root() . DIRECTORY_SEPARATOR . 'sitemap.xml' )
+			&& TWTAEO_Output_Control::should_write( 'sitemap' ) ) {
 			add_rewrite_rule( '^sitemap\.xml/?$', 'index.php?twtaeo_sitemap=1', 'top' );
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_sitemap_xml' ) );
 		}
@@ -307,11 +333,21 @@ class TWTAEO_AI_Ready {
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_markdown' ), 1 );
 		}
 
-		if ( ! empty( $s['llms_txt'] ) ) {
+		if ( TWTAEO_Output_Control::should_write( 'llms_txt' ) ) {
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_llms_txt' ) );
 		}
 
-		if ( ! empty( $s['semantic_breadcrumbs'] ) ) {
+		// Priority 1: before any theme/SEO template_redirect handler can touch
+		// what is a raw text/markdown response, never an HTML page.
+		if ( TWTAEO_Output_Control::should_write( 'okf' ) ) {
+			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_okf' ), 1 );
+		}
+
+		// This breadcrumb is a standalone <script> carrying no @id, so it cannot be
+		// reconciled with another plugin's by identity — running both simply puts two
+		// BreadcrumbLists on the page. There is nothing to drop per node here: either
+		// the whole block stands down or none of it does.
+		if ( TWTAEO_Output_Control::should_write( 'schema_breadcrumb' ) ) {
 			add_action( 'wp_head', array( __CLASS__, 'output_semantic_breadcrumbs' ) );
 		}
 
@@ -374,6 +410,8 @@ class TWTAEO_AI_Ready {
 
 	public static function add_query_vars( $vars ) {
 		$vars[] = 'twtaeo_llms_txt';
+		$vars[] = 'twtaeo_okf';
+		$vars[] = 'twtaeo_okf_path';
 		$vars[] = 'twtaeo_wellknown';
 		$vars[] = 'twtaeo_skill';
 		$vars[] = 'twtaeo_sitemap';
@@ -763,9 +801,46 @@ class TWTAEO_AI_Ready {
 		status_header( 200 );
 		header( 'Content-Type: text/markdown; charset=utf-8' );
 		header( 'X-Markdown-Tokens: ' . absint( $tokens ) );
-		// Raw Markdown output — not HTML; escaping would corrupt the document.
-		// $output is built entirely from post content already stored in the DB.
-		echo wp_kses_post( $output );
+		// Raw Markdown output — not HTML. wp_kses_post() entity-encodes the
+		// document (`>` blockquotes become &gt;, `&` becomes &amp;), which
+		// corrupts the Markdown agents receive; a text/markdown body cannot
+		// execute HTML, so UTF-8 validation is the only check that applies.
+		echo wp_check_invalid_utf8( $output ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/markdown response; see note above.
+		exit;
+	}
+
+	// ── OKF bundle ────────────────────────────────────────────────────────────
+
+	/**
+	 * Serve one path of the Open Knowledge Format bundle at /okf/.
+	 *
+	 * Registered on template_redirect at priority 1 (same slot as llms.txt) so
+	 * nothing else renders first. Output is RAW text/markdown — never
+	 * HTML-escape it; an escaped bundle ("&gt; description") corrupts the one
+	 * output this feature exists to provide. Unknown paths get a plain-text
+	 * 404 so a crawler probing the bundle never receives a themed HTML page.
+	 */
+	public static function maybe_serve_okf() {
+		if ( ! get_query_var( 'twtaeo_okf' ) ) {
+			return;
+		}
+
+		$path = (string) get_query_var( 'twtaeo_okf_path' );
+		$body = TWTAEO_OKF::render_path( $path );
+
+		if ( null === $body ) {
+			status_header( 404 );
+			header( 'Content-Type: text/plain; charset=utf-8' );
+			echo "Not part of this knowledge bundle.\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plain-text body, no HTML context.
+			exit;
+		}
+
+		status_header( 200 );
+		header( 'Content-Type: text/markdown; charset=utf-8' );
+		header( 'Cache-Control: public, max-age=3600' );
+		// Same stance as llms.txt above: text/markdown cannot execute HTML, so
+		// UTF-8 validation is the only check that applies. Never escape.
+		echo wp_check_invalid_utf8( $body ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/markdown response.
 		exit;
 	}
 
@@ -785,6 +860,12 @@ class TWTAEO_AI_Ready {
 		// after the H1. Set your tagline under Settings → General for a real description.
 		$description = $tagline ?: ( $site_name . ' — ' . home_url() );
 		$output .= '> ' . $description . "\n\n";
+
+		// OKF discovery — the knowledge bundle is the deep read behind this file.
+		// Only announced while the /okf/ route is actually being served.
+		if ( class_exists( 'TWTAEO_Output_Control' ) && TWTAEO_Output_Control::should_write( 'okf' ) ) {
+			$output .= 'Knowledge bundle (Open Knowledge Format): ' . home_url( '/okf/' ) . "\n\n";
+		}
 
 		$posts = get_posts( array(
 			'post_type'      => array( 'post', 'page' ),
@@ -841,8 +922,37 @@ class TWTAEO_AI_Ready {
 		// NxAccel, or a CDN) serves the file directly and the hit is never seen.
 		nocache_headers();
 		header( 'Content-Type: text/plain; charset=utf-8' );
-		echo wp_kses_post( $output );
+		// Plain-text Markdown per the llms.txt spec. wp_kses_post() entity-encodes
+		// the required `> description` blockquote into &gt;, which is what AI
+		// crawlers would then read; text/plain cannot execute HTML, so UTF-8
+		// validation is the only check that applies.
+		echo wp_check_invalid_utf8( $output ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/plain response; see note above.
 		exit;
+	}
+
+	/**
+	 * Character offset of the last space, UTF-8 aware, without assuming mbstring.
+	 *
+	 * WordPress polyfills mb_substr() and mb_strlen() in wp-includes/compat.php
+	 * but NOT mb_strrpos(), so calling it directly fatals /llms.txt on a host
+	 * built without the mbstring extension.
+	 *
+	 * @param string $s
+	 * @return int|false Character offset, or false when there is no space.
+	 */
+	private static function u_strrpos_space( $s ) {
+		if ( function_exists( 'mb_strrpos' ) ) {
+			return mb_strrpos( $s, ' ', 0, 'UTF-8' );
+		}
+		// A space (0x20) can never be a UTF-8 continuation byte, so the byte
+		// offset is unambiguous. Convert it to a CHARACTER offset, because the
+		// caller feeds it straight to mb_substr(), which counts characters.
+		$byte = strrpos( $s, ' ' );
+		if ( false === $byte ) {
+			return false;
+		}
+		$n = preg_match_all( '/./us', substr( $s, 0, $byte ) );
+		return false === $n ? $byte : $n;
 	}
 
 	private static function clean_llms_excerpt( WP_Post $p, $title = '' ) {
@@ -867,7 +977,7 @@ class TWTAEO_AI_Ready {
 		// Truncate to 200 characters at a word boundary.
 		if ( mb_strlen( $text ) > 200 ) {
 			$text = mb_substr( $text, 0, 200 );
-			$last = mb_strrpos( $text, ' ' );
+			$last = self::u_strrpos_space( $text );
 			if ( $last > 100 ) {
 				$text = mb_substr( $text, 0, $last );
 			}
@@ -883,6 +993,17 @@ class TWTAEO_AI_Ready {
 
 	public static function output_semantic_breadcrumbs() {
 		if ( is_front_page() || is_home() ) {
+			return;
+		}
+
+		// The Knowledge Graph's folded output already carries a connected
+		// BreadcrumbList on product pages (the WooCommerce detector contributes
+		// Home → category → Product). A second, anonymous list here would be the
+		// exact duplication the graph exists to prevent. Checked against what the
+		// graph actually publishes, not is_folding() — a folding page whose graph
+		// carries no breadcrumb still needs this one.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' )
+			&& in_array( 'BreadcrumbList', TWTAEO_Knowledge_Graph::published_types(), true ) ) {
 			return;
 		}
 
@@ -1634,7 +1755,10 @@ class TWTAEO_AI_Ready {
 		status_header( 200 );
 		header( 'Content-Type: text/markdown; charset=utf-8' );
 		header( 'Access-Control-Allow-Origin: *' );
-		echo wp_kses_post( $md );
+		// Markdown skill documents. wp_kses_post() entity-encodes `>` and `&`
+		// and strips the ``` code fences' content agents rely on; text/markdown
+		// cannot execute HTML, so UTF-8 validation is the only check that applies.
+		echo wp_check_invalid_utf8( $md ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/markdown response; see note above.
 		exit;
 	}
 
@@ -2760,13 +2884,29 @@ class TWTAEO_AI_Ready {
 	// ── Physical robots.txt helpers ───────────────────────────────────────────
 
 	/**
-	 * Send no-cache headers while WordPress generates a dynamic robots.txt, so a
-	 * full-page cache (host cache / CDN) doesn't serve it without invoking PHP —
-	 * which would hide AI-crawler hits from the logger. Hooked on do_robots at
-	 * priority 0 so it runs before output, regardless of which plugin builds the body.
+	 * Cache headers for the dynamic robots.txt. Hooked on do_robots at priority 0
+	 * so it runs before output, regardless of which plugin builds the body.
+	 *
+	 * This used to send nocache_headers() so every fetch reached PHP and the
+	 * AI-crawler logger. That made robots.txt availability depend on origin
+	 * health at the exact second a crawler asked — and Google aborts the ENTIRE
+	 * crawl ("Robots.txt unreachable") when a robots fetch 5xxes or times out,
+	 * rejecting indexing requests site-wide. Not being indexed is strictly worse
+	 * than a gap in hit logging, so robots.txt now allows a short shared-cache
+	 * TTL: a transient origin hiccup is bridged by the CDN, while the file still
+	 * refreshes within minutes of a settings change. (Search engines cache
+	 * robots.txt for up to 24h on their end anyway, so per-hit logging there was
+	 * mostly illusory.) Filter twtaeo_robots_cache_ttl to tune; 0 restores the
+	 * old always-hit-PHP behaviour.
 	 */
 	public static function nocache_robots() {
-		nocache_headers();
+		$ttl = (int) apply_filters( 'twtaeo_robots_cache_ttl', 5 * MINUTE_IN_SECONDS );
+		if ( $ttl < 1 ) {
+			nocache_headers();
+			return;
+		}
+		header( 'Cache-Control: public, max-age=' . $ttl . ', s-maxage=' . $ttl );
+		header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $ttl ) . ' GMT' );
 	}
 
 	public static function has_physical_robots() {

@@ -37,8 +37,17 @@ class TWTAEO_Sitemap_Generator {
 	public static function register_hooks() {
 		// register_hooks itself is called on init, so add_rewrite_rule must be
 		// called directly here — not re-added to init (which has already fired).
-		self::add_rewrite_rule();
-		self::add_llms_rewrite_rule();
+		//
+		// ⚠️ Each rewrite is gated on its own surface, because a merchant can hand
+		// over the sitemap while keeping llms.txt here, or the reverse. Registering a
+		// rule for a surface we were told to release would leave the winner decided
+		// by plugin load order — see the same note in TWTAEO_AI_Ready::on_init().
+		if ( TWTAEO_Output_Control::should_write( 'sitemap' ) ) {
+			self::add_rewrite_rule();
+		}
+		if ( TWTAEO_Output_Control::should_write( 'llms_txt' ) ) {
+			self::add_llms_rewrite_rule();
+		}
 		self::add_ai_txt_rewrite_rule();
 		add_filter( 'query_vars',        array( __CLASS__, 'add_query_var' ) );
 		// Priority 1: run before Yoast SEO (priority 10) and WP core sitemaps.
@@ -170,7 +179,10 @@ class TWTAEO_Sitemap_Generator {
 		// AI-crawler request runs through PHP and is recorded by the crawler logger.
 		nocache_headers();
 		header( 'Content-Type: text/plain; charset=UTF-8' );
-		echo wp_kses_post( $content );
+		// Plain-text Markdown. wp_kses_post() entity-encodes `>` and `&`, which
+		// corrupts what AI crawlers read; text/plain cannot execute HTML, so
+		// UTF-8 validation is the only check that applies.
+		echo wp_check_invalid_utf8( $content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/plain response; see note above.
 		exit;
 	}
 
@@ -297,7 +309,10 @@ class TWTAEO_Sitemap_Generator {
 
 		status_header( 200 );
 		header( 'Content-Type: text/plain; charset=UTF-8' );
-		echo wp_kses_post( $content );
+		// Plain-text file. wp_kses_post() entity-encodes `&` and `>`, corrupting
+		// what crawlers read; text/plain cannot execute HTML, so UTF-8 validation
+		// is the only check that applies.
+		echo wp_check_invalid_utf8( $content ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- non-HTML text/plain response; see note above.
 		exit;
 	}
 

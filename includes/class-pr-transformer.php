@@ -25,9 +25,11 @@ class TWTAEO_PR_Transformer {
 	 * @return string|WP_Error
 	 */
 	public static function transform( $post_id ) {
-		$api_key = TWTAEO_Key_Resolver::get( 'claude' );
-
-		if ( empty( $api_key ) ) {
+		// A key is no longer the only way through: on WordPress 7.0+ the platform
+		// AI Client can serve this without one. Below 7.0 that function does not
+		// exist, so our own keyed path is still the only path — which is why the
+		// direct call in TWTAEO_AI_Client stays.
+		if ( '' === TWTAEO_Key_Resolver::get( 'claude' ) && ! TWTAEO_Key_Resolver::ai_client_available() ) {
 			return new WP_Error( 'no_api_key', 'Claude API key is not configured. Add it in AEO → Settings.' );
 		}
 
@@ -43,39 +45,25 @@ class TWTAEO_PR_Transformer {
 
 		$prompt = self::build_prompt( $post->post_title, $content, $site_name, $site_url, $today );
 
-		$response = wp_remote_post(
-			'https://api.anthropic.com/v1/messages',
+		// Model and token budget are passed through, so a keyed site gets exactly
+		// the call it got before. On the AI Client path the platform chooses the
+		// model itself and the pin is not honoured — that is the trade for
+		// working without a key at all.
+		$text = TWTAEO_AI_Client::complete(
+			'claude',
+			$prompt,
 			array(
-				'timeout' => 45,
-				'headers' => array(
-					'x-api-key'         => $api_key,
-					'anthropic-version' => '2023-06-01',
-					'content-type'      => 'application/json',
-				),
-				'body'    => wp_json_encode( array(
-					'model'      => 'claude-sonnet-4-6',
-					'max_tokens' => 2000,
-					'messages'   => array(
-						array( 'role' => 'user', 'content' => $prompt ),
-					),
-				) ),
+				'model'      => 'claude-sonnet-4-6',
+				'max_tokens' => 2000,
+				'timeout'    => 45,
 			)
 		);
 
-		if ( is_wp_error( $response ) ) {
-			return $response;
+		if ( is_wp_error( $text ) ) {
+			return $text;
 		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = json_decode( wp_remote_retrieve_body( $response ), true );
-
-		if ( $code !== 200 ) {
-			$msg = $body['error']['message'] ?? "Claude API error (HTTP $code)";
-			return new WP_Error( 'api_error', $msg );
-		}
-
-		$text = $body['content'][0]['text'] ?? '';
-		if ( empty( $text ) ) {
+		$text = trim( (string) $text );
+		if ( '' === $text ) {
 			return new WP_Error( 'empty_response', 'Claude returned no content.' );
 		}
 

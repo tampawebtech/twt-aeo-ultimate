@@ -227,6 +227,18 @@ class TWTAEO_Page_Diagnostics {
 			'Active modules' => is_array( $modules ) && $modules ? implode( ', ', $modules ) : '(none)',
 		);
 
+		// Document upload requirements (Content Gap Engine) — the same checks,
+		// in the same words, as the Documents screen shows the owner.
+		if ( class_exists( 'TWTAEO_Doc_Requirements' ) ) {
+			$doc_rows = array();
+			foreach ( TWTAEO_Doc_Requirements::checks() as $check ) {
+				$doc_rows[ $check['label'] ] = $check['ok']
+					? 'OK' . ( '' !== $check['detail'] ? ' (' . $check['detail'] . ')' : '' )
+					: strtoupper( $check['level'] ) . ': ' . $check['message'];
+			}
+			$info['Document upload'] = $doc_rows;
+		}
+
 		// Environment.
 		$info['Environment'] = array(
 			'WordPress'           => get_bloginfo( 'version' ),

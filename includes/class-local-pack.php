@@ -27,6 +27,19 @@ class TWTAEO_Local_Pack {
 	// ── Schema Output ─────────────────────────────────────────────────────────
 
 	public static function output_schema() {
+		// Stand down when the merchant handed local schema to AEO Ultimate for
+		// WooCommerce and it is confirmed publishing a local entity on this request.
+		//
+		// This block carries no @id, so there is no identifier to match on and the
+		// replacement can only be confirmed by type. That is weaker than the @id
+		// check used for the graph spine, but it is still a check: without it, a
+		// page where that plugin publishes nothing would simply lose its
+		// LocalBusiness.
+		if ( TWTAEO_Commerce_Handoff::stands_down( 'schema_local' )
+			&& TWTAEO_Commerce_Handoff::superseded_type( array( 'LocalBusiness', 'Store' ) ) ) {
+			return;
+		}
+
 		$settings = self::get_settings();
 
 		if ( empty( $settings['business_name'] ) ) {

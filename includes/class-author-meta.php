@@ -22,6 +22,7 @@
  * @package TWTAEO_Connector
  */
 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -50,6 +51,7 @@ class TWTAEO_Author_Meta {
 		add_action( 'personal_options_update',   array( __CLASS__, 'save_profile_fields' ) );
 		add_action( 'edit_user_profile_update',  array( __CLASS__, 'save_profile_fields' ) );
 		add_action( 'admin_enqueue_scripts',     array( __CLASS__, 'enqueue_profile_assets' ) );
+		add_filter( 'get_the_author_description', array( __CLASS__, 'append_snippet_to_bio' ), 10, 2 );
 	}
 
 	/**
@@ -274,11 +276,16 @@ class TWTAEO_Author_Meta {
 
 		$result = array();
 		foreach ( $users as $user ) {
-			$result[] = array(
+			$data = self::get_author_data( $user->ID );
+
+			// Expose both shapes from one call: the flat author-data fields at
+			// the top level (author cards read $author['certifications'], ['id'],
+			// etc.) plus 'user'/'data'/'completeness' for the E-E-A-T table.
+			$result[] = array_merge( $data, array(
 				'user'         => $user,
-				'data'         => self::get_author_data( $user->ID ),
+				'data'         => $data,
 				'completeness' => self::get_completeness( $user->ID ),
-			);
+			) );
 		}
 
 		return $result;
@@ -291,6 +298,194 @@ class TWTAEO_Author_Meta {
 	 *
 	 * @param int $user_id
 	 */
+	/**
+	 * Get the saved contextual authority statement for a user.
+	 *
+	 * @param int $user_id
+	 * @return string
+	 */
+	public static function get_authority_snippet( $user_id ) {
+		return trim( (string) get_user_meta( $user_id, 'twtaeo_authority_snippet', true ) );
+	}
+
+	/**
+	 * Whether the authority statement should be appended to the public bio.
+	 * Defaults to on when the meta has never been saved.
+	 *
+	 * @param int $user_id
+	 * @return bool
+	 */
+	public static function authority_snippet_shown( $user_id ) {
+		$val = get_user_meta( $user_id, 'twtaeo_authority_snippet_show', true );
+		return '' === $val || '1' === $val;
+	}
+
+	/**
+	 * Append the authority statement to the author bio on the front end, so the
+	 * credential→institution relationship exists in plain prose wherever the theme
+	 * renders the bio — not only in JSON-LD.
+	 *
+	 * Hooked on get_the_author_description.
+	 *
+	 * @param string $value
+	 * @param int    $user_id
+	 * @return string
+	 */
+	public static function append_snippet_to_bio( $value, $user_id ) {
+		if ( is_admin() ) {
+			return $value;
+		}
+		$user_id = (int) $user_id;
+		if ( ! $user_id || ! self::authority_snippet_shown( $user_id ) ) {
+			return $value;
+		}
+		$snippet = self::get_authority_snippet( $user_id );
+		if ( '' === $snippet || false !== strpos( (string) $value, $snippet ) ) {
+			return $value;
+		}
+		return trim( (string) $value . "\n\n" . $snippet );
+	}
+
+	/**
+	 * AJAX: draft a contextual authority statement from the author's saved
+	 * credentials via the shared AI client. Returns the draft only — nothing is
+	 * saved until the user updates their profile.
+	 */
+	public static function ajax_generate_snippet() {
+		$user_id = absint( wp_unslash( $_POST['user_id'] ?? 0 ) );
+		$nonce   = sanitize_text_field( wp_unslash( $_POST['nonce'] ?? '' ) );
+
+		if ( ! $user_id || ! wp_verify_nonce( $nonce, 'twtaeo_author_profile_' . $user_id ) ) {
+			wp_send_json_error( __( 'Session expired — reload the page and try again.', 'twt-aeo-ultimate' ) );
+		}
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			wp_send_json_error( __( 'Unauthorized.', 'twt-aeo-ultimate' ) );
+		}
+		if ( ! class_exists( 'TWTAEO_AI_Client' ) ) {
+			wp_send_json_error( __( 'The AI client module is not available.', 'twt-aeo-ultimate' ) );
+		}
+
+		$prompt = self::build_snippet_prompt( $user_id );
+		if ( is_wp_error( $prompt ) ) {
+			wp_send_json_error( $prompt->get_error_message() );
+		}
+
+		$system = 'You write short, factual authority statements for article author bios. '
+			. 'Your job is to make professional credentials legible: name who issued each credential and what that institution is — its country and role (regulatory body, professional association, university) — so a reader or an AI system unfamiliar with the credential understands the expertise it represents.';
+
+		$text = TWTAEO_AI_Client::complete( '', $prompt, array(
+			'max_tokens'  => 300,
+			'temperature' => 0.3,
+			'system'      => $system,
+			'timeout'     => 45,
+		) );
+
+		if ( is_wp_error( $text ) ) {
+			wp_send_json_error( $text->get_error_message() );
+		}
+
+		$text = sanitize_textarea_field( trim( (string) $text ) );
+		if ( '' === $text ) {
+			wp_send_json_error( __( 'The AI returned an empty response — try again.', 'twt-aeo-ultimate' ) );
+		}
+
+		wp_send_json_success( array( 'snippet' => $text ) );
+	}
+
+	/**
+	 * Build the generation prompt from the author's saved profile data.
+	 *
+	 * @param int $user_id
+	 * @return string|WP_Error WP_Error when there is nothing to write from.
+	 */
+	private static function build_snippet_prompt( $user_id ) {
+		$data  = self::get_author_data( $user_id );
+		$certs = self::get_certifications( $user_id );
+
+		if ( empty( $certs ) && empty( $data['credentials'] ) ) {
+			return new WP_Error( 'no_credentials', __( 'Add at least one certification (or fill in the Credentials field) first — the statement is written from them.', 'twt-aeo-ultimate' ) );
+		}
+
+		$lines   = array();
+		$lines[] = 'Author: ' . $data['name'];
+		if ( ! empty( $data['job_title'] ) ) {
+			$lines[] = 'Job title: ' . $data['job_title'];
+		}
+		if ( ! empty( $data['expertise'] ) ) {
+			$lines[] = 'Expertise areas: ' . $data['expertise'];
+		}
+		if ( ! empty( $data['years_experience'] ) ) {
+			$lines[] = 'Years of experience: ' . $data['years_experience'];
+		}
+		if ( ! empty( $data['credentials'] ) ) {
+			$lines[] = 'Credential abbreviations: ' . $data['credentials'];
+		}
+
+		foreach ( $certs as $i => $cert ) {
+			if ( empty( $cert['name'] ) ) {
+				continue;
+			}
+			$parts   = array();
+			$parts[] = 'name: ' . $cert['name'];
+			$parts[] = 'type: ' . ( ! empty( $cert['category'] ) ? $cert['category'] : 'Professional Certification' );
+			if ( ! empty( $cert['organization'] ) ) {
+				$parts[] = 'issued by: ' . $cert['organization'];
+			}
+			if ( ! empty( $cert['org_url'] ) ) {
+				$parts[] = 'issuer website: ' . $cert['org_url'];
+			}
+			if ( ! empty( $cert['org_sameas'] ) ) {
+				$parts[] = 'issuer Wikipedia/Wikidata: ' . $cert['org_sameas'];
+			}
+			$lines[] = 'Credential ' . ( $i + 1 ) . ' — ' . implode( '; ', $parts );
+		}
+
+		return "Write a contextual authority statement for this author from the facts below.\n\n"
+			. implode( "\n", $lines ) . "\n\n"
+			. "Rules:\n"
+			. "- 2 to 3 sentences, third person, plain prose.\n"
+			. "- For each credential, spell out who issued it and what that institution is (e.g. \"certified by X, the regulatory authority governing Y in Country\"). Use the provided links and well-established public knowledge of the named institutions; if you do not recognize an institution, describe it only with the facts given.\n"
+			. "- Never invent credentials, memberships, employers, or dates that are not listed above.\n"
+			. "- No marketing language or superlatives (no \"renowned\", \"leading\", \"expert in\").\n"
+			. "- Output the statement only: plain text, no quotes, no markdown, no preamble.";
+	}
+
+	/**
+	 * Allowed credentialCategory values. Keys are what's stored/output in schema;
+	 * values are the translated labels for the profile UI select.
+	 *
+	 * @return array
+	 */
+	public static function credential_categories() {
+		return array(
+			'Professional Certification' => __( 'Professional Certification', 'twt-aeo-ultimate' ),
+			'Professional License'       => __( 'Professional License', 'twt-aeo-ultimate' ),
+			'Degree'                     => __( 'Degree', 'twt-aeo-ultimate' ),
+			'Certificate'                => __( 'Certificate', 'twt-aeo-ultimate' ),
+			'Membership'                 => __( 'Professional Membership', 'twt-aeo-ultimate' ),
+			'Accreditation'              => __( 'Accreditation', 'twt-aeo-ultimate' ),
+		);
+	}
+
+	/**
+	 * Sanitize a comma/newline-separated list of URLs into a clean comma-joined string.
+	 * Invalid entries are dropped.
+	 *
+	 * @param string $raw
+	 * @return string
+	 */
+	private static function sanitize_url_list( $raw ) {
+		$urls = preg_split( '/[\s,]+/', (string) $raw, -1, PREG_SPLIT_NO_EMPTY );
+		$out  = array();
+		foreach ( $urls as $url ) {
+			$url = sanitize_url( $url );
+			if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+				$out[] = $url;
+			}
+		}
+		return implode( ', ', $out );
+	}
+
 	public static function save_profile_fields( $user_id ) {
 		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
@@ -308,6 +503,10 @@ class TWTAEO_Author_Meta {
 		update_user_meta( $user_id, 'twtaeo_expertise',       sanitize_text_field( wp_unslash( $_POST['twtaeo_expertise'] ?? '' ) ) );
 		update_user_meta( $user_id, 'twtaeo_years_experience', absint( wp_unslash( $_POST['twtaeo_years_experience'] ?? 0 ) ) );
 
+		// Contextual authority statement.
+		update_user_meta( $user_id, 'twtaeo_authority_snippet', sanitize_textarea_field( wp_unslash( $_POST['twtaeo_authority_snippet'] ?? '' ) ) );
+		update_user_meta( $user_id, 'twtaeo_authority_snippet_show', isset( $_POST['twtaeo_authority_snippet_show'] ) ? '1' : '0' );
+
 		// Social profiles.
 		$social = array();
 		foreach ( array_keys( self::$social_networks ) as $network ) {
@@ -318,11 +517,14 @@ class TWTAEO_Author_Meta {
 				$social[ $network ] = '';
 			}
 		}
-		update_user_meta( $user_id, 'twtaeo_social', wp_json_encode( $social ) );
+		update_user_meta( $user_id, 'twtaeo_social', TWTAEO_Custom_Schema_Writer::encode_for_meta( $social ) );
 
 		// Certifications (POSTed as parallel arrays).
 		$names          = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_name'] ?? array() ) );
 		$organizations  = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_org'] ?? array() ) );
+		$categories     = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_category'] ?? array() ) );
+		$org_urls       = array_map( 'sanitize_url', wp_unslash( $_POST['twtaeo_cert_org_url'] ?? array() ) );
+		$org_sameas     = array_map( 'sanitize_textarea_field', wp_unslash( $_POST['twtaeo_cert_org_sameas'] ?? array() ) );
 		$credential_ids = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_id'] ?? array() ) );
 		$issue_dates    = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_issue_date'] ?? array() ) );
 		$expiry_dates   = array_map( 'sanitize_text_field', wp_unslash( $_POST['twtaeo_cert_expiry_date'] ?? array() ) );
@@ -334,9 +536,16 @@ class TWTAEO_Author_Meta {
 			if ( empty( $name ) ) {
 				continue;
 			}
+			$category = $categories[ $i ] ?? '';
+			if ( ! array_key_exists( $category, self::credential_categories() ) ) {
+				$category = 'Professional Certification';
+			}
 			$certifications[] = array(
 				'name'             => $name,
 				'organization'     => $organizations[ $i ] ?? '',
+				'category'         => $category,
+				'org_url'          => filter_var( $org_urls[ $i ] ?? '', FILTER_VALIDATE_URL ) ? $org_urls[ $i ] : '',
+				'org_sameas'       => self::sanitize_url_list( $org_sameas[ $i ] ?? '' ),
 				'credential_id'    => $credential_ids[ $i ] ?? '',
 				'issue_date'       => $issue_dates[ $i ] ?? '',
 				'expiry_date'      => $expiry_dates[ $i ] ?? '',
@@ -345,7 +554,7 @@ class TWTAEO_Author_Meta {
 			);
 		}
 
-		update_user_meta( $user_id, 'twtaeo_certifications', wp_json_encode( $certifications ) );
+		update_user_meta( $user_id, 'twtaeo_certifications', TWTAEO_Custom_Schema_Writer::encode_for_meta( $certifications ) );
 	}
 
 	// ── Profile UI ─────────────────────────────────────────────────────────────
@@ -438,11 +647,16 @@ class TWTAEO_Author_Meta {
 		<p class="description" style="margin-bottom:1em;"><?php esc_html_e( 'Each certification is added to your Person schema as an EducationalOccupationalCredential.', 'twt-aeo-ultimate' ); ?></p>
 
 		<div id="twt-aeo-certs-wrap">
-			<?php if ( ! empty( $certs ) ) :
-				foreach ( $certs as $i => $cert ) :
+			<?php
+			if ( empty( $certs ) ) {
+				// Show one empty row so the fields are visible; rows without a name are never saved.
+				self::render_cert_row( 0, array() );
+			} else {
+				foreach ( $certs as $i => $cert ) {
 					self::render_cert_row( $i, $cert );
-				endforeach;
-			endif; ?>
+				}
+			}
+			?>
 		</div>
 
 		<button type="button" id="twt-aeo-add-cert" class="button" style="margin-top:8px;">
@@ -454,6 +668,27 @@ class TWTAEO_Author_Meta {
 			<?php self::render_cert_row( '__INDEX__', array() ); ?>
 		</template>
 
+		<!-- Contextual Authority Statement -->
+		<h3><?php esc_html_e( 'Contextual Authority Statement', 'twt-aeo-ultimate' ); ?></h3>
+		<p class="description" style="margin-bottom:1em;">
+			<?php esc_html_e( 'A short paragraph that spells out what your credentials mean — who issued them and what those institutions are. AI systems trained mostly on English content often cannot recognize regional or non-English credentials from the name alone; stating the relationship in plain prose (alongside the schema) makes the expertise machine-readable. Shown after your bio and included in your Person schema.', 'twt-aeo-ultimate' ); ?>
+		</p>
+		<textarea name="twtaeo_authority_snippet" id="twtaeo_authority_snippet" rows="3" class="large-text"
+			placeholder="<?php esc_attr_e( 'e.g. Jane Doe is a First-Class Registered Architect certified by the Ministry of Land, Infrastructure, Transport and Tourism, the government body that licenses architects in Japan.', 'twt-aeo-ultimate' ); ?>"><?php echo esc_textarea( self::get_authority_snippet( $user_id ) ); ?></textarea>
+		<p style="margin:8px 0 0;">
+			<button type="button" id="twt-aeo-gen-authority" class="button" data-user="<?php echo esc_attr( $user_id ); ?>">
+				<?php esc_html_e( 'Generate with AI', 'twt-aeo-ultimate' ); ?>
+			</button>
+			<span id="twt-aeo-authority-msg" style="margin-left:8px;color:#646970;"></span>
+		</p>
+		<p class="description" style="margin-top:4px;">
+			<?php esc_html_e( 'Drafts from your certifications using your configured AI provider (one API call). Review and edit before saving — nothing is stored until you click "Update Profile".', 'twt-aeo-ultimate' ); ?>
+		</p>
+		<label style="display:block;margin-top:8px;">
+			<input type="checkbox" name="twtaeo_authority_snippet_show" value="1" <?php checked( self::authority_snippet_shown( $user_id ) ); ?>>
+			<?php esc_html_e( 'Append this statement to my public author bio', 'twt-aeo-ultimate' ); ?>
+		</label>
+
 		<?php
 		ob_start();
 		?>
@@ -461,7 +696,7 @@ class TWTAEO_Author_Meta {
 			var wrap  = document.getElementById( 'twt-aeo-certs-wrap' );
 			var btn   = document.getElementById( 'twt-aeo-add-cert' );
 			var tmpl  = document.getElementById( 'twt-aeo-cert-template' ).innerHTML;
-			var index = <?php echo count( $certs ); ?>;
+			var index = <?php echo (int) max( 1, count( $certs ) ); ?>;
 
 			btn.addEventListener( 'click', function() {
 				var html = tmpl.replace( /__INDEX__/g, index++ );
@@ -475,6 +710,41 @@ class TWTAEO_Author_Meta {
 					e.target.closest( '.twt-aeo-cert-row' ).remove();
 				}
 			} );
+
+			var genBtn = document.getElementById( 'twt-aeo-gen-authority' );
+			if ( genBtn ) {
+				genBtn.addEventListener( 'click', function() {
+					var out   = document.getElementById( 'twtaeo_authority_snippet' );
+					var msg   = document.getElementById( 'twt-aeo-authority-msg' );
+					var nonce = document.querySelector( 'input[name="twtaeo_author_nonce"]' );
+
+					genBtn.disabled = true;
+					msg.textContent = '<?php echo esc_js( __( 'Generating…', 'twt-aeo-ultimate' ) ); ?>';
+
+					var body = new URLSearchParams();
+					body.append( 'action', 'twtaeo_generate_authority' );
+					body.append( 'user_id', genBtn.dataset.user );
+					body.append( 'nonce', nonce ? nonce.value : '' );
+
+					fetch( ajaxurl, {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+						body: body.toString()
+					} ).then( function( r ) { return r.json(); } ).then( function( r ) {
+						genBtn.disabled = false;
+						if ( r.success && r.data && r.data.snippet ) {
+							out.value = r.data.snippet;
+							msg.textContent = '<?php echo esc_js( __( 'Draft ready — review it, then click "Update Profile" to save.', 'twt-aeo-ultimate' ) ); ?>';
+						} else {
+							msg.textContent = ( r.data && 'string' === typeof r.data ) ? r.data : '<?php echo esc_js( __( 'Generation failed.', 'twt-aeo-ultimate' ) ); ?>';
+						}
+					} ).catch( function() {
+						genBtn.disabled = false;
+						msg.textContent = '<?php echo esc_js( __( 'Request failed — check your connection and try again.', 'twt-aeo-ultimate' ) ); ?>';
+					} );
+				} );
+			}
 		} )();
 		<?php
 		$js = ob_get_clean();
@@ -488,14 +758,17 @@ class TWTAEO_Author_Meta {
 	 * @param array      $cert  Certification data.
 	 */
 	private static function render_cert_row( $index, array $cert ) {
-		$name     = $cert['name'] ?? '';
-		$org      = $cert['organization'] ?? '';
-		$cred_id  = $cert['credential_id'] ?? '';
-		$issue    = $cert['issue_date'] ?? '';
-		$expiry   = $cert['expiry_date'] ?? '';
-		$url      = $cert['verification_url'] ?? '';
-		$desc     = $cert['description'] ?? '';
-		$idx      = $index;
+		$name       = $cert['name'] ?? '';
+		$org        = $cert['organization'] ?? '';
+		$category   = $cert['category'] ?? 'Professional Certification';
+		$org_url    = $cert['org_url'] ?? '';
+		$org_sameas = $cert['org_sameas'] ?? '';
+		$cred_id    = $cert['credential_id'] ?? '';
+		$issue      = $cert['issue_date'] ?? '';
+		$expiry     = $cert['expiry_date'] ?? '';
+		$url        = $cert['verification_url'] ?? '';
+		$desc       = $cert['description'] ?? '';
+		$idx        = $index;
 		?>
 		<div class="twt-aeo-cert-row" style="background:#f9f9f9;border:1px solid #dcdcde;border-radius:6px;padding:16px;margin-bottom:12px;position:relative;">
 			<button type="button" class="twt-aeo-remove-cert" title="<?php esc_attr_e( 'Remove', 'twt-aeo-ultimate' ); ?>"
@@ -508,13 +781,38 @@ class TWTAEO_Author_Meta {
 						<label><?php esc_html_e( 'Certification Name', 'twt-aeo-ultimate' ); ?> <span style="color:#dc2626;">*</span></label>
 					</th>
 					<td style="padding:4px 0;">
-						<input type="text" name="twtaeo_cert_name[<?php echo esc_attr( $idx ); ?>]" value="<?php echo esc_attr( $name ); ?>" class="regular-text" required>
+						<input type="text" name="twtaeo_cert_name[<?php echo esc_attr( $idx ); ?>]" value="<?php echo esc_attr( $name ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g. First-Class Registered Architect', 'twt-aeo-ultimate' ); ?>">
+					</td>
+				</tr>
+				<tr>
+					<th style="padding:4px 10px 4px 0;"><label><?php esc_html_e( 'Credential Type', 'twt-aeo-ultimate' ); ?></label></th>
+					<td style="padding:4px 0;">
+						<select name="twtaeo_cert_category[<?php echo esc_attr( $idx ); ?>]">
+							<?php foreach ( self::credential_categories() as $cat_key => $cat_label ) : ?>
+								<option value="<?php echo esc_attr( $cat_key ); ?>" <?php selected( $category, $cat_key ); ?>><?php echo esc_html( $cat_label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<p class="description" style="margin:2px 0 0;"><?php esc_html_e( 'Output as credentialCategory. Use "Professional License" for government/regulatory licenses.', 'twt-aeo-ultimate' ); ?></p>
 					</td>
 				</tr>
 				<tr>
 					<th style="padding:4px 10px 4px 0;"><label><?php esc_html_e( 'Issuing Organization', 'twt-aeo-ultimate' ); ?></label></th>
 					<td style="padding:4px 0;">
 						<input type="text" name="twtaeo_cert_org[<?php echo esc_attr( $idx ); ?>]" value="<?php echo esc_attr( $org ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g. Google, HubSpot, AWS', 'twt-aeo-ultimate' ); ?>">
+					</td>
+				</tr>
+				<tr>
+					<th style="padding:4px 10px 4px 0;"><label><?php esc_html_e( 'Organization Website', 'twt-aeo-ultimate' ); ?></label></th>
+					<td style="padding:4px 0;">
+						<input type="url" name="twtaeo_cert_org_url[<?php echo esc_attr( $idx ); ?>]" value="<?php echo esc_url( $org_url ); ?>" class="regular-text" placeholder="https://...">
+						<p class="description" style="margin:2px 0 0;"><?php esc_html_e( 'Official website of the issuing organization.', 'twt-aeo-ultimate' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th style="padding:4px 10px 4px 0;"><label><?php esc_html_e( 'Organization Wikipedia / Wikidata', 'twt-aeo-ultimate' ); ?></label></th>
+					<td style="padding:4px 0;">
+						<input type="text" name="twtaeo_cert_org_sameas[<?php echo esc_attr( $idx ); ?>]" value="<?php echo esc_attr( $org_sameas ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'https://en.wikipedia.org/wiki/..., https://www.wikidata.org/wiki/Q...', 'twt-aeo-ultimate' ); ?>">
+						<p class="description" style="margin:2px 0 0;"><?php esc_html_e( 'Comma-separated. Grounds the issuing body to a known entity so AI models can recognize what the credential represents — especially important for regional or non-English credentials.', 'twt-aeo-ultimate' ); ?></p>
 					</td>
 				</tr>
 				<tr>

@@ -1,0 +1,82 @@
+/**
+ * Smart Collections — build modal.
+ *
+ * Deliberately plain: WP admin colours and controls, so the modal reads as part
+ * of wp-admin rather than as a plugin's idea of a dialog.
+ */
+
+body.twt-aeo-modal-open {
+	overflow: hidden;
+}
+
+.twt-aeo-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	background: rgba( 0, 0, 0, 0.6 );
+	overflow-y: auto;
+	padding: 40px 20px;
+}
+
+.twt-aeo-modal__panel {
+	background: #fff;
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 24px 28px 20px;
+	border-radius: 4px;
+	box-shadow: 0 3px 30px rgba( 0, 0, 0, 0.3 );
+}
+
+.twt-aeo-modal__panel h2 {
+	margin-top: 0;
+}
+
+.twt-aeo-modal__query {
+	color: #50575e;
+	margin-top: -6px;
+}
+
+.twt-aeo-modal__products {
+	max-height: 300px;
+	overflow-y: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 6px 10px;
+	background: #f6f7f7;
+}
+
+.twt-aeo-modal__product {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 2px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.twt-aeo-modal__product:last-child {
+	border-bottom: 0;
+}
+
+.twt-aeo-modal__product-name {
+	flex: 1 1 auto;
+}
+
+.twt-aeo-modal__product-price {
+	color: #50575e;
+	font-variant-numeric: tabular-nums;
+}
+
+.twt-aeo-modal__product-stock {
+	color: #b32d2e;
+	font-size: 12px;
+}
+
+@media screen and ( max-width: 782px ) {
+	.twt-aeo-modal {
+		padding: 20px 10px;
+	}
+
+	.twt-aeo-modal__panel {
+		padding: 18px 16px 14px;
+	}
+}

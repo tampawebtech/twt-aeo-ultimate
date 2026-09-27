@@ -25,6 +25,8 @@ class TWTAEO_Reviews_Schema_Writer {
 
 	public static function register_hooks() {
 		add_action( 'wp_head', array( __CLASS__, 'output_schema' ), 18 );
+		// Fold ratings/reviews onto the graph's Organization / Product / Service node.
+		add_filter( 'twtaeo_kg_nodes', array( __CLASS__, 'kg_nodes' ), 10, 2 );
 	}
 
 	// ── Settings ──────────────────────────────────────────────────────────────
@@ -88,6 +90,11 @@ class TWTAEO_Reviews_Schema_Writer {
 	// ── Schema output ─────────────────────────────────────────────────────────
 
 	public static function output_schema() {
+		// The Knowledge Graph module folds ratings into its unified @graph.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' ) && TWTAEO_Knowledge_Graph::is_folding() ) {
+			return;
+		}
+
 		$context = self::detect_context();
 		$schema  = null;
 
@@ -126,6 +133,65 @@ class TWTAEO_Reviews_Schema_Writer {
 		echo "\n" . '<script type="application/ld+json">' . "\n"
 			. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT )
 			. "\n" . '</script>' . "\n";
+	}
+
+	// ── Knowledge Graph contribution ──────────────────────────────────────────
+
+	/**
+	 * Contribute rating data to the unified @graph. Rather than a standalone block,
+	 * the aggregateRating / review payload is anchored to the @id of the node it
+	 * belongs on — the spine Organization ( home_url()/#organization ), or the page's
+	 * Product / Service node — so merge_node() folds it onto that entity.
+	 *
+	 * @param array $nodes
+	 * @param array $context
+	 * @return array
+	 */
+	public static function kg_nodes( $nodes, $context ) {
+		$review_context = self::detect_context();
+		$org_id         = ! empty( $context['org_id'] ) ? $context['org_id'] : home_url( '/#organization' );
+		$url            = $context['url'] ?? home_url( '/' );
+		$schema         = null;
+		$target_id      = '';
+
+		switch ( $review_context ) {
+			case 'local':
+				$schema    = self::build_local_schema();
+				$target_id = $org_id;
+				break;
+
+			case 'product':
+				if ( is_singular( 'product' ) && ! empty( $context['post_id'] ) ) {
+					$schema    = self::build_product_schema( (int) $context['post_id'] );
+					$target_id = $url . '#product';
+				}
+				break;
+
+			case 'service':
+				if ( is_singular() && ! empty( $context['post_id'] ) ) {
+					$schema    = self::build_service_schema( (int) $context['post_id'] );
+					$target_id = $url . '#service';
+				}
+				break;
+
+			default:
+				if ( ! empty( $context['is_front'] ) ) {
+					$schema    = self::build_general_schema();
+					$target_id = $org_id;
+				}
+				break;
+		}
+
+		if ( ! $schema ) {
+			return $nodes;
+		}
+
+		unset( $schema['@context'] );
+		if ( '' !== $target_id ) {
+			$schema['@id'] = $target_id;
+		}
+
+		return array_merge( $nodes, array( $schema ) );
 	}
 
 	// ── Schema builders ───────────────────────────────────────────────────────

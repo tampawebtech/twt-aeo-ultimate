@@ -19,6 +19,8 @@ class TWTAEO_Custom_Schema_Writer {
 
 	public static function register_hooks() {
 		add_action( 'wp_head', array( __CLASS__, 'output_schemas' ), 25 );
+		// Fold user-authored schemas (FAQPage, Product, …) into the Knowledge Graph.
+		add_filter( 'twtaeo_kg_nodes', array( __CLASS__, 'kg_nodes' ), 10, 2 );
 	}
 
 	// ── Storage ───────────────────────────────────────────────────────────────
@@ -44,7 +46,7 @@ class TWTAEO_Custom_Schema_Writer {
 		}
 		$all         = self::get_all( $post_id );
 		$all[ $type ] = $decoded;
-		return update_post_meta( $post_id, self::META_KEY, wp_json_encode( $all ) );
+		return update_post_meta( $post_id, self::META_KEY, self::encode_for_meta( $all ) );
 	}
 
 	public static function delete( $post_id, $type ) {
@@ -53,13 +55,30 @@ class TWTAEO_Custom_Schema_Writer {
 		if ( empty( $all ) ) {
 			delete_post_meta( $post_id, self::META_KEY );
 		} else {
-			update_post_meta( $post_id, self::META_KEY, wp_json_encode( $all ) );
+			update_post_meta( $post_id, self::META_KEY, self::encode_for_meta( $all ) );
 		}
+	}
+
+	/**
+	 * JSON destined for update_post_meta()/update_user_meta() MUST be slashed:
+	 * both run wp_unslash() on the value, which eats the backslashes in
+	 * \uXXXX escapes ("—" stored as literal "u2014"). UNESCAPED_UNICODE
+	 * keeps non-ASCII as real UTF-8 so escapes barely occur at all.
+	 *
+	 * @param array $data
+	 * @return string Slashed JSON, safe to hand to the meta APIs.
+	 */
+	public static function encode_for_meta( $data ) {
+		return wp_slash( wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
 	}
 
 	// ── Frontend output ───────────────────────────────────────────────────────
 
 	public static function output_schemas() {
+		// The Knowledge Graph module folds these schemas into its unified @graph.
+		if ( class_exists( 'TWTAEO_Knowledge_Graph' ) && TWTAEO_Knowledge_Graph::is_folding() ) {
+			return;
+		}
 		if ( ! is_singular() ) {
 			return;
 		}
@@ -81,6 +100,55 @@ class TWTAEO_Custom_Schema_Writer {
 				. wp_json_encode( $schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT )
 				. "\n" . '</script>' . "\n";
 		}
+	}
+
+	// ── Knowledge Graph contribution ──────────────────────────────────────────
+
+	/**
+	 * Contribute each stored custom schema (FAQPage, Product, Article, Service, …)
+	 * to the unified @graph: drop the @context, give it a canonical @id when it has
+	 * none, and back-reference the WebPage for page-level entity types.
+	 *
+	 * @param array $nodes
+	 * @param array $context
+	 * @return array
+	 */
+	public static function kg_nodes( $nodes, $context ) {
+		$post_id = (int) ( $context['post_id'] ?? 0 );
+		if ( ! $post_id || ! is_singular() ) {
+			return $nodes;
+		}
+
+		$all = self::get_all( $post_id );
+		if ( empty( $all ) ) {
+			return $nodes;
+		}
+
+		$url          = $context['url'] ?? get_permalink( $post_id );
+		$page_types   = array( 'Article', 'NewsArticle', 'FAQPage', 'Product', 'Service', 'Event' );
+
+		foreach ( $all as $type => $schema ) {
+			if ( empty( $schema ) || ! is_array( $schema ) ) {
+				continue;
+			}
+			unset( $schema['@context'] );
+
+			if ( empty( $schema['@id'] ) ) {
+				$raw_type      = $schema['@type'] ?? $type;
+				$node_type     = is_array( $raw_type ) ? reset( $raw_type ) : $raw_type;
+				$schema['@id'] = $url . '#' . strtolower( (string) $node_type );
+			}
+
+			if ( ! empty( $context['webpage_id'] )
+				&& in_array( (string) $type, $page_types, true )
+				&& empty( $schema['isPartOf'] ) ) {
+				$schema['isPartOf'] = array( '@id' => $context['webpage_id'] );
+			}
+
+			$nodes[] = $schema;
+		}
+
+		return $nodes;
 	}
 
 	// ── Templates ─────────────────────────────────────────────────────────────
@@ -215,6 +283,24 @@ class TWTAEO_Custom_Schema_Writer {
 				'name'        => $post_title ?: 'Page Title',
 				'description' => 'Page description',
 				'url'         => $post_url,
+			),
+
+			'WebSite' => array(
+				'@context'    => 'https://schema.org',
+				'@type'       => 'WebSite',
+				'name'        => $site_name,
+				'url'         => $site_url,
+				'description' => $tagline ?: 'What this site is about',
+			),
+
+			'PostalAddress' => array(
+				'@context'        => 'https://schema.org',
+				'@type'           => 'PostalAddress',
+				'streetAddress'   => '123 Main St',
+				'addressLocality' => 'City',
+				'addressRegion'   => 'State',
+				'postalCode'      => '12345',
+				'addressCountry'  => 'US',
 			),
 
 			'BreadcrumbList' => array(

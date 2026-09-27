@@ -126,6 +126,19 @@ class TWTAEO_Index_Now {
 		$host     = wp_parse_url( home_url(), PHP_URL_HOST );
 		$key_loc  = home_url( '/' . $key . '.txt' );
 
+		$skip = self::non_public_reason( (string) $host );
+		if ( '' !== $skip ) {
+			// Logged, so the IndexNow screen shows why nothing went out rather
+			// than an empty log that looks like the feature is broken.
+			$result = array(
+				'engine'  => 'none',
+				'status'  => 0,
+				'message' => $skip,
+			);
+			self::append_log( array( 'timestamp' => time(), 'urls' => $urls ) + $result );
+			return array( $result );
+		}
+
 		$body = wp_json_encode( array(
 			'host'        => $host,
 			'key'         => $key,
@@ -172,6 +185,41 @@ class TWTAEO_Index_Now {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Why this site must not ping search engines, or '' when it may.
+	 *
+	 * A local or staging copy of a site submits URLs no engine can crawl — or,
+	 * worse for staging on a public host, URLs it should never index. Local by
+	 * Flywheel, wp-env and most staging hosts set WP_ENVIRONMENT_TYPE; the host
+	 * check catches the copies that do not.
+	 *
+	 * @param string $host The site's host name.
+	 * @return string
+	 */
+	private static function non_public_reason( $host ) {
+		$host = strtolower( $host );
+		$env  = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+
+		$reason = '';
+		if ( in_array( $env, array( 'local', 'development', 'staging' ), true ) ) {
+			/* translators: %s: WordPress environment type, e.g. local or staging. */
+			$reason = sprintf( __( 'Skipped: this is a %s site, so its URLs are not sent to search engines.', 'twt-aeo-ultimate' ), $env );
+		} elseif ( 'localhost' === $host
+			|| (bool) preg_match( '/\.(local|test|localhost|invalid|example|internal|lan)$/', $host )
+			|| ( filter_var( $host, FILTER_VALIDATE_IP ) && ! filter_var( $host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) ) {
+			/* translators: %s: site host name. */
+			$reason = sprintf( __( 'Skipped: %s is not a public address, so search engines could not crawl these URLs.', 'twt-aeo-ultimate' ), $host );
+		}
+
+		/**
+		 * Filters whether IndexNow skips a non-public site. Return '' to submit anyway.
+		 *
+		 * @param string $reason Why submission is skipped; '' when it is not.
+		 * @param string $host   The site's host name.
+		 */
+		return (string) apply_filters( 'twtaeo_indexnow_skip_reason', $reason, $host );
 	}
 
 	// ── Log ───────────────────────────────────────────────────────────────────

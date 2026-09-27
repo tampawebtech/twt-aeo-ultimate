@@ -48,13 +48,11 @@ class TWTAEO_Twitter_Writer {
 		$creator = $saved['tw_creator'] ?: '';
 		$site    = self::get_site_handle();
 
-		// Downgrade to summary if no image is available.
-		if ( $card === 'summary_large_image' ) {
-			$og_image = get_post_meta( $post_id, TWTAEO_OG_Writer::META_IMAGE, true );
-			$fallback = get_the_post_thumbnail_url( $post_id, 'large' );
-			if ( ! $og_image && ! $fallback ) {
-				$card = 'summary';
-			}
+		// Downgrade to summary if no image is available — using the same
+		// fallback chain the OG output uses (saved → featured → gallery), so
+		// the card type always matches whether an og:image actually ships.
+		if ( $card === 'summary_large_image' && ! TWTAEO_OG_Writer::effective_image( $post_id ) ) {
+			$card = 'summary';
 		}
 
 		echo "\n<!-- TWT AEO Twitter Card -->\n";
