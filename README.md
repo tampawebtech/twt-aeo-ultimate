@@ -22,10 +22,10 @@ AEO Ultimate makes a WordPress site readable, trustworthy and citable for AI ans
 
 ### RAG Engine (new in 2.25)
 
-AI answer engines cut the web into short passages and write their answers from the few that best match a question. The RAG Engine shows your site the way that process sees it.
+AI answer engines cut the web into short passages and write their answers from the few that best match a question. The RAG Engine shows your site the way that process sees it, and works as a content gap finder: it finds the questions your customers search for that your pages don't answer, and the passage in your own documents that does.
 
 * **Documents**: upload spec sheets, manuals, catalogs and FAQs (PDF, Word or text). They are read on your own server and the file is deleted once read. Tables in PDFs come out as real tables.
-* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not.
+* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not. These are content gaps taken from your own ranking data.
 * **AI Citations**: questions where an AI engine left you out, beside the passages from your documents that answer them.
 * **Laws, codes and safety data**: quoted word for word with their citation, and checked online for changes since your copy's date.
 * **Chunk View**: any page split into the passages a retrieval index would hold, with the weak ones flagged.
@@ -35,6 +35,8 @@ Nothing is published for you: every suggestion comes with a Copy button and an E
 ### AI Visibility
 
 Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask and shows, per engine, whether your site was cited, named without a link, or left out, and who was cited instead.
+
+**AI Crawler Watch** logs which AI bots read your site and what they waste requests on, and **AI referral tracking** counts the visits that arrive from ChatGPT, Perplexity, Claude, Gemini and Copilot, with no cookies and no per-visitor data.
 
 ### Schema and entities
 
