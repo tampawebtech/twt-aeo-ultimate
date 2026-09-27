@@ -14,7 +14,9 @@ Get cited by ChatGPT, Gemini, Perplexity and Google AI Overviews: connected sche
 
 **AEO Ultimate** makes your WordPress site readable, trustworthy and citable for AI answer engines (ChatGPT, Gemini, Claude, Perplexity and Google AI Overviews) and measures whether they actually cite you. It publishes connected @graph JSON-LD schema, clear publisher and author identity (E-E-A-T) and AI-agent discovery files such as llms.txt, and runs alongside your existing SEO plugin without duplicating what it already outputs.
 
-Fully modular: every feature switches on or off on its own, so your site runs only what it needs.
+**Built for SEO professionals.** Everything is free: no license, no paid tier, no feature locked away. AI features run on your own API keys (Anthropic, OpenAI, Google, Perplexity, xAI or Mistral), so you pay the provider directly and choose the model. The work is bulk and semi-automated: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, generate product schema for a whole catalogue, and let the plugin suggest the missing E-E-A-T details and apply them for you. AI-powered bulk actions show the number of billed calls and ask before running, so there are no surprise bills. Access & Roles lets an SEO manager or a client's marketing team use the tools without being a full administrator.
+
+Fully modular: 29 features, each switched on or off on its own, so your site runs only what it needs.
 
 = RAG Engine =
 
@@ -32,6 +34,10 @@ Nothing is published for you: every suggestion comes with a Copy button and an E
 
 Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask, on your own API keys, and shows per engine whether your site was cited, named without a link, or left out, and who was cited instead. Answers about your products are also checked against your real prices, stock and policies.
 
+= AEO Score & Setup =
+
+The AEO Score grades your site from 0 to 100 and shows exactly where each point is lost, with every gap linked to its fix. The Setup Wizard gets you there in one click with Autopilot, in two steps with The Basics, or in five with Expert.
+
 = WooCommerce AEO =
 
 Built for stores: every commerce feature exists so an answer engine can quote your catalogue accurately.
@@ -48,7 +54,7 @@ Built for stores: every commerce feature exists so an answer engine can quote yo
 
 = Schema Markup & Structured Data =
 
-The core engine detects the schema already on each page, classifies the page (homepage, service, article, location or product), and adds JSON-LD **only where it's missing**: Organization, Article, NewsArticle, Person, FAQPage, Service, Product, LocalBusiness, ContactPoint, Event, Review, AggregateRating and BreadcrumbList. Everything on a page is woven into one connected `@graph` (WebSite → Organization → WebPage, cross-referenced by `@id`), so AI crawlers read your site as one set of facts. Duplicate-schema conflicts are flagged.
+The core engine detects the schema already on each page, classifies the page (homepage, service, article, location or product), and adds JSON-LD **only where it's missing**: Organization, Article, NewsArticle, Person, FAQPage, Service, Product, LocalBusiness, ContactPoint, Event, Review, AggregateRating and BreadcrumbList. Everything on a page is woven into one connected `@graph` (WebSite → Organization → WebPage, cross-referenced by `@id`), so AI crawlers read your site as one set of facts. The Knowledge Graph screen defines your entities and links them to Wikipedia and Wikidata, and duplicate-schema conflicts between plugins are flagged.
 
 = AI Ready: llms.txt & Crawler Control =
 
@@ -74,15 +80,15 @@ A cached XML sitemap and a Google News sitemap, with IndexNow pinging Bing and o
 
 = Command Center =
 
-Google Search Console, Google Analytics 4 and Bing Webmaster Tools in one view, with Google PageSpeed audits (Lighthouse score and Core Web Vitals). A traffic-leak scan finds high-traffic pages that lose mobile visitors to slow loads, and a content scan flags inline scripts, base64 images and other page-builder leftovers.
+Google Search Console, Google Analytics 4 and Bing Webmaster Tools in one view, with Google PageSpeed audits (Lighthouse score and Core Web Vitals). AI Crawler Watch shows which AI bots read your site and what they waste requests on, and the plugin counts visits that arrive from ChatGPT, Perplexity, Claude, Gemini and Copilot, with no cookies and no per-visitor data. A traffic-leak scan finds high-traffic pages that lose mobile visitors to slow loads, and a content scan flags inline scripts, base64 images and other page-builder leftovers.
 
 = More Tools =
 
 Customer reviews with AggregateRating and Review schema, a "Last Updated" freshness badge, PR Bridge AI for press releases, and an AI Prompt Rate Limiter to protect your API budget.
 
-= External Services & TWT Agency =
+= External Services =
 
-Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok and Mistral using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled EXTERNAL-SERVICES.md for the complete inventory. Optional TWT Agency connectivity is available; the plugin is fully functional on its own.
+Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok and Mistral using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled EXTERNAL-SERVICES.md for the complete inventory.
 
 == Installation ==
 
@@ -151,7 +157,7 @@ Only the ones you configure, and only when you trigger them:
 * **IndexNow**: URL submission on publish. [Terms & Privacy](https://www.indexnow.org/terms)
 * **EIN Presswire**: press-release distribution. [Terms](https://www.einpresswire.com/legal/terms) | [Privacy](https://www.einpresswire.com/legal/privacy)
 * **EasyPRwire**: press-release distribution. [Terms](https://easyprwire.com/terms-and-condition) | [Privacy](https://easyprwire.com/privacy-policy)
-* **TWT Agency** (optional) and opt-in token telemetry. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/)
+* **Tampa Web Technologies** (opt-in only): token-usage telemetry and the optional Pro Dashboard connection. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/)
 
 Each request sends only the data needed for that action, using your own API key. No site-visitor personal data is ever transmitted. The plugin also displays outbound links to industry directories and documentation sites; no data is sent to those. The complete inventory (every service that receives data, what it receives, and its terms and privacy policy, plus every linked site) ships in EXTERNAL-SERVICES.md inside the plugin folder.
 
@@ -169,6 +175,7 @@ Each request sends only the data needed for that action, using your own API key.
 10. **Modules Screen**: Enable or disable each feature independently.
 11. **WooCommerce AEO**: Product schema with one-click sync to Google and Bing Merchant Center, integrity scoring, and rejection logs.
 12. **Not Indexed**: Uses Google Search Console to surface published pages missing from Google's index and flags likely causes: thin content, high keyword density, and missing heading hierarchy.
+13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
 
@@ -191,7 +198,105 @@ Each request sends only the data needed for that action, using your own API key.
 * Fixed: IndexNow no longer submits URLs from local, development or staging copies of a site (or from .local, .test, localhost and private-network addresses). The log shows these as "Skipped" with the reason.
 * Fixed: Chunk View labelled sibling sections as nested ("Features › Pricing") on pages whose headings start at H2, which is most WordPress content. Each passage now shows the heading it actually sits under.
 
-The complete changelog for every release ships in the changelog.txt file bundled with the plugin.
+= 2.23.0 =
+* New: Chunk View (off by default; switch it on under Modules). Shows a page the way a retrieval index holds it: fetched like a no-JavaScript AI crawler, split into passages, and each passage scored on whether it still makes sense on its own. Works on any URL, including competitor pages, with no API key.
+* New: host governor. Heavy work measures what your host can handle and pauses instead of timing out on smaller hosting plans.
+* Fixed: AI Visibility ignored allocation changes once a question list had been saved, and brand questions were never asked.
+* Fixed: the AI Visibility question counts ignored "Per brand" and overcounted categories, posts and products.
+
+= 2.22.0 =
+* New: AI Visibility shows the exact passage where each engine named your company or brands, so you see how you were mentioned, not just that you were.
+* Fixed: stored checks dropped owned-profile citation data, so brand totals undercounted. Re-run a check to refresh them.
+
+= 2.21.0 =
+* New: Bot View. See any page the way no-JavaScript AI crawlers (GPTBot, ClaudeBot, PerplexityBot) see it: what schema is visible, what is locked behind JavaScript, and which hidden script data could become schema.
+* New: every Bot View audit fetches the page twice, as GPTBot and as a normal browser, exposing firewalls that turn AI crawlers away.
+* New: a weekly Bot View scan of your homepage and recently updated content, with every finding linked to its fix.
+* Fixed: AI Crawler Watch no longer counts Bot View's own audits as crawler visits.
+
+= 2.20.1 =
+* New: duplicate meta descriptions are flagged on the Not Indexed screen, with an inline AI fix.
+* Fixed: headings that were not questions could be published as FAQ schema.
+* Fixed: saved custom schema of an unusual type could be invisible and impossible to delete.
+* Fixed: accented letters, dashes and emoji in stored schema could be saved as literal codes.
+* Fixed: Easy Digital Downloads checkout and account pages were reported as not indexed.
+
+= 2.20.0 =
+* New: content provenance. Articles can declare how they were made (human, AI-assisted or AI-generated) using schema.org's digitalSourceType.
+* New: author archives publish ProfilePage schema.
+* New: multilingual schema for WPML and Polylang: each translation declares its language and links to the others.
+* New: a contextual authority statement, drafted with AI, that explains an author's credentials in plain words.
+
+= 2.19.0 =
+* Critical: Google Merchant Center sync moved to Google's Merchant API before the old Content API shut down.
+* New: author certifications are machine-recognizable credentials, with a category, the awarding body and its Wikipedia or Wikidata link.
+* New: AI Visibility turns every question where you were left out into a brief of what to publish.
+* New: AI Visibility checks its citations against real referral visits, and tracks each brand over time.
+* Fixed: pushing a promotion to Merchant Center caused a fatal error.
+
+= 2.18.0 =
+* New: brand citation tracking. Each brand you track is asked about by name, and a brand can be a whole website, not only social profiles.
+* New: the press-release features work on WordPress 7.0 without an API key of your own.
+* Improved: Search Console top queries no longer fill up with rank-tracker noise.
+* Fixed: /okf/ and /llms.txt could fail on hosts without PHP's mbstring extension.
+
+= 2.17.0 =
+* New: AI Visibility, the citation engine. Asks AI engines the questions your customers ask and records whether you were cited, named or left out.
+* New: Grok (xAI) and Le Chat (Mistral) join ChatGPT, Gemini, Claude and Perplexity.
+* New: an Open Knowledge Format (OKF) bundle at /okf/.
+* New: runs continue in the background without the tab open, and awkward questions can be polished with AI.
+
+= 2.16.0 =
+* New: the AEO Score, a 0 to 100 citability grade that shows where every point is lost.
+* New: one-click "Auto-Fill Missing Schema" on the Dashboard, and "Generate with AI" for schema descriptions.
+* New: Review and HowTo forms in the schema editor.
+* Fixed: Search Console domain properties could not be connected.
+
+= 2.15.0 =
+* Fixed: every scanning screen stopped at the 200 most recent items. Scans now cover the whole site.
+* New: catalogue-wide search and pagers on the big tables, and the FAQ detector scans products.
+* Changed: replacing WooCommerce's own Product schema now needs the store owner's consent.
+* Improved: one consistent image fallback for social cards, and products with gallery images are no longer reported as missing an image.
+
+= 2.14.0 =
+* New: the full commerce schema suite from AEO Ultimate for WooCommerce: Product and ProductGroup graphs, Smart Collections and Promotions.
+* New: the Setup Wizard's Autopilot now does real work, running every setup step that needs no AI in the background.
+* Fixed: "Generate Schema for All" and "Scan All Pages" stopped after 200 items.
+* Compatibility: verified with WordPress 7.1 and WooCommerce 11.
+
+= 2.13.0 =
+* New: bulk actions on every screen that had a per-row button, so a whole site can be brought to full coverage in one pass. AI-powered ones show the billed call count and ask first.
+* New: a switch for every output that could collide with another plugin, on the Schema Conflict Detector page.
+* Fixed: the text served to AI crawlers (llms.txt, llms-full.txt, Markdown pages and Agent Skills documents) was HTML-encoded, so characters such as `>` and `&` reached crawlers as `&gt;` and `&amp;`, breaking the llms.txt format.
+* Fixed: the WordPress 7.0 AI Client connection.
+
+= 2.12.1 =
+* Fixed: hosts without PHP's libsodium extension could hit a critical error when saving keys.
+* Fixed: the Not Indexed page could fail on scan results from older versions.
+* Improved: WooCommerce cart, checkout and account pages are no longer reported as not indexed, and fixable issues get a Fix button.
+
+= 2.12.0 =
+* Fixed: the Author Entity (E-E-A-T) page could fail to load on some sites.
+
+= 2.11.0 =
+* New: a unified Knowledge Graph. Every schema block on a page is woven into one connected @graph, with duplicate Organization output consolidated.
+* New: the Knowledge Graph page, to define entities, relationships and per-page about and mentions, grounded in Wikipedia and Wikidata.
+
+= 2.10.0 =
+* New: Smart 404 Rescue (off by default). Heals broken internal links, ignores hacker probes, and recovers pages Google still ranks you for with suggested 301 redirects, without a bloated 404 log.
+* New: Access & Roles. Let an Editor or an SEO Manager role use the tools without being a full administrator.
+
+= 2.9.1 =
+* New: Product schema includes Google's merchant-listing fields: price valid-until dates and sale periods.
+* New: an AI resolver maps each product to its exact Google Product Category.
+* New: Merchant Center sync flags products whose category disagrees with the feed.
+
+= 2.9.0 =
+* First release on WordPress.org.
+* Removed: the built-in content generator (now the separate TWT Content Generator plugin) and dormant bulk image generation code.
+* Improved: every outside service the plugin can contact is listed with its terms and privacy links.
+
+The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
 
