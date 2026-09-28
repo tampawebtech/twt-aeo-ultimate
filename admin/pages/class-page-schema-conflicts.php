@@ -341,8 +341,15 @@ class TWTAEO_Page_Schema_Conflicts {
 					</div>
 					<p class="twt-aeo-sc__delete-card__row-count">
 						<?php if ( $count > 0 ) : ?>
-							<strong style="color:#b91c1c;"><?php echo esc_html( number_format_i18n( $count ) ); ?></strong>
-							<?php esc_html_e( 'row(s) found in database', 'twt-aeo-ultimate' ); ?>
+							<?php
+							echo wp_kses_post(
+								sprintf(
+									/* translators: %s: number of database rows. */
+									esc_html( _n( '%s row found in database', '%s rows found in database', $count, 'twt-aeo-ultimate' ) ),
+									'<strong style="color:#b91c1c;">' . esc_html( number_format_i18n( $count ) ) . '</strong>'
+								)
+							);
+							?>
 						<?php else : ?>
 							<span style="color:#6b7280;">&#10003; <?php esc_html_e( 'No data found', 'twt-aeo-ultimate' ); ?></span>
 						<?php endif; ?>
@@ -623,7 +630,8 @@ class TWTAEO_Page_Schema_Conflicts {
 				var nonce  = $btn.data('nonce');
 				var $status = $btn.siblings('.twt-aeo-sc__delete-status');
 
-				if (!confirm('<?php echo esc_js( __( 'This will permanently delete all schema data saved by', 'twt-aeo-ultimate' ) ); ?> ' + label + '<?php echo esc_js( __( ' from your database. Are you sure?', 'twt-aeo-ultimate' ) ); ?>')) {
+				<?php /* translators: %s: name of the plugin whose schema data will be deleted. */ ?>
+				if (!confirm('<?php echo esc_js( __( 'This will permanently delete all schema data saved by %s from your database. Are you sure?', 'twt-aeo-ultimate' ) ); ?>'.split('%s').join(label))) {
 					return;
 				}
 

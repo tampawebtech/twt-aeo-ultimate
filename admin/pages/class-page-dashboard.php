@@ -1823,8 +1823,8 @@ class TWTAEO_Page_Dashboard {
 					$btn.prop('disabled', false);
 					$stop.hide();
 					$status.html('<span style="color:#b32d2e;">'
-						+ <?php echo wp_json_encode( __( 'Stopped: ', 'twt-aeo-ultimate' ) ); ?> + (s.last_error || 'error')
-						+ '</span> (' + (s.created || 0) + ' ' + <?php echo wp_json_encode( __( 'created', 'twt-aeo-ultimate' ) ); ?> + ')');
+						+ <?php /* translators: %s: error message. */ echo wp_json_encode( __( 'Stopped: %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(s.last_error || 'error')
+						+ '</span> ' + <?php /* translators: %d: number of items created before the job stopped. */ echo wp_json_encode( __( '(created: %d)', 'twt-aeo-ultimate' ) ); ?>.split('%d').join(s.created || 0));
 				} else if (s.status === 'stopped'){
 					$btn.prop('disabled', false);
 					$stop.hide();

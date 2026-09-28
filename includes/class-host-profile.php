@@ -555,7 +555,8 @@ final class TWTAEO_Host_Profile {
 			__( 'PHP version', 'twt-aeo-ultimate' )       => $profile['php_version'],
 			__( 'Memory limit', 'twt-aeo-ultimate' )      => $profile['memory_raw'],
 			__( 'Max execution', 'twt-aeo-ultimate' )     => $profile['max_time'] ? $profile['max_time'] . 's' : __( 'unlimited', 'twt-aeo-ultimate' ),
-			__( 'Measured speed', 'twt-aeo-ultimate' )    => number_format_i18n( (int) $profile['ops_per_sec'] ) . __( ' vector ops/sec', 'twt-aeo-ultimate' ),
+			__( 'Measured speed', 'twt-aeo-ultimate' )    => /* translators: %s: vector operations per second measured on this server. */
+				sprintf( __( '%s vector ops/sec', 'twt-aeo-ultimate' ), number_format_i18n( (int) $profile['ops_per_sec'] ) ),
 			__( 'Batch size', 'twt-aeo-ultimate' )        => self::batch_size(),
 			__( 'Shell access', 'twt-aeo-ultimate' )      => $profile['has_shell'] ? __( 'yes (OCR possible)', 'twt-aeo-ultimate' ) : __( 'no (OCR unavailable)', 'twt-aeo-ultimate' ),
 			__( 'FULLTEXT index', 'twt-aeo-ultimate' )    => $profile['has_fulltext'] ? __( 'supported', 'twt-aeo-ultimate' ) : __( 'unsupported', 'twt-aeo-ultimate' ),

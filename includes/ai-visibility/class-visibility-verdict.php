@@ -647,7 +647,7 @@ final class TWTAEO_Visibility_Verdict {
 	 * The next (question, engine) pair to run, or null when the queue is spent.
 	 *
 	 * @param array $run Run.
-	 * @return array|null [ question_id, engine ].
+	 * @return array|null [ question_id, engine, turn? ] — turn only on follow-up turns (journey mode).
 	 */
 	public static function next_step( array $run ) {
 		$cursor = isset( $run['cursor'] ) && is_numeric( $run['cursor'] ) ? max( 0, (int) $run['cursor'] ) : 0;
@@ -659,10 +659,14 @@ final class TWTAEO_Visibility_Verdict {
 		if ( ! isset( $item['question_id'] ) || ! isset( $item['engine'] ) ) {
 			return null;
 		}
-		return array(
+		$step = array(
 			'question_id' => (string) $item['question_id'],
 			'engine'      => (string) $item['engine'],
 		);
+		if ( isset( $item['turn'] ) && (int) $item['turn'] > 1 ) {
+			$step['turn'] = (int) $item['turn'];
+		}
+		return $step;
 	}
 
 	/* ─────────────────────────────── helpers ───────────────────────────── */

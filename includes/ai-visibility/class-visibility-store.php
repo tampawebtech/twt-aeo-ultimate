@@ -82,6 +82,7 @@ final class TWTAEO_Visibility_Store {
 			cursor_pos int(11) NOT NULL DEFAULT 0,
 			message text NULL,
 			summary longtext NULL,
+			persona text NULL,
 			PRIMARY KEY  (id),
 			KEY started_at (started_at)
 		) {$charset};" );
@@ -101,10 +102,15 @@ final class TWTAEO_Visibility_Store {
 			brand_hits longtext NULL,
 			mentions longtext NULL,
 			excerpt text NULL,
+			answer longtext NULL,
 			latency_ms int(11) NOT NULL DEFAULT 0,
 			error text NULL,
 			model varchar(64) NOT NULL DEFAULT '',
 			tools varchar(191) NOT NULL DEFAULT '',
+			follow_ups longtext NULL,
+			follow_ups_error text NULL,
+			turn tinyint(3) unsigned NOT NULL DEFAULT 1,
+			asked text NULL,
 			PRIMARY KEY  (id),
 			KEY run_id (run_id),
 			KEY run_engine (run_id, engine)
@@ -153,10 +159,12 @@ final class TWTAEO_Visibility_Store {
 			'alternate_hosts' => array(),
 			'company_urls'    => array(),
 			'brand_items'     => array(),
+			'personas'        => array(),
+			'personas_on'     => true,
 		);
 	}
 
-	/** @return array { allocation, daily_cap, x_handle, alternate_hosts[], company_urls[], brand_items[] } */
+	/** @return array { allocation, daily_cap, x_handle, alternate_hosts[], company_urls[], brand_items[], personas[], personas_on } */
 	public static function get_settings() {
 		$stored = get_option( TWTAEO_Visibility_Types::OPTION_SETTINGS, array() );
 		if ( ! is_array( $stored ) ) {
@@ -181,13 +189,19 @@ final class TWTAEO_Visibility_Store {
 		if ( isset( $stored['brand_items'] ) ) {
 			$s['brand_items'] = self::clean_brand_items( $stored['brand_items'] );
 		}
+		if ( isset( $stored['personas'] ) && class_exists( 'TWTAEO_Visibility_Personas' ) ) {
+			$s['personas'] = TWTAEO_Visibility_Personas::clean( $stored['personas'] );
+		}
+		if ( isset( $stored['personas_on'] ) ) {
+			$s['personas_on'] = (bool) $stored['personas_on'];
+		}
 		return $s;
 	}
 
 	/**
 	 * Merge and save. Only known keys are written; the allocation is clamped.
 	 *
-	 * @param array $settings Any subset of { allocation, daily_cap, x_handle, alternate_hosts, company_urls, brand_items }.
+	 * @param array $settings Any subset of { allocation, daily_cap, x_handle, alternate_hosts, company_urls, brand_items, personas, personas_on }.
 	 * @return array The saved settings.
 	 */
 	public static function save_settings( array $settings ) {
@@ -210,6 +224,12 @@ final class TWTAEO_Visibility_Store {
 		}
 		if ( array_key_exists( 'brand_items', $settings ) ) {
 			$current['brand_items'] = self::clean_brand_items( $settings['brand_items'] );
+		}
+		if ( array_key_exists( 'personas', $settings ) && class_exists( 'TWTAEO_Visibility_Personas' ) ) {
+			$current['personas'] = TWTAEO_Visibility_Personas::clean( $settings['personas'] );
+		}
+		if ( array_key_exists( 'personas_on', $settings ) ) {
+			$current['personas_on'] = (bool) $settings['personas_on'];
 		}
 		update_option( TWTAEO_Visibility_Types::OPTION_SETTINGS, $current, false );
 		return $current;
@@ -380,7 +400,7 @@ final class TWTAEO_Visibility_Store {
 	 * `step_run()` once per check.
 	 *
 	 * @param array $alloc Allocation; `engines` [] means every engine with a key.
-	 * @param array $opts  { max_questions?: int, sample?: bool (first engine only) }
+	 * @param array $opts  { max_questions?: int, sample?: bool (first engine only), persona?: Persona|null, journey?: int follow-up turns 0..JOURNEY_MAX }
 	 * @return array Run
 	 */
 	public static function start_run( array $alloc, array $opts = array() ) {
@@ -421,6 +441,7 @@ final class TWTAEO_Visibility_Store {
 		$now               = self::now_iso();
 		$alloc_with_engine = $a;
 		$alloc_with_engine['engines'] = $engines;
+		$alloc_with_engine['journey'] = isset( $opts['journey'] ) ? max( 0, min( (int) TWTAEO_Visibility_Types::JOURNEY_MAX, (int) $opts['journey'] ) ) : 0;
 		$run = array(
 			'id'          => wp_generate_uuid4(),
 			'started_at'  => $now,
@@ -430,9 +451,14 @@ final class TWTAEO_Visibility_Store {
 			'queue'       => $queue,
 			'cursor'      => 0,
 			'checks'      => array(),
+			'journey'     => array(),
 			'status'      => ! empty( $queue ) ? 'running' : 'done',
 			'message'     => null,
 			'demo'        => false,
+			// Copied, not referenced: the run is stepped by cron with nobody
+			// logged in, and a persona renamed or removed mid-run must not
+			// change what the rest of the run is asked as.
+			'persona'     => self::run_persona( isset( $opts['persona'] ) ? $opts['persona'] : null ),
 		);
 		if ( empty( $queue ) ) {
 			$run['finished_at'] = $now;
@@ -462,8 +488,14 @@ final class TWTAEO_Visibility_Store {
 		if ( ! $row ) {
 			return null;
 		}
-		$run           = self::row_to_run( $row );
-		$run['checks'] = self::load_checks( $id );
+		$run = self::row_to_run( $row );
+		foreach ( self::load_checks( $id ) as $c ) {
+			if ( $c['turn'] > 1 ) {
+				$run['journey'][] = $c;
+			} else {
+				$run['checks'][] = $c;
+			}
+		}
 		return $run;
 	}
 
@@ -548,6 +580,7 @@ final class TWTAEO_Visibility_Store {
 				break;
 			}
 		}
+		$turn = isset( $step['turn'] ) ? max( 1, (int) $step['turn'] ) : 1;
 
 		$key_rejected = false;
 		$check        = array(
@@ -564,19 +597,44 @@ final class TWTAEO_Visibility_Store {
 			'brand_hits'       => array(),
 			'mentions'         => array(),
 			'excerpt'          => '',
+			'answer'           => '',
 			'latency_ms'  => 0,
 			'error'       => null,
 			'model'       => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
 			'tools'       => '',
+			'follow_ups'       => array(),
+			'follow_ups_error' => null,
+			'turn'             => $turn,
+			'asked'            => '',
 		);
+		$ask_opts = ! empty( $run['persona']['label'] ) ? array( 'persona' => (string) $run['persona']['label'] ) : array();
+
+		// Journey mode: a later turn asks the engine's own top follow-up from
+		// the turn before, with the conversation so far as history.
+		$asked = null === $question ? '' : (string) $question['text'];
+		if ( null !== $question && $turn > 1 ) {
+			$chain = self::conversation( $run, $question, $engine, $turn );
+			$last  = end( $chain );
+			$asked = $last && ! empty( $last['follow_ups'] ) ? (string) $last['follow_ups'][0] : '';
+			$check['asked']      = $asked;
+			$ask_opts['history'] = array_map(
+				static function ( $t ) {
+					return array( 'q' => $t['q'], 'a' => $t['a'] );
+				},
+				$chain
+			);
+		}
 
 		if ( null === $question ) {
 			$check['error'] = __( 'Question missing from the run snapshot.', 'twt-aeo-ultimate' );
+		} elseif ( '' === $asked ) {
+			$check['error'] = __( 'Nothing to follow up on: the turn before recorded no follow-up question.', 'twt-aeo-ultimate' );
 		} else {
-			$answer              = TWTAEO_Visibility_Engines::ask_with_citations( $engine, $key, (string) $question['text'] );
+			$answer              = TWTAEO_Visibility_Engines::ask_with_citations( $engine, $key, $asked, $ask_opts );
 			$check['latency_ms'] = (int) $answer['latency_ms'];
 			$check['cited_urls'] = $answer['cited_urls'];
 			$check['excerpt']    = self::excerpt( $answer['text'] );
+			$check['answer']     = (string) $answer['text'];
 			$check['model']      = (string) $answer['model'];
 			$check['tools']      = implode( ',', (array) $answer['tools'] );
 			if ( ! empty( $answer['error'] ) ) {
@@ -594,16 +652,51 @@ final class TWTAEO_Visibility_Store {
 				$check['citation_surface'] = isset( $judged['citation_surface'] ) ? $judged['citation_surface'] : '';
 				$check['brand_hits']       = isset( $judged['brand_hits'] ) ? $judged['brand_hits'] : array();
 				$check['mentions']         = isset( $judged['mentions'] ) ? $judged['mentions'] : array();
-				if ( ! empty( $question['truth'] ) && is_array( $question['truth'] ) && 'unavailable' !== $check['verdict'] ) {
+				// The known fact belongs to the original question, not to a follow-up.
+				if ( 1 === $turn && ! empty( $question['truth'] ) && is_array( $question['truth'] ) && 'unavailable' !== $check['verdict'] ) {
 					$check['accuracy'] = TWTAEO_Visibility_Engines::judge_accuracy( $question['truth'], $answer['text'] );
+				}
+				// Same engine, same persona, no search. A failure here leaves the
+				// verdict alone -- the check stands with its reason beside it.
+				if ( '' !== trim( (string) $answer['text'] ) ) {
+					$follow                    = TWTAEO_Visibility_Engines::follow_ups( $engine, $key, $asked, (string) $answer['text'], $ask_opts );
+					$check['follow_ups']       = $follow['follow_ups'];
+					$check['follow_ups_error'] = $follow['error'];
 				}
 			}
 		}
 
 		self::insert_check( $run['id'], $check );
-		$run['checks'][] = $check;
-		$run['cursor']   = (int) $run['cursor'] + 1;
-		$run['status']   = 'running';
+		if ( $turn > 1 ) {
+			$run['journey'][] = $check;
+		} else {
+			$run['checks'][] = $check;
+		}
+		$run['cursor'] = (int) $run['cursor'] + 1;
+		$run['status'] = 'running';
+
+		// Continue the conversation straight away: the next turn goes right
+		// after this one, so each question's whole conversation finishes before
+		// the next question starts. A run stopped halfway (or paused at the
+		// daily cap) still holds complete conversations for everything it asked.
+		$depth = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
+		if ( $turn <= $depth && null === $check['error'] && ! empty( $check['follow_ups'] ) ) {
+			$queue = array_values( (array) $run['queue'] );
+			array_splice(
+				$queue,
+				(int) $run['cursor'],
+				0,
+				array(
+					array(
+						'question_id' => (string) $step['question_id'],
+						'engine'      => $engine,
+						'turn'        => $turn + 1,
+					),
+				)
+			);
+			$run['queue'] = $queue;
+			$total        = count( $run['queue'] );
+		}
 		if ( ! empty( $key_rejected ) ) {
 			self::drop_engine( $run, $engine, (int) $run['cursor'] );
 			$total = count( $run['queue'] );
@@ -837,9 +930,11 @@ final class TWTAEO_Visibility_Store {
 			'queue'       => array(),
 			'cursor'      => isset( $run['cursor'] ) ? (int) $run['cursor'] : 0,
 			'checks'      => array(),
+			'journey'     => array(),
 			'status'      => isset( $run['status'] ) ? (string) $run['status'] : 'done',
 			'message'     => isset( $run['message'] ) && '' !== (string) $run['message'] ? (string) $run['message'] : null,
 			'demo'        => ! empty( $run['demo'] ),
+			'persona'     => self::run_persona( isset( $run['persona'] ) ? $run['persona'] : null ),
 		);
 		foreach ( (array) ( isset( $run['queue'] ) ? $run['queue'] : array() ) as $item ) {
 			$pair = self::queue_pair( $item );
@@ -852,16 +947,25 @@ final class TWTAEO_Visibility_Store {
 				$out['checks'][] = self::normalize_check( $c );
 			}
 		}
+		foreach ( (array) ( isset( $run['journey'] ) ? $run['journey'] : array() ) as $c ) {
+			if ( is_array( $c ) ) {
+				$out['journey'][] = self::normalize_check( $c );
+			}
+		}
 		return $out;
 	}
 
-	/** Accept { question_id, engine } or [ question_id, engine ]. */
+	/** Accept { question_id, engine, turn? } or [ question_id, engine ]. Turn is kept only past 1. */
 	private static function queue_pair( $item ) {
 		if ( ! is_array( $item ) ) {
 			return null;
 		}
 		if ( isset( $item['question_id'], $item['engine'] ) ) {
-			return array( 'question_id' => (string) $item['question_id'], 'engine' => (string) $item['engine'] );
+			$pair = array( 'question_id' => (string) $item['question_id'], 'engine' => (string) $item['engine'] );
+			if ( isset( $item['turn'] ) && (int) $item['turn'] > 1 ) {
+				$pair['turn'] = (int) $item['turn'];
+			}
+			return $pair;
 		}
 		if ( isset( $item[0], $item[1] ) ) {
 			return array( 'question_id' => (string) $item[0], 'engine' => (string) $item[1] );
@@ -888,10 +992,15 @@ final class TWTAEO_Visibility_Store {
 			'brand_hits'       => isset( $c['brand_hits'] ) && is_array( $c['brand_hits'] ) ? array_values( array_filter( $c['brand_hits'], 'is_array' ) ) : array(),
 			'mentions'         => isset( $c['mentions'] ) && is_array( $c['mentions'] ) ? array_values( array_filter( $c['mentions'], 'is_array' ) ) : array(),
 			'excerpt'          => isset( $c['excerpt'] ) ? (string) $c['excerpt'] : '',
+			'answer'           => isset( $c['answer'] ) ? self::cap_answer( (string) $c['answer'] ) : '',
 			'latency_ms'  => isset( $c['latency_ms'] ) ? (int) $c['latency_ms'] : 0,
 			'error'       => isset( $c['error'] ) && '' !== (string) $c['error'] ? (string) $c['error'] : null,
 			'model'       => isset( $c['model'] ) ? (string) $c['model'] : '',
 			'tools'       => (string) $tools,
+			'follow_ups'       => isset( $c['follow_ups'] ) && is_array( $c['follow_ups'] ) ? array_values( array_filter( array_map( 'strval', $c['follow_ups'] ), 'strlen' ) ) : array(),
+			'follow_ups_error' => isset( $c['follow_ups_error'] ) && '' !== (string) $c['follow_ups_error'] ? (string) $c['follow_ups_error'] : null,
+			'turn'             => isset( $c['turn'] ) ? max( 1, (int) $c['turn'] ) : 1,
+			'asked'            => isset( $c['asked'] ) ? (string) $c['asked'] : '',
 		);
 	}
 
@@ -911,8 +1020,9 @@ final class TWTAEO_Visibility_Store {
 			'cursor_pos'  => (int) $run['cursor'],
 			'message'     => null === $run['message'] ? null : (string) $run['message'],
 			'summary'     => wp_json_encode( self::summarize( $run ) ),
+			'persona'     => empty( $run['persona'] ) ? null : wp_json_encode( $run['persona'] ),
 		);
-		$format = array( '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s', '%s' );
+		$format = array( '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s' );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table; REPLACE = upsert on the PK.
 		$wpdb->replace( self::runs_table(), $data, $format );
 	}
@@ -925,32 +1035,46 @@ final class TWTAEO_Visibility_Store {
 
 	private static function insert_check( $run_id, array $check ) {
 		global $wpdb;
-		$c = self::normalize_check( $check );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table.
-		$wpdb->insert(
-			self::checks_table(),
-			array(
-				'run_id'      => (string) $run_id,
-				'question_id' => substr( $c['question_id'], 0, 191 ),
-				'engine'      => substr( $c['engine'], 0, 16 ),
-				'checked_at'  => self::to_sql_datetime( $c['at'] ),
-				'verdict'     => $c['verdict'],
-				'accuracy'    => $c['accuracy'],
-				'cited_urls'  => wp_json_encode( $c['cited_urls'] ),
-				'our_urls'    => wp_json_encode( $c['our_urls'] ),
-				'domains'          => wp_json_encode( $c['domains'] ),
-				'owned_domains'    => wp_json_encode( $c['owned_domains'] ),
-				'citation_surface' => $c['citation_surface'],
-				'brand_hits'       => wp_json_encode( $c['brand_hits'] ),
-				'mentions'         => wp_json_encode( $c['mentions'] ),
-				'excerpt'          => $c['excerpt'],
-				'latency_ms'       => (int) $c['latency_ms'],
-				'error'            => $c['error'],
-				'model'            => substr( $c['model'], 0, 64 ),
-				'tools'            => substr( $c['tools'], 0, 191 ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
+		$c    = self::normalize_check( $check );
+		$data = array(
+			'run_id'      => (string) $run_id,
+			'question_id' => substr( $c['question_id'], 0, 191 ),
+			'engine'      => substr( $c['engine'], 0, 16 ),
+			'checked_at'  => self::to_sql_datetime( $c['at'] ),
+			'verdict'     => $c['verdict'],
+			'accuracy'    => $c['accuracy'],
+			'cited_urls'  => wp_json_encode( $c['cited_urls'] ),
+			'our_urls'    => wp_json_encode( $c['our_urls'] ),
+			'domains'          => wp_json_encode( $c['domains'] ),
+			'owned_domains'    => wp_json_encode( $c['owned_domains'] ),
+			'citation_surface' => $c['citation_surface'],
+			'brand_hits'       => wp_json_encode( $c['brand_hits'] ),
+			'mentions'         => wp_json_encode( $c['mentions'] ),
+			'excerpt'          => $c['excerpt'],
+			'answer'           => $c['answer'],
+			'latency_ms'       => (int) $c['latency_ms'],
+			'error'            => $c['error'],
+			'model'            => substr( $c['model'], 0, 64 ),
+			'tools'            => substr( $c['tools'], 0, 191 ),
+			'follow_ups'       => wp_json_encode( $c['follow_ups'] ),
+			'follow_ups_error' => $c['follow_ups_error'],
+			'turn'             => (int) $c['turn'],
+			'asked'            => $c['asked'],
 		);
+		$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s' );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table.
+		if ( false !== $wpdb->insert( self::checks_table(), $data, $format ) ) {
+			return;
+		}
+		// A table short of a column this code writes (the stored schema version
+		// got ahead of the table, e.g. an upgrade interrupted mid-way) rejects
+		// every insert, and the check would vanish without a word. Rebuild the
+		// schema once and try again; a second failure goes to the error log.
+		self::maybe_create_tables( true );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table.
+		if ( false === $wpdb->insert( self::checks_table(), $data, $format ) && class_exists( 'TWTAEO_Logger' ) ) {
+			TWTAEO_Logger::error( 'AI Visibility could not record a check.', array( 'db_error' => $wpdb->last_error, 'run_id' => (string) $run_id ) );
+		}
 	}
 
 	private static function load_checks( $run_id ) {
@@ -976,10 +1100,18 @@ final class TWTAEO_Visibility_Store {
 				// Guarded: rows written before DB_VERSION 3 carry no such column.
 				'mentions'         => isset( $r['mentions'] ) ? self::json_list( $r['mentions'] ) : array(),
 				'excerpt'          => (string) $r['excerpt'],
+				// Guarded: rows written before DB_VERSION 5 kept the excerpt only.
+				'answer'           => isset( $r['answer'] ) ? (string) $r['answer'] : '',
 				'latency_ms'  => (int) $r['latency_ms'],
 				'error'       => ( null === $r['error'] || '' === $r['error'] ) ? null : (string) $r['error'],
 				'model'       => (string) $r['model'],
 				'tools'       => (string) $r['tools'],
+				// Guarded: rows written before DB_VERSION 4 carry no such columns.
+				'follow_ups'       => isset( $r['follow_ups'] ) ? self::json_list( $r['follow_ups'] ) : array(),
+				'follow_ups_error' => isset( $r['follow_ups_error'] ) && '' !== (string) $r['follow_ups_error'] ? (string) $r['follow_ups_error'] : null,
+				// Guarded: rows written before DB_VERSION 6 are all first turns.
+				'turn'             => isset( $r['turn'] ) ? max( 1, (int) $r['turn'] ) : 1,
+				'asked'            => isset( $r['asked'] ) ? (string) $r['asked'] : '',
 			);
 		}
 		return $out;
@@ -1003,9 +1135,31 @@ final class TWTAEO_Visibility_Store {
 			'queue'       => $queue,
 			'cursor'      => (int) $row['cursor_pos'],
 			'checks'      => array(),
+			'journey'     => array(),
 			'status'      => (string) $row['status'],
 			'message'     => ( null === $row['message'] || '' === $row['message'] ) ? null : (string) $row['message'],
 			'demo'        => ! empty( $row['demo'] ),
+			'persona'     => self::run_persona( isset( $row['persona'] ) ? json_decode( (string) $row['persona'], true ) : null ),
+		);
+	}
+
+	/**
+	 * A run's persona as stored: { id, label }, or null for the baseline.
+	 *
+	 * @param mixed $p
+	 * @return array|null
+	 */
+	private static function run_persona( $p ) {
+		if ( ! is_array( $p ) || empty( $p['label'] ) ) {
+			return null;
+		}
+		$label = sanitize_text_field( (string) $p['label'] );
+		if ( '' === $label ) {
+			return null;
+		}
+		return array(
+			'id'    => isset( $p['id'] ) && '' !== (string) $p['id'] ? sanitize_title( (string) $p['id'] ) : sanitize_title( $label ),
+			'label' => $label,
 		);
 	}
 
@@ -1022,6 +1176,39 @@ final class TWTAEO_Visibility_Store {
 			return is_array( $q ) ? array_values( $q ) : array();
 		}
 		return array();
+	}
+
+	/**
+	 * One question × engine conversation up to (not including) $turn, oldest
+	 * first: [ [ turn, q, a, follow_ups ], … ]. Turn 1 is the original question
+	 * and its answer; later turns are what journey mode asked.
+	 *
+	 * @param array  $run
+	 * @param array  $question
+	 * @param string $engine
+	 * @param int    $turn
+	 * @return array
+	 */
+	private static function conversation( array $run, array $question, $engine, $turn ) {
+		$chain = array();
+		$qid   = (string) $question['id'];
+		foreach ( array_merge( (array) $run['checks'], isset( $run['journey'] ) ? (array) $run['journey'] : array() ) as $c ) {
+			if ( ! is_array( $c ) || (string) $c['question_id'] !== $qid || (string) $c['engine'] !== (string) $engine ) {
+				continue;
+			}
+			$t = isset( $c['turn'] ) ? max( 1, (int) $c['turn'] ) : 1;
+			if ( $t >= $turn || null !== $c['error'] ) {
+				continue;
+			}
+			$chain[ $t ] = array(
+				'turn'       => $t,
+				'q'          => 1 === $t ? (string) $question['text'] : (string) $c['asked'],
+				'a'          => '' !== (string) $c['answer'] ? (string) $c['answer'] : (string) $c['excerpt'],
+				'follow_ups' => (array) $c['follow_ups'],
+			);
+		}
+		ksort( $chain );
+		return array_values( $chain );
 	}
 
 	/**
@@ -1123,6 +1310,8 @@ final class TWTAEO_Visibility_Store {
 		if ( class_exists( 'TWTAEO_Visibility_Verdict' ) && method_exists( 'TWTAEO_Visibility_Verdict', 'summarize_run' ) ) {
 			$s = TWTAEO_Visibility_Verdict::summarize_run( $run );
 			if ( is_array( $s ) ) {
+				$s['persona'] = isset( $run['persona'] ) ? $run['persona'] : null;
+				$s['journey'] = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
 				return $s;
 			}
 		}
@@ -1156,7 +1345,17 @@ final class TWTAEO_Visibility_Store {
 			'named_pct'   => $answered ? (int) round( $named / $answered * 100 ) : 0,
 			'wrong'       => $wrong,
 			'by_engine'   => array(),
+			'persona'     => isset( $run['persona'] ) ? $run['persona'] : null,
+			'journey'     => isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0,
 		);
+	}
+
+	/** The full answer, capped at ANSWER_MAX characters. */
+	private static function cap_answer( $text ) {
+		if ( function_exists( 'mb_strlen' ) && mb_strlen( $text ) > TWTAEO_Visibility_Types::ANSWER_MAX ) {
+			return mb_substr( $text, 0, TWTAEO_Visibility_Types::ANSWER_MAX );
+		}
+		return strlen( $text ) > TWTAEO_Visibility_Types::ANSWER_MAX ? substr( $text, 0, TWTAEO_Visibility_Types::ANSWER_MAX ) : $text;
 	}
 
 	private static function excerpt( $text ) {

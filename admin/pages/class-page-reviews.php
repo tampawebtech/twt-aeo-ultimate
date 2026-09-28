@@ -694,9 +694,15 @@ class TWTAEO_Page_Reviews {
 				<div>
 					<strong style="font-size:14px;color:#1e293b;"><?php esc_html_e( 'Where should you be getting reviews?', 'twt-aeo-ultimate' ); ?></strong>
 					<p style="margin:4px 0 0;font-size:13px;color:#64748b;">
-						<?php esc_html_e( 'Set your business category in', 'twt-aeo-ultimate' ); ?>
-						<a href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Settings', 'twt-aeo-ultimate' ); ?></a>
-						<?php esc_html_e( 'to see a personalized list of the top review platforms for your industry.', 'twt-aeo-ultimate' ); ?>
+						<?php
+						echo wp_kses_post(
+							sprintf(
+								/* translators: %s: "Settings" link. */
+								esc_html__( 'Set your business category in %s to see a personalized list of the top review platforms for your industry.', 'twt-aeo-ultimate' ),
+								'<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'twt-aeo-ultimate' ) . '</a>'
+							)
+						);
+						?>
 					</p>
 				</div>
 			</div>

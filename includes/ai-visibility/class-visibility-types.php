@@ -10,10 +10,21 @@
  *
  *   Question  = [ id, level, scope_id, scope_label, family, text, source, truth|null, enabled ]
  *   Fact      = [ kind, statement ]
- *   Check     = [ question_id, engine, at, verdict, accuracy, cited_urls[], our_urls[], domains[], excerpt, latency_ms, error|null, model, tools ]
+ *   Check     = [ question_id, engine, at, verdict, accuracy, cited_urls[], our_urls[], domains[], excerpt, answer, latency_ms, error|null, model, tools, follow_ups[], follow_ups_error|null ]
  *   Allocation= [ company, per_collection, per_type, per_product, per_post, engines[] ]
- *   Run       = [ id, started_at, finished_at|null, allocation, questions[], queue[ [question_id, engine] ], cursor, checks[], status, message|null, demo ]
- *   RunSummary= [ id, started_at, finished_at|null, status, demo, checks, cited_pct, named_pct, wrong, by_engine{engine: pct|null} ]
+ *   Persona   = [ id, label, source ]   source: owner (typed) | site (suggested from the site's own pages)
+ *   Run       = [ id, started_at, finished_at|null, allocation, questions[], queue[ [question_id, engine, turn?] ], cursor, checks[], journey[], status, message|null, demo, persona|null ]
+ *
+ * Journey mode: `checks` hold the first answer to each question (turn 1) and
+ * are all the board, the summaries, the trends and the RAG engine count.
+ * Later turns — the engine's own top follow-up, asked in the same
+ * conversation — live in `journey` (Check + turn + asked) and are shown
+ * beside them, never mixed in, so a run with journeys still compares with
+ * one without.
+ *   RunSummary= [ id, started_at, finished_at|null, status, demo, checks, cited_pct, named_pct, wrong, by_engine{engine: pct|null}, persona|null ]
+ *
+ * A run is asked AS one persona or as none (the baseline) -- never a mix -- so
+ * every number on the board, and every trend, compares like with like.
  *   ShareOfVoice = [ engine, checks, with_citations, our_cited_pct, slices[ [domain, count, ours] ] ]
  *
  * Wording rule for everything that touches a merchant: presence and citations,
@@ -153,11 +164,27 @@ final class TWTAEO_Visibility_Types {
 	);
 
 	/** Option / table names, in one place. */
-	const OPTION_SETTINGS   = 'twtaeo_visibility_settings';   // allocation, engines, daily_cap, x_handle, alternate_hosts, company_urls, brand_items
+	const OPTION_SETTINGS   = 'twtaeo_visibility_settings';   // allocation, engines, daily_cap, x_handle, alternate_hosts, company_urls, brand_items, personas
 	const OPTION_QUESTIONS  = 'twtaeo_visibility_questions';  // merchant-edited question set (enabled flags)
 	const OPTION_SPEND      = 'twtaeo_visibility_spend';      // [ 'YYYY-MM-DD' => n ]
 	const OPTION_DB_VERSION = 'twtaeo_visibility_db_version';
-	const DB_VERSION        = '3';   // 2: checks carry owned_domains / citation_surface / brand_hits; 3: + mentions (where the answer said the name)
+	const DB_VERSION        = '6';   // 2: checks carry owned_domains / citation_surface / brand_hits; 3: + mentions (where the answer said the name); 4: + follow_ups on checks, persona on runs; 5: + the full answer text (for the CSV export); 6: + turn / asked (journey mode)
+
+	/**
+	 * Journey mode: how many follow-up turns a run may take past the first
+	 * answer. Each turn asks the engine's own top follow-up in the same
+	 * conversation — a real, searched check on the merchant's key.
+	 */
+	const JOURNEY_MAX = 2;
+
+	/** Characters of answer text kept per check. Real answers run 1–4k; this only stops a runaway reply. */
+	const ANSWER_MAX = 20000;
+
+	/** Buyer personas a site may keep. Each one a run is asked as costs a full run. */
+	const PERSONAS_MAX = 10;
+
+	/** Follow-up questions kept per check. */
+	const FOLLOW_UPS_MAX = 5;
 	const TABLE_RUNS        = 'twtaeo_visibility_runs';       // prefixed with $wpdb->prefix
 	const TABLE_CHECKS      = 'twtaeo_visibility_checks';
 
@@ -171,6 +198,12 @@ final class TWTAEO_Visibility_Types {
 	const AJAX_DEMO    = 'twtaeo_visibility_demo';     // load sample data
 	const AJAX_UNDEMO  = 'twtaeo_visibility_undemo';   // remove sample data
 	const AJAX_RESET_Q = 'twtaeo_visibility_reset_questions';
+	const AJAX_PERSONAS_SAVE    = 'twtaeo_visibility_personas_save';
+	const AJAX_PERSONAS_SUGGEST = 'twtaeo_visibility_personas_suggest';
+	const AJAX_PERSONAS_TOGGLE  = 'twtaeo_visibility_personas_toggle';
+
+	/** admin-post action (a file download, not JSON) + its nonce. */
+	const EXPORT_ACTION = 'twtaeo_visibility_export';
 
 	/** Menu slug for the board page. */
 	const PAGE_SLUG = 'twt-aeo-ai-visibility';

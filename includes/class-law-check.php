@@ -340,7 +340,7 @@ final class TWTAEO_Law_Check {
 		}
 
 		if ( 'changed' === $status ) {
-			$what = array_filter( array( isset( $note['changed_by'] ) ? $note['changed_by'] : '', ! empty( $note['changed_on'] ) ? sprintf( /* translators: %s: date. */ __( 'effective %s', 'twt-aeo-ultimate' ), $note['changed_on'] ) : '' ) );
+			$what = array_filter( array( isset( $note['changed_by'] ) ? $note['changed_by'] : '', ! empty( $note['changed_on'] ) ? sprintf( /* translators: %s: date as printed in the document. */ __( 'effective %s', 'twt-aeo-ultimate' ), $note['changed_on'] ) : '' ) );
 			return array(
 				'level'      => 'warn',
 				'text'       => ( '' !== $date

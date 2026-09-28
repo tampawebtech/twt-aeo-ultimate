@@ -238,8 +238,8 @@ class TWTAEO_Page_Image_SEO {
 					$stop.hide();
 					$status.css('color', failed ? '#d63638' : '#16a34a').text(
 						( stopped ? '<?php echo esc_js( __( 'Stopped', 'twt-aeo-ultimate' ) ); ?>' : '<?php echo esc_js( __( 'Done', 'twt-aeo-ultimate' ) ); ?>' ) +
-						' — ' + filled + ' <?php echo esc_js( __( 'image(s) filled across', 'twt-aeo-ultimate' ) ); ?> ' + done + ' <?php echo esc_js( __( 'page(s)', 'twt-aeo-ultimate' ) ); ?>' +
-						( failed ? ', ' + failed + ' <?php echo esc_js( __( 'failed', 'twt-aeo-ultimate' ) ); ?>' : '' )
+						' — ' + '<?php /* translators: 1: number of images given alt text, 2: number of pages processed. */ echo esc_js( __( 'images filled: %1$d, pages: %2$d', 'twt-aeo-ultimate' ) ); ?>'.split('%1$d').join(filled).split('%2$d').join(done) +
+						( failed ? ', ' + '<?php /* translators: %d: number of pages that failed. */ echo esc_js( __( 'failed: %d', 'twt-aeo-ultimate' ) ); ?>'.split('%d').join(failed) : '' )
 					);
 				}
 

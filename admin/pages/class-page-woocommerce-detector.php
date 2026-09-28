@@ -268,7 +268,7 @@ class TWTAEO_Page_WooCommerce_Detector {
 				<?php endif; ?>
 				<span style="font-size:12px;color:#666;margin-left:6px;">
 					<?php
-					// translators: %1$d: first product on page. %2$d: last product on page. %3$d: catalogue total.
+					// translators: %1$d: first item on page. %2$d: last item on page. %3$d: total items.
 					printf( esc_html__( '%1$d–%2$d of %3$d', 'twt-aeo-ultimate' ), absint( $first_item ), absint( max( $first_item, $last_item ) ), absint( $total ) ); ?>
 				</span>
 			</div>

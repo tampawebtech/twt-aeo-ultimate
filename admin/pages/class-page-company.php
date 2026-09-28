@@ -232,8 +232,15 @@ class TWTAEO_Page_Company {
 			<div class="twt-aeo-card" style="max-width:780px;margin-top:16px;padding:24px;">
 				<h2 style="margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#50575e;"><?php esc_html_e( 'Meta Business Sync', 'twt-aeo-ultimate' ); ?></h2>
 				<p class="description" style="margin:0 0 16px;">
-					<?php esc_html_e( 'The fb:app_id tag is output sitewide and enables Meta\'s Domain Insights dashboard and AI-powered Ad Attribution — features most SEO plugins omit. Find your App ID at', 'twt-aeo-ultimate' ); ?>
-					<a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a>.
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: %s: link to developers.facebook.com/apps. */
+							esc_html__( 'The fb:app_id tag is output sitewide and enables Meta\'s Domain Insights dashboard and AI-powered Ad Attribution — features most SEO plugins omit. Find your App ID at %s.', 'twt-aeo-ultimate' ),
+							'<a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a>'
+						)
+					);
+					?>
 				</p>
 
 				<table class="form-table" style="margin:0;">

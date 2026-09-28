@@ -256,7 +256,7 @@ class TWTAEO_Page_Not_Indexed {
 			function openFaq(btn){
 				var post  = btn.getAttribute('data-post');
 				var title = btn.getAttribute('data-title') || '';
-				openModal(<?php echo wp_json_encode( __( 'Fix: FAQ schema — ', 'twt-aeo-ultimate' ) ); ?> + title);
+				openModal(<?php /* translators: %s: page title. */ echo wp_json_encode( __( 'Fix: FAQ schema — %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(title));
 				fixBody.innerHTML =
 					'<p style="margin-top:0;">' + <?php echo wp_json_encode( __( 'Generate FAQPage schema from the Q&A-style content already on this page. This adds structured data — it does not change your content.', 'twt-aeo-ultimate' ) ); ?> + '</p>' +
 					'<div style="display:flex;gap:8px;align-items:center;">' +
@@ -283,7 +283,7 @@ class TWTAEO_Page_Not_Indexed {
 			function openAlt(btn){
 				var post  = btn.getAttribute('data-post');
 				var title = btn.getAttribute('data-title') || '';
-				openModal(<?php echo wp_json_encode( __( 'Fix: Image alt text — ', 'twt-aeo-ultimate' ) ); ?> + title);
+				openModal(<?php /* translators: %s: page title. */ echo wp_json_encode( __( 'Fix: Image alt text — %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(title));
 				fixBody.innerHTML = '<p style="margin-top:0;color:#646970;">' + <?php echo wp_json_encode( __( 'Loading images…', 'twt-aeo-ultimate' ) ); ?> + '</p>';
 
 				function load(statusText){
@@ -321,7 +321,7 @@ class TWTAEO_Page_Not_Indexed {
 								if (res2.success) {
 									markFixed(btn);
 									var d = res2.data || {};
-									load((d.filled || 0) + ' ' + <?php echo wp_json_encode( __( 'image(s) filled ✓', 'twt-aeo-ultimate' ) ); ?>);
+									load(<?php /* translators: %d: number of images given alt text. */ echo wp_json_encode( __( 'Images filled: %d ✓', 'twt-aeo-ultimate' ) ); ?>.split('%d').join(d.filled || 0));
 								} else {
 									msg.textContent = (res2.data || 'Error'); b.disabled = false;
 								}
@@ -349,10 +349,10 @@ class TWTAEO_Page_Not_Indexed {
 				var post    = btn.getAttribute('data-post');
 				var title   = btn.getAttribute('data-title') || '';
 				var current = btn.getAttribute('data-desc') || '';
-				openModal(<?php echo wp_json_encode( __( 'Fix: duplicate meta description — ', 'twt-aeo-ultimate' ) ); ?> + title);
+				openModal(<?php /* translators: %s: page title. */ echo wp_json_encode( __( 'Fix: duplicate meta description — %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(title));
 				fixBody.innerHTML =
 					'<p style="margin-top:0;">' + <?php echo wp_json_encode( __( 'This page shares its meta description word-for-word with other pages on the site. Identical descriptions read as templated duplicate content to Google and AI engines. Generate a description that only fits this page — it is written from the page\'s own content and saved immediately.', 'twt-aeo-ultimate' ) ); ?> + '</p>' +
-					'<div style="background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:10px 12px;font-size:12px;color:#50575e;margin-bottom:14px;"><strong>' + <?php echo wp_json_encode( __( 'Current (shared): ', 'twt-aeo-ultimate' ) ); ?> + '</strong>' + esc(current) + '</div>' +
+					'<div style="background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;padding:10px 12px;font-size:12px;color:#50575e;margin-bottom:14px;"><strong>' + <?php echo wp_json_encode( __( 'Current (shared):', 'twt-aeo-ultimate' ) ); ?> + '</strong> ' + esc(current) + '</div>' +
 					'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
 						'<button type="button" class="button button-primary" id="twt-md-gen">' + <?php echo wp_json_encode( __( 'Write a unique description with AI', 'twt-aeo-ultimate' ) ); ?> + '</button>' +
 						'<span id="twt-md-msg" style="color:#646970;"></span>' +
@@ -370,7 +370,7 @@ class TWTAEO_Page_Not_Indexed {
 							msg.textContent = <?php echo wp_json_encode( __( 'Saved ✓', 'twt-aeo-ultimate' ) ); ?>;
 							var out = document.getElementById('twt-md-result');
 							out.style.display = 'block';
-							out.innerHTML = '<strong>' + <?php echo wp_json_encode( __( 'New description: ', 'twt-aeo-ultimate' ) ); ?> + '</strong>' + esc(res.data.description);
+							out.innerHTML = '<strong>' + <?php echo wp_json_encode( __( 'New description:', 'twt-aeo-ultimate' ) ); ?> + '</strong> ' + esc(res.data.description);
 							markFixed(btn);
 						} else {
 							msg.textContent = (res.data || 'Error'); b.disabled = false;

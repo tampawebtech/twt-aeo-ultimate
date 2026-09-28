@@ -82,10 +82,15 @@ final class TWTAEO_Visibility {
 			self::AJAX_SAVE_Q                     => 'ajax_save_questions',
 			self::AJAX_POLISH                     => 'ajax_polish_questions',
 			self::AJAX_SAVE_B                     => 'ajax_save_brands',
+			TWTAEO_Visibility_Types::AJAX_PERSONAS_SAVE    => 'ajax_personas_save',
+			TWTAEO_Visibility_Types::AJAX_PERSONAS_SUGGEST => 'ajax_personas_suggest',
+			TWTAEO_Visibility_Types::AJAX_PERSONAS_TOGGLE  => 'ajax_personas_toggle',
 		);
 		foreach ( $map as $action => $method ) {
 			add_action( 'wp_ajax_' . $action, array( __CLASS__, $method ) );
 		}
+		// A file download, so admin-post rather than AJAX.
+		add_action( 'admin_post_' . TWTAEO_Visibility_Types::EXPORT_ACTION, array( __CLASS__, 'export_download' ) );
 
 		// Bound in every context, not just admin — a queued event otherwise
 		// fires into nothing (same lesson as the Autopilot hook).
@@ -256,6 +261,19 @@ final class TWTAEO_Visibility {
 		if ( empty( $alloc['engines'] ) ) {
 			wp_send_json_error( array( 'error' => __( 'Tick at least one engine you hold a key for.', 'twt-aeo-ultimate' ) ) );
 		}
+		// '' = the baseline. An id that no longer exists runs as the baseline
+		// too rather than failing — the picker was simply stale. Personas
+		// switched off means the baseline, whatever was posted.
+		$persona = TWTAEO_Visibility_Personas::enabled() ? TWTAEO_Visibility_Personas::find( sanitize_title( self::post_text( 'persona' ) ) ) : null;
+		if ( $persona ) {
+			$opts['persona'] = $persona;
+		}
+		// Journey mode: follow-up turns past the first answer (0 = off).
+		$opts['journey'] = min( (int) TWTAEO_Visibility_Types::JOURNEY_MAX, self::post_int( 'journey', 0 ) );
+		// A site that never wrote personas gets some suggested from its own
+		// pages, once, for the next run's picker. This run stays the baseline.
+		$before = count( TWTAEO_Visibility_Personas::all() );
+		$after  = count( TWTAEO_Visibility_Personas::maybe_autofill() );
 		$run = TWTAEO_Visibility_Store::start_run( $alloc, $opts );
 		if ( is_wp_error( $run ) ) {
 			wp_send_json_error( array( 'error' => $run->get_error_message(), 'needs_key' => 'needs_key' === $run->get_error_code() ) );
@@ -267,9 +285,94 @@ final class TWTAEO_Visibility {
 		// Backstop: if the tab closes, cron finishes the run from the cursor.
 		self::schedule_worker( 90 );
 		wp_send_json_success( array(
-			'run_id' => (string) $run['id'],
-			'total'  => count( $queue ),
-			'cursor' => isset( $run['cursor'] ) ? (int) $run['cursor'] : 0,
+			'run_id'             => (string) $run['id'],
+			'total'              => count( $queue ),
+			'cursor'             => isset( $run['cursor'] ) ? (int) $run['cursor'] : 0,
+			'personas_suggested' => $after > $before ? $after : 0,
+		) );
+	}
+
+	/* ─────────────────────────── personas ─────────────────────────── */
+
+	/**
+	 * Save the persona list. The page posts it whole as JSON rows
+	 * `{label, source}`; an empty list is a valid save.
+	 */
+	public static function ajax_personas_save() {
+		self::guard();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- guard() ran check_ajax_referer; every label is sanitised in TWTAEO_Visibility_Personas::clean().
+		$raw   = isset( $_POST['personas'] ) ? wp_unslash( $_POST['personas'] ) : '[]';
+		$saved = TWTAEO_Visibility_Personas::save( is_string( $raw ) ? $raw : array() );
+		wp_send_json_success( array(
+			'personas' => $saved,
+			'message'  => empty( $saved )
+				? __( 'Personas cleared. Runs will ask as nobody in particular.', 'twt-aeo-ultimate' )
+				/* translators: %d: number of personas saved. */
+				: sprintf( _n( '%d persona saved.', '%d personas saved.', count( $saved ), 'twt-aeo-ultimate' ), count( $saved ) ),
+		) );
+	}
+
+	/** Switch buyer personas on or off for the whole site. The list itself is kept either way. */
+	public static function ajax_personas_toggle() {
+		self::guard();
+		$on = '1' === self::post_text( 'on' );
+		TWTAEO_Visibility_Store::save_settings( array( 'personas_on' => $on ) );
+		wp_send_json_success( array( 'on' => $on ) );
+	}
+
+	/* ─────────────────────────── export ─────────────────────────── */
+
+	/**
+	 * Stream the CSV: `run` is a run id or 'all' (every kept real run).
+	 * GET via admin-post.php, nonce + capability checked.
+	 */
+	public static function export_download() {
+		if ( ! current_user_can( self::cap() ) ) {
+			wp_die( esc_html__( 'You do not have permission to do that.', 'twt-aeo-ultimate' ) );
+		}
+		check_admin_referer( TWTAEO_Visibility_Types::EXPORT_ACTION );
+		$which = isset( $_GET['run'] ) ? sanitize_text_field( wp_unslash( $_GET['run'] ) ) : 'all';
+
+		$runs = TWTAEO_Visibility_Export::runs( $which );
+		if ( empty( $runs ) ) {
+			wp_die( esc_html__( 'There are no recorded checks to export yet. Sample data is never exported.', 'twt-aeo-ultimate' ) );
+		}
+		$csv = TWTAEO_Visibility_Export::to_csv( TWTAEO_Visibility_Export::rows( $runs ) );
+
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . TWTAEO_Visibility_Export::filename( $which ) . '"' );
+		header( 'Content-Length: ' . strlen( $csv ) );
+		echo $csv; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV body, every cell quoted and formula-guarded in TWTAEO_Visibility_Export::cell().
+		exit;
+	}
+
+	/**
+	 * Suggest personas from the site's own pages and add them to the list,
+	 * marked as suggested. Personas already there are kept as they are.
+	 */
+	public static function ajax_personas_suggest() {
+		self::guard();
+		$labels = TWTAEO_Visibility_Personas::suggest();
+		if ( is_wp_error( $labels ) ) {
+			wp_send_json_error( array( 'error' => $labels->get_error_message() ) );
+		}
+		// The list as it stands on screen (unsaved edits included), else the stored one.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- guard() ran check_ajax_referer; labels are sanitised in TWTAEO_Visibility_Personas::clean().
+		$raw  = isset( $_POST['personas'] ) ? wp_unslash( $_POST['personas'] ) : null;
+		$rows = is_string( $raw ) ? TWTAEO_Visibility_Personas::clean( $raw ) : TWTAEO_Visibility_Personas::all();
+		$had  = count( $rows );
+		foreach ( (array) $labels as $label ) {
+			$rows[] = array( 'label' => $label, 'source' => 'site' );
+		}
+		$saved = TWTAEO_Visibility_Personas::save( $rows );
+		$added = max( 0, count( $saved ) - $had );
+		wp_send_json_success( array(
+			'personas' => $saved,
+			'message'  => $added
+				/* translators: %d: number of personas added. */
+				? sprintf( _n( '%d persona suggested from your site. Edit or remove it as you like.', '%d personas suggested from your site. Edit or remove any of them as you like.', $added, 'twt-aeo-ultimate' ), $added )
+				: __( 'Nothing new to suggest — your list already covers what your pages describe.', 'twt-aeo-ultimate' ),
 		) );
 	}
 
@@ -290,6 +393,11 @@ final class TWTAEO_Visibility {
 			// The worker is inside a batch; the page waits instead of stepping
 			// the same cursor. `busy` is not an error — the JS loop just polls.
 			wp_send_json( array( 'ok' => true, 'busy' => true ) );
+		}
+		// One step is the answer call (up to 40 s) plus the follow-up call (up to
+		// 25 s) — more than the 30 s many hosts allow a request by default.
+		if ( function_exists( 'set_time_limit' ) && false === strpos( (string) ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
+			set_time_limit( 120 );
 		}
 		$result = TWTAEO_Visibility_Store::step_run( $run_id );
 		if ( ! is_array( $result ) ) {

@@ -1,0 +1,97 @@
+/* ============================================================
+   TWT AEO Ultimate — buyer persona tag input
+   Shared by AI Visibility and Local Pack (persona-tags.js).
+   ============================================================ */
+
+.twt-aeo-personas { max-width: 760px; }
+
+.twt-aeo-personas__box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	min-height: 38px;
+	padding: 5px 6px;
+	background: #fff;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	cursor: text;
+}
+.twt-aeo-personas__box:focus-within {
+	border-color: var(--aeo-accent, #2271b1);
+	box-shadow: 0 0 0 1px var(--aeo-accent, #2271b1);
+}
+
+.twt-aeo-personas__tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 100%;
+	padding: 2px 4px 2px 10px;
+	background: #eef4fb;
+	border: 1px solid #c5d9ee;
+	border-radius: 999px;
+	font-size: 13px;
+	line-height: 1.6;
+}
+/* Suggested from the site, not written by the owner — keep it visibly different. */
+.twt-aeo-personas__tag.is-site {
+	background: #fff;
+	border-style: dashed;
+	border-color: #9aa8b6;
+}
+
+.twt-aeo-personas__text {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--aeo-text, #1d2327);
+	font: inherit;
+	cursor: pointer;
+	overflow-wrap: anywhere;
+	text-align: left;
+}
+.twt-aeo-personas__text:hover,
+.twt-aeo-personas__text:focus { text-decoration: underline; }
+
+.twt-aeo-personas__src {
+	font-size: 11px;
+	color: var(--aeo-text-muted, #646970);
+	font-style: italic;
+}
+
+.twt-aeo-personas__remove {
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: #646970;
+	font-size: 16px;
+	line-height: 22px;
+	cursor: pointer;
+}
+.twt-aeo-personas__remove:hover,
+.twt-aeo-personas__remove:focus { background: #dcdcde; color: #1d2327; }
+
+.twt-aeo-personas__input {
+	flex: 1 1 220px;
+	min-width: 160px;
+	border: 0 !important;
+	box-shadow: none !important;
+	background: transparent;
+	padding: 4px !important;
+	font-size: 13px;
+}
+
+.twt-aeo-personas__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+.twt-aeo-personas__status { font-size: 12px; color: var(--aeo-text-muted, #646970); }
+.twt-aeo-personas__status.is-ok { color: var(--aeo-success, #008a20); }
+.twt-aeo-personas__status.is-err { color: var(--aeo-danger, #d63638); }

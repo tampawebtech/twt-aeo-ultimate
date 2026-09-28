@@ -77,6 +77,7 @@ final class TWTAEO_Page_AI_Visibility {
 			<?php self::render_observed( $d ); ?>
 			<?php self::render_engines( $d ); ?>
 			<?php self::render_brands( $d ); ?>
+			<?php self::render_personas( $d ); ?>
 			<?php self::render_allocation( $d ); ?>
 			<?php self::render_questions( $d ); ?>
 			<?php self::render_run( $d ); ?>
@@ -248,6 +249,8 @@ final class TWTAEO_Page_AI_Visibility {
 			'company_auto'    => $company_auto,
 			'company_extra'   => isset( $settings['company_urls'] ) && is_array( $settings['company_urls'] ) ? $settings['company_urls'] : array(),
 			'brand_items'     => isset( $settings['brand_items'] ) && is_array( $settings['brand_items'] ) ? $settings['brand_items'] : array(),
+			'personas'        => isset( $settings['personas'] ) && is_array( $settings['personas'] ) ? $settings['personas'] : array(),
+			'personas_on'     => ! isset( $settings['personas_on'] ) || ! empty( $settings['personas_on'] ),
 			'saved_questions' => $saved_questions,
 			'summaries'       => $summaries,
 			'selected'        => $selected,
@@ -374,7 +377,8 @@ final class TWTAEO_Page_AI_Visibility {
 				$bits[] = (string) $p['path'] . ( isset( $p['sessions'] ) ? ' (' . (int) $p['sessions'] . ')' : '' );
 			}
 		}
-		return $bits ? __( 'Landing pages: ', 'twt-aeo-ultimate' ) . implode( ', ', $bits ) : '';
+		/* translators: %s: comma-separated list of landing pages. */
+		return $bits ? sprintf( __( 'Landing pages: %s', 'twt-aeo-ultimate' ), implode( ', ', $bits ) ) : '';
 	}
 
 	/**
@@ -631,6 +635,102 @@ final class TWTAEO_Page_AI_Visibility {
 		<?php
 	}
 
+	/* ── Personas ── */
+
+	private static function render_personas( array $d ) {
+		$personas   = isset( $d['personas'] ) ? (array) $d['personas'] : array();
+		$on         = ! empty( $d['personas_on'] );
+		$local_pack = TWTAEO_Visibility_Personas::module_active( 'local-pack' );
+		?>
+		<section class="twt-aeo-vis__section" id="twt-aeo-vis-personas">
+			<div class="twt-aeo-vis__section-head">
+				<h2><?php esc_html_e( 'Who is asking', 'twt-aeo-ultimate' ); ?></h2>
+				<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Buyer personas', 'twt-aeo-ultimate' ); ?></span>
+			</div>
+			<div class="twt-aeo-card">
+				<label class="twt-aeo-vis__switch">
+					<input type="checkbox" id="twt-aeo-vis-personas-on" <?php checked( $on ); ?>>
+					<strong><?php esc_html_e( 'Use buyer personas', 'twt-aeo-ultimate' ); ?></strong>
+					<span class="twt-aeo-vis__status" id="twt-aeo-vis-personas-on-status" aria-live="polite"></span>
+				</label>
+				<?php if ( ! $on ) : ?>
+					<p class="twt-aeo-vis__muted">
+						<?php esc_html_e( 'Off: every run asks as nobody in particular, and no personas are suggested. Follow-up questions are still recorded. Your saved personas are kept for when you switch this back on.', 'twt-aeo-ultimate' ); ?>
+					</p>
+				<?php else : ?>
+				<p class="twt-aeo-vis__muted">
+					<?php esc_html_e( 'The consumer assistants know things about the person asking, and their answers change with it. A run can be asked as one of your buyers — the persona goes to the assistant as background about the user, the way the apps do it, and the question itself is sent exactly as written. Each answer also comes back with the follow-up questions that engine expects this person to ask next.', 'twt-aeo-ultimate' ); ?>
+				</p>
+				<?php if ( empty( $personas ) ) : ?>
+					<div class="twt-aeo-vis__notice">
+						<strong><?php esc_html_e( 'Add your buyer personas to see how answers change for different customers.', 'twt-aeo-ultimate' ); ?></strong>
+						<?php esc_html_e( 'Runs still work without them — they ask as nobody in particular, and follow-ups are recorded either way. Type your own, or let the plugin suggest some from your main pages.', 'twt-aeo-ultimate' ); ?>
+					</div>
+				<?php endif; ?>
+				<?php self::render_persona_editor( $personas, true ); ?>
+				<?php if ( $local_pack ) : ?>
+					<p class="twt-aeo-vis__muted">
+						<?php esc_html_e( 'The same list is on', 'twt-aeo-ultimate' ); ?>
+						<a href="<?php echo esc_url( self::admin_page( 'twt-aeo-local-pack' ) ); ?>"><?php esc_html_e( 'Local Pack → Business Profile', 'twt-aeo-ultimate' ); ?></a>
+						<?php esc_html_e( '— edit it in either place.', 'twt-aeo-ultimate' ); ?>
+					</p>
+				<?php endif; ?>
+				<?php endif; ?>
+			</div>
+		</section>
+		<?php
+	}
+
+	/**
+	 * The persona tag input, shared with the Local Pack page (driven by
+	 * persona-tags.js). With `$own_save` the editor saves itself over AJAX;
+	 * without it the hidden `twtaeo_personas` field rides the surrounding form.
+	 *
+	 * @param array $personas Persona[].
+	 * @param bool  $own_save Render a Save button.
+	 */
+	public static function render_persona_editor( array $personas, $own_save ) {
+		?>
+		<div class="twt-aeo-personas" data-personas data-own-save="<?php echo $own_save ? '1' : '0'; ?>">
+			<div class="twt-aeo-personas__box" data-persona-box>
+				<?php foreach ( $personas as $p ) :
+					if ( ! is_array( $p ) || empty( $p['label'] ) ) {
+						continue;
+					}
+					$site = isset( $p['source'] ) && 'site' === $p['source'];
+					?>
+					<span class="twt-aeo-personas__tag<?php echo $site ? ' is-site' : ''; ?>" data-persona-tag data-label="<?php echo esc_attr( (string) $p['label'] ); ?>" data-source="<?php echo $site ? 'site' : 'owner'; ?>">
+						<button type="button" class="twt-aeo-personas__text" data-persona-edit title="<?php esc_attr_e( 'Click to edit', 'twt-aeo-ultimate' ); ?>"><?php echo esc_html( (string) $p['label'] ); ?></button>
+						<?php if ( $site ) : ?><span class="twt-aeo-personas__src"><?php esc_html_e( 'suggested from your site', 'twt-aeo-ultimate' ); ?></span><?php endif; ?>
+						<?php /* translators: %s: persona label. */ ?>
+						<button type="button" class="twt-aeo-personas__remove" data-persona-remove aria-label="<?php echo esc_attr( sprintf( __( 'Remove %s', 'twt-aeo-ultimate' ), (string) $p['label'] ) ); ?>">&times;</button>
+					</span>
+				<?php endforeach; ?>
+				<input type="text" class="twt-aeo-personas__input" data-persona-input aria-label="<?php esc_attr_e( 'Add a buyer persona', 'twt-aeo-ultimate' ); ?>" placeholder="<?php esc_attr_e( 'Type a persona and press Enter — e.g. machine shop owner', 'twt-aeo-ultimate' ); ?>">
+			</div>
+			<input type="hidden" name="twtaeo_personas" data-persona-json value="<?php echo esc_attr( wp_json_encode( array_values( $personas ) ) ); ?>">
+			<p class="description"><?php esc_html_e( 'Enter or a comma adds one; paste a comma-separated list to add several. Click a persona to edit it. Up to 10 — each run is asked as one of them.', 'twt-aeo-ultimate' ); ?></p>
+			<div class="twt-aeo-personas__actions">
+				<?php if ( $own_save ) : ?>
+					<button type="button" class="button button-primary" data-persona-save><?php esc_html_e( 'Save personas', 'twt-aeo-ultimate' ); ?></button>
+				<?php endif; ?>
+				<button type="button" class="button" data-persona-suggest><?php esc_html_e( 'Suggest personas from my site', 'twt-aeo-ultimate' ); ?></button>
+				<span class="twt-aeo-personas__status" data-persona-status aria-live="polite"></span>
+			</div>
+		</div>
+		<?php
+	}
+
+	/** A run's (or summary's) persona id; '' for the baseline. */
+	private static function persona_key( $run ) {
+		return is_array( $run ) && isset( $run['persona']['id'] ) ? (string) $run['persona']['id'] : '';
+	}
+
+	/** A run's persona label; '' for the baseline. */
+	private static function persona_label( $run ) {
+		return is_array( $run ) && isset( $run['persona']['label'] ) ? (string) $run['persona']['label'] : '';
+	}
+
 	/* ── Allocation ── */
 
 	private static function render_allocation( array $d ) {
@@ -836,7 +936,7 @@ final class TWTAEO_Page_AI_Visibility {
 		<input type="hidden" name="questions" value="<?php echo esc_attr( wp_json_encode( array_values( $questions ) ) ); ?>">
 		<div class="twt-aeo-vis__qsummary">
 			<span>
-				<?php /* translators: %d: total number of questions in the set. */ ?>
+				<?php /* translators: %d: number of questions. */ ?>
 				<strong><?php echo esc_html( sprintf( _n( '%d question', '%d questions', $total, 'twt-aeo-ultimate' ), $total ) ); ?></strong>
 				— <?php echo esc_html( implode( ' · ', $parts ) ); ?>
 				<?php /* translators: %d: number of questions ticked to be asked. */ ?>
@@ -854,7 +954,7 @@ final class TWTAEO_Page_AI_Visibility {
 					<div class="twt-aeo-vis__qlevel-head">
 						<span class="twt-aeo-vis__swatch" style="background:<?php echo esc_attr( self::LEVEL_COLOR[ $level ] ); ?>"></span>
 						<strong><?php echo esc_html( TWTAEO_Visibility_Types::LEVEL_LABEL[ $level ] ); ?> —
-						<?php /* translators: %d: number of questions at this level. */ ?>
+						<?php /* translators: %d: number of questions. */ ?>
 						<?php echo esc_html( sprintf( _n( '%d question', '%d questions', count( $list ), 'twt-aeo-ultimate' ), count( $list ) ) ); ?></strong>
 						<button type="button" class="button-link twt-aeo-vis__qlevel-toggle" data-show="<?php esc_attr_e( 'Show', 'twt-aeo-ultimate' ); ?>" data-hide="<?php esc_attr_e( 'Hide', 'twt-aeo-ultimate' ); ?>"><?php esc_html_e( 'Show', 'twt-aeo-ultimate' ); ?></button>
 					</div>
@@ -934,6 +1034,27 @@ final class TWTAEO_Page_AI_Visibility {
 						<?php esc_html_e( 'and come back.', 'twt-aeo-ultimate' ); ?>
 					</div>
 				<?php endif; ?>
+				<?php if ( ! empty( $d['personas_on'] ) ) : ?>
+				<div class="twt-aeo-vis__persona-pick">
+					<label for="twt-aeo-vis-persona"><?php esc_html_e( 'Ask as', 'twt-aeo-ultimate' ); ?></label>
+					<select id="twt-aeo-vis-persona">
+						<option value=""><?php esc_html_e( 'Nobody in particular (baseline)', 'twt-aeo-ultimate' ); ?></option>
+						<?php foreach ( (array) ( isset( $d['personas'] ) ? $d['personas'] : array() ) as $p ) : ?>
+							<option value="<?php echo esc_attr( (string) $p['id'] ); ?>"><?php echo esc_html( (string) $p['label'] ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<span class="twt-aeo-vis__muted"><?php esc_html_e( 'One persona per run, so its numbers compare like with like. To see each buyer, run once per persona — each run costs the same number of checks.', 'twt-aeo-ultimate' ); ?></span>
+				</div>
+				<?php endif; ?>
+				<div class="twt-aeo-vis__persona-pick">
+					<label for="twt-aeo-vis-journey"><?php esc_html_e( 'Follow the conversation', 'twt-aeo-ultimate' ); ?></label>
+					<select id="twt-aeo-vis-journey">
+						<option value="0"><?php esc_html_e( 'Off — first answers only', 'twt-aeo-ultimate' ); ?></option>
+						<option value="1"><?php esc_html_e( '1 follow-up turn', 'twt-aeo-ultimate' ); ?></option>
+						<option value="2"><?php esc_html_e( '2 follow-up turns', 'twt-aeo-ultimate' ); ?></option>
+					</select>
+					<span class="twt-aeo-vis__muted"><?php esc_html_e( 'After each answer, ask the engine the top follow-up question it predicted, in the same conversation — the way a buyer keeps going in the app — and record whether you are cited at that step too. Each turn is another searched check on your key and counts toward your daily cap, so one turn can up to double a run. Follow-up turns are shown beside the first answers and never mixed into the numbers above.', 'twt-aeo-ultimate' ); ?></span>
+				</div>
 				<div class="twt-aeo-vis__actions twt-aeo-vis__run-controls">
 					<button type="button" class="button button-primary" id="twt-aeo-vis-start" <?php disabled( $no_keys ); ?>><?php esc_html_e( 'Start run', 'twt-aeo-ultimate' ); ?></button>
 					<button type="button" class="button" id="twt-aeo-vis-stop" hidden><?php esc_html_e( 'Stop', 'twt-aeo-ultimate' ); ?></button>
@@ -1013,12 +1134,18 @@ final class TWTAEO_Page_AI_Visibility {
 			}
 		}
 
+		// A run asked as a persona is only ever compared with runs asked as the
+		// same persona (the baseline counts as its own persona). Mixing them
+		// would show a persona's difference as a gain or a loss over time.
+		$persona_key   = self::persona_key( $selected );
+		$persona_label = self::persona_label( $selected );
+
 		// Previous REAL run for the delta; a sample never counts, and a sample never shows one.
 		$previous = null;
 		if ( ! $is_demo ) {
 			$seen = false;
 			foreach ( $summaries as $s ) {
-				if ( $seen && empty( $s['demo'] ) ) {
+				if ( $seen && empty( $s['demo'] ) && self::persona_key( $s ) === $persona_key ) {
 					$previous = $s;
 					break;
 				}
@@ -1038,7 +1165,7 @@ final class TWTAEO_Page_AI_Visibility {
 		// Trend: real runs only, oldest first.
 		$trend = array();
 		foreach ( array_reverse( $summaries ) as $s ) {
-			if ( empty( $s['demo'] ) && isset( $s['by_engine'] ) && is_array( $s['by_engine'] ) ) {
+			if ( empty( $s['demo'] ) && isset( $s['by_engine'] ) && is_array( $s['by_engine'] ) && self::persona_key( $s ) === $persona_key ) {
 				$trend[] = $s;
 			}
 		}
@@ -1070,6 +1197,32 @@ final class TWTAEO_Page_AI_Visibility {
 				$check_index[ (string) $c['question_id'] . '|' . (string) $c['engine'] ] = $c;
 			}
 		}
+
+		// Journey mode: later turns per question × engine, in turn order, plus
+		// their own tally — kept apart from the headline numbers above.
+		$journey       = isset( $selected['journey'] ) && is_array( $selected['journey'] ) ? $selected['journey'] : array();
+		$journey_index = array();
+		$journey_tally = array( 'answered' => 0, 'cited' => 0, 'named' => 0 );
+		foreach ( $journey as $jc ) {
+			if ( ! is_array( $jc ) || ! isset( $jc['question_id'], $jc['engine'] ) ) {
+				continue;
+			}
+			$journey_index[ (string) $jc['question_id'] . '|' . (string) $jc['engine'] ][] = $jc;
+			if ( 'unavailable' !== $jc['verdict'] ) {
+				++$journey_tally['answered'];
+				$journey_tally['cited'] += 'cited' === $jc['verdict'] ? 1 : 0;
+				$journey_tally['named'] += in_array( $jc['verdict'], array( 'cited', 'named' ), true ) ? 1 : 0;
+			}
+		}
+		foreach ( $journey_index as &$turns ) {
+			usort(
+				$turns,
+				static function ( $a, $b ) {
+					return (int) $a['turn'] <=> (int) $b['turn'];
+				}
+			);
+		}
+		unset( $turns );
 		$rows = array();
 		foreach ( $questions as $q ) {
 			if ( ! is_array( $q ) || ! isset( $q['id'] ) ) {
@@ -1105,15 +1258,41 @@ final class TWTAEO_Page_AI_Visibility {
 						if ( ! isset( $s['id'] ) ) {
 							continue;
 						}
-						$label = ( ! empty( $s['demo'] ) ? __( 'SAMPLE — ', 'twt-aeo-ultimate' ) : '' )
+						$label = ( ! empty( $s['demo'] ) ? __( 'SAMPLE', 'twt-aeo-ultimate' ) . ' — ' : '' )
 							. self::fmt_date( isset( $s['started_at'] ) ? $s['started_at'] : '', true )
 							/* translators: %d: number of checks recorded in that run. */
 							. ' — ' . sprintf( _n( '%d check', '%d checks', isset( $s['checks'] ) ? (int) $s['checks'] : 0, 'twt-aeo-ultimate' ), isset( $s['checks'] ) ? (int) $s['checks'] : 0 )
-							. ' · ' . ( isset( $s['status'] ) ? (string) $s['status'] : '' );
+							. ' · ' . ( isset( $s['status'] ) ? (string) $s['status'] : '' )
+							/* translators: %s: persona the run was asked as. */
+							. ( '' !== self::persona_label( $s ) ? ' · ' . sprintf( __( 'as %s', 'twt-aeo-ultimate' ), self::persona_label( $s ) ) : '' )
+							/* translators: %d: follow-up turns the run took. */
+							. ( ! empty( $s['journey'] ) ? ' · ' . sprintf( _n( '+%d turn', '+%d turns', (int) $s['journey'], 'twt-aeo-ultimate' ), (int) $s['journey'] ) : '' );
 						?>
 						<option value="<?php echo esc_attr( (string) $s['id'] ); ?>" <?php selected( (string) $s['id'], (string) $selected['id'] ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! $is_demo ) :
+			$export = function ( $which ) {
+				return wp_nonce_url(
+					add_query_arg(
+						array(
+							'action' => TWTAEO_Visibility_Types::EXPORT_ACTION,
+							'run'    => $which,
+						),
+						admin_url( 'admin-post.php' )
+					),
+					TWTAEO_Visibility_Types::EXPORT_ACTION
+				);
+			};
+			?>
+			<div class="twt-aeo-vis__export">
+				<strong><?php esc_html_e( 'Export CSV', 'twt-aeo-ultimate' ); ?></strong>
+				<a class="button button-small" href="<?php echo esc_url( $export( (string) $selected['id'] ) ); ?>"><?php esc_html_e( 'This run', 'twt-aeo-ultimate' ); ?></a>
+				<a class="button button-small" href="<?php echo esc_url( $export( 'all' ) ); ?>"><?php esc_html_e( 'All kept runs', 'twt-aeo-ultimate' ); ?></a>
+				<span class="twt-aeo-vis__muted"><?php esc_html_e( 'One row per question asked, each followed by the follow-up questions that engine predicted — with the persona, the verdict, the full answer and pattern columns (brand and subject position, model numbers, place, hiring or how-to). Every row names the site and business type, so exports from several sites stack into one sheet. Follow-ups are each engine’s prediction, not questions real users typed.', 'twt-aeo-ultimate' ); ?></span>
 			</div>
 		<?php endif; ?>
 
@@ -1169,13 +1348,43 @@ final class TWTAEO_Page_AI_Visibility {
 		<p class="twt-aeo-vis__muted">
 			<?php /* translators: 1: run start date, 2: run status. */ ?>
 			<?php echo esc_html( sprintf( __( 'Run started %1$s · %2$s', 'twt-aeo-ultimate' ), self::fmt_date( isset( $selected['started_at'] ) ? $selected['started_at'] : '', true ), $status ) ); ?>
+			<?php if ( '' !== $persona_label ) : ?>
+				<?php /* translators: %s: persona the run was asked as. */ ?>
+				· <strong><?php echo esc_html( sprintf( __( 'asked as %s', 'twt-aeo-ultimate' ), $persona_label ) ); ?></strong>
+			<?php else : ?>
+				· <?php esc_html_e( 'asked as nobody in particular', 'twt-aeo-ultimate' ); ?>
+			<?php endif; ?>
 			<?php if ( 'done' !== $status ) : ?>
 				<?php /* translators: 1: checks completed so far, 2: total checks queued. */ ?>
 				(<?php echo esc_html( sprintf( __( '%1$d of %2$d checks', 'twt-aeo-ultimate' ), isset( $selected['cursor'] ) ? (int) $selected['cursor'] : 0, count( $queue ) ) ); ?>)
 			<?php endif; ?>
 			<?php if ( ! empty( $selected['message'] ) ) : ?> · <?php echo esc_html( rtrim( (string) $selected['message'], '. ' ) ); ?><?php endif; ?>.
 			<?php esc_html_e( 'Per-engine shares are of that engine’s answered checks; unavailable checks are counted separately.', 'twt-aeo-ultimate' ); ?>
+			<?php esc_html_e( 'The trend and “vs previous run” compare only runs asked as the same persona.', 'twt-aeo-ultimate' ); ?>
 		</p>
+
+		<?php if ( ! empty( $journey ) ) : ?>
+			<div class="twt-aeo-vis__notice twt-aeo-vis__journey-tally">
+				<strong><?php esc_html_e( 'Follow-up turns', 'twt-aeo-ultimate' ); ?></strong> —
+				<?php
+				$ja = (int) $journey_tally['answered'];
+				echo esc_html(
+					sprintf(
+						/* translators: 1: follow-up turn checks, 2: cited percent, 3: named percent. */
+						_n(
+							'%1$s check further into the conversation: cited %2$s%%, named %3$s%% of those answered. Kept out of the numbers above so this run still compares with runs that stopped at the first answer. Open a cell below to read each conversation.',
+							'%1$s checks further into the conversation: cited %2$s%%, named %3$s%% of those answered. Kept out of the numbers above so this run still compares with runs that stopped at the first answer. Open a cell below to read each conversation.',
+							count( $journey ),
+							'twt-aeo-ultimate'
+						),
+						number_format_i18n( count( $journey ) ),
+						$ja ? (int) round( $journey_tally['cited'] / $ja * 100 ) : 0,
+						$ja ? (int) round( $journey_tally['named'] / $ja * 100 ) : 0
+					)
+				);
+				?>
+			</div>
+		<?php endif; ?>
 
 		<?php /* Trend */ ?>
 		<div class="twt-aeo-vis__block">
@@ -1376,6 +1585,59 @@ final class TWTAEO_Page_AI_Visibility {
 									<?php endif; ?>
 								</td>
 							</tr>
+							<?php
+							// Journey mode: one row per follow-up turn under the question.
+							// Each engine asked ITS OWN top follow-up, so the words differ
+							// per column — shown in full when they agree, per dot otherwise.
+							$by_turn = array();
+							foreach ( $run_engines as $e ) {
+								foreach ( isset( $journey_index[ $qid . '|' . $e ] ) ? $journey_index[ $qid . '|' . $e ] : array() as $jc ) {
+									$by_turn[ (int) $jc['turn'] ][ $e ] = $jc;
+								}
+							}
+							ksort( $by_turn );
+							foreach ( $by_turn as $t => $turn_checks ) :
+								$texts = array_values( array_unique( array_filter( array_map(
+									static function ( $jc ) {
+										return (string) $jc['asked'];
+									},
+									$turn_checks
+								) ) ) );
+								?>
+								<tr class="twt-aeo-vis__row twt-aeo-vis__row--followup" data-qid="<?php echo esc_attr( $qid ); ?>">
+									<td class="twt-aeo-vis__td-q">
+										<span class="twt-aeo-vis__followup-tag">
+											<?php /* translators: %d: conversation turn number (2, 3). */ ?>
+											<?php echo esc_html( sprintf( __( '↳ Follow-up · turn %d', 'twt-aeo-ultimate' ), (int) $t ) ); ?>
+										</span>
+										<?php if ( 1 === count( $texts ) ) : ?>
+											<span><?php echo esc_html( $texts[0] ); ?></span>
+										<?php else : ?>
+											<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Each engine asked its own next question — hover a dot to see it, click to read the conversation.', 'twt-aeo-ultimate' ); ?></span>
+										<?php endif; ?>
+									</td>
+									<td class="twt-aeo-vis__td-level">
+										<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Follow-up', 'twt-aeo-ultimate' ); ?></span>
+									</td>
+									<?php foreach ( $run_engines as $e ) :
+										if ( ! isset( $turn_checks[ $e ] ) ) {
+											echo '<td class="twt-aeo-vis__td-e"><span class="twt-aeo-vis__muted">—</span></td>';
+											continue;
+										}
+										$jc  = $turn_checks[ $e ];
+										$jv  = isset( self::VERDICT_COLOR[ $jc['verdict'] ] ) ? (string) $jc['verdict'] : 'unavailable';
+										$jvt = self::verdict_text( $jv, isset( $jc['citation_surface'] ) ? (string) $jc['citation_surface'] : '' );
+										?>
+										<td class="twt-aeo-vis__td-e">
+											<?php /* translators: 1: turn number, 2: the follow-up question asked, 3: verdict. */ ?>
+											<button type="button" class="twt-aeo-vis__cell" data-drawer="<?php echo esc_attr( $qid . '|' . $e ); ?>" title="<?php echo esc_attr( sprintf( __( 'Turn %1$d: “%2$s” — %3$s', 'twt-aeo-ultimate' ), (int) $t, (string) $jc['asked'], $jvt ) ); ?>" aria-expanded="false">
+												<?php self::echo_svg( self::svg_verdict_dot( $jv, $jvt ) ); ?>
+											</button>
+										</td>
+									<?php endforeach; ?>
+									<td class="twt-aeo-vis__td-fix"></td>
+								</tr>
+							<?php endforeach; ?>
 							<?php foreach ( $run_engines as $e ) :
 								$k = $qid . '|' . $e;
 								if ( ! isset( $check_index[ $k ] ) ) {
@@ -1441,6 +1703,49 @@ final class TWTAEO_Page_AI_Visibility {
 												</ul>
 											<?php else : ?>
 												<p class="twt-aeo-vis__muted"><?php esc_html_e( 'No citations in this answer.', 'twt-aeo-ultimate' ); ?></p>
+											<?php endif; ?>
+											<?php if ( ! empty( $c['follow_ups'] ) && is_array( $c['follow_ups'] ) ) : ?>
+												<?php /* translators: %s: engine name. */ ?>
+												<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( __( 'What they’re likely to ask next, according to %s:', 'twt-aeo-ultimate' ), self::engine_label( $e ) ) ); ?></p>
+												<ul class="twt-aeo-vis__followups">
+													<?php foreach ( $c['follow_ups'] as $fq ) : ?>
+														<li><?php echo esc_html( (string) $fq ); ?></li>
+													<?php endforeach; ?>
+												</ul>
+											<?php elseif ( ! empty( $c['follow_ups_error'] ) && 'unavailable' !== $verdict ) : ?>
+												<?php /* translators: %s: why no follow-up questions were recorded. */ ?>
+												<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( __( 'No follow-up questions recorded: %s', 'twt-aeo-ultimate' ), (string) $c['follow_ups_error'] ) ); ?></p>
+											<?php endif; ?>
+											<?php if ( ! empty( $journey_index[ $k ] ) ) : ?>
+												<div class="twt-aeo-vis__journey">
+													<p class="twt-aeo-vis__muted"><strong><?php esc_html_e( 'The conversation continued', 'twt-aeo-ultimate' ); ?></strong> — <?php esc_html_e( 'each turn asked the engine’s own top follow-up, with the answers before it as history.', 'twt-aeo-ultimate' ); ?></p>
+													<?php foreach ( $journey_index[ $k ] as $jc ) :
+														$jv    = isset( $jc['verdict'] ) && isset( self::VERDICT_COLOR[ $jc['verdict'] ] ) ? (string) $jc['verdict'] : 'unavailable';
+														$jours = isset( $jc['our_urls'] ) ? (array) $jc['our_urls'] : array();
+														?>
+														<div class="twt-aeo-vis__turn">
+															<?php self::echo_svg( self::svg_verdict_dot( $jv, self::verdict_text( $jv ) ) ); ?>
+															<?php /* translators: 1: turn number, 2: the follow-up question asked. */ ?>
+															<strong><?php echo esc_html( sprintf( __( 'Turn %1$d: “%2$s”', 'twt-aeo-ultimate' ), (int) $jc['turn'], (string) $jc['asked'] ) ); ?></strong>
+															— <?php echo esc_html( self::verdict_text( $jv, isset( $jc['citation_surface'] ) ? (string) $jc['citation_surface'] : '' ) ); ?>
+															<?php if ( ! empty( $jc['error'] ) ) : ?>
+																<p class="twt-aeo-vis__error"><?php echo esc_html( (string) $jc['error'] ); ?></p>
+															<?php else : ?>
+																<p class="twt-aeo-vis__excerpt"><?php echo esc_html( ! empty( $jc['excerpt'] ) ? (string) $jc['excerpt'] : __( '(no answer text recorded)', 'twt-aeo-ultimate' ) ); ?></p>
+																<?php if ( $jours ) : ?>
+																	<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Cited you:', 'twt-aeo-ultimate' ); ?>
+																		<?php foreach ( array_slice( $jours, 0, 3 ) as $u ) : ?>
+																			<a href="<?php echo esc_url( (string) $u ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( (string) $u ); ?></a>
+																		<?php endforeach; ?>
+																	</p>
+																<?php elseif ( ! empty( $jc['domains'] ) ) : ?>
+																	<?php /* translators: %s: cited domains. */ ?>
+																	<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( __( 'Cited instead: %s', 'twt-aeo-ultimate' ), implode( ', ', array_slice( array_map( 'strval', (array) $jc['domains'] ), 0, 5 ) ) ) ); ?></p>
+																<?php endif; ?>
+															<?php endif; ?>
+														</div>
+													<?php endforeach; ?>
+												</div>
 											<?php endif; ?>
 											<p class="twt-aeo-vis__muted twt-aeo-vis__drawer-foot"><?php esc_html_e( 'API approximates the app — the consumer assistant personalises and changes daily; this is the closest reproducible measure.', 'twt-aeo-ultimate' ); ?></p>
 										</div>

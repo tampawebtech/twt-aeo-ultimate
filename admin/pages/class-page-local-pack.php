@@ -19,6 +19,14 @@ class TWTAEO_Page_Local_Pack {
 	const NONCE_SAVE = 'twtaeo_local_pack_save';
 	const NONCE_NAP  = 'twtaeo_local_pack_nap';
 
+	/** The persona field shows here only while AI Visibility, which uses it, is on — and personas are switched on there. */
+	public static function personas_enabled() {
+		return class_exists( 'TWTAEO_Visibility_Personas' )
+			&& class_exists( 'TWTAEO_Page_AI_Visibility' )
+			&& TWTAEO_Visibility_Personas::module_active( 'ai-visibility' )
+			&& TWTAEO_Visibility_Personas::enabled();
+	}
+
 	public static function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Permission denied.', 'twt-aeo-ultimate' ) );
@@ -46,6 +54,11 @@ class TWTAEO_Page_Local_Pack {
 		if ( isset( $_POST['twtaeo_local_pack_save'] ) ) {
 			check_admin_referer( self::NONCE_SAVE );
 			TWTAEO_Local_Pack::save_settings( map_deep( wp_unslash( $_POST ), 'sanitize_text_field' ) );
+			// Buyer personas live with AI Visibility; this page is a second door to them.
+			if ( isset( $_POST['twtaeo_personas'] ) && self::personas_enabled() ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON document; every label is sanitised in TWTAEO_Visibility_Personas::clean().
+				TWTAEO_Visibility_Personas::save( (string) wp_unslash( $_POST['twtaeo_personas'] ) );
+			}
 			$saved = true;
 		}
 
@@ -170,6 +183,15 @@ class TWTAEO_Page_Local_Pack {
 									<p class="description"><?php esc_html_e( 'Narrows the schema @type to the most specific matching schema.org subtype.', 'twt-aeo-ultimate' ); ?></p>
 								</td>
 							</tr>
+							<?php if ( self::personas_enabled() ) : ?>
+								<tr>
+									<th><label><?php esc_html_e( 'Buyer Personas', 'twt-aeo-ultimate' ); ?></label></th>
+									<td>
+										<?php TWTAEO_Page_AI_Visibility::render_persona_editor( TWTAEO_Visibility_Personas::all(), false ); ?>
+										<p class="description"><?php esc_html_e( 'Who buys from you. AI Visibility asks the assistants as each of these people to show how answers change per customer. Saved with this form; the same list is on the AI Visibility page.', 'twt-aeo-ultimate' ); ?></p>
+									</td>
+								</tr>
+							<?php endif; ?>
 							<tr>
 								<th><label for="lp_phone"><?php esc_html_e( 'Phone', 'twt-aeo-ultimate' ); ?></label></th>
 								<td><input type="text" id="lp_phone" name="phone" value="<?php echo esc_attr( $settings['phone'] ?? '' ); ?>" class="regular-text" placeholder="+1-555-555-5555"></td>

@@ -1323,8 +1323,8 @@ class TWTAEO_Page_Social_Graph {
 					$.post(ajaxUrl, { action:'twtaeo_og_fill_from_meta', nonce:sgNonce }, function(res){
 						if ( res.success ) {
 							$bstatus.css('color', '#1a6629').text(
-								res.data.filled + ' <?php echo esc_js( __( 'filled', 'twt-aeo-ultimate' ) ); ?>'
-								+ ( res.data.skipped ? ', ' + res.data.skipped + ' <?php echo esc_js( __( 'had no meta', 'twt-aeo-ultimate' ) ); ?>' : '' )
+								'<?php /* translators: %d: number of posts filled. */ echo esc_js( __( 'Filled: %d', 'twt-aeo-ultimate' ) ); ?>'.split('%d').join(res.data.filled)
+								+ ( res.data.skipped ? ', ' + '<?php /* translators: %d: number of posts skipped because they had no meta description. */ echo esc_js( __( 'skipped (no meta): %d', 'twt-aeo-ultimate' ) ); ?>'.split('%d').join(res.data.skipped) : '' )
 								+ '. <?php echo esc_js( __( 'Reloading…', 'twt-aeo-ultimate' ) ); ?>'
 							);
 							setTimeout(function(){ location.reload(); }, 1200);
@@ -1373,7 +1373,7 @@ class TWTAEO_Page_Social_Graph {
 					} else if ( s.status === 'error' ) {
 						$('#twt-aeo-og-ai').prop('disabled', false);
 						$ogStop.hide();
-						$bstatus.css('color', '#b32d2e').text('<?php echo esc_js( __( 'Stopped: ', 'twt-aeo-ultimate' ) ); ?>' + (s.last_error||'error') + ' (' + (s.created||0) + ')');
+						$bstatus.css('color', '#b32d2e').text('<?php /* translators: %s: error message. */ echo esc_js( __( 'Stopped: %s', 'twt-aeo-ultimate' ) ); ?>'.split('%s').join(s.last_error||'error') + ' (' + (s.created||0) + ')');
 					} else if ( s.status === 'stopped' ) {
 						$('#twt-aeo-og-ai').prop('disabled', false);
 						$ogStop.hide();

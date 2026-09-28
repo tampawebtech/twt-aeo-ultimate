@@ -435,15 +435,69 @@ class TWTAEO_Page_RAG_Engine {
 			<a href="<?php echo esc_url( $status['visibility_url'] ); ?>"><?php esc_html_e( 'Open AI Visibility', 'twt-aeo-ultimate' ); ?></a>
 		</p>
 
-		<?php if ( empty( $data['opportunities'] ) ) : ?>
+		<?php
+		if ( empty( $data['opportunities'] ) ) :
+			?>
 			<p><strong><?php esc_html_e( 'No opportunities found.', 'twt-aeo-ultimate' ); ?></strong>
 			<?php esc_html_e( 'Either every engine cited you, or your documents don\'t cover the questions where you were left out. Upload more documents, or run a new AI Visibility check after updating your pages.', 'twt-aeo-ultimate' ); ?></p>
 			<?php
-			return;
+		else :
+			self::writing_tip();
 		endif;
 
-		self::writing_tip();
+		foreach ( $data['opportunities'] as $i => $opp ) {
+			$parts = array();
+			if ( $opp['absent'] ) {
+				/* translators: %s: engine names. */
+				$parts[] = sprintf( __( 'Left out by %s', 'twt-aeo-ultimate' ), self::engine_names( $opp['absent'] ) );
+			}
+			if ( $opp['named'] ) {
+				/* translators: %s: engine names. */
+				$parts[] = sprintf( __( 'named without a link by %s', 'twt-aeo-ultimate' ), self::engine_names( $opp['named'] ) );
+			}
+			if ( $opp['cited'] ) {
+				/* translators: %s: engine names. */
+				$parts[] = sprintf( __( 'cited by %s', 'twt-aeo-ultimate' ), self::engine_names( $opp['cited'] ) );
+			}
+			if ( $opp['others'] ) {
+				/* translators: %s: domains. */
+				$parts[] = sprintf( __( 'engines cited %s instead', 'twt-aeo-ultimate' ), implode( ', ', $opp['others'] ) );
+			}
+			self::render_opportunity( 'c' . $i, $opp['question'], implode( ' · ', $parts ), $opp, false, $opp['our_urls'] );
+		}
 
+		self::render_next_questions();
+	}
+
+	/**
+	 * "When asked: Gemini named you, Claude left you out" — for a follow-up
+	 * journey mode went on to ask. '' when it was never asked.
+	 *
+	 * @param array  $asked  { engine: verdict }.
+	 * @param string $prefix Joiner put in front when there is something to say.
+	 * @return string
+	 */
+	private static function asked_note( array $asked, $prefix ) {
+		if ( ! $asked ) {
+			return '';
+		}
+		$words = array(
+			'cited'  => __( 'cited you', 'twt-aeo-ultimate' ),
+			'named'  => __( 'named you without a link', 'twt-aeo-ultimate' ),
+			'absent' => __( 'left you out', 'twt-aeo-ultimate' ),
+		);
+		$parts = array();
+		foreach ( $asked as $engine => $verdict ) {
+			if ( isset( $words[ $verdict ] ) ) {
+				$parts[] = self::engine_names( array( $engine ) ) . ' ' . $words[ $verdict ];
+			}
+		}
+		/* translators: %s: what each engine did when the follow-up was asked, e.g. "Gemini named you without a link". */
+		return $parts ? $prefix . sprintf( __( 'When asked: %s', 'twt-aeo-ultimate' ), implode( ', ', $parts ) ) : '';
+	}
+
+	/** "ChatGPT, Gemini" from engine ids. */
+	private static function engine_names( array $ids ) {
 		$engine_names = array(
 			'chatgpt'    => 'ChatGPT',
 			'gemini'     => 'Gemini',
@@ -452,38 +506,112 @@ class TWTAEO_Page_RAG_Engine {
 			'grok'       => 'Grok',
 			'mistral'    => 'Le Chat',
 		);
-		$names = static function ( array $ids ) use ( $engine_names ) {
-			return implode(
-				', ',
-				array_map(
-					static function ( $id ) use ( $engine_names ) {
-						return isset( $engine_names[ $id ] ) ? $engine_names[ $id ] : $id;
-					},
-					$ids
+		return implode(
+			', ',
+			array_map(
+				static function ( $id ) use ( $engine_names ) {
+					return isset( $engine_names[ $id ] ) ? $engine_names[ $id ] : $id;
+				},
+				$ids
+			)
+		);
+	}
+
+	/**
+	 * What the engines expect the buyer to ask next, checked against the
+	 * site's pages and documents: document passages to publish where they
+	 * exist, and plain content gaps where nothing answers it yet.
+	 */
+	private static function render_next_questions() {
+		$data = TWTAEO_RAG_Signals::next_questions();
+		?>
+		<h2 style="margin-top:28px;"><?php esc_html_e( 'Next questions', 'twt-aeo-ultimate' ); ?></h2>
+		<p style="max-width:860px;">
+			<?php esc_html_e( 'With each answer, the AI engines also predict what the buyer is likely to ask next. These are those follow-up questions, checked against your pages and your documents. They are each engine\'s prediction — not questions real people typed — so treat them as a map of where the conversation goes after the first answer.', 'twt-aeo-ultimate' ); ?>
+		</p>
+		<?php
+		if ( 0 === (int) $data['predicted'] ) {
+			?>
+			<p class="description"><?php esc_html_e( 'The latest AI Visibility run recorded no follow-up questions. Runs from before follow-ups were added have none — run a new check to see them here.', 'twt-aeo-ultimate' ); ?></p>
+			<?php
+			return;
+		}
+		?>
+		<p class="description">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: 1: follow-ups predicted, 2: distinct questions, 3: already answered, 4: looking for a business. */
+					__( '%1$s follow-ups predicted, %2$s different questions: %3$s already answered on your pages, %4$s looking for a business to hire (your service pages, reviews and local listings answer those, not documents).', 'twt-aeo-ultimate' ),
+					number_format_i18n( (int) $data['predicted'] ),
+					number_format_i18n( (int) $data['distinct'] ),
+					number_format_i18n( (int) $data['answered'] ),
+					number_format_i18n( (int) $data['hiring'] )
 				)
 			);
-		};
+			if ( '' !== $data['persona'] ) {
+				/* translators: %s: persona the run was asked as. */
+				echo ' ' . esc_html( sprintf( __( 'The run was asked as %s.', 'twt-aeo-ultimate' ), $data['persona'] ) );
+			}
+			?>
+		</p>
 
-		foreach ( $data['opportunities'] as $i => $opp ) {
-			$parts = array();
-			if ( $opp['absent'] ) {
-				/* translators: %s: engine names. */
-				$parts[] = sprintf( __( 'Left out by %s', 'twt-aeo-ultimate' ), $names( $opp['absent'] ) );
+		<?php if ( $data['opportunities'] ) : ?>
+			<h3><?php esc_html_e( 'Your documents answer these', 'twt-aeo-ultimate' ); ?></h3>
+			<?php
+			foreach ( $data['opportunities'] as $i => $opp ) {
+				$meta = sprintf(
+					/* translators: 1: engine names, 2: the question it followed. */
+					__( 'Predicted by %1$s · after “%2$s”', 'twt-aeo-ultimate' ),
+					self::engine_names( $opp['engines'] ),
+					$opp['after'][0]
+				) . self::asked_note( $opp['asked'], ' · ' );
+				self::render_opportunity( 'n' . $i, $opp['question'], $meta, $opp, false );
 			}
-			if ( $opp['named'] ) {
-				/* translators: %s: engine names. */
-				$parts[] = sprintf( __( 'named without a link by %s', 'twt-aeo-ultimate' ), $names( $opp['named'] ) );
-			}
-			if ( $opp['cited'] ) {
-				/* translators: %s: engine names. */
-				$parts[] = sprintf( __( 'cited by %s', 'twt-aeo-ultimate' ), $names( $opp['cited'] ) );
-			}
-			if ( $opp['others'] ) {
-				/* translators: %s: domains. */
-				$parts[] = sprintf( __( 'engines cited %s instead', 'twt-aeo-ultimate' ), implode( ', ', $opp['others'] ) );
-			}
-			self::render_opportunity( 'c' . $i, $opp['question'], implode( ' · ', $parts ), $opp, false, $opp['our_urls'] );
-		}
+			?>
+		<?php endif; ?>
+
+		<?php if ( $data['gaps'] ) : ?>
+			<h3><?php esc_html_e( 'Nothing answers these yet', 'twt-aeo-ultimate' ); ?></h3>
+			<p class="description" style="max-width:860px;">
+				<?php esc_html_e( 'Neither your pages nor your documents cover these. They are the next thing your buyers are expected to ask — content that answers them gives the engines something of yours to cite at the next step of the conversation.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<table class="widefat striped" style="max-width:1100px;">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Next question', 'twt-aeo-ultimate' ); ?></th>
+						<th style="width:180px;"><?php esc_html_e( 'Predicted by', 'twt-aeo-ultimate' ); ?></th>
+						<th><?php esc_html_e( 'After', 'twt-aeo-ultimate' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $data['gaps'] as $gap ) : ?>
+						<tr>
+							<td>
+								<?php echo esc_html( $gap['question'] ); ?>
+								<?php if ( $gap['partial'] ) : ?>
+									<br /><span class="description">
+										<?php /* translators: %s: page title. */ ?>
+										<?php echo esc_html( sprintf( __( 'Partly answered on “%s”.', 'twt-aeo-ultimate' ), wp_strip_all_tags( get_the_title( $gap['partial'] ) ) ) ); ?>
+										<?php $edit = get_edit_post_link( $gap['partial'] ); ?>
+										<?php if ( $edit ) : ?>
+											<a href="<?php echo esc_url( $edit ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Edit page', 'twt-aeo-ultimate' ); ?></a>
+										<?php endif; ?>
+									</span>
+								<?php endif; ?>
+							</td>
+							<td><?php echo esc_html( self::engine_names( $gap['engines'] ) ); ?><?php $note = self::asked_note( $gap['asked'], '' ); ?><?php if ( '' !== $note ) : ?><br /><span class="description"><?php echo esc_html( $note ); ?></span><?php endif; ?></td>
+							<td class="description"><?php echo esc_html( $gap['after'][0] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
+
+		<?php if ( ! $data['opportunities'] && ! $data['gaps'] ) : ?>
+			<p><strong><?php esc_html_e( 'Every predicted follow-up is either answered on your pages or looking for a business to hire.', 'twt-aeo-ultimate' ); ?></strong></p>
+		<?php endif; ?>
+		<?php
 	}
 
 	/* ─────────────────────────── shared pieces ─────────────────────────── */

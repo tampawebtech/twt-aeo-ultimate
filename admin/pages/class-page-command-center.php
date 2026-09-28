@@ -1078,10 +1078,16 @@ class TWTAEO_Page_Command_Center {
 											</p>
 										<?php endif; ?>
 										<p class="description">
-											<?php esc_html_e( 'Must match the property in Search Console. URL-prefix property: the exact URL, e.g.', 'twt-aeo-ultimate' ); ?>
-											<code><?php echo esc_html( home_url( '/' ) ); ?></code>.
-											<?php esc_html_e( 'Domain property (DNS-verified): use', 'twt-aeo-ultimate' ); ?>
-											<code>sc-domain:<?php echo esc_html( wp_parse_url( home_url(), PHP_URL_HOST ) ); ?></code>
+											<?php
+											echo wp_kses_post(
+												sprintf(
+													/* translators: 1: this site's home URL, 2: this site's sc-domain: property name. */
+													esc_html__( 'Must match the property in Search Console. URL-prefix property: the exact URL, e.g. %1$s. Domain property (DNS-verified): use %2$s', 'twt-aeo-ultimate' ),
+													'<code>' . esc_html( home_url( '/' ) ) . '</code>',
+													'<code>sc-domain:' . esc_html( wp_parse_url( home_url(), PHP_URL_HOST ) ) . '</code>'
+												)
+											);
+											?>
 										</p>
 									<?php endif; ?>
 								</td>
@@ -2706,7 +2712,7 @@ class TWTAEO_Page_Command_Center {
 					.then(function(r){ return r.json(); })
 					.then(function(res){
 						if (res.success) {
-							sendBtn.textContent = res.data.count + <?php echo wp_json_encode( __( ' URLs sent ✓', 'twt-aeo-ultimate' ) ); ?>;
+							sendBtn.textContent = <?php /* translators: %d: number of URLs submitted. */ echo wp_json_encode( __( 'URLs sent: %d ✓', 'twt-aeo-ultimate' ) ); ?>.split('%d').join(res.data.count);
 						} else {
 							sendBtn.textContent = res.data || 'Error';
 							sendBtn.disabled = false;
@@ -2744,7 +2750,7 @@ class TWTAEO_Page_Command_Center {
 			function openOg(btn){
 				var post  = btn.getAttribute('data-post');
 				var title = btn.getAttribute('data-title') || '';
-				openModal(<?php echo wp_json_encode( __( 'Fix: Open Graph — ', 'twt-aeo-ultimate' ) ); ?> + title);
+				openModal(<?php /* translators: %s: page title. */ echo wp_json_encode( __( 'Fix: Open Graph — %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(title));
 				var t    = btn.getAttribute('data-og-title') || '';
 				var d    = btn.getAttribute('data-og-desc')  || '';
 				var img  = btn.getAttribute('data-og-image') || '';
@@ -2808,7 +2814,7 @@ class TWTAEO_Page_Command_Center {
 			function openFaq(btn){
 				var post  = btn.getAttribute('data-post');
 				var title = btn.getAttribute('data-title') || '';
-				openModal(<?php echo wp_json_encode( __( 'Fix: FAQ schema — ', 'twt-aeo-ultimate' ) ); ?> + title);
+				openModal(<?php /* translators: %s: page title. */ echo wp_json_encode( __( 'Fix: FAQ schema — %s', 'twt-aeo-ultimate' ) ); ?>.split('%s').join(title));
 				fixBody.innerHTML =
 					'<p style="margin-top:0;">' + <?php echo wp_json_encode( __( 'Generate FAQPage schema from the Q&A-style content already on this page. This adds structured data — it does not change your content.', 'twt-aeo-ultimate' ) ); ?> + '</p>' +
 					'<div style="display:flex;gap:8px;align-items:center;">' +

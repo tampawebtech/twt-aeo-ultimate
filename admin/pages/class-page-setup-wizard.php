@@ -826,7 +826,10 @@ class TWTAEO_Page_Setup_Wizard {
 					?>
 					<p style="margin:6px 0;font-size:13px;">
 						<strong><?php echo esc_html( $label ); ?>:</strong>
-						<?php echo esc_html( ( 'skipped' === $row['status'] ? __( 'Skipped — ', 'twt-aeo-ultimate' ) : '' ) . $row['detail'] ); ?>
+						<?php
+						/* translators: %s: why this setup step was skipped. */
+						echo esc_html( 'skipped' === $row['status'] ? sprintf( __( 'Skipped — %s', 'twt-aeo-ultimate' ), $row['detail'] ) : $row['detail'] );
+						?>
 					</p>
 					<?php endforeach; ?>
 				<?php else : ?>

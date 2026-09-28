@@ -112,7 +112,7 @@ class TWTAEO_Page_FAQ_Detector {
 						class="button button-primary">
 						<?php
 						printf(
-							// translators: %d: number of pages missing FAQPage schema.
+							// translators: %d: number of pages missing this schema type.
 							esc_html__( 'Generate All (%d missing)', 'twt-aeo-ultimate' ),
 							absint( $summary['needs_schema'] )
 						);

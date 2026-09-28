@@ -27,14 +27,22 @@ AI answer engines cut the web into short passages and write their answers from t
 * **Documents**: upload spec sheets, manuals, catalogs and FAQs (PDF, Word or text). They are read on your own server and the file is deleted once read. Tables in PDFs come out as real tables.
 * **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not. These are content gaps taken from your own ranking data.
 * **AI Citations**: questions where an AI engine left you out, beside the passages from your documents that answer them.
+* **Next questions**: the follow-up questions the engines expect your buyers to ask next, checked against your pages and documents: the passage to publish where your documents answer them, and a list of what nothing on your site answers yet.
 * **Laws, codes and safety data**: quoted word for word with their citation, and checked online for changes since your copy's date.
 * **Chunk View**: any page split into the passages a retrieval index would hold, with the weak ones flagged.
 
 Nothing is published for you: every suggestion comes with a Copy button and an Edit page link.
 
-### AI Visibility
+### AI Visibility (buyer journeys new in 2.26)
 
 Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask and shows, per engine, whether your site was cited, named without a link, or left out, and who was cited instead.
+
+* **Buyer personas**: ask a run as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise; the question is sent exactly as written. Type your own or have them suggested from your main pages.
+* **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
+* **Follow the conversation**: ask the engine its own top follow-up in the same conversation, one or two turns deep, and see whether you are still cited further into the buyer's research.
+* **CSV export**: every question, answer, verdict and follow-up in one file, with the persona, the full answer text and pattern columns (brand and subject position, model numbers, places, hiring or how-to). Rows name the site and business type, so exports from many client sites stack into one sheet.
+
+These are controlled simulations through the engines' APIs, not a copy of any one user's private chat history.
 
 **AI Crawler Watch** logs which AI bots read your site and what they waste requests on, and **AI referral tracking** counts the visits that arrive from ChatGPT, Perplexity, Claude, Gemini and Copilot, with no cookies and no per-visitor data.
 

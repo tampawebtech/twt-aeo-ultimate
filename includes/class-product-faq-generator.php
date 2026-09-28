@@ -274,19 +274,18 @@ class TWTAEO_Product_FAQ_Generator {
 						$max_days = intval( $h_max ) + intval( $t_max );
 						$deliv_text = sprintf(
 							/* translators: 1: minimum delivery days, 2: maximum delivery days. */
-							__( ' Delivery typically takes %1$d-%2$d business days.', 'twt-aeo-ultimate' ),
+							__( 'Delivery typically takes %1$d-%2$d business days.', 'twt-aeo-ultimate' ),
 							$min_days,
 							$max_days
 						);
 					}
 
 					$shipping_desc[] = sprintf(
-						/* translators: 1: destination country, 2: shipping rate, 3: optional delivery-time sentence. */
-						__( 'To %1$s: %2$s.%3$s', 'twt-aeo-ultimate' ),
+						/* translators: 1: destination country, 2: shipping rate. */
+						__( 'To %1$s: %2$s.', 'twt-aeo-ultimate' ),
 						$country,
-						$rate_text,
-						$deliv_text
-					);
+						$rate_text
+					) . ( '' !== $deliv_text ? ' ' . $deliv_text : '' );
 				}
 
 				if ( ! empty( $shipping_desc ) ) {

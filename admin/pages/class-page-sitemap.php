@@ -123,10 +123,16 @@ class TWTAEO_Page_Sitemap {
 				</p>
 
 				<p class="description" style="margin:0;">
-					<?php esc_html_e( 'If the pretty URL returns a 404, go to', 'twt-aeo-ultimate' ); ?>
-					<a href="<?php echo esc_url( admin_url( 'options-permalink.php' ) ); ?>"><?php esc_html_e( 'Settings → Permalinks', 'twt-aeo-ultimate' ); ?></a>
-					<?php esc_html_e( 'and click Save to flush rewrite rules. Alternatively, use the', 'twt-aeo-ultimate' ); ?>
-					<a href="<?php echo esc_url( $fallback_url ); ?>" target="_blank"><?php esc_html_e( 'query string fallback', 'twt-aeo-ultimate' ); ?></a>.
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: 1: "Settings → Permalinks" link, 2: "query string fallback" link. */
+							esc_html__( 'If the pretty URL returns a 404, go to %1$s and click Save to flush rewrite rules. Alternatively, use the %2$s.', 'twt-aeo-ultimate' ),
+							'<a href="' . esc_url( admin_url( 'options-permalink.php' ) ) . '">' . esc_html__( 'Settings → Permalinks', 'twt-aeo-ultimate' ) . '</a>',
+							'<a href="' . esc_url( $fallback_url ) . '" target="_blank">' . esc_html__( 'query string fallback', 'twt-aeo-ultimate' ) . '</a>'
+						)
+					);
+					?>
 				</p>
 
 				<hr style="margin:16px 0;">

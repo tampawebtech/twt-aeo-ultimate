@@ -282,6 +282,7 @@ class TWTAEO_Admin_Assets {
 					'saveQuestions' => TWTAEO_Visibility::AJAX_SAVE_Q,
 					'polish'        => TWTAEO_Visibility::AJAX_POLISH,
 					'saveBrands'    => TWTAEO_Visibility::AJAX_SAVE_B,
+					'personasToggle' => TWTAEO_Visibility_Types::AJAX_PERSONAS_TOGGLE,
 				),
 				'engines' => $engine_labels,
 				'strings' => array(
@@ -308,6 +309,44 @@ class TWTAEO_Admin_Assets {
 					/* translators: 1: enabled question count, 2: total question count. */
 					'enabledOf'  => __( '%1$s of %2$s questions enabled.', 'twt-aeo-ultimate' ),
 					'notSaved'   => __( 'Not saved — these would not match anything:', 'twt-aeo-ultimate' ),
+					'personasSuggested' => __( 'Buyer personas were suggested from your site — pick one under “Ask as” for your next run.', 'twt-aeo-ultimate' ),
+				),
+			) );
+		}
+
+		// Buyer persona tag input — AI Visibility, and Local Pack while AI Visibility is on.
+		$persona_page = strpos( $hook, 'twt-aeo-ai-visibility' ) !== false || strpos( $hook, 'twt-aeo-local-pack' ) !== false;
+		if ( $persona_page && class_exists( 'TWTAEO_Page_Local_Pack' ) && TWTAEO_Page_Local_Pack::personas_enabled() ) {
+			wp_enqueue_style(
+				'twt-aeo-persona-tags',
+				TWTAEO_PLUGIN_URL . 'admin/assets/css/persona-tags.css',
+				array(),
+				TWTAEO_VERSION
+			);
+			wp_enqueue_script(
+				'twt-aeo-persona-tags',
+				TWTAEO_PLUGIN_URL . 'admin/assets/js/persona-tags.js',
+				array( 'jquery' ),
+				TWTAEO_VERSION,
+				true
+			);
+			wp_localize_script( 'twt-aeo-persona-tags', 'twtAeoPersonas', array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( TWTAEO_Visibility_Types::NONCE ),
+				'max'     => TWTAEO_Visibility_Types::PERSONAS_MAX,
+				'actions' => array(
+					'save'    => TWTAEO_Visibility_Types::AJAX_PERSONAS_SAVE,
+					'suggest' => TWTAEO_Visibility_Types::AJAX_PERSONAS_SUGGEST,
+				),
+				'strings' => array(
+					'saving'   => __( 'Saving…', 'twt-aeo-ultimate' ),
+					'reading'  => __( 'Reading your main pages and asking your AI provider…', 'twt-aeo-ultimate' ),
+					'fromSite' => __( 'suggested from your site', 'twt-aeo-ultimate' ),
+					'edit'     => __( 'Click to edit', 'twt-aeo-ultimate' ),
+					/* translators: %s: persona label. */
+					'remove'   => __( 'Remove %s', 'twt-aeo-ultimate' ),
+					'full'     => __( 'That’s the maximum — remove one to add another.', 'twt-aeo-ultimate' ),
+					'error'    => __( 'Something went wrong.', 'twt-aeo-ultimate' ),
 				),
 			) );
 		}

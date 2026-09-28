@@ -174,10 +174,16 @@ class TWTAEO_Page_AI_Ready {
 			<div class="notice notice-info" style="margin-top:12px;">
 				<p>
 					<strong><?php esc_html_e( 'Before running your agent readiness scan:', 'twt-aeo-ultimate' ); ?></strong>
-					<?php esc_html_e( 'After saving settings or updating the plugin, go to', 'twt-aeo-ultimate' ); ?>
-					<strong><?php esc_html_e( 'Settings → Permalinks → Save Changes', 'twt-aeo-ultimate' ); ?></strong>
-					<?php esc_html_e( 'to flush rewrite rules, then clear any page cache. Once done, test your site at', 'twt-aeo-ultimate' ); ?>
-					<a href="https://isitagentready.com/" target="_blank" rel="noopener">isitagentready.com</a>.
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: 1: "Settings → Permalinks → Save Changes" menu path, 2: link to isitagentready.com. */
+							esc_html__( 'After saving settings or updating the plugin, go to %1$s to flush rewrite rules, then clear any page cache. Once done, test your site at %2$s.', 'twt-aeo-ultimate' ),
+							'<strong>' . esc_html__( 'Settings → Permalinks → Save Changes', 'twt-aeo-ultimate' ) . '</strong>',
+							'<a href="https://isitagentready.com/" target="_blank" rel="noopener">isitagentready.com</a>'
+						)
+					);
+					?>
 				</p>
 			</div>
 

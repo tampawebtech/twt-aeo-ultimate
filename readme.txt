@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.25.0
+Stable tag: 2.26.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,7 @@ AI answer engines don't read your pages top to bottom. They cut the web into sho
 * **Documents**: upload the spec sheets, manuals, catalogs and FAQs your business already works from (PDF, Word or text). They are read on your own server and the file is deleted once read; only the searchable passages are kept. Tables in PDFs come out as real tables.
 * **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not, with the page to add the answer to.
 * **AI Citations**: questions from your AI Visibility runs where an engine left you out, beside the passages from your documents that answer them.
+* **Next questions**: the follow-up questions the AI engines expect your buyers to ask next, checked against your pages and documents. Where your documents have the answer, you get the passage to publish; where nothing answers it yet, you get the content to write.
 * **Laws, codes and safety data**: quoted word for word with their citation, and checked online for changes since your copy's date.
 * **Chunk View**: any page split into the passages a retrieval index would hold, with the ones that fall apart on their own flagged.
 
@@ -33,6 +34,13 @@ Nothing is published for you: every suggestion comes with a Copy button and an E
 = AI Visibility =
 
 Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask, on your own API keys, and shows per engine whether your site was cited, named without a link, or left out, and who was cited instead. Answers about your products are also checked against your real prices, stock and policies.
+
+* **Buyer personas**: ask as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise, and the question is sent exactly as written. Type your own, or have them suggested from your main pages. Switch personas off to ask as nobody in particular.
+* **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
+* **Follow the conversation**: optionally ask the engine its own top follow-up in the same conversation, one or two turns deep, and see whether you are still cited further into the buyer's research. Follow-up turns are kept out of the headline numbers so runs stay comparable.
+* **CSV export**: every question, answer, verdict and follow-up in one file, with the persona, the full answer text and pattern columns (where a brand or subject falls in the question, model numbers, places, hiring or how-to). Each row names the site and business type, so exports from several client sites stack into one sheet for analysis.
+
+These are controlled simulations through the engines' APIs, not a copy of any one user's private chat history: the consumer apps personalise and change daily, and a run is the closest reproducible measure.
 
 = AEO Score & Setup =
 
@@ -179,6 +187,15 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.26.0 =
+* New: buyer personas in AI Visibility. Ask a run as one of your buyers; the persona is sent to the engine as background about the user, and the question itself is never changed. Edit personas on the AI Visibility page or under Local Pack → Business Profile, or have them suggested from your main pages (meta title and description, or the first paragraph). Switch personas off to ask every run as nobody in particular.
+* New: follow-up questions. Each AI Visibility answer comes back with the follow-up questions that engine expects the buyer to ask next, from a second, short call to the same engine with no web search. Shown under every answer.
+* New: Follow the conversation (optional, per run). Asks the engine its own top follow-up in the same conversation, one or two turns deep, and records whether you are cited at each step. Each question's conversation finishes before the next question starts, so a stopped run keeps complete conversations. Follow-up turns appear as their own labelled rows and are kept out of the headline numbers, trends and comparisons.
+* New: CSV export of AI Visibility runs (this run or every kept run). One row per question asked, followed by its follow-up questions, with the persona, the verdict, the full answer and pattern columns for analysis. Each row names the site and business type so exports from several sites combine into one sheet.
+* New: Next questions in the RAG Engine's AI Citations tab. The follow-ups the engines predicted, checked against your pages and documents: passages to publish where your documents answer them, and a list of what nothing on your site answers yet.
+* Fixed: Gemini answers in AI Visibility were cut off after a sentence or two. Gemini 3.x spends part of its output limit thinking, which left little room for the answer and could drop citations. Gemini and ChatGPT answers now have room to finish, so their cited and named rates may rise compared with earlier runs.
+* Fixed: an AI Visibility check could fail to save without any message if the database table was missing a column. The table is now repaired and the save retried.
+
 = 2.25.0 =
 * New: RAG Engine (switch it on under Modules; it replaces the Chunk View screen). One screen for how AI retrieval sees your site: Chunk View, Documents, Search Placement and AI Citations.
 * New: Documents. Upload PDFs, Word files and text: spec sheets, manuals, FAQs. They are read on your own server and the uploaded file is deleted once read; only the searchable passages are kept. Large files upload in pieces and resume after a dropped connection.
@@ -299,6 +316,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.26.0 =
+Adds buyer personas, follow-up questions, conversation follow-through and CSV export to AI Visibility, and fixes Gemini answers being cut short. Gemini cited and named rates may rise after updating because full answers are now read.
 
 = 2.25.0 =
 Adds the RAG Engine: upload your documents and see which searches and AI answers they could win you. Also required before September 27, 2026 if you use Perplexity and are updating from 2.23.0 or earlier: Perplexity retires its Sonar API that day.

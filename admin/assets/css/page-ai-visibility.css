@@ -413,3 +413,27 @@
 .twt-aeo-vis__brand-trends li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; }
 .twt-aeo-vis__brand-trend-name { font-weight: 600; min-width: 140px; }
 .twt-aeo-vis__brand-trend-now { font-size: 15px; font-weight: 700; }
+
+/* ── Who is asking: run picker + follow-ups in the drawer ── */
+.twt-aeo-vis__persona-pick {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 10px;
+}
+.twt-aeo-vis__persona-pick label { font-weight: 600; }
+.twt-aeo-vis__persona-pick select { max-width: 100%; }
+.twt-aeo-vis__persona-pick .twt-aeo-vis__muted { flex-basis: 100%; }
+.twt-aeo-vis__followups { margin: 2px 0 6px 16px; list-style: disc; font-size: 12px; }
+.twt-aeo-vis__followups li { margin-bottom: 2px; }
+.twt-aeo-vis__switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; cursor: pointer; }
+.twt-aeo-vis__export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.twt-aeo-vis__export .twt-aeo-vis__muted { flex-basis: 100%; font-size: 12px; }
+.twt-aeo-vis__journey { margin: 10px 0 6px; padding: 8px 0 0 12px; border-left: 3px solid #c5d9ee; }
+.twt-aeo-vis__turn { margin: 0 0 10px; font-size: 13px; }
+.twt-aeo-vis__turn svg { vertical-align: middle; margin-right: 4px; }
+.twt-aeo-vis__journey-tally { margin: 0 0 12px; }
+.twt-aeo-vis__row--followup td { background: #f8fafc; }
+.twt-aeo-vis__row--followup .twt-aeo-vis__td-q { padding-left: 24px; }
+.twt-aeo-vis__followup-tag { display: inline-block; margin: 0 6px 2px 0; padding: 0 8px; border-radius: 999px; background: #e7eff8; color: #1d4f7c; font-size: 11px; font-weight: 600; white-space: nowrap; }

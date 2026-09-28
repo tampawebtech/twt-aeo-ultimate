@@ -433,6 +433,39 @@
 	var $start    = $( '#twt-aeo-vis-start' );
 	var $stop     = $( '#twt-aeo-vis-stop' );
 	var $resume   = $( '#twt-aeo-vis-resume' );
+	var $persona  = $( '#twt-aeo-vis-persona' );
+
+	// "Use buyer personas": saved at once, then the page reloads so the editor,
+	// the picker and the Local Pack field all appear or go away together.
+	$( '#twt-aeo-vis-personas-on' ).on( 'change', function () {
+		var $box    = $( this );
+		var $status = $( '#twt-aeo-vis-personas-on-status' );
+		$box.prop( 'disabled', true );
+		setStatus( $status, strings.saving || 'Saving…' );
+		post( actions.personasToggle, { on: $box.is( ':checked' ) ? '1' : '0' } ).done( function ( resp ) {
+			if ( resp && resp.success ) {
+				window.location.reload();
+			} else {
+				setStatus( $status, errorOf( resp ), 'err' );
+				$box.prop( 'disabled', false ).prop( 'checked', ! $box.is( ':checked' ) );
+			}
+		} ).fail( function () {
+			setStatus( $status, strings.error || 'Something went wrong.', 'err' );
+			$box.prop( 'disabled', false ).prop( 'checked', ! $box.is( ':checked' ) );
+		} );
+	} );
+
+	// Keep the "Ask as" picker in step with the persona editor (persona-tags.js).
+	$( document ).on( 'twtaeo:personas', function ( _e, list ) {
+		var current = $persona.val();
+		$persona.find( 'option' ).not( ':first' ).remove();
+		( list || [] ).forEach( function ( p ) {
+			if ( p && p.id && p.label ) {
+				$( '<option></option>' ).val( p.id ).text( p.label ).appendTo( $persona );
+			}
+		} );
+		$persona.val( $persona.find( 'option[value="' + current + '"]' ).length ? current : '' );
+	} );
 
 	function engineLabel( id ) {
 		return engines[ id ] || id;
@@ -530,12 +563,17 @@
 		}
 		showRunMsg( null );
 		var data = allocData();
+		data.persona = $persona.val() || '';
+		data.journey = $( '#twt-aeo-vis-journey' ).val() || '0';
 		runUi( true );
 		$progress.text( strings.starting || 'Starting…' );
 		post( actions.start, data ).done( function ( resp ) {
 			if ( resp && resp.success && resp.data && resp.data.run_id ) {
 				runId    = resp.data.run_id;
 				netFails = 0;
+				if ( resp.data.personas_suggested ) {
+					showRunMsg( strings.personasSuggested || 'Buyer personas were suggested from your site — pick one under “Ask as” for your next run.' );
+				}
 				progressLine( resp.data.cursor || 0, resp.data.total || 0, null );
 				stepLoop();
 			} else {

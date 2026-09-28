@@ -592,6 +592,178 @@ final class TWTAEO_RAG_Signals {
 		);
 	}
 
+	/* ─────────────────────────── Next questions ─────────────────────────── */
+
+	/** Distinct follow-up questions matched per view — each is a search. */
+	const MAX_FOLLOW_UPS = 120;
+
+	/**
+	 * The follow-up questions the engines predicted in the latest AI
+	 * Visibility run — what they expect the buyer to ask next — checked
+	 * against the site's pages and documents.
+	 *
+	 * Identical follow-ups from several engines are merged and counted: a
+	 * question three engines predict weighs more than one only one does. Each
+	 * lands in one of four places:
+	 *
+	 *  - answered:      a page already covers it (counted, not listed);
+	 *  - opportunities: the documents answer it and the page does not — a card
+	 *                   with the passages to copy, like the questions above;
+	 *  - gaps:          neither the pages nor the documents answer it — content
+	 *                   the site does not have yet;
+	 *  - hiring:        it looks for a business, not an answer — a document
+	 *                   cannot answer it (counted, not listed).
+	 *
+	 * Follow-ups predicted at later journey turns count too, and a follow-up
+	 * journey mode went on to ask carries `asked` { engine: verdict } — what
+	 * each engine said when the buyer actually asked it.
+	 *
+	 * These are predictions, not questions anyone typed; the screen says so.
+	 *
+	 * @return array { run, persona, predicted, distinct, answered, hiring, opportunities[], gaps[] }
+	 */
+	public static function next_questions() {
+		$empty = array( 'run' => null, 'persona' => '', 'predicted' => 0, 'distinct' => 0, 'answered' => 0, 'hiring' => 0, 'opportunities' => array(), 'gaps' => array() );
+		$row   = self::latest_run_row();
+		if ( ! $row || ! class_exists( 'TWTAEO_Visibility_Store' ) ) {
+			return $empty;
+		}
+		$run = TWTAEO_Visibility_Store::get_run( $row['id'] );
+		if ( ! $run ) {
+			return $empty;
+		}
+
+		$questions = array();
+		foreach ( (array) $run['questions'] as $q ) {
+			if ( is_array( $q ) && isset( $q['id'], $q['text'] ) ) {
+				$questions[ $q['id'] ] = $q;
+			}
+		}
+
+		$norm = static function ( $text ) {
+			return trim( (string) preg_replace( '/[^\p{L}\p{N}]+/u', ' ', strtolower( (string) $text ) ) );
+		};
+
+		// Journey mode already asked some of these: what each engine then said.
+		$journey = isset( $run['journey'] ) ? (array) $run['journey'] : array();
+		$asked   = array();
+		foreach ( $journey as $jc ) {
+			if ( '' !== (string) $jc['asked'] && 'unavailable' !== $jc['verdict'] ) {
+				$asked[ $norm( $jc['asked'] ) ][ $jc['engine'] ] = $jc['verdict'];
+			}
+		}
+
+		// Merge identical follow-ups (case and punctuation aside) across engines
+		// and across turns — a later turn's predictions are next questions too.
+		$groups    = array();
+		$predicted = 0;
+		foreach ( array_merge( (array) $run['checks'], $journey ) as $check ) {
+			if ( empty( $check['follow_ups'] ) || ! isset( $questions[ $check['question_id'] ] ) ) {
+				continue;
+			}
+			$before = ! empty( $check['turn'] ) && (int) $check['turn'] > 1 ? (string) $check['asked'] : (string) $questions[ $check['question_id'] ]['text'];
+			foreach ( (array) $check['follow_ups'] as $fq ) {
+				$fq  = trim( (string) $fq );
+				$key = $norm( $fq );
+				if ( '' === $key ) {
+					continue;
+				}
+				++$predicted;
+				if ( ! isset( $groups[ $key ] ) ) {
+					$groups[ $key ] = array(
+						'question' => $fq,
+						'engines'  => array(),
+						'after'    => array(),
+						'asked'    => array(),
+						'post_id'  => 0,
+					);
+				}
+				$groups[ $key ]['engines'][ $check['engine'] ] = true;
+				$groups[ $key ]['after'][ $before ]             = true;
+				$groups[ $key ]['asked']                        = isset( $asked[ $key ] ) ? $asked[ $key ] : array();
+				if ( ! $groups[ $key ]['post_id'] ) {
+					$groups[ $key ]['post_id'] = self::question_target( $questions[ $check['question_id'] ] );
+				}
+			}
+		}
+
+		// Most-predicted first, then capped: every group costs a few searches.
+		uasort(
+			$groups,
+			static function ( $a, $b ) {
+				return count( $b['engines'] ) <=> count( $a['engines'] );
+			}
+		);
+		$groups = array_slice( $groups, 0, self::MAX_FOLLOW_UPS, true );
+
+		$out = $empty;
+		$out['run']       = $row;
+		$out['persona']   = isset( $run['persona']['label'] ) ? (string) $run['persona']['label'] : '';
+		$out['predicted'] = $predicted;
+		$out['distinct']  = count( $groups );
+
+		foreach ( $groups as $g ) {
+			$fq = $g['question'];
+			if ( '' !== self::hiring_intent( $fq ) ) {
+				++$out['hiring'];
+				continue;
+			}
+
+			// The page the original question was about, else the likeliest pages.
+			$candidates = $g['post_id']
+				? array( self::candidate( $g['post_id'], array( __( 'the page the original question was about', 'twt-aeo-ultimate' ) ) ) )
+				: self::likely_pages( $fq, 3 );
+			$best = null;
+			foreach ( $candidates as &$c ) {
+				$c['coverage'] = self::coverage( $fq, $c['post_id'] );
+				if ( 'covered' === $c['coverage']['state'] ) {
+					$best = 'covered';
+				} elseif ( 'partial' === $c['coverage']['state'] && 'covered' !== $best ) {
+					$best = 'partial';
+				}
+			}
+			unset( $c );
+			if ( 'covered' === $best ) {
+				++$out['answered'];
+				continue;
+			}
+
+			$engines = array_keys( $g['engines'] );
+			$after   = array_keys( $g['after'] );
+			$docs    = self::doc_hits( $fq );
+			if ( $docs ) {
+				$out['opportunities'][] = array(
+					'question'    => $fq,
+					'engines'     => $engines,
+					'after'       => $after,
+					'asked'       => $g['asked'],
+					'candidates'  => $candidates,
+					'identifiers' => self::identifiers( $fq ),
+					'no_page_for' => array(),
+					'docs'        => $docs,
+				);
+				continue;
+			}
+
+			$partial_page = 0;
+			foreach ( $candidates as $c ) {
+				if ( 'partial' === $c['coverage']['state'] ) {
+					$partial_page = (int) $c['post_id'];
+					break;
+				}
+			}
+			$out['gaps'][] = array(
+				'question' => $fq,
+				'engines'  => $engines,
+				'after'    => $after,
+				'asked'    => $g['asked'],
+				'partial'  => $partial_page,
+			);
+		}
+
+		return $out;
+	}
+
 	/* ─────────────────────────── helpers ─────────────────────────── */
 
 	/**
