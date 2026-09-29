@@ -392,7 +392,15 @@ class TWTAEO_Page_AI_Ready {
 										<summary><?php esc_html_e( 'Why this matters', 'twt-aeo-ultimate' ); ?></summary>
 										<div class="twt-aeo-air-why__body">
 											<p><?php esc_html_e( 'Traditional sitemaps are built for link-crawlers. llms.txt is a "Fast-Pass" menu built for context — it lets AI agents map your entire site without wasting tokens parsing navigation menus, footers, or pagination.', 'twt-aeo-ultimate' ); ?></p>
-											<p><?php esc_html_e( 'Cloudflare\'s Agent Readiness benchmark grades your Discoverability Score based on how easily an agent can orient itself on your site. This is the single highest-impact, lowest-risk setting you can enable.', 'twt-aeo-ultimate' ); ?></p>
+											<p><?php esc_html_e( 'Cloudflare\'s Agent Readiness benchmark grades your Discoverability Score based on how easily an agent can orient itself on your site, and llms.txt is one of the signals it checks.', 'twt-aeo-ultimate' ); ?></p>
+										</div>
+									</details>
+									<details class="twt-aeo-air-why">
+										<summary><?php esc_html_e( 'Should I leave this on?', 'twt-aeo-ultimate' ); ?></summary>
+										<div class="twt-aeo-air-why__body">
+											<p><?php esc_html_e( 'How it works: /llms.txt is built by PHP on each request, so it always reflects your latest published pages and every AI crawler visit is recorded in the Crawler Log. Pages set to noindex in your SEO plugin, password-protected pages, and WooCommerce cart, checkout and account pages are left out.', 'twt-aeo-ultimate' ); ?></p>
+											<p><?php esc_html_e( 'Leave it on if you want AI tools to have a clean summary of your site and you want to see which AI crawlers ask for it. It costs one lightweight page load per request.', 'twt-aeo-ultimate' ); ?></p>
+											<p><?php esc_html_e( 'Turn it off if another plugin already serves /llms.txt, if you maintain a hand-written llms.txt file yourself, or if you would rather not publish a list of your recent pages. llms.txt is still a proposed standard, and not every AI company has said it reads the file, so switching it off does not hide your site from AI search.', 'twt-aeo-ultimate' ); ?></p>
 										</div>
 									</details>
 									<?php if ( ! empty( $s['llms_txt'] ) ) : ?>

@@ -867,13 +867,32 @@ class TWTAEO_AI_Ready {
 			$output .= 'Knowledge bundle (Open Knowledge Format): ' . home_url( '/okf/' ) . "\n\n";
 		}
 
-		$posts = get_posts( array(
+		// Over-fetch, then drop pages an AI should never be pointed at: anything
+		// noindexed in an SEO plugin, and WooCommerce's per-visitor pages.
+		$excluded_ids = array();
+		if ( function_exists( 'wc_get_page_id' ) ) {
+			foreach ( array( 'cart', 'checkout', 'myaccount' ) as $wc_page ) {
+				$excluded_ids[] = (int) wc_get_page_id( $wc_page );
+			}
+		}
+		$candidates = get_posts( array(
 			'post_type'      => array( 'post', 'page' ),
 			'post_status'    => 'publish',
-			'posts_per_page' => 20,
+			'has_password'   => false,
+			'posts_per_page' => 40,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		) );
+		$posts = array();
+		foreach ( $candidates as $p ) {
+			if ( in_array( (int) $p->ID, $excluded_ids, true ) || TWTAEO_Index_Heuristics::is_noindexed( $p->ID ) ) {
+				continue;
+			}
+			$posts[] = $p;
+			if ( count( $posts ) >= 20 ) {
+				break;
+			}
+		}
 
 		if ( ! empty( $posts ) ) {
 			$output .= "## Pages\n\n";

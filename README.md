@@ -52,7 +52,11 @@ JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Produc
 
 ### AI crawlers and discovery
 
-`llms.txt` and `llms-full.txt`, Markdown content negotiation, Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it.
+`llms.txt` and `llms-full.txt`, Markdown content negotiation, Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
+
+### WordPress Abilities (new in 2.27)
+
+On WordPress 6.9+, the plugin registers five read-only abilities so an AI assistant you connect (for example through the WordPress MCP Adapter) can read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, any page's AEO report and your RAG Engine content gaps. Administrators only. Answers are summaries: no visitor data, raw crawler requests, full AI answers, settings or keys are returned, and text written by outsiders (crawler URLs, AI-predicted questions) never goes out raw.
 
 ### WooCommerce
 

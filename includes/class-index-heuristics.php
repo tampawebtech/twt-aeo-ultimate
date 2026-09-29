@@ -381,7 +381,7 @@ class TWTAEO_Index_Heuristics {
 	 * @param int $post_id
 	 * @return bool
 	 */
-	private static function is_noindexed( $post_id ) {
+	public static function is_noindexed( $post_id ) {
 		// Yoast — '1' means noindex ('2' = index, '0'/empty = default).
 		if ( '1' === (string) get_post_meta( $post_id, '_yoast_wpseo_meta-robots-noindex', true ) ) {
 			return true;

@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.26.0
+Stable tag: 2.27.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,8 @@ The core engine detects the schema already on each page, classifies the page (ho
 `llms.txt` and `llms-full.txt`, Markdown content negotiation for AI agents, Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog, RFC 8288 Link headers), and per-bot blocking and rate limits for 20+ AI crawlers such as GPTBot, ClaudeBot, PerplexityBot and Google-Extended. You decide which AI systems may read, cite or train on your content. Where creating `/.well-known/` files needs server access the plugin doesn't have, you get copy-and-paste instructions.
 
 * **Open Knowledge Format (OKF) bundle**: your site as a machine-readable knowledge directory at `/okf/`, on by default and linked from llms.txt.
+* **Clean llms.txt**: pages set to noindex in your SEO plugin, password-protected pages and WooCommerce cart, checkout and account pages are left out. Switch llms.txt off if another plugin already serves it.
+* **WordPress Abilities (WordPress 6.9+)**: ask your own AI assistant about your AEO data. It can read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, any page's AEO report and your RAG Engine content gaps. Read-only and administrators only; nothing leaves your site unless you connect an AI tool yourself.
 
 = Company & Author Identity (E-E-A-T) =
 
@@ -186,6 +188,11 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.27.0 =
+* New: WordPress Abilities (WordPress 6.9 and later). Five read-only abilities let an AI assistant you connect to your site read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, a page's AEO report and your RAG Engine content gaps. Administrators only. Answers are summaries: no visitor data, raw crawler requests, full AI answers, settings or keys are ever returned.
+* Changed: llms.txt now leaves out pages set to noindex in Yoast, Rank Math, SEOPress or All in One SEO (v3 settings), password-protected pages, and WooCommerce cart, checkout and account pages.
+* Changed: the llms.txt card on AI Ready explains when to leave llms.txt on and when to switch it off.
 
 = 2.26.0 =
 * New: buyer personas in AI Visibility. Ask a run as one of your buyers; the persona is sent to the engine as background about the user, and the question itself is never changed. Edit personas on the AI Visibility page or under Local Pack → Business Profile, or have them suggested from your main pages (meta title and description, or the first paragraph). Switch personas off to ask every run as nobody in particular.
@@ -316,6 +323,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.27.0 =
+Lets your own AI assistant read your AEO data through WordPress Abilities (WordPress 6.9+, read-only, administrators only), and keeps noindexed and checkout pages out of llms.txt.
 
 = 2.26.0 =
 Adds buyer personas, follow-up questions, conversation follow-through and CSV export to AI Visibility, and fixes Gemini answers being cut short. Gemini cited and named rates may rise after updating because full answers are now read.
