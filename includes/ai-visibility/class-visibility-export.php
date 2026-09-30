@@ -73,7 +73,7 @@ final class TWTAEO_Visibility_Export {
 	/* ─────────────────────────── rows ─────────────────────────── */
 
 	/** Column order. Question-only columns are blank on follow-up rows. */
-	const COLUMNS = array( 'site_host', 'site_name', 'business_type', 'plugin_version', 'run_id', 'run_started', 'run_status', 'persona', 'turn', 'row_type', 'question_id', 'question_level', 'question_about', 'question_family', 'engine', 'model', 'checked_at', 'text', 'source', 'follow_up_rank', 'follow_up_of', 'verdict', 'cited_you', 'citation_surface', 'accuracy', 'your_urls_cited', 'cited_domains', 'other_domains', 'follow_up_count', 'answer_text', 'answer_is_excerpt', 'error', 'word_count', 'intent', 'mentions_subject', 'subject_word_position', 'mentions_brand', 'brand_word_position', 'mentions_your_business', 'model_numbers', 'mentions_place' );
+	const COLUMNS = array( 'site_host', 'site_name', 'business_type', 'plugin_version', 'run_id', 'run_started', 'run_status', 'persona', 'search_country', 'search_region', 'search_city', 'search_location', 'turn', 'row_type', 'question_id', 'question_level', 'question_about', 'question_family', 'engine', 'model', 'checked_at', 'text', 'source', 'follow_up_rank', 'follow_up_of', 'verdict', 'cited_you', 'citation_surface', 'accuracy', 'your_urls_cited', 'cited_domains', 'other_domains', 'sources_given', 'follow_up_count', 'answer_text', 'answer_is_excerpt', 'error', 'word_count', 'intent', 'mentions_subject', 'subject_word_position', 'mentions_brand', 'brand_word_position', 'mentions_your_business', 'model_numbers', 'mentions_place' );
 
 	/**
 	 * Every row, header first: each check as a question row, followed by its
@@ -98,6 +98,10 @@ final class TWTAEO_Visibility_Export {
 				'run_started'    => (string) $run['started_at'],
 				'run_status'     => (string) $run['status'],
 				'persona'        => self::persona( $run ),
+				// Where the run searched from (blank: no location).
+				'search_country' => isset( $run['allocation']['location']['country'] ) ? (string) $run['allocation']['location']['country'] : '',
+				'search_region'  => isset( $run['allocation']['location']['region'] ) ? (string) $run['allocation']['location']['region'] : '',
+				'search_city'    => isset( $run['allocation']['location']['city'] ) ? (string) $run['allocation']['location']['city'] : '',
 			);
 
 			$later = array();
@@ -151,6 +155,9 @@ final class TWTAEO_Visibility_Export {
 			'engine'          => self::engine_label( $c['engine'] ),
 			'model'           => (string) $c['model'],
 			'checked_at'      => (string) $c['at'],
+			// search = the engine's search was given the location; told = only the
+			// assistant was told it (no search location in that API, or refused).
+			'search_location' => false !== strpos( (string) ( isset( $c['tools'] ) ? $c['tools'] : '' ), 'user_location' ) ? 'search' : ( '' !== $common['search_country'] ? 'told' : '' ),
 		);
 
 		$out   = array();
@@ -167,6 +174,8 @@ final class TWTAEO_Visibility_Export {
 				'your_urls_cited'   => implode( ' | ', (array) $c['our_urls'] ),
 				'cited_domains'     => implode( ' | ', (array) $c['domains'] ),
 				'other_domains'     => implode( ' | ', self::other_domains( $c, $site['hosts'] ) ),
+				// no = answered without linking to anyone (not a competitor winning).
+				'sources_given'     => 'unavailable' === (string) $c['verdict'] ? '' : ( empty( $c['domains'] ) && empty( $c['cited_urls'] ) ? 'no' : 'yes' ),
 				'follow_up_count'   => count( (array) $c['follow_ups'] ),
 				'answer_text'       => '' !== $full ? $full : (string) $c['excerpt'],
 				'answer_is_excerpt' => '' !== $full ? 'no' : 'yes',

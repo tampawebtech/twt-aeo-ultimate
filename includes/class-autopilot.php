@@ -154,8 +154,7 @@ class TWTAEO_Autopilot {
 					$faq_skipped++;
 					continue;
 				}
-				$schema = TWTAEO_FAQ_Detector::build_faqpage_schema( $post->ID, $qa_pairs );
-				TWTAEO_Custom_Schema_Writer::save( $post->ID, 'FAQPage', wp_json_encode( $schema ) );
+				TWTAEO_FAQ_Detector::save_generated( $post->ID, $qa_pairs );
 				$faq_filled++;
 			}
 		}

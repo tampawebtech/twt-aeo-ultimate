@@ -13,6 +13,8 @@ class TWTAEO_AI_Crawler_Logger {
 		'GPTBot'             => 'OpenAI',
 		'ChatGPT-User'       => 'OpenAI',
 		'OAI-SearchBot'      => 'OpenAI',
+		'Claude-User'        => 'Anthropic',
+		'Claude-SearchBot'   => 'Anthropic',
 		'Claude-Web'         => 'Anthropic',
 		'ClaudeBot'          => 'Anthropic',
 		'anthropic-ai'       => 'Anthropic',
@@ -24,6 +26,7 @@ class TWTAEO_AI_Crawler_Logger {
 		'Google-InspectionTool' => 'Google',
 		'Google-NotebookLM'  => 'Google',
 		'PerplexityBot'      => 'Perplexity',
+		'Perplexity-User'    => 'Perplexity',
 		'YouBot'             => 'You.com',
 		'Applebot-Extended'  => 'Apple',
 		'Bytespider'         => 'ByteDance',
@@ -104,6 +107,9 @@ class TWTAEO_AI_Crawler_Logger {
 			'title'   => sanitize_text_field( $title ),
 			'ua'      => sanitize_text_field( substr( $ua, 0, 200 ) ),
 			'time'    => time(),
+			// What the bot received: its Markdown twin or the HTML page. Asked of
+			// the same method the Markdown handler uses, so they always agree.
+			'format'  => ( class_exists( 'TWTAEO_AI_Ready' ) && TWTAEO_AI_Ready::markdown_requested() ) ? 'markdown' : 'html',
 		);
 
 		// Prepend to local log.

@@ -47,6 +47,8 @@ class TWTAEO_Key_Resolver {
 		'perplexity'    => array( 'TWTAEO_PERPLEXITY_KEY', 'TWTAEO_PERPLEXITY_KEY', 'api_perplexity' ),
 		'xai'           => array( 'TWTAEO_XAI_KEY',        'TWTAEO_XAI_KEY',        'api_xai' ),
 		'mistral'       => array( 'TWTAEO_MISTRAL_KEY',    'TWTAEO_MISTRAL_KEY',    'api_mistral' ),
+		'deepseek'      => array( 'TWTAEO_DEEPSEEK_KEY',   'TWTAEO_DEEPSEEK_KEY',   'api_deepseek' ),
+		'meta'          => array( 'TWTAEO_META_KEY',       'TWTAEO_META_KEY',       'api_meta' ),
 		'pro_key'       => array( 'TWTAEO_PRO_KEY',        'TWTAEO_PRO_KEY',        'pro_key' ),
 		'pro_url'       => array( 'TWTAEO_PRO_URL',        'TWTAEO_PRO_URL',        'pro_url' ),
 		'ein_presswire' => array( 'TWTAEO_EIN_KEY',        'TWTAEO_EIN_KEY',        'api_ein_presswire' ),

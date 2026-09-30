@@ -28,6 +28,9 @@ function twtaeo_uninstall_cleanup() {
 	$options = array(
 		// Core plugin settings & module state.
 		'twtaeo_settings',
+		'twtaeo_installed_at',
+		'twtaeo_review_dismissed',
+		'twtaeo_help_offer_dismissed',
 		'twtaeo_active_modules',
 
 		// E-E-A-T / EEAT detector.

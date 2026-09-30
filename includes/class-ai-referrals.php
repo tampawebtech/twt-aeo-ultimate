@@ -37,6 +37,9 @@ class TWTAEO_AI_Referrals {
 		'phind.com'            => 'Phind',
 		'mistral.ai'           => 'Le Chat',
 		'chat.mistral.ai'      => 'Le Chat',
+		'chat.deepseek.com'    => 'DeepSeek',
+		'deepseek.com'         => 'DeepSeek',
+		'meta.ai'              => 'Meta AI',
 	);
 
 	/**

@@ -721,9 +721,96 @@ final class TWTAEO_Page_AI_Visibility {
 		<?php
 	}
 
+	/**
+	 * "Search from": Automatic (the site's own location, and where it came
+	 * from), No location, or a country with a region (a list for the
+	 * English-first markets, typed elsewhere) and a typed city.
+	 */
+	private static function render_location_pick() {
+		if ( ! class_exists( 'TWTAEO_Visibility_Location' ) ) {
+			return;
+		}
+		$default   = TWTAEO_Visibility_Location::site_default();
+		$countries = TWTAEO_Visibility_Location::countries();
+		$sources   = array(
+			'local_pack' => __( 'your Local Pack address', 'twt-aeo-ultimate' ),
+			'store'      => __( 'your store country', 'twt-aeo-ultimate' ),
+			'language'   => __( 'your site language', 'twt-aeo-ultimate' ),
+		);
+		// Region lists for the markets that get one, keyed by country code.
+		$regions = array();
+		foreach ( array_keys( TWTAEO_Visibility_Location::REGIONS ) as $cc ) {
+			$regions[ $cc ] = array_values( TWTAEO_Visibility_Location::regions( $cc ) );
+		}
+		if ( $default && ! isset( $regions[ $default['country'] ] ) ) {
+			$list = array_values( TWTAEO_Visibility_Location::regions( $default['country'] ) );
+			if ( $list ) {
+				$regions[ $default['country'] ] = $list;
+			}
+		}
+		// English-first markets first, then every country.
+		$first = array( 'US', 'CA', 'GB', 'AU', 'NZ', 'IE', 'IN', 'SG', 'ZA' );
+		?>
+		<div class="twt-aeo-vis__persona-pick twt-aeo-vis__location-pick" data-regions="<?php echo esc_attr( wp_json_encode( $regions ) ); ?>">
+			<label for="twt-aeo-vis-loc-country"><?php esc_html_e( 'Search from', 'twt-aeo-ultimate' ); ?></label>
+			<select id="twt-aeo-vis-loc-country">
+				<?php if ( $default ) : ?>
+					<option value="auto">
+						<?php
+						/* translators: 1: a place, 2: where it came from, e.g. "your Local Pack address". */
+						echo esc_html( sprintf( __( 'Automatic: %1$s (%2$s)', 'twt-aeo-ultimate' ), TWTAEO_Visibility_Location::label( $default ), isset( $sources[ $default['source'] ] ) ? $sources[ $default['source'] ] : '' ) );
+						?>
+					</option>
+				<?php endif; ?>
+				<option value="none"><?php esc_html_e( 'No location', 'twt-aeo-ultimate' ); ?></option>
+				<optgroup label="<?php esc_attr_e( 'English-speaking markets', 'twt-aeo-ultimate' ); ?>">
+					<?php foreach ( $first as $cc ) : ?>
+						<?php if ( isset( $countries[ $cc ] ) ) : ?>
+							<option value="<?php echo esc_attr( $cc ); ?>"><?php echo esc_html( $countries[ $cc ] ); ?></option>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</optgroup>
+				<optgroup label="<?php esc_attr_e( 'All countries', 'twt-aeo-ultimate' ); ?>">
+					<?php foreach ( $countries as $cc => $name ) : ?>
+						<option value="<?php echo esc_attr( $cc ); ?>"><?php echo esc_html( $name ); ?></option>
+					<?php endforeach; ?>
+				</optgroup>
+			</select>
+			<span class="twt-aeo-vis__location-detail" hidden>
+				<select id="twt-aeo-vis-loc-region-select" aria-label="<?php esc_attr_e( 'State or region', 'twt-aeo-ultimate' ); ?>" hidden></select>
+				<input type="text" id="twt-aeo-vis-loc-region-text" placeholder="<?php esc_attr_e( 'State or region (optional)', 'twt-aeo-ultimate' ); ?>" aria-label="<?php esc_attr_e( 'State or region', 'twt-aeo-ultimate' ); ?>" hidden>
+				<input type="text" id="twt-aeo-vis-loc-city" placeholder="<?php esc_attr_e( 'City (optional)', 'twt-aeo-ultimate' ); ?>" aria-label="<?php esc_attr_e( 'City', 'twt-aeo-ultimate' ); ?>">
+			</span>
+			<span class="twt-aeo-vis__muted"><?php esc_html_e( 'The consumer apps know roughly where the person asking is, and search results change with it. Without a location, a check searches from wherever the provider\'s servers are. Automatic uses your business\'s own location; one location per run, so to see several markets or branches, run once for each. Claude, ChatGPT, Perplexity, DeepSeek and Muse search from the location; Gemini, Grok and Le Chat have no search location in their APIs, so they are only told where the user is.', 'twt-aeo-ultimate' ); ?></span>
+		</div>
+		<?php
+	}
+
 	/** A run's (or summary's) persona id; '' for the baseline. */
 	private static function persona_key( $run ) {
 		return is_array( $run ) && isset( $run['persona']['id'] ) ? (string) $run['persona']['id'] : '';
+	}
+
+	/** A run's (or summary's) location; null when it had none. */
+	private static function run_location( $run ) {
+		if ( ! is_array( $run ) ) {
+			return null;
+		}
+		if ( ! empty( $run['location'] ) && is_array( $run['location'] ) ) {
+			return $run['location'];
+		}
+		return ! empty( $run['allocation']['location'] ) && is_array( $run['allocation']['location'] ) ? $run['allocation']['location'] : null;
+	}
+
+	/** "Tampa, Florida, United States"; '' when the run had no location. */
+	private static function location_label( $run ) {
+		return class_exists( 'TWTAEO_Visibility_Location' ) ? TWTAEO_Visibility_Location::label( self::run_location( $run ) ) : '';
+	}
+
+	/** What two runs must share to be compared: persona and location. */
+	private static function compare_key( $run ) {
+		$loc = class_exists( 'TWTAEO_Visibility_Location' ) ? TWTAEO_Visibility_Location::key( self::run_location( $run ) ) : '';
+		return self::persona_key( $run ) . '#' . $loc;
 	}
 
 	/** A run's persona label; '' for the baseline. */
@@ -1046,6 +1133,7 @@ final class TWTAEO_Page_AI_Visibility {
 					<span class="twt-aeo-vis__muted"><?php esc_html_e( 'One persona per run, so its numbers compare like with like. To see each buyer, run once per persona — each run costs the same number of checks.', 'twt-aeo-ultimate' ); ?></span>
 				</div>
 				<?php endif; ?>
+				<?php self::render_location_pick(); ?>
 				<div class="twt-aeo-vis__persona-pick">
 					<label for="twt-aeo-vis-journey"><?php esc_html_e( 'Follow the conversation', 'twt-aeo-ultimate' ); ?></label>
 					<select id="twt-aeo-vis-journey">
@@ -1134,18 +1222,20 @@ final class TWTAEO_Page_AI_Visibility {
 			}
 		}
 
-		// A run asked as a persona is only ever compared with runs asked as the
-		// same persona (the baseline counts as its own persona). Mixing them
-		// would show a persona's difference as a gain or a loss over time.
-		$persona_key   = self::persona_key( $selected );
-		$persona_label = self::persona_label( $selected );
+		// A run is only ever compared with runs asked as the same persona AND
+		// from the same place (the baseline and "no location" count as their
+		// own). Mixing them would show a persona's or a market's difference as
+		// a gain or a loss over time.
+		$compare_key    = self::compare_key( $selected );
+		$persona_label  = self::persona_label( $selected );
+		$location_label = self::location_label( $selected );
 
 		// Previous REAL run for the delta; a sample never counts, and a sample never shows one.
 		$previous = null;
 		if ( ! $is_demo ) {
 			$seen = false;
 			foreach ( $summaries as $s ) {
-				if ( $seen && empty( $s['demo'] ) && self::persona_key( $s ) === $persona_key ) {
+				if ( $seen && empty( $s['demo'] ) && self::compare_key( $s ) === $compare_key ) {
 					$previous = $s;
 					break;
 				}
@@ -1165,7 +1255,7 @@ final class TWTAEO_Page_AI_Visibility {
 		// Trend: real runs only, oldest first.
 		$trend = array();
 		foreach ( array_reverse( $summaries ) as $s ) {
-			if ( empty( $s['demo'] ) && isset( $s['by_engine'] ) && is_array( $s['by_engine'] ) && self::persona_key( $s ) === $persona_key ) {
+			if ( empty( $s['demo'] ) && isset( $s['by_engine'] ) && is_array( $s['by_engine'] ) && self::compare_key( $s ) === $compare_key ) {
 				$trend[] = $s;
 			}
 		}
@@ -1262,11 +1352,13 @@ final class TWTAEO_Page_AI_Visibility {
 							. self::fmt_date( isset( $s['started_at'] ) ? $s['started_at'] : '', true )
 							/* translators: %d: number of checks recorded in that run. */
 							. ' — ' . sprintf( _n( '%d check', '%d checks', isset( $s['checks'] ) ? (int) $s['checks'] : 0, 'twt-aeo-ultimate' ), isset( $s['checks'] ) ? (int) $s['checks'] : 0 )
+							/* translators: %d: follow-up checks asked after the first answers (journey mode). */
+							. ( ! empty( $s['turns'] ) ? ' + ' . sprintf( _n( '%d follow-up turn', '%d follow-up turns', (int) $s['turns'], 'twt-aeo-ultimate' ), (int) $s['turns'] ) : '' )
 							. ' · ' . ( isset( $s['status'] ) ? (string) $s['status'] : '' )
 							/* translators: %s: persona the run was asked as. */
 							. ( '' !== self::persona_label( $s ) ? ' · ' . sprintf( __( 'as %s', 'twt-aeo-ultimate' ), self::persona_label( $s ) ) : '' )
-							/* translators: %d: follow-up turns the run took. */
-							. ( ! empty( $s['journey'] ) ? ' · ' . sprintf( _n( '+%d turn', '+%d turns', (int) $s['journey'], 'twt-aeo-ultimate' ), (int) $s['journey'] ) : '' );
+							/* translators: %s: where the run searched from, e.g. "Tampa, Florida, United States". */
+							. ( '' !== self::location_label( $s ) ? ' · ' . sprintf( __( 'from %s', 'twt-aeo-ultimate' ), self::location_label( $s ) ) : '' );
 						?>
 						<option value="<?php echo esc_attr( (string) $s['id'] ); ?>" <?php selected( (string) $s['id'], (string) $selected['id'] ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
@@ -1337,6 +1429,10 @@ final class TWTAEO_Page_AI_Visibility {
 					<?php else : ?>
 						<?php /* translators: 1: cited percentage, 2: named percentage. */ ?>
 						<?php echo esc_html( sprintf( __( 'cited %1$d%% · named %2$d%%', 'twt-aeo-ultimate' ), $s['cited_pct'], $s['named_pct'] ) ); ?>
+						<?php if ( ! empty( $s['no_sources'] ) ) : ?>
+							<?php /* translators: 1: answers with no sources, 2: answers. */ ?>
+							<br /><span class="twt-aeo-vis__muted" title="<?php esc_attr_e( 'Answers that linked to no one. Not cited there means no one was cited in your place, not that a competitor won.', 'twt-aeo-ultimate' ); ?>"><?php echo esc_html( sprintf( _n( '%1$d of %2$d answer gave no sources', '%1$d of %2$d answers gave no sources', (int) $s['no_sources'], 'twt-aeo-ultimate' ), (int) $s['no_sources'], (int) $s['answered'] ) ); ?></span>
+						<?php endif; ?>
 					<?php endif; ?>
 					<?php /* translators: %d: number of answers that contradicted a fact you publish. */ ?>
 					<?php if ( $s['wrong'] ) : ?> · <?php echo esc_html( sprintf( _n( '%d wrong', '%d wrong', $s['wrong'], 'twt-aeo-ultimate' ), $s['wrong'] ) ); ?><?php endif; ?>
@@ -1354,13 +1450,31 @@ final class TWTAEO_Page_AI_Visibility {
 			<?php else : ?>
 				· <?php esc_html_e( 'asked as nobody in particular', 'twt-aeo-ultimate' ); ?>
 			<?php endif; ?>
+			<?php if ( '' !== $location_label ) : ?>
+				<?php /* translators: %s: where the run searched from. */ ?>
+				· <strong><?php echo esc_html( sprintf( __( 'searched from %s', 'twt-aeo-ultimate' ), $location_label ) ); ?></strong>
+				<?php
+				$approx = array();
+				foreach ( $run_engines as $re ) {
+					if ( ! in_array( $re, TWTAEO_Visibility_Location::SEARCH_ENGINES, true ) && isset( TWTAEO_Visibility_Types::ENGINES[ $re ]['label'] ) ) {
+						$approx[] = TWTAEO_Visibility_Types::ENGINES[ $re ]['label'];
+					}
+				}
+				if ( $approx ) :
+					?>
+					<?php /* translators: %s: engine names. */ ?>
+					(<?php echo esc_html( sprintf( __( 'approximate for %s: their APIs take no search location, so only the assistant was told where the user is', 'twt-aeo-ultimate' ), implode( ', ', $approx ) ) ); ?>)
+				<?php endif; ?>
+			<?php else : ?>
+				· <?php esc_html_e( 'no search location', 'twt-aeo-ultimate' ); ?>
+			<?php endif; ?>
 			<?php if ( 'done' !== $status ) : ?>
 				<?php /* translators: 1: checks completed so far, 2: total checks queued. */ ?>
 				(<?php echo esc_html( sprintf( __( '%1$d of %2$d checks', 'twt-aeo-ultimate' ), isset( $selected['cursor'] ) ? (int) $selected['cursor'] : 0, count( $queue ) ) ); ?>)
 			<?php endif; ?>
 			<?php if ( ! empty( $selected['message'] ) ) : ?> · <?php echo esc_html( rtrim( (string) $selected['message'], '. ' ) ); ?><?php endif; ?>.
 			<?php esc_html_e( 'Per-engine shares are of that engine’s answered checks; unavailable checks are counted separately.', 'twt-aeo-ultimate' ); ?>
-			<?php esc_html_e( 'The trend and “vs previous run” compare only runs asked as the same persona.', 'twt-aeo-ultimate' ); ?>
+			<?php esc_html_e( 'The trend and “vs previous run” compare only runs asked as the same persona from the same location.', 'twt-aeo-ultimate' ); ?>
 		</p>
 
 		<?php if ( ! empty( $journey ) ) : ?>
@@ -1701,8 +1815,8 @@ final class TWTAEO_Page_AI_Visibility {
 													<?php /* translators: %d: number of cited URLs not shown. */ ?>
 													<?php if ( count( $urls ) > 12 ) : ?><li class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( __( 'and %d more', 'twt-aeo-ultimate' ), count( $urls ) - 12 ) ); ?></li><?php endif; ?>
 												</ul>
-											<?php else : ?>
-												<p class="twt-aeo-vis__muted"><?php esc_html_e( 'No citations in this answer.', 'twt-aeo-ultimate' ); ?></p>
+											<?php elseif ( 'unavailable' !== $verdict ) : ?>
+												<p class="twt-aeo-vis__muted"><strong><?php esc_html_e( 'Gave no sources.', 'twt-aeo-ultimate' ); ?></strong> <?php esc_html_e( 'This answer links to no one, so no one was cited in your place.', 'twt-aeo-ultimate' ); ?></p>
 											<?php endif; ?>
 											<?php if ( ! empty( $c['follow_ups'] ) && is_array( $c['follow_ups'] ) ) : ?>
 												<?php /* translators: %s: engine name. */ ?>
@@ -1741,6 +1855,8 @@ final class TWTAEO_Page_AI_Visibility {
 																<?php elseif ( ! empty( $jc['domains'] ) ) : ?>
 																	<?php /* translators: %s: cited domains. */ ?>
 																	<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( __( 'Cited instead: %s', 'twt-aeo-ultimate' ), implode( ', ', array_slice( array_map( 'strval', (array) $jc['domains'] ), 0, 5 ) ) ) ); ?></p>
+																<?php elseif ( self::gave_no_sources( $jc ) ) : ?>
+																	<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Gave no sources: no one was cited in your place.', 'twt-aeo-ultimate' ); ?></p>
 																<?php endif; ?>
 															<?php endif; ?>
 														</div>
@@ -2207,6 +2323,22 @@ final class TWTAEO_Page_AI_Visibility {
 	/* ═══════════════════════════════ helpers ═══════════════════════════════ */
 
 	/** Per-engine stats for the chips (port of engineStats). */
+	/**
+	 * Whether an answer gave no sources at all: it was answered, did not cite
+	 * you, and cites nobody else either. "Not cited" then means no one was
+	 * cited in your place — the engine linked to no one — rather than a
+	 * competitor winning the answer.
+	 *
+	 * @param array $c A check.
+	 * @return bool
+	 */
+	public static function gave_no_sources( $c ) {
+		if ( ! is_array( $c ) || empty( $c['verdict'] ) || ! in_array( $c['verdict'], array( 'absent', 'named' ), true ) || ! empty( $c['error'] ) ) {
+			return false;
+		}
+		return empty( $c['domains'] ) && empty( $c['cited_urls'] );
+	}
+
 	private static function engine_stats( array $checks, array $engines ) {
 		$out = array();
 		foreach ( $engines as $engine ) {
@@ -2220,8 +2352,12 @@ final class TWTAEO_Page_AI_Visibility {
 			$cited       = 0;
 			$named       = 0;
 			$wrong       = 0;
+			$no_sources  = 0;
 			foreach ( $mine as $c ) {
 				$v = isset( $c['verdict'] ) ? $c['verdict'] : '';
+				if ( self::gave_no_sources( $c ) ) {
+					$no_sources++;
+				}
 				if ( 'unavailable' === $v ) {
 					$unavailable++;
 				} elseif ( 'cited' === $v ) {
@@ -2240,6 +2376,7 @@ final class TWTAEO_Page_AI_Visibility {
 				'answered'    => $answered,
 				'unavailable' => $unavailable,
 				'wrong'       => $wrong,
+				'no_sources'  => $no_sources,
 				'cited_pct'   => $answered ? (int) round( ( $cited / $answered ) * 100 ) : 0,
 				'named_pct'   => $answered ? (int) round( ( ( $cited + $named ) / $answered ) * 100 ) : 0,
 			);

@@ -77,7 +77,8 @@ final class TWTAEO_AI_Models {
 			),
 			'openai' => array(
 				'gpt-6-luna'   => __( 'GPT-6 Luna — fastest, lowest cost (recommended)', 'twt-aeo-ultimate' ),
-				'gpt-6-sol'    => __( 'GPT-6 Sol — stronger, higher cost', 'twt-aeo-ultimate' ),
+				'gpt-6.1-sol'  => __( 'GPT-6.1 Sol — near-Astra quality, higher cost', 'twt-aeo-ultimate' ),
+				'gpt-6-sol'    => __( 'GPT-6 Sol — previous Sol', 'twt-aeo-ultimate' ),
 				'gpt-6-astra'  => __( 'GPT-6 Astra — most capable, highest cost', 'twt-aeo-ultimate' ),
 				'gpt-5.6-luna' => __( 'GPT-5.6 Luna — previous generation', 'twt-aeo-ultimate' ),
 				'gpt-5.4-mini' => __( 'GPT-5.4 mini — used by this plugin through 2.23', 'twt-aeo-ultimate' ),
@@ -255,6 +256,11 @@ final class TWTAEO_AI_Models {
 	 * @return string|null
 	 */
 	public static function openai_reasoning_effort( $model ) {
+		// GPT-6.1 onward: low, medium, high, xhigh, max — "none" and
+		// "minimal" are refused, so low is the floor. GPT-6.0 takes none.
+		if ( preg_match( '/^gpt-(\d+)(?:\.(\d+))?/', $model, $m ) && ( (int) $m[1] > 6 || ( 6 === (int) $m[1] && isset( $m[2] ) && (int) $m[2] >= 1 ) ) ) {
+			return 'low';
+		}
 		if ( preg_match( '/^gpt-(\d+)/', $model, $m ) && (int) $m[1] >= 6 ) {
 			return 'none';
 		}

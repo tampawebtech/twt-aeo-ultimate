@@ -190,7 +190,22 @@ class TWTAEO_OG_Detector {
 		if ( ! $has_desc )  $missing[] = 'og:description';
 		if ( ! $has_image ) $missing[] = 'og:image';
 
+		// Descriptions that stop mid-sentence (older versions cut AI output at
+		// the last whole word; other plugins and hand edits do it too). Both
+		// the og:description and the page's meta description are checked.
+		$cut_off = array();
+		if ( class_exists( 'TWTAEO_AI_Description' ) ) {
+			if ( $has_desc && TWTAEO_AI_Description::looks_cut_off( $og_description ) ) {
+				$cut_off[] = 'og:description';
+			}
+			$meta_desc = TWTAEO_AI_Description::get_existing_description( $post->ID );
+			if ( '' !== $meta_desc && $meta_desc !== $og_description && false === strpos( $meta_desc, '%' ) && TWTAEO_AI_Description::looks_cut_off( $meta_desc ) ) {
+				$cut_off[] = 'meta description';
+			}
+		}
+
 		return array(
+			'cut_off'            => $cut_off,
 			'has_og_title'       => $has_title,
 			'has_og_description' => $has_desc,
 			'has_og_image'       => $has_image,
@@ -439,6 +454,7 @@ class TWTAEO_OG_Detector {
 			'source'             => '',
 			'missing'            => array( 'og:title', 'og:description', 'og:image' ),
 			'signals'            => array(),
+			'cut_off'            => array(),
 		);
 	}
 }

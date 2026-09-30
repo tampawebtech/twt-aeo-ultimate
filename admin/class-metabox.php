@@ -201,12 +201,15 @@ class TWTAEO_Metabox {
 			<?php endif; ?>
 
 			<?php // ── FAQ Detector results ────────────────────────────────── ?>
-			<?php if ( $faq_scan && $faq_scan['has_faq_content'] ) : ?>
+			<?php if ( $faq_scan && ( $faq_scan['has_faq_content'] || ! empty( $faq_scan['out_of_date'] ) ) ) : ?>
 			<div class="twt-aeo-metabox__section" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08);">
 				<div class="twt-aeo-metabox__section-title">
 					<?php esc_html_e( 'FAQ Content', 'twt-aeo-ultimate' ); ?>
 				</div>
-				<?php if ( $faq_scan['has_faq_schema'] ) : ?>
+				<?php if ( ! empty( $faq_scan['out_of_date'] ) ) : ?>
+					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php echo esc_html( 'orphaned' === $faq_scan['drift']['state'] ? __( 'FAQ schema no longer matches the page: FAQ section removed', 'twt-aeo-ultimate' ) : __( 'FAQ schema out of date with the page', 'twt-aeo-ultimate' ) ); ?></span>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo-schema-detector&tab=faq' ) ); ?>"><?php esc_html_e( 'Review', 'twt-aeo-ultimate' ); ?></a>
+				<?php elseif ( $faq_scan['has_faq_schema'] ) : ?>
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--present">
 						✓ <?php esc_html_e( 'FAQPage Schema Present', 'twt-aeo-ultimate' ); ?>
 					</span>
@@ -337,10 +340,13 @@ class TWTAEO_Metabox {
 				<?php esc_html_e( 'Not scanned yet. Save this page to run an AEO scan.', 'twt-aeo-ultimate' ); ?>
 			</div>
 
-			<?php if ( $faq_scan && $faq_scan['has_faq_content'] ) : ?>
+			<?php if ( $faq_scan && ( $faq_scan['has_faq_content'] || ! empty( $faq_scan['out_of_date'] ) ) ) : ?>
 			<div class="twt-aeo-metabox__section" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08);">
 				<div class="twt-aeo-metabox__section-title"><?php esc_html_e( 'FAQ Content', 'twt-aeo-ultimate' ); ?></div>
-				<?php if ( $faq_scan['has_faq_schema'] ) : ?>
+				<?php if ( ! empty( $faq_scan['out_of_date'] ) ) : ?>
+					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php echo esc_html( 'orphaned' === $faq_scan['drift']['state'] ? __( 'FAQ schema no longer matches the page: FAQ section removed', 'twt-aeo-ultimate' ) : __( 'FAQ schema out of date with the page', 'twt-aeo-ultimate' ) ); ?></span>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo-schema-detector&tab=faq' ) ); ?>"><?php esc_html_e( 'Review', 'twt-aeo-ultimate' ); ?></a>
+				<?php elseif ( $faq_scan['has_faq_schema'] ) : ?>
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--present">✓ <?php esc_html_e( 'FAQPage Schema Present', 'twt-aeo-ultimate' ); ?></span>
 				<?php else : ?>
 					<span class="twt-aeo-metabox__tag twt-aeo-metabox__tag--missing"><?php esc_html_e( 'FAQPage Schema Missing', 'twt-aeo-ultimate' ); ?></span><?php self::gen_button( 'twtaeo_faq_generate_one', TWTAEO_FAQ_Detector::NONCE_GENERATE, __( 'Add FAQ Schema', 'twt-aeo-ultimate' ), $post->ID ); ?>

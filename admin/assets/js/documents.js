@@ -40,6 +40,43 @@
 		statusBox.querySelector( 'p' ).textContent = text;
 	}
 
+	// While files are going up: a bold "don't close this page" line above the
+	// progress, and the browser's own leave-page warning. Both go away once
+	// the upload is finished (processing afterwards carries on without the page).
+	var uploading = false;
+	var keepOpen  = null;
+
+	function onLeave( e ) {
+		e.preventDefault();
+		e.returnValue = '';
+		return '';
+	}
+
+	function setUploading( on ) {
+		uploading = on;
+		if ( on ) {
+			window.addEventListener( 'beforeunload', onLeave );
+		} else {
+			window.removeEventListener( 'beforeunload', onLeave );
+		}
+		if ( ! statusBox ) {
+			return;
+		}
+		if ( ! keepOpen ) {
+			keepOpen                  = document.createElement( 'div' );
+			keepOpen.className        = 'notice notice-warning inline twtaeo-cge-keep-open';
+			keepOpen.setAttribute( 'role', 'alert' );
+			keepOpen.style.fontSize   = '15px';
+			var p                     = document.createElement( 'p' );
+			var strong                = document.createElement( 'strong' );
+			strong.textContent        = cfg.i18n.keepOpen;
+			p.appendChild( strong );
+			keepOpen.appendChild( p );
+			statusBox.parentNode.insertBefore( keepOpen, statusBox );
+		}
+		keepOpen.style.display = on ? 'block' : 'none';
+	}
+
 	function fmt( n ) {
 		return ( n / 1048576 ).toFixed( 1 ) + ' MB';
 	}
@@ -174,6 +211,10 @@
 			if ( button ) {
 				button.disabled = true;
 			}
+			setUploading( true );
+			if ( keepOpen ) {
+				keepOpen.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+			}
 			var errors = [];
 			files.reduce( function ( chain, file ) {
 				return chain.then( function () {
@@ -182,6 +223,7 @@
 					} );
 				} );
 			}, Promise.resolve() ).then( function () {
+				setUploading( false );
 				if ( errors.length ) {
 					say( errors.join( ' ' ), 'error' );
 					if ( button ) {

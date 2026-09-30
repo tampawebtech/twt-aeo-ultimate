@@ -13,7 +13,7 @@ AEO Ultimate makes a WordPress site readable, trustworthy and citable for AI ans
 ## Built for SEO professionals
 
 * **Free**: no license, no paid tier, no feature locked away.
-* **Bring your own key**: AI features run on your own Anthropic, OpenAI, Google, Perplexity, xAI or Mistral key. You pay the provider directly and choose the model.
+* **Bring your own key**: AI features run on your own Anthropic, OpenAI, Google, Perplexity, xAI, Mistral, Meta or DeepSeek key. You pay the provider directly and choose the model.
 * **Bulk**: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, and generate product schema for a whole catalogue.
 * **Semi-automated**: the plugin detects what each page is, adds schema only where it is missing, and suggests the missing E-E-A-T details for you to apply. AI-powered bulk actions show the number of billed calls and ask first.
 * **Modular**: 29 modules, each switched on or off on its own.
@@ -25,17 +25,21 @@ AEO Ultimate makes a WordPress site readable, trustworthy and citable for AI ans
 AI answer engines cut the web into short passages and write their answers from the few that best match a question. The RAG Engine shows your site the way that process sees it, and works as a content gap finder: it finds the questions your customers search for that your pages don't answer, and the passage in your own documents that does.
 
 * **Documents**: upload spec sheets, manuals, catalogs and FAQs (PDF, Word or text). They are read on your own server and the file is deleted once read. Tables in PDFs come out as real tables.
-* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not. These are content gaps taken from your own ranking data.
+* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not. These are content gaps taken from your own ranking data. Searches you still rank for whose page is now in the Trash or unpublished are flagged with a one-click restore.
 * **AI Citations**: questions where an AI engine left you out, beside the passages from your documents that answer them.
-* **Next questions**: the follow-up questions the engines expect your buyers to ask next, checked against your pages and documents: the passage to publish where your documents answer them, and a list of what nothing on your site answers yet.
+* **Next questions**: the follow-up questions the engines expect your buyers to ask next, checked against your pages and documents: the passage to publish where your documents answer them, and a list of what nothing on your site answers yet. Questions about your business itself (turnaround, warranty, shipping, reviews) are grouped by topic with the page that should answer them.
 * **Laws, codes and safety data**: quoted word for word with their citation, and checked online for changes since your copy's date.
 * **Chunk View**: any page split into the passages a retrieval index would hold, with the weak ones flagged.
 
 Nothing is published for you: every suggestion comes with a Copy button and an Edit page link.
 
-### AI Visibility (buyer journeys new in 2.26)
+### AI Visibility (eight engines and search location new in 2.28)
 
-Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask and shows, per engine, whether your site was cited, named without a link, or left out, and who was cited instead.
+Asks eight AI engines (ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, Muse by Meta AI and DeepSeek) the questions your customers ask and shows, per engine, whether your site was cited, named without a link, or left out, and who was cited instead, or whether the engine cited no sources at all.
+
+DeepSeek support is new: it works, and is still being tested. Most of DeepSeek's use is outside the US, led by Asia, with Russia and India near the top, and much of India searches in English. If your buyers are mostly in the US you can leave it off; if you sell internationally, especially into India, it is worth tracking.
+
+* **Search location**: each run searches from a place: automatically your business address or store country, or any country, state and city you choose, so a Tampa shop is measured the way Tampa buyers see the answers. Engines whose APIs take a search location use it; the others are told where the user is.
 
 * **Buyer personas**: ask a run as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise; the question is sent exactly as written. Type your own or have them suggested from your main pages.
 * **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
@@ -48,11 +52,11 @@ These are controlled simulations through the engines' APIs, not a copy of any on
 
 ### Schema and entities
 
-JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Product, LocalBusiness, ContactPoint, Event, Review, AggregateRating and BreadcrumbList, added only where missing and woven into one connected `@graph`. A Knowledge Graph screen links your entities to Wikipedia and Wikidata, and the Schema Detector flags duplicate-schema conflicts between plugins.
+JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Product, LocalBusiness, ContactPoint, Event, Review, AggregateRating and BreadcrumbList, added only where missing and woven into one connected `@graph`. A Knowledge Graph screen links your entities to Wikipedia and Wikidata, and the Schema Detector flags duplicate-schema conflicts between plugins and FAQ schema that no longer matches the visible FAQ on the page.
 
 ### AI crawlers and discovery
 
-`llms.txt` and `llms-full.txt`, Markdown content negotiation, Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
+`llms.txt` and `llms-full.txt`, Markdown versions of every page at `/page.md` (with content negotiation and discovery links), Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
 
 ### WordPress Abilities (new in 2.27)
 

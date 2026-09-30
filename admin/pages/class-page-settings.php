@@ -26,7 +26,7 @@ class TWTAEO_Page_Settings {
 		$settings = get_option( 'twtaeo_settings', array() );
 
 		// Decrypt secret fields for display (stored encrypted at rest).
-		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_xai', 'api_mistral', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
+		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_xai', 'api_mistral', 'api_deepseek', 'api_meta', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
 			if ( ! empty( $settings[ $secret_field ] ) ) {
 				$settings[ $secret_field ] = TWTAEO_Crypt::decrypt( (string) $settings[ $secret_field ] );
 			}
@@ -149,6 +149,22 @@ class TWTAEO_Page_Settings {
 									<?php esc_html_e( 'Mistral (Le Chat)', 'twt-aeo-ultimate' ); ?>
 								</label>
 								<?php $render_key_field( 'mistral', 'twtaeo_settings[api_mistral]', $settings['api_mistral'] ?? '', '…', __( 'AI Visibility checks', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#4d6bfe;"></span>
+									<?php esc_html_e( 'DeepSeek', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'deepseek', 'twtaeo_settings[api_deepseek]', $settings['api_deepseek'] ?? '', 'sk-…', __( 'AI Visibility checks', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#0866ff;"></span>
+									<?php esc_html_e( 'Muse (Meta AI)', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'meta', 'twtaeo_settings[api_meta]', $settings['api_meta'] ?? '', '…', __( 'AI Visibility checks', 'twt-aeo-ultimate' ) ); ?>
 							</div>
 
 						</div>
@@ -444,6 +460,8 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 			'perplexity'    => 'api_perplexity',
 			'xai'           => 'api_xai',
 			'mistral'       => 'api_mistral',
+			'deepseek'      => 'api_deepseek',
+			'meta'          => 'api_meta',
 			'ein_presswire' => 'api_ein_presswire',
 			'easypwire'     => 'api_easypwire',
 		);

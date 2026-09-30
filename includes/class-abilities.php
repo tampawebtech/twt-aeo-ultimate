@@ -313,15 +313,19 @@ final class TWTAEO_Abilities {
 		$cutoff = time() - $days * DAY_IN_SECONDS;
 		$log    = self::crawler_log();
 
-		$by_bot  = array();
-		$by_post = array();
-		$other   = 0;
-		$total   = 0;
+		$by_bot   = array();
+		$by_post  = array();
+		$other    = 0;
+		$total    = 0;
+		$markdown = 0;
 		foreach ( $log as $e ) {
 			if ( $e['time'] < $cutoff ) {
 				continue;
 			}
 			++$total;
+			if ( 'markdown' === $e['format'] ) {
+				++$markdown;
+			}
 			if ( ! isset( $by_bot[ $e['bot'] ] ) ) {
 				$by_bot[ $e['bot'] ] = array(
 					'bot'       => $e['bot'],
@@ -370,6 +374,7 @@ final class TWTAEO_Abilities {
 		return array(
 			'window'                  => self::crawler_window( $log, $days ),
 			'total_hits'              => $total,
+			'markdown_hits'           => $markdown,
 			'by_bot'                  => array_values( $by_bot ),
 			'top_pages'               => $top,
 			'hits_on_other_urls'      => $other,
@@ -455,6 +460,7 @@ final class TWTAEO_Abilities {
 				'company' => sanitize_text_field( isset( $e['company'] ) ? (string) $e['company'] : '' ),
 				'path'    => self::normalize_path( isset( $e['url'] ) ? (string) $e['url'] : '' ),
 				'time'    => (int) $e['time'],
+				'format'  => ( isset( $e['format'] ) && 'markdown' === $e['format'] ) ? 'markdown' : 'html',
 			);
 		}
 		return $out;
@@ -492,6 +498,12 @@ final class TWTAEO_Abilities {
 	private static function normalize_path( $url ) {
 		$path = (string) wp_parse_url( (string) $url, PHP_URL_PATH );
 		$path = strtolower( rtrim( $path, '/' ) );
+		// A page's Markdown twin (/page.md, /index.md) is a visit to that page.
+		if ( '/index.md' === substr( $path, -9 ) ) {
+			$path = substr( $path, 0, -9 );
+		} elseif ( '.md' === substr( $path, -3 ) ) {
+			$path = substr( $path, 0, -3 );
+		}
 		return '' === $path ? '/' : $path;
 	}
 

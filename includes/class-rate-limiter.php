@@ -79,9 +79,9 @@ class TWTAEO_Rate_Limiter {
 
 		$known_bots = array(
 			'GPTBot', 'ChatGPT-User', 'OAI-SearchBot',
-			'ClaudeBot', 'Claude-Web', 'anthropic-ai',
+			'ClaudeBot', 'Claude-User', 'Claude-SearchBot', 'Claude-Web', 'anthropic-ai',
 			'Google-Extended', 'Googlebot',
-			'PerplexityBot', 'YouBot', 'Applebot-Extended',
+			'PerplexityBot', 'Perplexity-User', 'YouBot', 'Applebot-Extended',
 			'Bytespider', 'FacebookBot', 'meta-externalagent',
 			'CCBot', 'Amazonbot', 'Diffbot', 'cohere-ai',
 		);

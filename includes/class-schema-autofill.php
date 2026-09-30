@@ -199,7 +199,11 @@ class TWTAEO_Schema_Autofill {
 					return 'needs_data'; // No Q&A-shaped content to build from.
 				}
 				$schema = TWTAEO_FAQ_Detector::build_faqpage_schema( $post->ID, $pairs );
-				return self::save_json( $post->ID, $type, $schema );
+				$status = self::save_json( $post->ID, $type, $schema );
+				if ( 'created' === $status && method_exists( 'TWTAEO_FAQ_Detector', 'remember_generated' ) ) {
+					TWTAEO_FAQ_Detector::remember_generated( $post->ID, $schema );
+				}
+				return $status;
 
 			case 'Service':
 				if ( class_exists( 'TWTAEO_Service_Schema_Writer' )

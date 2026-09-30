@@ -102,6 +102,9 @@
 						}, item.title || item.url ),
 						item.path
 							? el( 'span', { style: { fontSize: '11px', color: '#999', marginLeft: '6px' } }, item.path )
+							: null,
+						'markdown' === item.format
+							? el( 'span', { style: { fontSize: '10px', fontWeight: '600', color: '#7c3aed', background: 'rgba(124,58,237,.1)', borderRadius: '3px', padding: '1px 5px', marginLeft: '6px' } }, __( 'Markdown', 'twt-aeo-ultimate' ) )
 							: null
 					);
 				},

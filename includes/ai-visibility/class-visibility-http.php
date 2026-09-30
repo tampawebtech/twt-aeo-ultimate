@@ -41,6 +41,8 @@ final class TWTAEO_Visibility_Http {
 		'api.perplexity.ai',
 		'api.x.ai',
 		'api.mistral.ai',
+		'api.deepseek.com',
+		'api.meta.ai',
 	);
 
 	/** Longest provider error detail we keep (keys are already gone by then). */
@@ -75,17 +77,20 @@ final class TWTAEO_Visibility_Http {
 			$headers['content-type'] = 'application/json';
 		}
 
+		$method  = isset( $args['method'] ) && 'GET' === strtoupper( (string) $args['method'] ) ? 'GET' : 'POST';
 		$request = array(
-			'method'      => 'POST',
+			'method'      => $method,
 			'timeout'     => isset( $args['timeout'] ) ? (int) $args['timeout'] : self::TIMEOUT,
 			'redirection' => 0,
 			'headers'     => $headers,
-			'body'        => (string) $body,
 			'user-agent'  => 'TWT-AEO-Ultimate/' . ( defined( 'TWTAEO_VERSION' ) ? TWTAEO_VERSION : '0' ) . '; ' . home_url( '/' ),
 		);
+		if ( 'POST' === $method ) {
+			$request['body'] = (string) $body;
+		}
 
 		try {
-			$response = wp_remote_post( $url, $request );
+			$response = wp_remote_request( $url, $request );
 		} catch ( \Throwable $e ) {
 			return self::result( false, 0, null, '', self::redact( $e->getMessage(), $secret ) );
 		}
@@ -114,6 +119,20 @@ final class TWTAEO_Visibility_Http {
 		}
 
 		return self::result( true, $status, $decoded, $raw, '' );
+	}
+
+	/**
+	 * GET from a provider (polling a background response). Same host allow-list,
+	 * redaction and result shape as post().
+	 *
+	 * @param string $url
+	 * @param array  $args   `headers`, `timeout`.
+	 * @param string $secret
+	 * @return array { ok, status, body, raw, error }
+	 */
+	public static function get( $url, array $args, $secret = '' ) {
+		$args['method'] = 'GET';
+		return self::post( $url, $args, $secret );
 	}
 
 	/**

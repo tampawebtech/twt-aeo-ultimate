@@ -120,9 +120,41 @@ final class TWTAEO_RAG_Signals {
 		if ( preg_match( '/^\d{2,6}\s+\w+.*\b(?:st|street|ave|avenue|rd|road|blvd|pkwy|parkway|hwy|highway|dr|drive|ln|lane|way|ct|court)\b/', $q ) ) {
 			return true;
 		}
-		$city = self::business_city();
+		foreach ( self::business_places() as $place ) {
+			if ( preg_match( '/\b' . preg_quote( $place, '/' ) . '\b/', $q ) ) {
+				return true;
+			}
+		}
 
-		return '' !== $city && (bool) preg_match( '/\b' . preg_quote( $city, '/' ) . '\b/', $q );
+		return false;
+	}
+
+	/**
+	 * The business's city and the towns in its Local Pack service area
+	 * ("Atlanta, Marietta, Lawrenceville"): searches naming them are looking
+	 * for a local business.
+	 *
+	 * @return string[]
+	 */
+	private static function business_places() {
+		static $places = null;
+		if ( null === $places ) {
+			$places = array();
+			$city   = self::business_city();
+			if ( '' !== $city ) {
+				$places[] = $city;
+			}
+			$lp = class_exists( 'TWTAEO_Local_Pack' ) ? (array) TWTAEO_Local_Pack::get_settings() : array();
+			foreach ( preg_split( '/[,;\n]+/', (string) ( isset( $lp['area_served'] ) ? $lp['area_served'] : '' ) ) as $area ) {
+				// "Atlanta, GA" → "atlanta"; "Metro Atlanta" stays as typed.
+				$area = strtolower( trim( (string) preg_replace( '/\s+\b[A-Z]{2}\b$/', '', trim( (string) $area ) ) ) );
+				if ( strlen( $area ) >= 3 && ! TWTAEO_Doc_Profile::states_in( $area ) && ! in_array( $area, $places, true ) ) {
+					$places[] = $area;
+				}
+			}
+		}
+
+		return $places;
 	}
 
 	/** The site's domain name without "www." or the ending: "atlantaprecisionspindles". */
@@ -283,8 +315,9 @@ final class TWTAEO_RAG_Signals {
 		);
 		$in_band = count( $rows );
 
-		$out    = array();
-		$hiring = array();
+		$out      = array();
+		$hiring   = array();
+		$restored = array();
 		foreach ( array_slice( $rows, 0, self::MAX_ROWS ) as $row ) {
 			// "Trane XR14 installation manual": the searcher wants the
 			// document itself. If it is one of the uploads, the opportunity is
@@ -314,6 +347,36 @@ final class TWTAEO_RAG_Signals {
 			// Counted, so the screen can say why it is not listed.
 			if ( '' !== self::hiring_intent( $row['query'] ) ) {
 				$hiring[ strtolower( $row['query'] ) ] = true;
+				continue;
+			}
+
+			// "vibrocontrol 6000": the site still ranks for a page it has since
+			// trashed or unpublished. Putting it back is the quickest win, so it
+			// is shown whether or not a document answers the search.
+			$former = self::former_page( $row['query'] );
+			// Google names a live page for it (or the home page): the site
+			// still has a page ranking, so there is nothing to restore.
+			if ( $former && ! empty( $row['page_url'] ) ) {
+				$live = (int) $row['post_id'];
+				$home = untrailingslashit( home_url( '/' ) ) === untrailingslashit( strtok( (string) $row['page_url'], '?#' ) );
+				if ( $home || ( $live && 'publish' === get_post_status( $live ) ) ) {
+					$former = null;
+				}
+			}
+			// One restore card per search and page, however many ranking rows.
+			if ( $former && isset( $restored[ strtolower( $row['query'] ) . '|' . $former['post_id'] ] ) ) {
+				continue;
+			}
+			if ( $former ) {
+				$restored[ strtolower( $row['query'] ) . '|' . $former['post_id'] ] = true;
+				$row['type']         = 'restore';
+				$row['former']       = $former;
+				$row['docs']         = self::doc_hits( $row['query'] );
+				$row['candidates']   = array();
+				$row['identifiers']  = self::identifiers( $row['query'] );
+				$row['no_page_for']  = array();
+				$row['domain_match'] = false;
+				$out[]               = $row;
 				continue;
 			}
 
@@ -372,7 +435,8 @@ final class TWTAEO_RAG_Signals {
 
 			$row['candidates']   = $candidates;
 			$row['identifiers']  = $ids;
-			$row['no_page_for']  = ( $ids && ! $named_somewhere ) ? $ids : array();
+			// A bare number is named with the word beside it: "VIBROCONTROL 6000", not "6000".
+			$row['no_page_for']  = ( $ids && ! $named_somewhere ) ? ( self::bare_numbers_only( $ids ) ? array( $row['query'] ) : $ids ) : array();
 			$row['domain_match'] = self::domain_matches( $row['query'] );
 			$row['docs']         = $docs;
 			$out[]               = $row;
@@ -533,9 +597,13 @@ final class TWTAEO_RAG_Signals {
 				continue;
 			}
 			if ( ! isset( $by_q[ $qid ] ) ) {
-				$by_q[ $qid ] = array( 'cited' => array(), 'named' => array(), 'absent' => array(), 'our_urls' => array(), 'others' => array() );
+				$by_q[ $qid ] = array( 'cited' => array(), 'named' => array(), 'absent' => array(), 'our_urls' => array(), 'others' => array(), 'no_sources' => array() );
 			}
 			$by_q[ $qid ][ $check['verdict'] ][] = $check['engine'];
+			// Answered, did not cite you, and cited nobody else either.
+			if ( in_array( $check['verdict'], array( 'absent', 'named' ), true ) && empty( $check['domains'] ) && empty( $check['cited_urls'] ) ) {
+				$by_q[ $qid ]['no_sources'][] = $check['engine'];
+			}
 			$by_q[ $qid ]['our_urls']            = array_merge( $by_q[ $qid ]['our_urls'], (array) $check['our_urls'] );
 
 			$owned = array_map( 'strtolower', (array) $check['owned_domains'] );
@@ -571,6 +639,7 @@ final class TWTAEO_RAG_Signals {
 				'absent'      => $agg['absent'],
 				'our_urls'    => array_values( array_unique( $agg['our_urls'] ) ),
 				'others'      => array_slice( array_keys( $agg['others'] ), 0, 5 ),
+				'no_sources'  => $agg['no_sources'],
 				'post_id'     => $target,
 				'coverage'    => self::coverage( $q['text'], $target ),
 				'docs'        => $docs,
@@ -623,7 +692,7 @@ final class TWTAEO_RAG_Signals {
 	 * @return array { run, persona, predicted, distinct, answered, hiring, opportunities[], gaps[] }
 	 */
 	public static function next_questions() {
-		$empty = array( 'run' => null, 'persona' => '', 'predicted' => 0, 'distinct' => 0, 'answered' => 0, 'hiring' => 0, 'opportunities' => array(), 'gaps' => array() );
+		$empty = array( 'run' => null, 'persona' => '', 'predicted' => 0, 'distinct' => 0, 'answered' => 0, 'hiring' => 0, 'opportunities' => array(), 'gaps' => array(), 'business' => array(), 'business_count' => 0 );
 		$row   = self::latest_run_row();
 		if ( ! $row || ! class_exists( 'TWTAEO_Visibility_Store' ) ) {
 			return $empty;
@@ -676,7 +745,13 @@ final class TWTAEO_RAG_Signals {
 						'after'    => array(),
 						'asked'    => array(),
 						'post_id'  => 0,
+						'company'  => false,
 					);
+				}
+				// Asked after a question about the business itself ("Is X a
+				// legitimate store?", "What is X's return policy?").
+				if ( 'company' === ( isset( $questions[ $check['question_id'] ]['level'] ) ? $questions[ $check['question_id'] ]['level'] : '' ) ) {
+					$groups[ $key ]['company'] = true;
 				}
 				$groups[ $key ]['engines'][ $check['engine'] ] = true;
 				$groups[ $key ]['after'][ $before ]             = true;
@@ -703,7 +778,24 @@ final class TWTAEO_RAG_Signals {
 		$out['distinct']  = count( $groups );
 
 		foreach ( $groups as $g ) {
-			$fq = $g['question'];
+			$fq    = $g['question'];
+			$topic = self::business_topic( $fq, ! empty( $g['company'] ) );
+			if ( '' !== $topic ) {
+				// About the business: the owner's own pages answer it, never a
+				// brochure. Grouped by topic, with the page built for that
+				// topic (FAQ, warranty, shipping…) when the site has one — a
+				// product page that happens to share words is not it.
+				$page = self::topic_page( $topic );
+				$out['business'][ $topic ][] = array(
+					'question' => $fq,
+					'engines'  => array_keys( $g['engines'] ),
+					'after'    => array_keys( $g['after'] ),
+					'asked'    => $g['asked'],
+					'page'     => $page,
+				);
+				++$out['business_count'];
+				continue;
+			}
 			if ( '' !== self::hiring_intent( $fq ) ) {
 				++$out['hiring'];
 				continue;
@@ -730,7 +822,7 @@ final class TWTAEO_RAG_Signals {
 
 			$engines = array_keys( $g['engines'] );
 			$after   = array_keys( $g['after'] );
-			$docs    = self::doc_hits( $fq );
+			$docs    = self::doc_hits( $fq, (string) $after[0] );
 			if ( $docs ) {
 				$out['opportunities'][] = array(
 					'question'    => $fq,
@@ -1078,23 +1170,86 @@ final class TWTAEO_RAG_Signals {
 	}
 
 	/** Strong document passages for a query or question. */
-	private static function doc_hits( $query ) {
+	private static function doc_hits( $query, $inherit = '' ) {
 		if ( '' !== self::hiring_intent( $query ) ) {
 			return array(); // "Who do I hire" is not answered by a document.
 		}
 		$subject = self::subject_terms( $query );
 		$ids     = self::identifiers( $query );
 		$years   = self::years( $query );
-		$hits    = TWTAEO_Content_Index::search( $query, TWTAEO_Content_Index::SOURCE_DOC, 12 );
-		$hits    = array_values(
+
+		// Words a passage must contain beyond the share of subject words.
+		$must = array();
+		// "What is Hybrid Ceramic vs Steel Bearings in CNC Spindles?": on a
+		// spindle site "spindle", "cnc" and "repair" are in every document, so
+		// sixty percent of the words matched a Hurco catalogue page. The
+		// question's rarest word (ceramic) says what it is about; a passage
+		// without it does not answer it.
+		if ( ! $ids && count( $subject ) >= 3 ) {
+			$rare = self::distinctive_term( $subject );
+			if ( '' !== $rare ) {
+				$must[] = $rare;
+			}
+		}
+		// "What electrical requirements does it have?" after "Is VEM ECR11A
+		// Spindle good?": "it" is the VEM ECR11A. A follow-up that points back
+		// takes its model number, or failing that its rarest word, from the
+		// question it followed.
+		// When the earlier question named a model and this one names none
+		// ("What are the typical runout and torque specifications?"), it is
+		// still about that model, pronoun or not.
+		if ( '' !== $inherit && ! $ids && ( self::refers_back( $query ) || self::identifiers( $inherit ) ) ) {
+			$ids = self::identifiers( $inherit );
+			if ( ! $ids ) {
+				$rare = self::distinctive_term( self::subject_terms( $inherit ) );
+				if ( '' !== $rare ) {
+					$must[] = $rare;
+				}
+			}
+		}
+		$search_for = trim( $query . ' ' . implode( ' ', $ids ) . ' ' . implode( ' ', $must ) );
+		$hits       = TWTAEO_Content_Index::search( $search_for, TWTAEO_Content_Index::SOURCE_DOC, 12 );
+		$hits       = array_values(
 			array_filter(
 				$hits,
-				static function ( $h ) use ( $subject, $ids ) {
+				static function ( $h ) use ( $subject, $ids, $must ) {
+					foreach ( $must as $term ) {
+						if ( TWTAEO_Content_Index::terms_share( $h, array( $term ) ) < 1 ) {
+							return false;
+						}
+					}
+					// An office list ("Switzerland FISCHER Ltd. +41 62 … info@…")
+					// shares a brand's words with every search about it and
+					// answers none of them.
+					if ( self::is_contact_block( $h['content'] ) || self::is_contents_page( $h['content'] ) ) {
+						return false;
+					}
 					// A model number must appear as itself: ES989 is not ES9891.
 					if ( $ids ) {
-						return self::text_has_identifier( $h['heading_path'] . ' ' . $h['content'], $ids ) && TWTAEO_Content_Index::terms_share( $h, $subject ) >= 0.5;
+						// "vibrocontrol 6000": a bare number names nothing on its
+						// own (6000 rpm, 6000 hours), so the name beside it must
+						// be there too. "hsd es368": ES368 already says what it is.
+						$share = self::bare_numbers_only( $ids ) ? 1.0 : 0.5;
+						return self::text_has_identifier( $h['heading_path'] . ' ' . $h['content'], $ids ) && TWTAEO_Content_Index::terms_share( $h, $subject ) >= $share;
 					}
 					return self::passage_answers( $h, $subject );
+				}
+			)
+		);
+
+		// The same passage twice (the same document uploaded twice, or a page
+		// repeated in it) shows once.
+		$seen = array();
+		$hits = array_values(
+			array_filter(
+				$hits,
+				static function ( $h ) use ( &$seen ) {
+					$sig = md5( strtolower( (string) preg_replace( '/\s+/', ' ', substr( (string) $h['content'], 0, 400 ) ) ) );
+					if ( isset( $seen[ $sig ] ) ) {
+						return false;
+					}
+					$seen[ $sig ] = true;
+					return true;
 				}
 			)
 		);
@@ -1142,6 +1297,309 @@ final class TWTAEO_RAG_Signals {
 		}
 
 		return array_slice( $hits, 0, 2 );
+	}
+
+	/**
+	 * A page for this search that is no longer published — in the Trash,
+	 * back to draft, pending or private — when no published page carries the
+	 * search in its title or web address. Its title or web address must hold
+	 * every subject word ("VibroControl 6000" for "vibrocontrol 6000").
+	 *
+	 * @return array|null { post_id, status, title }
+	 */
+	private static function former_page( $query ) {
+		$terms = self::subject_terms( $query );
+		if ( ! $terms ) {
+			return null;
+		}
+		$types = array_values( get_post_types( array( 'public' => true ) ) );
+		// "Precision Starts to Drift" holds both words of "precision spindle"
+		// and is not a page for it. The words must sit together, in the
+		// search's order, in the title or the web address ("VibroControl 6000
+		// Vibration Monitor", /vibrocontrol-6000/); a model number alone
+		// (ES368) is enough when the search names one.
+		$ids     = self::identifiers( $query );
+		$pattern = '/(?<![a-z0-9])' . implode( '[a-z0-9]*[\s\-_:,&\/]+(?:(?:and|of|for|the|a)[\s\-]+)?', array_map( static function ( $t ) { return implode( '[\s\-_]?', array_map( static function ( $part ) { return preg_quote( $part, '/' ); }, (array) preg_split( '/(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])/', $t ) ) ); }, $terms ) ) . '/i';
+		$names   = static function ( $post ) use ( $pattern, $ids ) {
+			$slug = (string) preg_replace( '/__trashed(?:-\d+)?$/', '', (string) $post->post_name );
+			foreach ( array( strtolower( wp_strip_all_tags( (string) $post->post_title ) ), str_replace( '-', ' ', $slug ) ) as $text ) {
+				if ( preg_match( $pattern, $text ) ) {
+					return true;
+				}
+			}
+			return $ids && self::page_names_identifier( (int) $post->ID, $ids );
+		};
+		// The words as typed: "hcs 160", not the joined "hcs160" the matcher uses.
+		$typed  = array_values( array_diff( preg_split( '/\s+/', strtolower( trim( (string) $query ) ), -1, PREG_SPLIT_NO_EMPTY ), array( 'new', 'used', 'best', 'buy', 'cheap' ) ) );
+		$search = implode( ' ', array_slice( $typed, 0, 4 ) );
+
+		// A published page already named for it: nothing to restore.
+		foreach ( get_posts( array( 'post_type' => $types, 'post_status' => 'publish', 's' => $search, 'posts_per_page' => 20, 'no_found_rows' => true ) ) as $post ) {
+			if ( $names( $post ) ) {
+				return null;
+			}
+		}
+
+		$gone = get_posts(
+			array(
+				'post_type'      => $types,
+				'post_status'    => array( 'trash', 'draft', 'pending', 'private' ),
+				's'              => $search,
+				'posts_per_page' => 20,
+				'no_found_rows'  => true,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+			)
+		);
+		// WordPress search reads titles and content, not slugs: a page whose
+		// title was changed but whose web address still names it is looked
+		// up by slug too.
+		$slug_like = sanitize_title( $query );
+		if ( '' !== $slug_like ) {
+			$gone = array_merge(
+				$gone,
+				get_posts(
+					array(
+						'post_type'      => $types,
+						'post_status'    => array( 'trash', 'draft', 'pending', 'private' ),
+						'name'           => $slug_like,
+						'posts_per_page' => 5,
+						'no_found_rows'  => true,
+					)
+				)
+			);
+		}
+		foreach ( $gone as $post ) {
+			if ( $names( $post ) ) {
+				return array(
+					'post_id' => (int) $post->ID,
+					'status'  => (string) $post->post_status,
+					'title'   => wp_strip_all_tags( (string) $post->post_title ),
+				);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * The subject word that occurs in the fewest passages across the site's
+	 * pages and documents: what a question is about, rather than what every
+	 * page on the site mentions. Ties go to the longer word. '' when none of
+	 * the words is four letters or more.
+	 *
+	 * @param string[] $terms From subject_terms().
+	 * @return string
+	 */
+	private static function distinctive_term( array $terms ) {
+		$best  = '';
+		$count = PHP_INT_MAX;
+		foreach ( $terms as $term ) {
+			if ( strlen( $term ) < 4 || in_array( $term, self::INTENT_TERMS, true ) ) {
+				continue;
+			}
+			$n = self::passages_with( $term );
+			if ( $n < $count || ( $n === $count && strlen( $term ) > strlen( $best ) ) ) {
+				$best  = $term;
+				$count = $n;
+			}
+		}
+
+		return $best;
+	}
+
+	/** How many indexed passages (pages and documents) contain a word. Cached per request. */
+	private static function passages_with( $term ) {
+		static $cache = array();
+		if ( isset( $cache[ $term ] ) ) {
+			return $cache[ $term ];
+		}
+		global $wpdb;
+		$table = TWTAEO_Content_Index::chunks_table();
+		$like  = '%' . $wpdb->esc_like( $term ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- table name is ours; counted once per word per request.
+		$cache[ $term ] = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE content LIKE %s OR heading_path LIKE %s", $like, $like ) );
+
+		return $cache[ $term ];
+	}
+
+	/** Whether a question points back at what came before ("does it", "their warranty"). */
+	private static function refers_back( $query ) {
+		return (bool) preg_match( '/\b(?:it|its|it\'s|this|that|these|those|they|them|their|the\s+same)\b/i', (string) $query );
+	}
+
+	/**
+	 * What a follow-up asks about the business itself, or ''. "What's their
+	 * turnaround?", "Do they offer rush service?", "What do reviews say about
+	 * them?": no brochure answers those. Only the owner's own pages can.
+	 *
+	 * @param string $question The follow-up.
+	 * @param bool   $after_company Whether it followed a question about the company.
+	 * @return string Topic key, or '' when it is not about the business.
+	 */
+	public static function business_topic( $question, $after_company ) {
+		$q      = strtolower( (string) $question );
+		$topics = array(
+			'turnaround' => '/\b(?:turnaround|lead\s*times?|how\s+long|how\s+quickly|how\s+fast|evaluation\s+process|teardown)\b/',
+			'warranty'   => '/\b(?:warrant(?:y|ies)|guarantee\w*)\b/',
+			'rush'       => '/\b(?:rush|emergency|24\/7|expedit\w*|urgent|on-?site|downtime)\b/',
+			'shipping'   => '/\b(?:ship\w*|freight|pick\s*-?up|drop-?off|deliver\w*)\b/',
+			'returns'    => '/\b(?:returns?|cancel\w*|restocking|refund\w*)\b/',
+			'trust'      => '/\b(?:reviews?|feedback|complaints?|reputation|legitimate|verify|references?|safe|trust\w*|payment\s+protections?|vetting)\b/',
+			'pricing'    => '/\b(?:cost\w*|price\w*|pricing|how\s+much|charge\w*|fees?)\b/',
+			'brands'     => '/\b(?:brands?|types?\s+of|specialize\w*|kinds?\s+of|do\s+they\s+(?:repair|rebuild|service))\b/',
+			'contact'    => '/\b(?:contact|phone|hours|located|location|address|quote|reach|request)\b/',
+		);
+		$topic = '';
+		foreach ( $topics as $key => $pattern ) {
+			if ( preg_match( $pattern, $q ) ) {
+				$topic = $key;
+				break;
+			}
+		}
+		// Named outright, or — right after a question about the company — a
+		// question about "them", or on one of these business topics ("Can I
+		// pick up my order locally?", "how long does it take?").
+		$about = self::names_business( $q )
+			|| ( $after_company && ( '' !== $topic || preg_match( '/\b(?:they|them|their|theirs|you|your|this\s+(?:company|shop|business))\b/', $q ) ) );
+		if ( ! $about ) {
+			return '';
+		}
+
+		return '' !== $topic ? $topic : 'other';
+	}
+
+	/**
+	 * The site's page for a business topic: a published page whose web
+	 * address or title is about it (warranty, shipping, FAQ, about, contact,
+	 * terms…). 0 when there is none. Cached per request.
+	 *
+	 * @param string $topic From business_topic().
+	 * @return int Post ID.
+	 */
+	private static function topic_page( $topic ) {
+		static $cache = array();
+		if ( isset( $cache[ $topic ] ) ) {
+			return $cache[ $topic ];
+		}
+		// Most specific first; FAQ and About pages catch most topics.
+		$words = array(
+			'turnaround' => array( 'turnaround', 'lead-time', 'process', 'how-it-works', 'faq' ),
+			'warranty'   => array( 'warranty', 'guarantee', 'terms', 'faq' ),
+			'rush'       => array( 'emergency', 'rush', 'expedite', 'on-site', 'faq' ),
+			'shipping'   => array( 'shipping', 'ship', 'pickup', 'delivery', 'faq' ),
+			'returns'    => array( 'return', 'refund', 'cancel', 'terms', 'faq' ),
+			'trust'      => array( 'reviews', 'testimonials', 'case-stud', 'about' ),
+			'pricing'    => array( 'pricing', 'price', 'cost', 'faq' ),
+			'brands'     => array( 'brands', 'spindles-we-repair', 'what-we', 'services', 'about' ),
+			'contact'    => array( 'contact', 'quote', 'location' ),
+			'other'      => array( 'about', 'faq' ),
+		);
+		$pages = get_posts(
+			array(
+				'post_type'      => 'page',
+				'post_status'    => 'publish',
+				'posts_per_page' => 200,
+				'no_found_rows'  => true,
+				'orderby'        => 'menu_order',
+				'order'          => 'ASC',
+			)
+		);
+		$found = 0;
+		foreach ( isset( $words[ $topic ] ) ? $words[ $topic ] : array() as $word ) {
+			foreach ( $pages as $p ) {
+				$slug  = (string) $p->post_name;
+				$title = sanitize_title( (string) $p->post_title );
+				if ( false !== strpos( $slug, $word ) || false !== strpos( $title, $word ) ) {
+					$found = (int) $p->ID;
+					break 2;
+				}
+			}
+		}
+		$cache[ $topic ] = $found;
+
+		return $found;
+	}
+
+	/** Whether text names the business: its site name (without LLC, Inc…) or its Local Pack name. */
+	private static function names_business( $q ) {
+		static $names = null;
+		if ( null === $names ) {
+			$names = array();
+			$lp    = class_exists( 'TWTAEO_Local_Pack' ) ? (array) TWTAEO_Local_Pack::get_settings() : array();
+			foreach ( array( get_bloginfo( 'name' ), isset( $lp['business_name'] ) ? $lp['business_name'] : '' ) as $n ) {
+				$n = strtolower( trim( (string) preg_replace( '/[,\s]+(?:llc|inc|ltd|co|corp|corporation|company)\.?$/i', '', trim( (string) $n ) ) ) );
+				if ( strlen( $n ) >= 5 && ! in_array( $n, $names, true ) ) {
+					$names[] = $n;
+				}
+			}
+		}
+		foreach ( $names as $n ) {
+			if ( false !== strpos( $q, $n ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether a passage is a contact list rather than content: several phone
+	 * numbers or email addresses making up much of it. A checklist with the
+	 * shop's phone number at the top is still content.
+	 */
+	public static function is_contact_block( $text ) {
+		$text = (string) $text;
+		// The card shows a passage's opening: an office list there reads as
+		// the answer however much text follows it.
+		if ( strlen( $text ) > 700 && self::is_contact_block( substr( $text, 0, 600 ) ) ) {
+			return true;
+		}
+		$emails = preg_match_all( '/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i', $text );
+		$phones = preg_match_all( '/(?:\+\d{1,3}[\s.\-]?)?\(?\d{2,4}\)?[\s.\-]\d{2,4}[\s.\-]\d{2,4}(?:[\s.\-]\d{2,4})?/', $text );
+		$marks  = $emails + $phones;
+		if ( $marks < 4 ) {
+			return false;
+		}
+		if ( $marks >= 8 ) {
+			return true; // Content does not carry eight phone numbers and emails.
+		}
+		// Words left once the contact details are gone: an office list is
+		// little more than place names and company names between them.
+		$rest  = preg_replace( '/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}|[+\d()\s.\-]{7,}/i', ' ', $text );
+		$words = str_word_count( (string) $rest );
+
+		return $words / $marks < 12;
+	}
+
+	/**
+	 * Whether a passage is a table of contents ("VM Series 6 VMX Series 8
+	 * VMXD Series 12 …"): it names every subject in the document and
+	 * answers none of them.
+	 */
+	public static function is_contents_page( $text ) {
+		$text    = (string) $text;
+		$entries = preg_match_all( '/\b(?:series|chapter|section|part)\s+\d{1,3}\b/i', $text );
+		if ( $entries >= 5 ) {
+			return true;
+		}
+		// "CONTENTS … Accessories 45 Standard & Optional Features 48".
+		if ( preg_match( '/\b(?:table\s+of\s+)?contents\b/i', $text ) ) {
+			return preg_match_all( '/[A-Za-z)]\s+\d{1,3}(?=\s+[A-Z]|\s*$)/', $text ) >= 6;
+		}
+
+		return false;
+	}
+
+	/** Whether every identifier is a plain number (6000), none a model code (ES368). */
+	private static function bare_numbers_only( array $ids ) {
+		foreach ( $ids as $id ) {
+			if ( ! ctype_digit( str_replace( '.', '', (string) $id ) ) ) {
+				return false;
+			}
+		}
+
+		return (bool) $ids;
 	}
 
 	/**

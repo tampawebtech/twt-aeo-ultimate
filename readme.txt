@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.27.0
+Stable tag: 2.28.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,9 +23,9 @@ Fully modular: 29 features, each switched on or off on its own, so your site run
 AI answer engines don't read your pages top to bottom. They cut the web into short passages, pull back the few that best match a question, and write their answer from those (retrieval-augmented generation). The RAG Engine shows your site the way that process sees it, and finds the answers your site is missing.
 
 * **Documents**: upload the spec sheets, manuals, catalogs and FAQs your business already works from (PDF, Word or text). They are read on your own server and the file is deleted once read; only the searchable passages are kept. Tables in PDFs come out as real tables.
-* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not, with the page to add the answer to.
+* **Search Placement**: the Google and Bing searches where you rank 4th to 15th that your documents answer and the ranking page does not, with the page to add the answer to. Searches you still rank for whose page is now in the Trash or unpublished are flagged with a one-click restore.
 * **AI Citations**: questions from your AI Visibility runs where an engine left you out, beside the passages from your documents that answer them.
-* **Next questions**: the follow-up questions the AI engines expect your buyers to ask next, checked against your pages and documents. Where your documents have the answer, you get the passage to publish; where nothing answers it yet, you get the content to write.
+* **Next questions**: the follow-up questions the AI engines expect your buyers to ask next, checked against your pages and documents. Where your documents have the answer, you get the passage to publish; where nothing answers it yet, you get the content to write. Questions about your business itself (turnaround, warranty, shipping, reviews) are grouped by topic with the page that should answer them.
 * **Laws, codes and safety data**: quoted word for word with their citation, and checked online for changes since your copy's date.
 * **Chunk View**: any page split into the passages a retrieval index would hold, with the ones that fall apart on their own flagged.
 
@@ -33,8 +33,11 @@ Nothing is published for you: every suggestion comes with a Copy button and an E
 
 = AI Visibility =
 
-Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask, on your own API keys, and shows per engine whether your site was cited, named without a link, or left out, and who was cited instead. Answers about your products are also checked against your real prices, stock and policies.
+Asks eight AI engines (ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, Muse by Meta AI and DeepSeek) the questions your customers ask, on your own API keys, and shows per engine whether your site was cited, named without a link, or left out, and who was cited instead, or whether the engine cited no sources at all. Answers about your products are also checked against your real prices, stock and policies.
 
+DeepSeek support is new: it works, and is still being tested. Most of DeepSeek's use is outside the US, led by Asia, with Russia and India near the top, and much of India searches in English. If your buyers are mostly in the US you can leave it off; if you sell internationally, especially into India, it is worth tracking.
+
+* **Search location**: each run searches from a place: automatically your business address (Local Pack) or store country, or any country, state and city you choose, so a Tampa shop is measured the way Tampa buyers see the answers. Engines whose APIs take a search location use it; the others are told where the user is.
 * **Buyer personas**: ask as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise, and the question is sent exactly as written. Type your own, or have them suggested from your main pages. Switch personas off to ask as nobody in particular.
 * **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
 * **Follow the conversation**: optionally ask the engine its own top follow-up in the same conversation, one or two turns deep, and see whether you are still cited further into the buyer's research. Follow-up turns are kept out of the headline numbers so runs stay comparable.
@@ -98,7 +101,7 @@ Customer reviews with AggregateRating and Review schema, a "Last Updated" freshn
 
 = External Services =
 
-Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok and Mistral using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled EXTERNAL-SERVICES.md for the complete inventory.
+Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok, Mistral, Meta (Muse) and DeepSeek using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled EXTERNAL-SERVICES.md for the complete inventory.
 
 == Installation ==
 
@@ -162,6 +165,8 @@ Only the ones you configure, and only when you trigger them:
 * **Perplexity**: brand authority and gap research, AI Visibility checks, RAG Engine law check. [Terms](https://www.perplexity.ai/hub/legal/terms-of-service) | [Privacy](https://www.perplexity.ai/hub/legal/privacy-policy)
 * **xAI Grok**: AI Visibility checks. [Terms](https://x.ai/legal/terms-of-service-enterprise) | [Privacy](https://x.ai/legal/privacy-policy)
 * **Mistral (Le Chat)**: AI Visibility checks. [Terms](https://legal.mistral.ai/terms/commercial-terms-of-service) | [Privacy](https://legal.mistral.ai/terms/privacy-policy)
+* **Meta (Muse, Meta Model API)**: AI Visibility checks. [Terms](https://ai.developer.meta.com/legal/terms-of-service) | [Privacy](https://www.facebook.com/privacy/policy/)
+* **DeepSeek**: AI Visibility checks. [Terms](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html) | [Privacy](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html)
 * **Google APIs**: Search Console, Analytics, Knowledge Graph, Business Profile, Merchant Center. [Terms](https://policies.google.com/terms) | [Privacy](https://policies.google.com/privacy)
 * **Microsoft / Bing APIs**: Webmaster Tools, Merchant Center, Maps Local Search. [Terms](https://www.microsoft.com/en-us/servicesagreement) | [Privacy](https://www.microsoft.com/en-us/privacy/privacystatement)
 * **IndexNow**: URL submission on publish. [Terms & Privacy](https://www.indexnow.org/terms)
@@ -174,7 +179,7 @@ Each request sends only the data needed for that action, using your own API key.
 == Screenshots ==
 
 1. **AEO Score**: Your site graded 0–100, with the site-wide breakdown of where points are lost, the site-setup checklist, your score over time, and a per-page status table below: every point named, every gap linked to its fix.
-2. **AI Visibility (who gets cited instead)**: Ask ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers actually ask, then see per engine whether your site was cited, named without a link, or absent, and exactly which competitors were cited in your place. Shown here with one-click sample data, built from your own catalogue so you can see the board before a single API call is spent.
+2. **AI Visibility (who gets cited instead)**: Ask eight AI engines (ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, Muse and DeepSeek) the questions your customers actually ask, then see per engine whether your site was cited, named without a link, or absent, and exactly which competitors were cited in your place. Shown here with one-click sample data, built from your own catalogue so you can see the board before a single API call is spent.
 3. **AI Visibility (every question, every engine)**: The full grid: each question against each engine, with the verdict and an accuracy check against your real prices, stock levels and policies. Open any row to read what the engine said and which sources it leaned on.
 4. **Command Center**: Real-time AI Crawler Watch monitor and bot traffic breakdown.
 5. **AI Ready Configuration**: Per-bot rate limits and block toggles for 20+ AI agents.
@@ -188,6 +193,25 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.28.0 =
+* New: Muse (Meta AI) joins AI Visibility, through the Meta Model API with web search. Muse answers slowly, so its questions are sent in the background and collected as they finish: the rest of the run never waits for it.
+* New: DeepSeek joins AI Visibility, through DeepSeek's API with web search, for sites that sell outside the US. Working, and still being tested. AI Visibility now covers eight AI engines.
+* New: search location for AI Visibility runs ("Search from"). Automatic from your Local Pack address or store country, or any country, state and city; English-speaking markets listed first. Runs are only compared with runs from the same place, and the CSV export has the location columns.
+* New: "Gave no sources" in AI Visibility. An answer that did not cite you and cited no one else is marked as such, per engine and per answer, and in the CSV, so "not cited" is no longer read as a competitor winning.
+* New: Markdown versions of your pages at `/page.md`, with discovery links and YAML frontmatter, and an llms.txt option to link each page to its Markdown version. The crawler log records whether HTML or Markdown was served. New AI bots recognised: Claude-User, Claude-SearchBot and Perplexity-User.
+* New: FAQ schema drift detection. When a page's visible FAQ and its FAQPage schema no longer match, the Schema Detector's FAQ tab and the editor say so, and schema this plugin writes resyncs on save.
+* New: RAG Engine Next questions group follow-ups about your business (turnaround, warranty, shipping, rush service, reviews, pricing) by topic, with your page for each topic or a note that none exists yet.
+* New: RAG Engine Search Placement flags searches you still rank for whose page is in the Trash or unpublished, with a restore link.
+* New: GPT-6.1 Sol in the OpenAI model list.
+* Improved: RAG Engine matching. Passages must contain a question's most distinctive word, follow-ups that say "it" keep the model they refer to, and office address lists and tables of contents are no longer offered as answers.
+* Improved: AI Visibility questions built from headings written in your own voice ("Models We Service") are rephrased the way a buyer asks, or skipped.
+* Improved: runs with follow-up turns show them beside the check count ("375 checks + 345 follow-up turns"), and the progress line says how the growing total splits.
+* Changed: the banner on the plugin's screens now offers help in the support forum instead of asking for a review.
+* Changed: a bold "don't close this page" warning while documents upload.
+* Fixed: approving, unapproving or deleting a review on the Reviews page could stop at "The link you followed has expired".
+* Fixed: AI-written meta descriptions could stop mid-sentence. They now end at a full sentence, and the Social Graph screen flags existing descriptions that are cut off.
+* Fixed: GPT-6.1 models were sent a reasoning setting they refuse.
 
 = 2.27.0 =
 * New: WordPress Abilities (WordPress 6.9 and later). Five read-only abilities let an AI assistant you connect to your site read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, a page's AEO report and your RAG Engine content gaps. Administrators only. Answers are summaries: no visitor data, raw crawler requests, full AI answers, settings or keys are ever returned.
@@ -323,6 +347,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.28.0 =
+Adds Muse (Meta AI) and DeepSeek to AI Visibility, a search location for each run, Markdown versions of your pages, and FAQ schema drift detection. RAG Engine matching is tighter and follow-ups about your business are grouped by topic.
 
 = 2.27.0 =
 Lets your own AI assistant read your AEO data through WordPress Abilities (WordPress 6.9+, read-only, administrators only), and keeps noindexed and checkout pages out of llms.txt.

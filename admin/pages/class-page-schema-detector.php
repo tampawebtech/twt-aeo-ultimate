@@ -135,7 +135,15 @@ class TWTAEO_Page_Schema_Detector {
 					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'FAQPage Schema Present', 'twt-aeo-ultimate' ); ?></div>
 				</div>
 
+				<div class="twt-aeo-summary-card <?php echo $summary['out_of_date'] > 0 ? 'twt-aeo-summary-card--alert' : 'twt-aeo-summary-card--good'; ?>">
+					<div class="twt-aeo-summary-card__number"><?php echo esc_html( $summary['out_of_date'] ); ?></div>
+					<div class="twt-aeo-summary-card__label"><?php esc_html_e( 'FAQ Schema Out of Date', 'twt-aeo-ultimate' ); ?></div>
+				</div>
+
 			</div>
+			<p style="margin:12px 0 0;font-size:13px;color:#646970;max-width:820px;">
+				<?php esc_html_e( 'FAQ schema is a saved copy of the questions and answers on the page. When you save a page, FAQ schema this plugin generated is updated to match automatically. FAQ schema you edited by hand, or that was added before this check existed, is flagged here instead so your edits are never overwritten.', 'twt-aeo-ultimate' ); ?>
+			</p>
 		</section>
 
 		<section class="twt-aeo-section">
@@ -200,7 +208,8 @@ class TWTAEO_Page_Schema_Detector {
 					<?php foreach ( $results as $item ) :
 						$post    = $item['post'];
 						$faq     = $item['faq_data'];
-						$row_cls = $faq['needs_schema'] ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok';
+						$drift   = isset( $faq['drift'] ) ? $faq['drift'] : array( 'state' => 'none', 'origin' => '', 'added' => array(), 'removed' => array(), 'edited' => array() );
+						$row_cls = ( $faq['needs_schema'] || ! empty( $faq['out_of_date'] ) ) ? 'twt-aeo-page-row--issues' : 'twt-aeo-page-row--ok';
 						$method_labels = array(
 							'block'             => 'FAQ Block',
 							'accordion'         => 'Accordion Block',
@@ -210,6 +219,9 @@ class TWTAEO_Page_Schema_Detector {
 							'numbered-qa'       => 'Numbered Q&A',
 						);
 						$method_label = $method_labels[ $faq['method'] ] ?? $faq['method'];
+						if ( '' === $method_label ) {
+							$method_label = __( 'None found', 'twt-aeo-ultimate' );
+						}
 					?>
 						<tr class="twt-aeo-page-row <?php echo esc_attr( $row_cls ); ?>">
 							<td class="twt-aeo-page-row__title">
@@ -232,7 +244,42 @@ class TWTAEO_Page_Schema_Detector {
 								<?php endif; ?>
 							</td>
 							<td>
-								<?php if ( $faq['needs_schema'] ) : ?>
+								<?php if ( 'orphaned' === $drift['state'] ) : ?>
+									<span class="twt-aeo-badge twt-aeo-badge--warn"><?php esc_html_e( 'FAQ section removed', 'twt-aeo-ultimate' ); ?></span>
+									<div style="font-size:12px;color:#646970;margin-top:4px;max-width:320px;"><?php esc_html_e( 'The page no longer shows questions and answers, but its FAQ schema still does. Google requires FAQ content to be visible on the page: remove the schema, or add the FAQ back.', 'twt-aeo-ultimate' ); ?></div>
+								<?php elseif ( 'changed' === $drift['state'] ) : ?>
+									<span class="twt-aeo-badge twt-aeo-badge--warn"><?php esc_html_e( 'Out of date', 'twt-aeo-ultimate' ); ?></span>
+									<div style="font-size:12px;color:#646970;margin-top:4px;max-width:320px;">
+										<?php
+										$parts = array();
+										if ( $drift['added'] ) {
+											/* translators: %d: number of questions. */
+											$parts[] = sprintf( _n( '%d question added on the page', '%d questions added on the page', count( $drift['added'] ), 'twt-aeo-ultimate' ), count( $drift['added'] ) );
+										}
+										if ( $drift['removed'] ) {
+											/* translators: %d: number of questions. */
+											$parts[] = sprintf( _n( '%d question no longer on the page', '%d questions no longer on the page', count( $drift['removed'] ), 'twt-aeo-ultimate' ), count( $drift['removed'] ) );
+										}
+										if ( $drift['edited'] ) {
+											/* translators: %d: number of answers. */
+											$parts[] = sprintf( _n( '%d answer reworded', '%d answers reworded', count( $drift['edited'] ), 'twt-aeo-ultimate' ), count( $drift['edited'] ) );
+										}
+										echo esc_html( implode( '; ', $parts ) );
+										if ( 'edited' === $drift['origin'] ) {
+											echo '<br>' . esc_html__( 'The schema was edited by hand, so it was not updated automatically.', 'twt-aeo-ultimate' );
+										}
+										?>
+										<?php if ( $drift['removed'] ) : ?>
+										<details style="margin-top:4px;"><summary><?php esc_html_e( 'Questions no longer on the page', 'twt-aeo-ultimate' ); ?></summary>
+											<ul style="margin:4px 0 0 16px;list-style:disc;">
+												<?php foreach ( array_slice( $drift['removed'], 0, 10 ) as $q ) : ?>
+													<li><?php echo esc_html( $q ); ?></li>
+												<?php endforeach; ?>
+											</ul>
+										</details>
+										<?php endif; ?>
+									</div>
+								<?php elseif ( $faq['needs_schema'] ) : ?>
 									<span class="twt-aeo-badge twt-aeo-badge--warn"><?php esc_html_e( 'Add FAQPage schema', 'twt-aeo-ultimate' ); ?></span>
 								<?php else : ?>
 									<span class="twt-aeo-badge" style="background:rgba(22,163,74,.1);color:#16a34a;"><?php esc_html_e( 'Good', 'twt-aeo-ultimate' ); ?></span>
@@ -251,6 +298,25 @@ class TWTAEO_Page_Schema_Detector {
 									<?php esc_html_e( 'Add FAQ Schema', 'twt-aeo-ultimate' ); ?>
 								</button>
 								<span class="twt-aeo-faq-gen-one-result" data-post-id="<?php echo esc_attr( $post->ID ); ?>"></span>
+								<?php elseif ( 'changed' === $drift['state'] ) : ?>
+								·
+								<button type="button" class="twt-aeo-link twt-aeo-faq-update"
+									data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+									data-nonce="<?php echo esc_attr( $generate_nonce ); ?>"
+									data-edited="<?php echo 'edited' === $drift['origin'] ? '1' : '0'; ?>"
+									style="background:none;border:none;cursor:pointer;padding:0;">
+									<?php esc_html_e( 'Update from page', 'twt-aeo-ultimate' ); ?>
+								</button>
+								<span class="twt-aeo-faq-drift-result" data-post-id="<?php echo esc_attr( $post->ID ); ?>"></span>
+								<?php elseif ( 'orphaned' === $drift['state'] ) : ?>
+								·
+								<button type="button" class="twt-aeo-link twt-aeo-faq-remove"
+									data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+									data-nonce="<?php echo esc_attr( $generate_nonce ); ?>"
+									style="background:none;border:none;cursor:pointer;padding:0;color:#dc2626;">
+									<?php esc_html_e( 'Remove FAQ schema', 'twt-aeo-ultimate' ); ?>
+								</button>
+								<span class="twt-aeo-faq-drift-result" data-post-id="<?php echo esc_attr( $post->ID ); ?>"></span>
 								<?php endif; ?>
 							</td>
 						</tr>
@@ -366,6 +432,51 @@ class TWTAEO_Page_Schema_Detector {
 					}
 				}).fail(function(){
 					btn.prop('disabled', false).text('<?php echo esc_js( __( 'Add FAQ Schema', 'twt-aeo-ultimate' ) ); ?>');
+					result.css('color','#dc2626').text(' ✗ Request failed');
+				});
+			});
+
+			$(document).on('click', '.twt-aeo-faq-update', function(){
+				var btn    = $(this);
+				var postId = btn.data('post-id');
+				var result = $('.twt-aeo-faq-drift-result[data-post-id="' + postId + '"]');
+				if ( String(btn.data('edited')) === '1' && ! window.confirm(<?php echo wp_json_encode( __( 'This FAQ schema was edited by hand. Updating it from the page replaces your edits. Continue?', 'twt-aeo-ultimate' ) ); ?>) ) {
+					return;
+				}
+				btn.prop('disabled', true);
+				result.text('').removeAttr('style');
+				$.post(ajaxurl, { action: 'twtaeo_faq_generate_one', nonce: btn.data('nonce'), post_id: postId }, function(r){
+					if (r.success) {
+						btn.remove();
+						result.css('color','#16a34a').text(' ✓ ' + r.data.qa_count + ' ' + <?php echo wp_json_encode( __( 'Q&A updated from the page', 'twt-aeo-ultimate' ) ); ?>);
+					} else {
+						btn.prop('disabled', false);
+						result.css('color','#dc2626').text(' ✗ ' + (r.data.message || 'Error'));
+					}
+				}).fail(function(){
+					btn.prop('disabled', false);
+					result.css('color','#dc2626').text(' ✗ Request failed');
+				});
+			});
+
+			$(document).on('click', '.twt-aeo-faq-remove', function(){
+				var btn    = $(this);
+				var postId = btn.data('post-id');
+				var result = $('.twt-aeo-faq-drift-result[data-post-id="' + postId + '"]');
+				if ( ! window.confirm(<?php echo wp_json_encode( __( 'Remove the FAQ schema from this page? Only FAQ schema saved by AEO Ultimate is removed.', 'twt-aeo-ultimate' ) ); ?>) ) {
+					return;
+				}
+				btn.prop('disabled', true);
+				$.post(ajaxurl, { action: 'twtaeo_faq_remove_schema', nonce: btn.data('nonce'), post_id: postId }, function(r){
+					if (r.success) {
+						btn.remove();
+						result.css('color','#16a34a').text(' ✓ ' + <?php echo wp_json_encode( __( 'FAQ schema removed', 'twt-aeo-ultimate' ) ); ?>);
+					} else {
+						btn.prop('disabled', false);
+						result.css('color','#dc2626').text(' ✗ ' + (r.data.message || 'Error'));
+					}
+				}).fail(function(){
+					btn.prop('disabled', false);
 					result.css('color','#dc2626').text(' ✗ Request failed');
 				});
 			});

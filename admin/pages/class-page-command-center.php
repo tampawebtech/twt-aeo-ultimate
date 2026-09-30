@@ -2883,6 +2883,7 @@ class TWTAEO_Page_Command_Center {
 				'url'      => $url,
 				'title'    => $entry['title'] ?? '',
 				'path'     => $path,
+				'format'   => ( isset( $entry['format'] ) && 'markdown' === $entry['format'] ) ? 'markdown' : 'html',
 			);
 		}
 
@@ -3152,6 +3153,9 @@ class TWTAEO_Page_Command_Center {
 									<?php echo esc_html( $entry['title'] ?: $entry['url'] ); ?>
 								</a>
 								<span style="font-size:11px;color:#999;margin-left:6px;"><?php echo esc_html( wp_parse_url( $entry['url'], PHP_URL_PATH ) ?: '/' ); ?></span>
+								<?php if ( isset( $entry['format'] ) && 'markdown' === $entry['format'] ) : ?>
+									<span style="font-size:10px;font-weight:600;color:#7c3aed;background:rgba(124,58,237,.1);border-radius:3px;padding:1px 5px;margin-left:6px;"><?php esc_html_e( 'Markdown', 'twt-aeo-ultimate' ); ?></span>
+								<?php endif; ?>
 							<?php else : ?>
 								<?php echo esc_html( $entry['title'] ?? '—' ); ?>
 							<?php endif; ?>

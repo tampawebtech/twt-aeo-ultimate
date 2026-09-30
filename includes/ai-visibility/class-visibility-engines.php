@@ -173,6 +173,7 @@ final class TWTAEO_Visibility_Engines {
 		$model    = isset( $models[ $engine ] ) ? $models[ $engine ] : '';
 		$system   = self::system_prompt( self::SHOPPER_PROMPT, $opts );
 		$history  = self::history( $opts );
+		$loc      = self::location( $opts );
 
 		$result = self::blank( $model );
 		try {
@@ -183,22 +184,28 @@ final class TWTAEO_Visibility_Engines {
 			} else {
 				switch ( $engine ) {
 					case 'claude':
-						$result = self::ask_claude( $key, $question, $model, $system, $history );
+						$result = self::ask_claude( $key, $question, $model, $system, $history, $loc );
 						break;
 					case 'chatgpt':
-						$result = self::ask_chatgpt( $key, $question, $model, $system, $history );
+						$result = self::ask_chatgpt( $key, $question, $model, $system, $history, $loc );
 						break;
 					case 'gemini':
 						$result = self::ask_gemini( $key, $question, $model, $system, $history );
 						break;
 					case 'perplexity':
-						$result = self::ask_perplexity( $key, $question, $model, $system, $history );
+						$result = self::ask_perplexity( $key, $question, $model, $system, $history, $loc );
 						break;
 					case 'grok':
 						$result = self::ask_grok( $key, $question, $model, $system, $history );
 						break;
 					case 'mistral':
 						$result = self::ask_mistral( $key, $question, $model, $system, $history );
+						break;
+					case 'deepseek':
+						$result = self::ask_deepseek( $key, $question, $model, $system, $history, $loc );
+						break;
+					case 'meta':
+						$result = self::ask_meta( $key, $question, $model, $system, $history, $loc );
 						break;
 					default:
 						/* translators: %s: engine id */
@@ -234,30 +241,129 @@ final class TWTAEO_Visibility_Engines {
 
 	/* ─────────────────────────── Claude ───────────────────────────── */
 
-	private static function ask_claude( $key, $question, $model, $system, array $history = array() ) {
-		$tool = TWTAEO_Visibility_Types::CLAUDE_SEARCH_TOOL;
-		$out  = self::blank( $model, array( $tool ) );
-		$res  = TWTAEO_Visibility_Http::post(
+	private static function ask_claude( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+		return self::anthropic_messages(
 			'https://api.anthropic.com/v1/messages',
-			array(
-				'headers' => array(
-					'x-api-key'         => $key,
-					'anthropic-version' => '2023-06-01',
-					'content-type'      => 'application/json',
-				),
-				'body'    => array(
-					'model'         => $model,
-					'max_tokens'    => self::CLAUDE_MAX_TOKENS,
-					'output_config' => array( 'effort' => 'low' ),
-					'system'        => $system,
-					'tools'         => array(
-						array( 'type' => $tool, 'name' => 'web_search', 'max_uses' => 3 ),
-					),
-					'messages'      => self::turns( $history, $question ),
-				),
-			),
-			$key
+			TWTAEO_Visibility_Types::CLAUDE_SEARCH_TOOL,
+			array( 'output_config' => array( 'effort' => 'low' ) ),
+			$key,
+			$question,
+			$model,
+			$system,
+			$history,
+			$loc
 		);
+	}
+
+	/* ─────────────────────────── DeepSeek ─────────────────────────── */
+
+	/**
+	 * DeepSeek through its Anthropic-compatible Messages API: the interface
+	 * DeepSeek documents web search for, so the request, the search tool and
+	 * the reply parsing are Claude's. Only `effort` is honoured in
+	 * output_config there, and it is left out: DeepSeek's defaults are what
+	 * its own app runs.
+	 */
+	private static function ask_deepseek( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+		$out = self::anthropic_messages(
+			'https://api.deepseek.com/anthropic/v1/messages',
+			TWTAEO_Visibility_Types::DEEPSEEK_SEARCH_TOOL,
+			array(),
+			$key,
+			$question,
+			$model,
+			$system,
+			$history,
+			$loc
+		);
+
+		// DeepSeek documents its web search as a separate model call that
+		// summarises the results, so an answer may name its sources as links
+		// in the text rather than as Claude-style citation objects. When no
+		// citation objects came back but a search did, a link in the answer
+		// counts as cited -- only if its site is among the search results,
+		// so a link the model made up is never scored as a citation.
+		if ( empty( $out['error'] ) && empty( $out['cited_urls'] ) && ! empty( $out['searched_urls'] ) ) {
+			$searched_hosts = array();
+			foreach ( $out['searched_urls'] as $u ) {
+				$searched_hosts[ self::bare_host( $u ) ] = true;
+			}
+			foreach ( self::urls_in_text( $out['text'] ) as $u ) {
+				if ( isset( $searched_hosts[ self::bare_host( $u ) ] ) ) {
+					$out['cited_urls'][] = $u;
+				}
+			}
+		}
+		return $out;
+	}
+
+	/** Links written into an answer: Markdown [text](url) and bare http(s) URLs. */
+	private static function urls_in_text( $text ) {
+		preg_match_all( '#https?://[^\s<>"\'\)\]]+#i', (string) $text, $m );
+		$urls = array();
+		foreach ( $m[0] as $u ) {
+			$u = rtrim( $u, '.,;:!?' );
+			if ( self::is_url( $u ) ) {
+				$urls[] = $u;
+			}
+		}
+		return $urls;
+	}
+
+	/** Host without "www.", lower-cased; '' when there is none. */
+	private static function bare_host( $url ) {
+		$host = strtolower( (string) wp_parse_url( (string) $url, PHP_URL_HOST ) );
+		return (string) preg_replace( '/^www\./', '', $host );
+	}
+
+	/**
+	 * One Anthropic Messages call with server-side web search, and its answer
+	 * text, cited URLs (text-block citations) and searched URLs (search tool
+	 * results).
+	 *
+	 * @param string     $url   Messages endpoint.
+	 * @param string     $tool  Web-search tool type.
+	 * @param array      $extra Extra body fields for this provider.
+	 * @param array|null $loc   Where the search runs from (TWTAEO_Visibility_Location).
+	 */
+	private static function anthropic_messages( $url, $tool, array $extra, $key, $question, $model, $system, array $history, $loc = null ) {
+		$request = function ( $with_location ) use ( $url, $tool, $extra, $key, $question, $model, $system, $history, $loc ) {
+			$search = array( 'type' => $tool, 'name' => 'web_search', 'max_uses' => 3 );
+			if ( $with_location ) {
+				$search['user_location'] = TWTAEO_Visibility_Location::for_api( $loc, 'anthropic' );
+			}
+			return TWTAEO_Visibility_Http::post(
+				$url,
+				array(
+					'headers' => array(
+						'x-api-key'         => $key,
+						'anthropic-version' => '2023-06-01',
+						'content-type'      => 'application/json',
+					),
+					'body'    => array_merge(
+						array(
+							'model'      => $model,
+							'max_tokens' => self::CLAUDE_MAX_TOKENS,
+							'system'     => $system,
+							'tools'      => array( $search ),
+							'messages'   => self::turns( $history, $question ),
+						),
+						$extra
+					),
+				),
+				$key
+			);
+		};
+		$located = is_array( $loc );
+		$res     = $request( $located );
+		// A provider that refuses the location field (DeepSeek has not said it
+		// takes one) is asked again without it; the context line still carries
+		// the location, and `tools` records that no search location was sent.
+		if ( $located && ! $res['ok'] && 400 === (int) $res['status'] ) {
+			$located = false;
+			$res     = $request( false );
+		}
+		$out = self::blank( $model, $located ? array( $tool, 'user_location' ) : array( $tool ) );
 		if ( ! $res['ok'] ) {
 			$out['error'] = $res['error'];
 			return $out;
@@ -305,15 +411,20 @@ final class TWTAEO_Visibility_Engines {
 
 	/* ─────────────────────────── ChatGPT ──────────────────────────── */
 
-	private static function ask_chatgpt( $key, $question, $model, $system, array $history = array() ) {
+	private static function ask_chatgpt( $key, $question, $model, $system, array $history = array(), $loc = null ) {
 		$tool = 'web_search';
-		$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history );
+		$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc );
 		// Some accounts/models still only know the preview tool name; one retry.
 		if ( ! $res['ok'] && 400 === (int) $res['status'] && false !== stripos( (string) $res['error'], 'web_search' ) ) {
 			$tool = 'web_search_preview';
-			$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history );
+			$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc );
 		}
-		$out = self::blank( $model, array( $tool ) );
+		// Location refused: ask once more without it (the context line keeps it).
+		if ( is_array( $loc ) && ! $res['ok'] && 400 === (int) $res['status'] ) {
+			$loc = null;
+			$res = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, null );
+		}
+		$out = self::blank( $model, is_array( $loc ) ? array( $tool, 'user_location' ) : array( $tool ) );
 		if ( ! $res['ok'] ) {
 			$out['error'] = $res['error'];
 			return $out;
@@ -347,7 +458,11 @@ final class TWTAEO_Visibility_Engines {
 		return $out;
 	}
 
-	private static function chatgpt_request( $key, $question, $model, $tool_type, $system, array $history = array() ) {
+	private static function chatgpt_request( $key, $question, $model, $tool_type, $system, array $history = array(), $loc = null ) {
+		$search = array( 'type' => $tool_type );
+		if ( is_array( $loc ) ) {
+			$search['user_location'] = TWTAEO_Visibility_Location::for_api( $loc, 'openai' );
+		}
 		return TWTAEO_Visibility_Http::post(
 			'https://api.openai.com/v1/responses',
 			array(
@@ -357,7 +472,7 @@ final class TWTAEO_Visibility_Engines {
 				),
 				'body'    => array(
 					'model'             => $model,
-					'tools'             => array( array( 'type' => $tool_type ) ),
+					'tools'             => array( $search ),
 					'instructions'      => $system,
 					'input'             => empty( $history ) ? $question : self::turns( $history, $question ),
 					'max_output_tokens' => self::THINKING_MAX_TOKENS,
@@ -365,6 +480,307 @@ final class TWTAEO_Visibility_Engines {
 			),
 			$key
 		);
+	}
+
+	/* ──────────────────────── Muse (Meta AI) ───────────────────────── */
+
+	/**
+	 * Engines asked in background mode: submitted in about a second, answer
+	 * collected later by polling, so a slow engine never holds up a run.
+	 * Muse (Meta Model API) took ~50-60 s per answer even with searches
+	 * capped; everything else answers inside one step.
+	 */
+	const ASYNC_ENGINES = array( 'meta' );
+
+	const META_RESPONSES = 'https://api.meta.ai/v1/responses';
+
+	/** Whether a run should submit this engine's questions and collect them later. */
+	public static function is_async( $engine ) {
+		return in_array( (string) $engine, self::ASYNC_ENGINES, true );
+	}
+
+	/**
+	 * Submit ONE question in background mode. Never throws.
+	 *
+	 * @param string $engine
+	 * @param string $key
+	 * @param string $question
+	 * @param array  $opts     Same as ask_with_citations().
+	 * @return array { id: string, error: string|null, tools: string[], model: string }
+	 */
+	public static function submit_async( $engine, $key, $question, array $opts = array() ) {
+		$models = TWTAEO_Visibility_Types::MODELS;
+		$model  = isset( $models[ $engine ] ) ? $models[ $engine ] : '';
+		$out    = array( 'id' => '', 'error' => null, 'tools' => array(), 'model' => $model );
+		if ( 'meta' !== $engine ) {
+			/* translators: %s: engine id */
+			$out['error'] = sprintf( __( 'Unknown engine: %s', 'twt-aeo-ultimate' ), $engine );
+			return $out;
+		}
+		try {
+			$loc     = self::location( $opts );
+			$system  = self::system_prompt( self::SHOPPER_PROMPT, $opts );
+			$history = self::history( $opts );
+			$located = is_array( $loc );
+			$res     = self::meta_request( $key, $question, $model, $system, $history, $located ? $loc : null, true );
+			if ( $located && ! $res['ok'] && 400 === (int) $res['status'] ) {
+				$located = false;
+				$res     = self::meta_request( $key, $question, $model, $system, $history, null, true );
+			}
+			$out['tools'] = $located ? array( 'web_search', 'user_location' ) : array( 'web_search' );
+			if ( ! $res['ok'] ) {
+				$out['error'] = $res['error'];
+			} elseif ( empty( $res['body']['id'] ) || ! is_string( $res['body']['id'] ) ) {
+				$out['error'] = __( 'The provider accepted the question but returned no response id.', 'twt-aeo-ultimate' );
+			} else {
+				$out['id'] = (string) $res['body']['id'];
+			}
+		} catch ( \Throwable $e ) {
+			$out['error'] = $e->getMessage();
+		}
+		if ( null !== $out['error'] ) {
+			$out['error'] = TWTAEO_Visibility_Http::redact( (string) $out['error'], $key );
+		}
+		return $out;
+	}
+
+	/**
+	 * Check on a background answer. Never throws.
+	 *
+	 * @param string $engine
+	 * @param string $key
+	 * @param string $id       From submit_async().
+	 * @param array  $tools    What was sent (from submit_async()).
+	 * @return array { state: pending|done, answer?: array like ask_with_citations() }
+	 */
+	public static function poll_async( $engine, $key, $id, array $tools = array() ) {
+		$models = TWTAEO_Visibility_Types::MODELS;
+		$model  = isset( $models[ $engine ] ) ? $models[ $engine ] : '';
+		$answer = self::blank( $model, $tools );
+		try {
+			$res = TWTAEO_Visibility_Http::get(
+				self::META_RESPONSES . '/' . rawurlencode( (string) $id ) . '?include[]=web_search_call.results',
+				array(
+					'headers' => array( 'Authorization' => 'Bearer ' . $key ),
+					'timeout' => 30,
+				),
+				$key
+			);
+			if ( ! $res['ok'] ) {
+				// A network hiccup or a 5xx is not the answer failing: try again
+				// next poll. Anything the provider says outright (4xx) is final.
+				if ( 0 === (int) $res['status'] || (int) $res['status'] >= 500 ) {
+					return array( 'state' => 'pending' );
+				}
+				$answer['error'] = $res['error'];
+			} else {
+				$body   = is_array( $res['body'] ) ? $res['body'] : array();
+				$status = isset( $body['status'] ) ? (string) $body['status'] : '';
+				if ( in_array( $status, array( 'queued', 'in_progress' ), true ) ) {
+					return array( 'state' => 'pending' );
+				}
+				if ( 'completed' === $status || 'incomplete' === $status ) {
+					$answer = self::parse_meta( $body, $answer );
+					if ( 'incomplete' === $status && '' === trim( $answer['text'] ) ) {
+						$reason          = isset( $body['incomplete_details']['reason'] ) ? (string) $body['incomplete_details']['reason'] : '';
+						/* translators: %s: provider's reason */
+						$answer['error'] = sprintf( __( 'The answer stopped before it finished (%s).', 'twt-aeo-ultimate' ), '' !== $reason ? $reason : 'incomplete' );
+					}
+				} else {
+					$detail          = isset( $body['error']['message'] ) ? (string) $body['error']['message'] : $status;
+					/* translators: %s: provider's reason */
+					$answer['error'] = sprintf( __( 'The provider did not answer (%s).', 'twt-aeo-ultimate' ), '' !== $detail ? $detail : 'failed' );
+				}
+			}
+		} catch ( \Throwable $e ) {
+			$answer['error'] = $e->getMessage();
+		}
+		$answer['text']          = (string) $answer['text'];
+		$answer['cited_urls']    = self::uniq( $answer['cited_urls'] );
+		$answer['searched_urls'] = self::uniq( $answer['searched_urls'] );
+		$answer['error']         = ( null !== $answer['error'] && '' !== $answer['error'] ) ? TWTAEO_Visibility_Http::redact( (string) $answer['error'], $key ) : null;
+		return array( 'state' => 'done', 'answer' => $answer );
+	}
+
+	/**
+	 * Meta Model API, Responses format (search grounding is not available
+	 * through its Chat Completions API). `web_search` with an optional
+	 * `user_location`; cited URLs are the `url_citation` annotations on the
+	 * answer, searched URLs the `web_search_call.results` asked for with
+	 * `include`. Runs use submit_async()/poll_async(); this one-shot form
+	 * serves anything that asks outside a run.
+	 */
+	private static function ask_meta( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+		$located = is_array( $loc );
+		$res     = self::meta_request( $key, $question, $model, $system, $history, $located ? $loc : null, false );
+		if ( $located && ! $res['ok'] && 400 === (int) $res['status'] ) {
+			$located = false;
+			$res     = self::meta_request( $key, $question, $model, $system, $history, null, false );
+		}
+		$out = self::blank( $model, $located ? array( 'web_search', 'user_location' ) : array( 'web_search' ) );
+		if ( ! $res['ok'] ) {
+			$out['error'] = $res['error'];
+			return $out;
+		}
+		return self::parse_meta( is_array( $res['body'] ) ? $res['body'] : array(), $out );
+	}
+
+	/** One Responses call to Meta, in the foreground or in background mode. */
+	private static function meta_request( $key, $question, $model, $system, array $history, $loc, $background ) {
+		$search = array( 'type' => 'web_search' );
+		if ( is_array( $loc ) ) {
+			$search['user_location'] = TWTAEO_Visibility_Location::for_api( $loc, 'meta' );
+		}
+		$body = array(
+			'model'             => $model,
+			'tools'             => array( $search ),
+			// Uncapped, Muse ran ~15 searches for one question (~55k input
+			// tokens, 26-40+ s). Three, as Claude's max_uses: ~6-9k.
+			'max_tool_calls'    => 3,
+			'include'           => array( 'web_search_call.results' ),
+			'instructions'      => $system,
+			'input'             => empty( $history ) ? $question : self::turns( $history, $question ),
+			'max_output_tokens' => self::THINKING_MAX_TOKENS,
+		);
+		if ( $background ) {
+			$body['background'] = true;
+		}
+		return TWTAEO_Visibility_Http::post(
+			self::META_RESPONSES,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $key,
+					'content-type'  => 'application/json',
+				),
+				'body'    => $body,
+				// Submitting is quick; answering in the foreground took ~50 s.
+				'timeout' => $background ? 30 : self::META_TIMEOUT,
+			),
+			$key
+		);
+	}
+
+	/** Answer text (final message only), cited and searched URLs from a Meta response body. */
+	private static function parse_meta( array $body, array $out ) {
+		$texts    = array();
+		$cited    = array();
+		$searched = array();
+		foreach ( (array) ( $body['output'] ?? array() ) as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			if ( 'web_search_call' === ( $item['type'] ?? '' ) ) {
+				foreach ( (array) ( $item['results'] ?? ( $item['action']['sources'] ?? array() ) ) as $r ) {
+					if ( is_array( $r ) && isset( $r['url'] ) && self::is_url( $r['url'] ) ) {
+						$searched[] = $r['url'];
+					}
+				}
+				continue;
+			}
+			if ( 'message' !== ( $item['type'] ?? '' ) ) {
+				continue;
+			}
+			// Muse writes a message before each search ("I'll search for…").
+			// Only the LAST message is the answer the user reads, so each
+			// message replaces the one before; citations are kept per message
+			// the same way.
+			$msg_text  = '';
+			$msg_cited = array();
+			foreach ( (array) ( $item['content'] ?? array() ) as $part ) {
+				if ( ! is_array( $part ) || 'output_text' !== ( $part['type'] ?? '' ) ) {
+					continue;
+				}
+				if ( isset( $part['text'] ) && is_string( $part['text'] ) ) {
+					$msg_text .= $part['text'];
+				}
+				foreach ( (array) ( $part['annotations'] ?? array() ) as $a ) {
+					if ( is_array( $a ) && 'url_citation' === ( $a['type'] ?? '' ) && isset( $a['url'] ) && self::is_url( $a['url'] ) ) {
+						$msg_cited[] = $a['url'];
+					}
+				}
+			}
+			if ( '' !== trim( $msg_text ) ) {
+				$texts = array( $msg_text );
+				$cited = $msg_cited;
+			}
+		}
+		if ( empty( $texts ) && isset( $body['output_text'] ) && is_string( $body['output_text'] ) ) {
+			$texts[] = $body['output_text'];
+		}
+		$out['text'] = implode( '', $texts );
+
+		// Muse's API usually returns the answer with no url_citation
+		// annotations and no links in the text, only the search results it
+		// read (tested 2026-09-29: a 3,800-character answer naming several
+		// shops, zero annotations). Scored on annotations alone, Muse could
+		// never cite anyone. So when there are none, a search result counts
+		// as cited when the answer names its site: "HS Spindles" for
+		// hsspindles.com, "Atlanta Precision Spindles" for
+		// atlantaprecisionspindles.com. Results it read but never named do not.
+		if ( empty( $cited ) && '' !== $out['text'] ) {
+			$cited = self::named_results( $out['text'], $searched );
+		}
+		$out['cited_urls']    = $cited;
+		$out['searched_urls'] = $searched;
+		return $out;
+	}
+
+	/**
+	 * Search results whose site the answer names: the domain's name (without
+	 * "www." and the ending) spelled out in the text, spaces and punctuation
+	 * ignored. Names shorter than five letters are skipped: too many
+	 * accidental matches.
+	 *
+	 * @param string   $text
+	 * @param string[] $urls
+	 * @return string[]
+	 */
+	private static function named_results( $text, array $urls ) {
+		$flat = strtolower( (string) preg_replace( '/[^a-z0-9]/i', '', (string) $text ) );
+		$out  = array();
+		$seen = array();
+		foreach ( $urls as $u ) {
+			$host  = self::bare_host( $u );
+			$parts = explode( '.', $host );
+			// The name before the ending: hsspindles.com, bbc.co.uk, shop.example.de.
+			$count = count( $parts );
+			$name  = $count >= 3 && strlen( $parts[ $count - 2 ] ) <= 3 ? $parts[ $count - 3 ] : ( $count >= 2 ? $parts[ $count - 2 ] : $host );
+			$name  = (string) preg_replace( '/[^a-z0-9]/', '', $name );
+			if ( strlen( $name ) < 5 || isset( $seen[ $host ] ) ) {
+				continue;
+			}
+			if ( false === strpos( $flat, $name ) ) {
+				continue;
+			}
+			// spindles.co.nz is not named by an answer that says "spindles":
+			// when the site's name is also an everyday word in the text, it
+			// counts only where it is written as a name (capitalised).
+			if ( preg_match_all( '/(?<![a-z0-9])' . preg_quote( $name, '/' ) . '(?![a-z0-9])/i', (string) $text, $words, PREG_OFFSET_CAPTURE ) ) {
+				$as_name = false;
+				foreach ( $words[0] as $w ) {
+					if ( ! ctype_upper( $w[0][0] ) ) {
+						continue;
+					}
+					// "HS Spindles", "Atlanta Precision Spindles": the word ends
+					// a longer name, which is that site's, not this one's.
+					$before = substr( (string) $text, max( 0, $w[1] - 40 ), min( 40, $w[1] ) );
+					if ( preg_match( '/(?:^|[^A-Za-z0-9])[A-Z][A-Za-z0-9&\'\-]*[\s*_]+$/', $before ) ) {
+						continue;
+					}
+					$as_name = true;
+					break;
+				}
+				$words = $words[0];
+				// Written only as a lowercase word, and nowhere as part of a
+				// longer name ("HS Spindles" flattens to hsspindles).
+				if ( ! $as_name && substr_count( $flat, $name ) <= count( $words ) ) {
+					continue;
+				}
+			}
+			$seen[ $host ] = true;
+			$out[]         = $u;
+		}
+		return $out;
 	}
 
 	/* ─────────────────────────── Gemini ───────────────────────────── */
@@ -446,9 +862,25 @@ final class TWTAEO_Visibility_Engines {
 	 * Sonar's `citations[]` + `search_results[]` were read before the move, so
 	 * runs either side of the migration stay comparable.
 	 */
-	private static function ask_perplexity( $key, $question, $model, $system, array $history = array() ) {
-		$out     = self::blank( $model, array( 'web_search' ) );
-		$request = function ( $input ) use ( $key, $model, $system ) {
+	private static function ask_perplexity( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+		$located = is_array( $loc );
+		$request = function ( $input ) use ( $key, $model, $system, $loc, &$located ) {
+			$body = array(
+				'preset'            => $model,
+				'instructions'      => $system,
+				'input'             => $input,
+				'max_output_tokens' => self::MAX_ANSWER_TOKENS,
+			);
+			// The preset already searches; naming its web_search tool is how the
+			// Agent API takes a search location.
+			if ( $located ) {
+				$body['tools'] = array(
+					array(
+						'type'          => 'web_search',
+						'user_location' => TWTAEO_Visibility_Location::for_api( $loc, 'perplexity' ),
+					),
+				);
+			}
 			return TWTAEO_Visibility_Http::post(
 				TWTAEO_AI_Client::PERPLEXITY_ENDPOINT,
 				array(
@@ -456,23 +888,25 @@ final class TWTAEO_Visibility_Engines {
 						'Authorization' => 'Bearer ' . $key,
 						'content-type'  => 'application/json',
 					),
-					'body'    => array(
-						'preset'            => $model,
-						'instructions'      => $system,
-						'input'             => $input,
-						'max_output_tokens' => self::MAX_ANSWER_TOKENS,
-					),
+					'body'    => $body,
 				),
 				$key
 			);
 		};
-		$res = $request( empty( $history ) ? $question : self::turns( $history, $question ) );
+		$input = empty( $history ) ? $question : self::turns( $history, $question );
+		$res   = $request( $input );
+		// Location refused: ask once more with the preset's own search.
+		if ( $located && ! $res['ok'] && 400 === (int) $res['status'] ) {
+			$located = false;
+			$res     = $request( $input );
+		}
 		// Earlier turns are sent as message items. If the Agent API refuses that
 		// shape, carry them as a transcript in the input text instead — the
 		// conversation still reaches the model, just less natively.
 		if ( ! $res['ok'] && 400 === (int) $res['status'] && ! empty( $history ) ) {
 			$res = $request( self::transcript( $history, $question ) );
 		}
+		$out = self::blank( $model, $located ? array( 'web_search', 'user_location' ) : array( 'web_search' ) );
 		if ( ! $res['ok'] ) {
 			// A status means Perplexity answered; say what it meant in plain words.
 			$out['error'] = $res['status'] > 0
@@ -718,8 +1152,25 @@ final class TWTAEO_Visibility_Engines {
 	 * @return string
 	 */
 	public static function system_prompt( $base, array $opts = array() ) {
-		$line = isset( $opts['persona'] ) ? self::persona_context( $opts['persona'] ) : '';
-		return '' === $line ? (string) $base : (string) $base . "\n\n" . $line;
+		$lines = array_filter(
+			array(
+				isset( $opts['persona'] ) ? self::persona_context( $opts['persona'] ) : '',
+				// Where the user is, the way the apps know it. Every engine gets
+				// this line; the ones with a search location also get that.
+				isset( $opts['location'] ) && class_exists( 'TWTAEO_Visibility_Location' )
+					? TWTAEO_Visibility_Location::context_line( TWTAEO_Visibility_Location::clean( $opts['location'] ) )
+					: '',
+			),
+			'strlen'
+		);
+		return $lines ? (string) $base . "\n\n" . implode( "\n", $lines ) : (string) $base;
+	}
+
+	/** The run's location, cleaned, or null. */
+	private static function location( array $opts ) {
+		return isset( $opts['location'] ) && class_exists( 'TWTAEO_Visibility_Location' )
+			? TWTAEO_Visibility_Location::clean( $opts['location'] )
+			: null;
 	}
 
 	/**
@@ -772,6 +1223,9 @@ final class TWTAEO_Visibility_Engines {
 
 	/** Seconds the follow-up call may take; the answer call already spent up to 40. */
 	const FOLLOW_UP_TIMEOUT = 25;
+
+	/** Seconds a Muse (Meta AI) answer may take: a slow reasoning model, ~50 s with 3 searches. */
+	const META_TIMEOUT = 90;
 
 	const FOLLOW_UP_MAX_TOKENS = 600;
 
@@ -909,15 +1363,21 @@ final class TWTAEO_Visibility_Engines {
 
 			case 'chatgpt':
 			case 'grok':
-				$url     = 'chatgpt' === $engine ? 'https://api.openai.com/v1/responses' : 'https://api.x.ai/v1/responses';
+			case 'meta':
+				$urls    = array(
+					'chatgpt' => 'https://api.openai.com/v1/responses',
+					'grok'    => 'https://api.x.ai/v1/responses',
+					'meta'    => 'https://api.meta.ai/v1/responses',
+				);
+				$url     = $urls[ $engine ];
 				$headers = $bearer;
 				$body    = array(
 					'model'        => $model,
 					'instructions' => $system,
 					'input'        => $prompt,
 				);
-				if ( 'chatgpt' === $engine ) {
-					// Reasoning tokens draw from this budget on GPT-5+.
+				if ( 'chatgpt' === $engine || 'meta' === $engine ) {
+					// Reasoning tokens draw from this budget (GPT-5+, Muse Spark).
 					$body['max_output_tokens'] = 1500;
 				}
 				if ( $structured ) {
@@ -969,6 +1429,26 @@ final class TWTAEO_Visibility_Engines {
 				}
 				break;
 
+			case 'deepseek':
+				// Anthropic-compatible endpoint. DeepSeek does not document
+				// JSON-schema output there, so both attempts rely on the
+				// instructions and parse_follow_ups() reading plain lists.
+				$url     = 'https://api.deepseek.com/anthropic/v1/messages';
+				$headers = array(
+					'x-api-key'         => $key,
+					'anthropic-version' => '2023-06-01',
+					'content-type'      => 'application/json',
+				);
+				$body    = array(
+					'model'      => $model,
+					'max_tokens' => self::FOLLOW_UP_MAX_TOKENS,
+					'system'     => $system,
+					'messages'   => array(
+						array( 'role' => 'user', 'content' => $prompt ),
+					),
+				);
+				break;
+
 			case 'mistral':
 				$url     = 'https://api.mistral.ai/v1/chat/completions';
 				$headers = $bearer;
@@ -1008,7 +1488,7 @@ final class TWTAEO_Visibility_Engines {
 			return array( 'ok' => false, 'status' => (int) $res['status'], 'error' => (string) $res['error'], 'text' => '' );
 		}
 		$body = is_array( $res['body'] ) ? $res['body'] : array();
-		if ( 'claude' === $engine && isset( $body['stop_reason'] ) && 'refusal' === $body['stop_reason'] ) {
+		if ( in_array( $engine, array( 'claude', 'deepseek' ), true ) && isset( $body['stop_reason'] ) && 'refusal' === $body['stop_reason'] ) {
 			return array( 'ok' => false, 'status' => (int) $res['status'], 'error' => __( 'The provider declined to suggest follow-ups.', 'twt-aeo-ultimate' ), 'text' => '' );
 		}
 		return array( 'ok' => true, 'status' => (int) $res['status'], 'error' => '', 'text' => self::follow_up_text( $engine, $body ) );
@@ -1019,6 +1499,7 @@ final class TWTAEO_Visibility_Engines {
 		$texts = array();
 		switch ( $engine ) {
 			case 'claude':
+			case 'deepseek':
 				foreach ( (array) ( $body['content'] ?? array() ) as $block ) {
 					if ( is_array( $block ) && 'text' === ( $block['type'] ?? '' ) && isset( $block['text'] ) && is_string( $block['text'] ) ) {
 						$texts[] = $block['text'];
@@ -1027,6 +1508,7 @@ final class TWTAEO_Visibility_Engines {
 				break;
 			case 'chatgpt':
 			case 'grok':
+			case 'meta':
 				foreach ( (array) ( $body['output'] ?? array() ) as $item ) {
 					foreach ( (array) ( is_array( $item ) && isset( $item['content'] ) ? $item['content'] : array() ) as $part ) {
 						if ( is_array( $part ) && 'output_text' === ( $part['type'] ?? '' ) && isset( $part['text'] ) && is_string( $part['text'] ) ) {

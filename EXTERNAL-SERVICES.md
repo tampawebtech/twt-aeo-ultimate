@@ -21,6 +21,8 @@ This file has two parts:
 | **Perplexity** | `api.perplexity.ai` (Agent API) | Brand and gap research, AI Visibility, RAG Engine law check | The question or lookup prompt. For the law check: a law or code's citation, place, date and section headings — never the document's text | [Terms](https://www.perplexity.ai/hub/legal/terms-of-service) | [Privacy](https://www.perplexity.ai/hub/legal/privacy-policy) |
 | **xAI Grok** | `api.x.ai` | AI Visibility only | An AI Visibility question | [Terms](https://x.ai/legal/terms-of-service-enterprise) | [Privacy](https://x.ai/legal/privacy-policy) |
 | **Mistral (Le Chat)** | `api.mistral.ai` | AI Visibility only | An AI Visibility question | [Terms](https://legal.mistral.ai/terms/commercial-terms-of-service) | [Privacy](https://legal.mistral.ai/terms/privacy-policy) |
+| **Meta (Muse, Meta Model API)** | `api.meta.ai` | AI Visibility only | An AI Visibility question | [Terms](https://ai.developer.meta.com/legal/terms-of-service) | [Privacy](https://www.facebook.com/privacy/policy/) |
+| **DeepSeek** | `api.deepseek.com` | AI Visibility only | An AI Visibility question | [Terms](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html) | [Privacy](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html) |
 
 When no plugin key is set and WordPress 7.0's built-in AI Client is available, Claude and OpenAI requests go through the provider you connected under **Settings → Connectors** instead.
 

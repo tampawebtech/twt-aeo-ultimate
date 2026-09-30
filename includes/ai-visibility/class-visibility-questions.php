@@ -661,6 +661,33 @@ final class TWTAEO_Visibility_Questions {
 	 * the `from` family because "what does {site} say about X" is the question
 	 * that claim answers.
 	 */
+	/**
+	 * A heading as a question a buyer would ask, or '' when it is not one.
+	 *
+	 * Headings are written in the site's own voice: "Hurco VMX Models We
+	 * Service" became "Can you explain Hurco VMX Models We Service?", which
+	 * no buyer asks. A "{X} models we service" heading asks what the models
+	 * are; other headings about us, our or you ("Why Choose Us", "Contact
+	 * Our Team") are skipped for the next heading.
+	 */
+	public static function heading_question( $h ) {
+		$h = self::strip_trailing_punct( trim( (string) $h ) );
+		if ( '' === $h ) {
+			return '';
+		}
+		if ( preg_match( '/^(.+?)\s+(models?|machines?|brands?|series|makes?|products?|parts?|equipment|spindles?|types?)\s+(?:that\s+)?(?:we|our\s+team)\s+(?:service|repair|rebuild|support|work\s+on|carry|stock|sell|offer|handle|fix)\b.*$/i', $h, $m ) ) {
+			return 'What ' . trim( $m[1] ) . ' ' . strtolower( $m[2] ) . ' are there?';
+		}
+		if ( preg_match( '/\b(?:we|we\'re|we\'ve|us|our|ours|you|your|yours)\b/i', $h ) ) {
+			return '';
+		}
+		if ( preg_match( '/^(?:contact|call|get\s+(?:a|your)\s+(?:quote|estimate)|request|schedule|book|faqs?|frequently\s+asked|related|summary|conclusion|overview|introduction)\b/i', $h ) ) {
+			return '';
+		}
+
+		return 'Can you explain ' . $h . '?';
+	}
+
 	private static function post_drafts( $site, array $post, $title ) {
 		$drafts = array();
 		$clean  = self::strip_trailing_punct( $title );
@@ -688,9 +715,9 @@ final class TWTAEO_Visibility_Questions {
 				if ( is_array( $h ) ) {
 					$h = self::get( $h, 'text' );
 				}
-				$h = self::strip_html( $h );
-				if ( '' !== $h ) {
-					$drafts[] = self::draft( 'explain', 'Can you explain ' . self::strip_trailing_punct( $h ) . '?' );
+				$q = self::heading_question( self::strip_html( $h ) );
+				if ( '' !== $q ) {
+					$drafts[] = self::draft( 'explain', $q );
 					break;
 				}
 			}

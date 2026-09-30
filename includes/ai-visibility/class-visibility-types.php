@@ -47,10 +47,12 @@ final class TWTAEO_Visibility_Types {
 		'perplexity' => array( 'label' => 'Perplexity',        'key' => 'perplexity' ),
 		'grok'       => array( 'label' => 'Grok (X)',          'key' => 'xai' ),
 		'mistral'    => array( 'label' => 'Le Chat (Mistral)', 'key' => 'mistral' ),
+		'deepseek'   => array( 'label' => 'DeepSeek',          'key' => 'deepseek' ),
+		'meta'       => array( 'label' => 'Muse (Meta AI)',    'key' => 'meta' ),
 	);
 
 	/** Engines that ship in this build; an engine joins when its Settings key field exists. */
-	const ENGINES_V1 = array( 'chatgpt', 'gemini', 'claude', 'perplexity', 'grok', 'mistral' );
+	const ENGINES_V1 = array( 'chatgpt', 'gemini', 'claude', 'perplexity', 'grok', 'mistral', 'deepseek', 'meta' );
 
 	/**
 	 * Probing models mirror each CONSUMER APP'S DEFAULT model -- what a shopper's
@@ -65,10 +67,27 @@ final class TWTAEO_Visibility_Types {
 		'perplexity' => 'fast',                 // Agent API preset: Perplexity's documented stand-in for 'sonar' (web search on). Sonar API retired 2026-09-27.
 		'grok'       => 'grok-4.6',             // live-verified 2026-08-20: answers + url_citation annotations came back on a real xAI key
 		'mistral'    => 'mistral-medium-latest',
+		// DeepSeek's documented primary model: `deepseek-flash` calls the latest
+		// Flash (V4.1 since 2026-09-10); deepseek-chat / deepseek-reasoner were
+		// retired 2026-07-24. Asked through DeepSeek's Anthropic-compatible API,
+		// the one DeepSeek documents web search for.
+		'deepseek'   => 'deepseek-flash',
+		// Meta Model API (public preview): the docs' recommended model. NOT the
+		// "-contributor" variants: those let Meta train on prompts and answers,
+		// which here are a client's questions and personas.
+		'meta'       => 'muse-spark-1.3',
 	);
 
 	/** Claude's web-search server tool variant for Sonnet 5 / 4.6+. Haiku would need web_search_20250305. */
 	const CLAUDE_SEARCH_TOOL = 'web_search_20260209';
+
+	/**
+	 * The Anthropic web-search tool type sent to DeepSeek. DeepSeek documents
+	 * web search on its Anthropic-compatible endpoint (as used by Claude Code)
+	 * without naming a tool version, so this is the original, most widely
+	 * implemented one. Confirm with a live key before relying on it.
+	 */
+	const DEEPSEEK_SEARCH_TOOL = 'web_search_20250305';
 
 	/** Where a question comes from. `post` is the WordPress addition (informational family). */
 	const LEVELS = array( 'company', 'brand', 'collection', 'type', 'product', 'post' );
@@ -139,6 +158,8 @@ final class TWTAEO_Visibility_Types {
 		'claude'     => '',
 		'grok'       => '',
 		'mistral'    => '',
+		'deepseek'   => '',
+		'meta'       => '',
 	);
 
 	/** Referrer hosts that mean "an AI assistant sent this visit" (observed layer, GA4 sessionSource). */
@@ -158,6 +179,8 @@ final class TWTAEO_Visibility_Types {
 		'grok.com'              => 'grok',
 		'chat.mistral.ai'       => 'mistral',
 		'mistral.ai'            => 'mistral',
+		'chat.deepseek.com'     => 'deepseek',
+		'deepseek.com'          => 'deepseek',
 		'you.com'               => 'you',
 		'duckduckgo.com'        => 'duckduckgo',
 		'meta.ai'               => 'meta',

@@ -269,6 +269,7 @@ class TWTAEO_Plugin {
 		add_action( 'wp_ajax_twtaeo_faq_generate_one',   array( $this, 'ajax_faq_generate_one' ) );
 		add_action( 'wp_ajax_twtaeo_service_generate_one', array( $this, 'ajax_service_generate_one' ) );
 		add_action( 'wp_ajax_twtaeo_faq_generate_batch', array( $this, 'ajax_faq_generate_batch' ) );
+		add_action( 'wp_ajax_twtaeo_faq_remove_schema',  array( $this, 'ajax_faq_remove_schema' ) );
 
 		add_action( 'wp_ajax_twtaeo_create_eeat_page',  array( $this, 'ajax_create_eeat_page' ) );
 		add_action( 'wp_ajax_twtaeo_get_sameas',         array( $this, 'ajax_get_sameas' ) );
@@ -2346,8 +2347,7 @@ class TWTAEO_Plugin {
 			) );
 		}
 
-		$schema = TWTAEO_FAQ_Detector::build_faqpage_schema( $post_id, $qa_pairs );
-		TWTAEO_Custom_Schema_Writer::save( $post_id, 'FAQPage', wp_json_encode( $schema ) );
+		TWTAEO_FAQ_Detector::save_generated( $post_id, $qa_pairs );
 
 		wp_send_json_success( array(
 			'post_id'    => $post_id,
@@ -2425,8 +2425,7 @@ class TWTAEO_Plugin {
 			) );
 		}
 
-		$schema = TWTAEO_FAQ_Detector::build_faqpage_schema( $post_id, $qa_pairs );
-		TWTAEO_Custom_Schema_Writer::save( $post_id, 'FAQPage', wp_json_encode( $schema ) );
+		TWTAEO_FAQ_Detector::save_generated( $post_id, $qa_pairs );
 
 		wp_send_json_success( array(
 			'post_id'    => $post_id,
@@ -2434,6 +2433,29 @@ class TWTAEO_Plugin {
 			'qa_count'   => count( $qa_pairs ),
 			'skipped'    => false,
 		) );
+	}
+
+	/**
+	 * AJAX: Remove the stored FAQPage schema from a post whose FAQ section is
+	 * gone — the schema would otherwise keep publishing Q&A the page no longer
+	 * shows. Only ever the plugin's own stored FAQPage; other plugins' FAQ
+	 * schema is not touched.
+	 */
+	public function ajax_faq_remove_schema() {
+		check_ajax_referer( TWTAEO_FAQ_Detector::NONCE_GENERATE, 'nonce' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'Unauthorized.' ) );
+		}
+
+		$post_id = absint( wp_unslash( $_POST['post_id'] ?? 0 ) );
+		if ( ! $post_id || ! get_post( $post_id ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid post.' ) );
+		}
+
+		TWTAEO_Custom_Schema_Writer::delete( $post_id, 'FAQPage' );
+		delete_post_meta( $post_id, TWTAEO_FAQ_Detector::META_FINGERPRINT );
+
+		wp_send_json_success( array( 'post_id' => $post_id ) );
 	}
 
 	// ── Index Status AJAX ─────────────────────────────────────────────────────

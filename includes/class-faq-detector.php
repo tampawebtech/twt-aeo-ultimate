@@ -61,6 +61,11 @@ class TWTAEO_FAQ_Detector {
 		// Clear stale TWT AEO schema cache so has_faqpage_schema() runs fresh.
 		delete_post_meta( $post_id, TWTAEO_Scan_Store::META_SCHEMA );
 
+		// Keep a plugin-generated, untouched FAQ in step with the rewritten
+		// page before scanning, so the cached result reflects the update.
+		$content_only = self::scan( $post, false );
+		self::sync_generated( $post, $content_only['has_faq_content'] );
+
 		// Run a fresh scan and cache the result.
 		$result = self::scan( $post );
 		update_post_meta( $post_id, self::META_FAQ_SCAN, $result );
@@ -76,10 +81,13 @@ class TWTAEO_FAQ_Detector {
 	 *   qa_count: int   number of Q&A pairs found,
 	 *   has_faq_schema: bool,
 	 *   needs_schema: bool,
+	 *   drift: array  see drift(); state 'none' without a stored FAQ,
+	 *   out_of_date: bool  the stored FAQ no longer matches the page,
 	 *   signals: string[]
 	 * }
+	 * @param bool $with_drift Compare a stored FAQ with the page (false inside drift() itself).
 	 */
-	public static function scan( $post ) {
+	public static function scan( $post, $with_drift = true ) {
 		if ( is_int( $post ) ) {
 			$post = get_post( $post );
 		}
@@ -166,12 +174,16 @@ class TWTAEO_FAQ_Detector {
 			$signals[] = 'FAQPage schema already present';
 		}
 
+		$drift = $with_drift ? self::drift( $post, $has_faq ) : array( 'state' => 'none', 'origin' => '', 'added' => array(), 'removed' => array(), 'edited' => array() );
+
 		return array(
 			'has_faq_content' => $has_faq,
 			'method'          => $method,
 			'qa_count'        => $qa_count ?: ( $has_faq ? 1 : 0 ),
 			'has_faq_schema'  => $has_faq_schema,
 			'needs_schema'    => $has_faq && ! $has_faq_schema,
+			'drift'           => $drift,
+			'out_of_date'     => in_array( $drift['state'], array( 'changed', 'orphaned' ), true ),
 			'signals'         => $signals,
 		);
 	}
@@ -232,7 +244,9 @@ class TWTAEO_FAQ_Detector {
 
 		foreach ( $posts as $post ) {
 			$faq_data = self::scan( $post );
-			if ( $faq_data['has_faq_content'] ) {
+			// An orphaned FAQ (schema still published, FAQ section gone) has no
+			// FAQ content left, and is exactly the row the owner must see.
+			if ( $faq_data['has_faq_content'] || 'orphaned' === $faq_data['drift']['state'] ) {
 				$results[] = array(
 					'post'     => $post,
 					'faq_data' => $faq_data,
@@ -249,7 +263,7 @@ class TWTAEO_FAQ_Detector {
 	 * @param array[]|null $all A block already returned by scan_all(), so the
 	 *                          caller does not pay for a second scan. Null scans
 	 *                          the first block.
-	 * @return array { total_with_faq, needs_schema, has_schema }
+	 * @return array { total_with_faq, needs_schema, has_schema, out_of_date }
 	 */
 	public static function get_summary( $all = null ) {
 		if ( null === $all ) {
@@ -257,9 +271,16 @@ class TWTAEO_FAQ_Detector {
 		}
 		$needs_schema = 0;
 		$has_schema   = 0;
+		$out_of_date  = 0;
+		$with_faq     = 0;
 
 		foreach ( $all as $item ) {
-			if ( $item['faq_data']['needs_schema'] ) {
+			if ( $item['faq_data']['has_faq_content'] ) {
+				$with_faq++;
+			}
+			if ( ! empty( $item['faq_data']['out_of_date'] ) ) {
+				$out_of_date++;
+			} elseif ( $item['faq_data']['needs_schema'] ) {
 				$needs_schema++;
 			} else {
 				$has_schema++;
@@ -267,9 +288,10 @@ class TWTAEO_FAQ_Detector {
 		}
 
 		return array(
-			'total_with_faq' => count( $all ),
+			'total_with_faq' => $with_faq,
 			'needs_schema'   => $needs_schema,
 			'has_schema'     => $has_schema,
+			'out_of_date'    => $out_of_date,
 		);
 	}
 
@@ -350,6 +372,214 @@ class TWTAEO_FAQ_Detector {
 			'@id'        => get_permalink( $post_id ) . '#faqpage',
 			'mainEntity' => $entities,
 		);
+	}
+
+	// ── Drift: stored FAQ schema vs. the page it was built from ─────────────
+
+	/*
+	 * FAQPage schema is saved once, as a copy of the Q&A on the page at the
+	 * time. Rewrite the page and the copy keeps publishing the old questions
+	 * and answers — or, when the FAQ section is gone, Q&A that is no longer on
+	 * the page at all, which Google's FAQ rules forbid.
+	 *
+	 * Drift is judged by CONTENT, never by modified dates: a typo fix or a
+	 * plugin re-saving the post moves the date without touching the FAQ.
+	 *
+	 * A fingerprint of every FAQ this plugin generates is kept beside it, so a
+	 * stored FAQ can be told apart as:
+	 *  - generated: still exactly what the plugin wrote — safe to rewrite from
+	 *    the page automatically;
+	 *  - edited:    changed by hand since — never overwritten without asking;
+	 *  - unknown:   saved before fingerprints existed — flagged, not rewritten.
+	 */
+
+	/** Fingerprint of the Q&A this plugin last wrote into the stored FAQPage. */
+	const META_FINGERPRINT = '_twtaeo_faq_fingerprint';
+
+	/**
+	 * Build FAQPage schema from Q&A pairs, save it, and remember it as ours.
+	 * Every path that generates FAQ schema from page content goes through here.
+	 *
+	 * @param int   $post_id
+	 * @param array $qa_pairs Each: { question, answer }
+	 * @return true|WP_Error
+	 */
+	public static function save_generated( $post_id, array $qa_pairs ) {
+		$schema = self::build_faqpage_schema( $post_id, $qa_pairs );
+		$saved  = TWTAEO_Custom_Schema_Writer::save( $post_id, 'FAQPage', wp_json_encode( $schema ) );
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+		self::remember_generated( $post_id, $schema );
+		return true;
+	}
+
+	/**
+	 * Record that the stored FAQPage for a post is exactly what the plugin wrote.
+	 *
+	 * @param int   $post_id
+	 * @param array $schema The FAQPage node that was saved.
+	 */
+	public static function remember_generated( $post_id, array $schema ) {
+		update_post_meta( $post_id, self::META_FINGERPRINT, self::fingerprint( self::schema_pairs( $schema ) ) );
+	}
+
+	/**
+	 * Compare the stored FAQPage with the Q&A on the page now.
+	 *
+	 * @param WP_Post|int $post
+	 * @param bool|null   $has_faq_content Pass scan()'s answer to skip re-detecting.
+	 * @return array {
+	 *   state:   none | in_sync | changed | orphaned | unverifiable,
+	 *   origin:  generated | edited | unknown | '',
+	 *   added:   string[] questions on the page, not in the schema,
+	 *   removed: string[] questions in the schema, not on the page,
+	 *   edited:  string[] questions whose answer changed,
+	 * }
+	 */
+	public static function drift( $post, $has_faq_content = null ) {
+		if ( is_int( $post ) ) {
+			$post = get_post( $post );
+		}
+		$result = array(
+			'state'   => 'none',
+			'origin'  => '',
+			'added'   => array(),
+			'removed' => array(),
+			'edited'  => array(),
+		);
+		// Product FAQs are managed as their own list (Product FAQ generator),
+		// not extracted from the page — nothing here to compare against.
+		if ( ! $post || 'product' === $post->post_type || ! class_exists( 'TWTAEO_Custom_Schema_Writer' ) ) {
+			return $result;
+		}
+		$stored = TWTAEO_Custom_Schema_Writer::get_by_type( $post->ID, 'FAQPage' );
+		if ( empty( $stored ) || ! is_array( $stored ) ) {
+			return $result;
+		}
+
+		$stored_pairs = self::schema_pairs( $stored );
+		$fingerprint  = (string) get_post_meta( $post->ID, self::META_FINGERPRINT, true );
+		if ( '' === $fingerprint ) {
+			$result['origin'] = 'unknown';
+		} else {
+			$result['origin'] = hash_equals( $fingerprint, self::fingerprint( $stored_pairs ) ) ? 'generated' : 'edited';
+		}
+
+		$page_pairs = self::extract_qa_pairs( $post );
+		if ( empty( $page_pairs ) ) {
+			if ( null === $has_faq_content ) {
+				$has_faq_content = self::scan_content_only( $post );
+			}
+			// FAQ-looking content we cannot read Q&A out of (accordions and the
+			// like) cannot be compared; no FAQ content at all means the schema
+			// now describes Q&A the page no longer shows.
+			$result['state'] = $has_faq_content ? 'unverifiable' : 'orphaned';
+			return $result;
+		}
+
+		$now    = self::keyed_pairs( $page_pairs );
+		$before = self::keyed_pairs( $stored_pairs );
+		foreach ( $now as $key => $pair ) {
+			if ( ! isset( $before[ $key ] ) ) {
+				$result['added'][] = $pair['question'];
+			} elseif ( $pair['answer_key'] !== $before[ $key ]['answer_key'] ) {
+				$result['edited'][] = $pair['question'];
+			}
+		}
+		foreach ( $before as $key => $pair ) {
+			if ( ! isset( $now[ $key ] ) ) {
+				$result['removed'][] = $pair['question'];
+			}
+		}
+
+		$result['state'] = ( $result['added'] || $result['removed'] || $result['edited'] ) ? 'changed' : 'in_sync';
+
+		// A stored FAQ that matches the page exactly is, in effect, what the
+		// plugin would write: adopt it, so later edits to the page keep it in
+		// step automatically. Hand-edited ones stay hand-edited.
+		if ( 'in_sync' === $result['state'] && 'unknown' === $result['origin'] ) {
+			update_post_meta( $post->ID, self::META_FINGERPRINT, self::fingerprint( $stored_pairs ) );
+			$result['origin'] = 'generated';
+		}
+
+		return $result;
+	}
+
+	/**
+	 * On save: bring a plugin-generated, untouched FAQ back in step with the
+	 * page. Hand-edited and pre-fingerprint FAQs are only flagged, and an FAQ
+	 * whose page lost its FAQ section is never removed without the owner.
+	 *
+	 * @param WP_Post $post
+	 * @param bool    $has_faq_content
+	 * @return array The drift result after any update.
+	 */
+	public static function sync_generated( $post, $has_faq_content ) {
+		$drift = self::drift( $post, $has_faq_content );
+		if ( 'changed' === $drift['state'] && 'generated' === $drift['origin'] ) {
+			$pairs = self::extract_qa_pairs( $post );
+			if ( $pairs && true === self::save_generated( $post->ID, $pairs ) ) {
+				$drift = self::drift( $post, $has_faq_content );
+			}
+		}
+		return $drift;
+	}
+
+	/** Q&A pairs out of a stored FAQPage node (mainEntity as a list or a single object). */
+	private static function schema_pairs( array $schema ) {
+		$entities = isset( $schema['mainEntity'] ) ? $schema['mainEntity'] : array();
+		if ( isset( $entities['@type'] ) ) {
+			$entities = array( $entities );
+		}
+		$pairs = array();
+		foreach ( (array) $entities as $e ) {
+			if ( ! is_array( $e ) ) {
+				continue;
+			}
+			$answer = isset( $e['acceptedAnswer']['text'] ) ? $e['acceptedAnswer']['text'] : '';
+			$pairs[] = array(
+				'question' => isset( $e['name'] ) ? (string) $e['name'] : '',
+				'answer'   => is_string( $answer ) ? $answer : '',
+			);
+		}
+		return $pairs;
+	}
+
+	/** Text reduced to what a reader sees: no tags, entities decoded, one-spaced, lower-case. */
+	private static function norm( $text ) {
+		$text = html_entity_decode( wp_strip_all_tags( (string) $text ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		return strtolower( trim( (string) preg_replace( '/\s+/u', ' ', $text ) ) );
+	}
+
+	/** Pairs keyed by normalized question, each carrying its normalized answer. */
+	private static function keyed_pairs( array $pairs ) {
+		$out = array();
+		foreach ( $pairs as $p ) {
+			$key = self::norm( isset( $p['question'] ) ? $p['question'] : '' );
+			if ( '' === $key ) {
+				continue;
+			}
+			$out[ $key ] = array(
+				'question'   => trim( wp_strip_all_tags( (string) $p['question'] ) ),
+				'answer_key' => self::norm( isset( $p['answer'] ) ? $p['answer'] : '' ),
+			);
+		}
+		return $out;
+	}
+
+	private static function fingerprint( array $pairs ) {
+		$keyed = array();
+		foreach ( $pairs as $p ) {
+			$keyed[] = self::norm( isset( $p['question'] ) ? $p['question'] : '' ) . "\n" . self::norm( isset( $p['answer'] ) ? $p['answer'] : '' );
+		}
+		return md5( implode( "\n\n", $keyed ) );
+	}
+
+	/** Whether the page shows FAQ-style content, without the schema checks scan() adds. */
+	private static function scan_content_only( $post ) {
+		$result = self::scan( $post, false );
+		return ! empty( $result['has_faq_content'] );
 	}
 
 	// ── Private helpers ──────────────────────────────────────────────────────

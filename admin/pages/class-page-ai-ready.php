@@ -373,9 +373,10 @@ class TWTAEO_Page_AI_Ready {
 							<div class="twt-aeo-air-feature-card__sub">
 								<label class="twt-aeo-air-sub-toggle">
 									<input type="checkbox" name="twtaeo_air[url_fallback]" value="1" <?php checked( ! empty( $s['url_fallback'] ) ); ?> />
-									<span><?php esc_html_e( 'Also allow URL fallback', 'twt-aeo-ultimate' ); ?> <code>?aeo_format=markdown</code></span>
+									<span><?php esc_html_e( 'Also serve Markdown at its own address', 'twt-aeo-ultimate' ); ?> <code>/page.md</code> <?php esc_html_e( 'and', 'twt-aeo-ultimate' ); ?> <code>?aeo_format=markdown</code></span>
 								</label>
-								<p class="twt-aeo-air-sub-desc"><?php esc_html_e( 'Useful for CDN environments where Accept headers are stripped. Agents can append ?aeo_format=markdown to any post URL to request clean Markdown.', 'twt-aeo-ultimate' ); ?></p>
+								<p class="twt-aeo-air-sub-desc"><?php esc_html_e( 'For agents that do not send an Accept header, or CDNs that strip it. Adding .md to a page address is the convention the llms.txt proposal uses.', 'twt-aeo-ultimate' ); ?></p>
+								<p class="twt-aeo-air-sub-desc"><?php esc_html_e( 'Every HTML page points to its Markdown version with a rel="alternate" link. Each Markdown version opens with its title, address, author and dates, and names the HTML page as the canonical copy so search engines never treat it as duplicate content. Markdown is never stored in a page cache, so every AI crawler fetch is logged and marked "Markdown" in AI Crawler Watch.', 'twt-aeo-ultimate' ); ?></p>
 							</div>
 						</div>
 
@@ -431,6 +432,13 @@ class TWTAEO_Page_AI_Ready {
 									<span class="twt-aeo-toggle__track"></span>
 									<span class="twt-aeo-toggle__thumb"></span>
 								</label>
+							</div>
+							<div class="twt-aeo-air-feature-card__sub">
+								<label class="twt-aeo-air-sub-toggle">
+									<input type="checkbox" name="twtaeo_air[llms_md_links]" value="1" <?php checked( ! empty( $s['llms_md_links'] ) ); ?> />
+									<span><?php esc_html_e( 'Link each page to its Markdown version', 'twt-aeo-ultimate' ); ?></span>
+								</label>
+								<p class="twt-aeo-air-sub-desc"><?php esc_html_e( 'Lists /page.md addresses in llms.txt instead of the HTML pages, as the llms.txt proposal suggests. Needs Markdown Content Negotiation on. Off by default: every agent can read the HTML page, while not every agent looks for Markdown yet.', 'twt-aeo-ultimate' ); ?></p>
 							</div>
 						</div>
 
@@ -1381,7 +1389,7 @@ class TWTAEO_Page_AI_Ready {
 
 		// Booleans.
 		$bool_keys = array(
-			'markdown_negotiation', 'url_fallback', 'llms_txt', 'agent_skills_index',
+			'markdown_negotiation', 'url_fallback', 'llms_txt', 'llms_md_links', 'agent_skills_index',
 			'semantic_breadcrumbs', 'vary_header', 'agent_search_api', 'api_catalog',
 			'mcp_integration', 'rate_limit_enabled', 'ip_whitelist_enabled',
 			'user_agent_verification', 'identity_verification', 'protected_resource_meta',

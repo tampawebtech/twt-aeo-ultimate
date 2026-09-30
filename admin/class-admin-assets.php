@@ -172,6 +172,7 @@ class TWTAEO_Admin_Assets {
 						/* translators: %s: seconds. */
 						'retrying'      => __( 'Connection lost — retrying in %s seconds. You can leave this page open; the upload continues where it stopped. If you close it, choose the same file again later to resume.', 'twt-aeo-ultimate' ),
 						'uploaded'      => __( 'Upload complete. Reading the document now…', 'twt-aeo-ultimate' ),
+						'keepOpen'      => __( 'Don’t close this page or navigate away until the upload finishes. Closing it stops the upload.', 'twt-aeo-ultimate' ),
 						/* translators: 1: total size, 2: limit. */
 						'tooBigTotal'   => __( 'Together these files are %1$s, more than your server accepts in one upload (%2$s). Upload them a few at a time.', 'twt-aeo-ultimate' ),
 						'split'         => TWTAEO_Doc_Requirements::split_instructions(),
@@ -297,6 +298,12 @@ class TWTAEO_Admin_Assets {
 					'removing'   => __( 'Removing…', 'twt-aeo-ultimate' ),
 					'retrying'   => __( 'Network hiccup — retrying…', 'twt-aeo-ultimate' ),
 					'background' => __( 'The background worker is on it — waiting…', 'twt-aeo-ultimate' ),
+					'waitingFor'   => __( 'Every other check is done. Waiting for background answers:', 'twt-aeo-ultimate' ),
+					'pendingLeft'  => __( 'still out. Safe to close this page — the run finishes on its own.', 'twt-aeo-ultimate' ),
+					'inBackground' => __( 'answering in the background', 'twt-aeo-ultimate' ),
+					'firstChecks'    => __( 'first questions', 'twt-aeo-ultimate' ),
+					'followupsSoFar' => __( 'follow-up turns so far', 'twt-aeo-ultimate' ),
+					'anyRegion'    => __( 'Any state or region', 'twt-aeo-ultimate' ),
 					'polishing'  => __( 'Asking your AI provider to rephrase the post questions…', 'twt-aeo-ultimate' ),
 					/* translators: %1$s: number of questions rephrased. */
 					'polished'   => __( '%1$s questions rephrased — saved with source “ai”.', 'twt-aeo-ultimate' ),

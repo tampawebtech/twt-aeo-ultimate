@@ -1235,15 +1235,41 @@ class TWTAEO_AI_Description {
 		$text = trim( preg_replace( '/\s+/', ' ', $text ) );
 		$text = trim( $text, " \t\n\r\0\x0B\"'" );
 
-		if ( function_exists( 'mb_strlen' ) && mb_strlen( $text ) > self::MAX_LENGTH ) {
-			$text = rtrim( mb_substr( $text, 0, self::MAX_LENGTH ) );
-			$text = preg_replace( '/\s+\S*$/', '', $text ); // Trim partial last word.
-		} elseif ( strlen( $text ) > self::MAX_LENGTH ) {
-			$text = rtrim( substr( $text, 0, self::MAX_LENGTH ) );
-			$text = preg_replace( '/\s+\S*$/', '', $text );
+		// Models asked for 140–155 characters regularly overshoot. Cutting at
+		// the last whole word left descriptions ending mid-sentence ("…stands
+		// out with"), which is what search and AI engines then showed. End at
+		// the last full sentence when one ends late enough to still say
+		// something; otherwise end at a word and mark the cut with "…".
+		if ( mb_strlen( $text ) > self::MAX_LENGTH ) {
+			$cut = rtrim( mb_substr( $text, 0, self::MAX_LENGTH ) );
+			if ( preg_match( '/^(.{60,}[.!?])(?=\s|$)/us', $cut, $m ) ) {
+				$text = $m[1];
+			} else {
+				$cut = rtrim( mb_substr( $text, 0, self::MAX_LENGTH - 1 ) );
+				$cut = (string) preg_replace( '/\s+\S*$/u', '', $cut ); // Drop the partial last word.
+				// Never end on a word that promises more ("…to get…", "…with…").
+				$cut  = (string) preg_replace( '/(\s+(?:a|an|and|as|at|by|for|from|in|into|of|on|or|the|to|with|your|our|that|which))+$/iu', '', $cut );
+				$text = rtrim( $cut, " ,;:-–—" ) . '…';
+			}
 		}
 
 		return $text;
+	}
+
+	/**
+	 * Whether a description reads as cut off: long enough to have hit a
+	 * length limit, and not ending the way a sentence ends. Used to flag
+	 * descriptions already saved by older versions, other plugins or hand.
+	 *
+	 * @param string $text
+	 * @return bool
+	 */
+	public static function looks_cut_off( $text ) {
+		$text = trim( wp_strip_all_tags( (string) $text ) );
+		if ( mb_strlen( $text ) < 100 ) {
+			return false;
+		}
+		return ! preg_match( '/[.!?…"\'”’)\]]$/u', $text );
 	}
 
 	private static function truncate_words( $text, $words ) {

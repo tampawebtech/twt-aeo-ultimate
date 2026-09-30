@@ -63,6 +63,7 @@ class TWTAEO_AI_Ready {
 			'markdown_negotiation'    => 1,
 			'url_fallback'            => 1,
 			'llms_txt'                => 1,
+			'llms_md_links'           => 0,
 			'okf'                     => 1,
 			'agent_skills_index'      => 1,
 			'content_signal_ai_train' => 'no',
@@ -112,6 +113,8 @@ class TWTAEO_AI_Ready {
 			'OAI-SearchBot'        => array( 'company' => 'OpenAI',       'desc' => 'Search indexer' ),
 			// Anthropic
 			'ClaudeBot'            => array( 'company' => 'Anthropic',    'desc' => 'Claude.ai search' ),
+			'Claude-User'          => array( 'company' => 'Anthropic',    'desc' => 'Live fetch for a Claude user' ),
+			'Claude-SearchBot'     => array( 'company' => 'Anthropic',    'desc' => 'Claude search indexer' ),
 			'Claude-Web'           => array( 'company' => 'Anthropic',    'desc' => 'Claude web browsing' ),
 			'anthropic-ai'         => array( 'company' => 'Anthropic',    'desc' => 'Training crawler' ),
 			// Google
@@ -131,6 +134,7 @@ class TWTAEO_AI_Ready {
 			'Applebot-Extended'    => array( 'company' => 'Apple',        'desc' => 'Apple AI training' ),
 			// Perplexity
 			'PerplexityBot'        => array( 'company' => 'Perplexity',   'desc' => 'AI search indexer' ),
+			'Perplexity-User'      => array( 'company' => 'Perplexity',   'desc' => 'Live fetch for a Perplexity user' ),
 			// You.com
 			'YouBot'               => array( 'company' => 'You.com',      'desc' => 'AI search indexer' ),
 			// ByteDance
@@ -331,6 +335,18 @@ class TWTAEO_AI_Ready {
 
 		if ( ! empty( $s['markdown_negotiation'] ) ) {
 			add_action( 'template_redirect', array( __CLASS__, 'maybe_serve_markdown' ), 1 );
+
+			// /any-page.md — the llms.txt proposal's convention for a page's
+			// Markdown twin. Resolved to the page's own query (not a rewrite
+			// rule) so it works under every permalink structure.
+			if ( ! empty( $s['url_fallback'] ) ) {
+				add_filter( 'request', array( __CLASS__, 'route_md_suffix' ) );
+			}
+
+			// Discovery: tell anything reading the HTML page where its Markdown
+			// twin lives. Works whichever plugin serves llms.txt.
+			add_action( 'wp_head', array( __CLASS__, 'output_markdown_alternate_link' ), 2 );
+			add_action( 'wp', array( __CLASS__, 'send_markdown_alternate_header' ), 20 );
 		}
 
 		if ( TWTAEO_Output_Control::should_write( 'llms_txt' ) ) {
@@ -401,6 +417,10 @@ class TWTAEO_AI_Ready {
 		}
 		// Also block for anything under /.well-known/
 		if ( strpos( $path, '/.well-known/' ) !== false ) {
+			return false;
+		}
+		// A page's .md twin must not be redirected to its HTML permalink.
+		if ( self::$md_suffix ) {
 			return false;
 		}
 		return $redirect_url;
@@ -715,6 +735,163 @@ class TWTAEO_AI_Ready {
 
 	// ── Markdown content negotiation ──────────────────────────────────────────
 
+	// ── Markdown twins: /page.md, discovery, request detection ──────────────
+
+	/** True while serving a request that arrived as /something.md. */
+	private static $md_suffix = false;
+
+	/**
+	 * `request` filter: turn /services.md (or /blog/post.md, /index.md) into
+	 * the query for the page it shadows, and remember that Markdown was asked
+	 * for. Anything that does not resolve to a published page is left alone
+	 * and 404s as before.
+	 *
+	 * @param array $query_vars
+	 * @return array
+	 */
+	public static function route_md_suffix( $query_vars ) {
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ) : '';
+		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+		if ( '.md' !== strtolower( substr( $path, -3 ) ) ) {
+			return $query_vars;
+		}
+		// Our own Markdown files (OKF bundle, agent skills) have their own routes.
+		if ( false !== strpos( $path, '/okf/' ) || false !== strpos( $path, '/.well-known/' ) ) {
+			return $query_vars;
+		}
+
+		$home_path = trailingslashit( (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH ) );
+		$stripped  = substr( $path, 0, -3 );
+
+		// /index.md → the front page.
+		if ( untrailingslashit( $stripped ) === $home_path . 'index' || $stripped === $home_path ) {
+			self::$md_suffix = true;
+			$front = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+			return $front ? array( 'page_id' => $front ) : array();
+		}
+
+		$relative = ltrim( substr( $stripped, strlen( $home_path ) - 1 ), '/' );
+		$post_id  = (int) url_to_postid( home_url( user_trailingslashit( $relative ) ) );
+		if ( ! $post_id ) {
+			$post_id = (int) url_to_postid( home_url( $relative ) );
+		}
+		$post = $post_id ? get_post( $post_id ) : null;
+		if ( ! $post || 'publish' !== $post->post_status || 'attachment' === $post->post_type || ! is_post_type_viewable( $post->post_type ) ) {
+			return $query_vars;
+		}
+
+		self::$md_suffix = true;
+		return 'page' === $post->post_type
+			? array( 'page_id' => $post->ID )
+			: array( 'p' => $post->ID, 'post_type' => $post->post_type );
+	}
+
+	/**
+	 * The Markdown twin's URL for a post, or for the front page when $post is
+	 * null: /page.md under pretty permalinks, ?aeo_format=markdown otherwise.
+	 *
+	 * @param WP_Post|int|null $post
+	 * @return string
+	 */
+	public static function markdown_url( $post = null ) {
+		$s    = self::get_settings();
+		$url  = $post ? (string) get_permalink( $post ) : home_url( '/' );
+		$tail = ! $post ? 'index.md' : '';
+		if ( empty( $s['url_fallback'] ) || '' === (string) get_option( 'permalink_structure' ) || false !== strpos( $url, '?' ) ) {
+			return add_query_arg( 'aeo_format', 'markdown', $url );
+		}
+		return $tail ? trailingslashit( $url ) . $tail : untrailingslashit( $url ) . '.md';
+	}
+
+	/**
+	 * Whether this request will be answered with Markdown. Safe from the `wp`
+	 * action on (query conditionals are set by then); the crawler log calls
+	 * it so a Markdown fetch is recorded as one.
+	 *
+	 * @return bool
+	 */
+	public static function markdown_requested() {
+		$s = self::get_settings();
+		if ( empty( $s['markdown_negotiation'] ) ) {
+			return false;
+		}
+		$accept = sanitize_text_field( wp_unslash( $_SERVER['HTTP_ACCEPT'] ?? '' ) );
+		$asked  = self::$md_suffix
+			|| false !== strpos( $accept, 'text/markdown' )
+			|| ( ! empty( $s['url_fallback'] ) && 'markdown' === sanitize_key( get_query_var( 'aeo_format' ) ) );
+		if ( ! $asked ) {
+			return false;
+		}
+		if ( is_singular() ) {
+			return ! post_password_required( get_queried_object_id() );
+		}
+		return is_home() || is_front_page();
+	}
+
+	/** Where this HTML page's Markdown twin lives, or '' when it has none. */
+	private static function current_markdown_url() {
+		if ( is_singular() ) {
+			$id = get_queried_object_id();
+			return ( $id && ! post_password_required( $id ) && 'attachment' !== get_post_type( $id ) ) ? self::markdown_url( $id ) : '';
+		}
+		return ( is_home() || is_front_page() ) ? self::markdown_url( null ) : '';
+	}
+
+	/** <link rel="alternate" type="text/markdown"> in the HTML page's head. */
+	public static function output_markdown_alternate_link() {
+		$url = self::current_markdown_url();
+		if ( $url ) {
+			echo '<link rel="alternate" type="text/markdown" href="' . esc_url( $url ) . '" />' . "\n";
+		}
+	}
+
+	/** The same pointer as an RFC 8288 Link header, for agents that never parse HTML. */
+	public static function send_markdown_alternate_header() {
+		if ( headers_sent() || is_admin() || self::markdown_requested() ) {
+			return;
+		}
+		$url = self::current_markdown_url();
+		if ( $url ) {
+			header( 'Link: <' . esc_url_raw( $url ) . '>; rel="alternate"; type="text/markdown"', false );
+		}
+	}
+
+	/**
+	 * YAML frontmatter for a Markdown twin: what a model needs to attribute
+	 * and date the source without the HTML page.
+	 *
+	 * @param array $fields key => value; empty values are skipped.
+	 * @return string
+	 */
+	private static function frontmatter( array $fields ) {
+		$out = "---\n";
+		foreach ( $fields as $key => $value ) {
+			$value = trim( (string) preg_replace( '/\s+/u', ' ', (string) $value ) );
+			if ( '' === $value ) {
+				continue;
+			}
+			$out .= $key . ': "' . addcslashes( $value, '\\"' ) . "\"\n";
+		}
+		return $out . "---\n\n";
+	}
+
+	/**
+	 * Frontmatter description: the manual excerpt, else the SEO description
+	 * from this plugin, Yoast, Rank Math, AIOSEO or SEOPress. Values still
+	 * holding template variables ("%%sep%%", "%title%") are skipped: they are
+	 * patterns, not descriptions.
+	 *
+	 * @param WP_Post $post
+	 * @return string
+	 */
+	private static function markdown_description( $post ) {
+		if ( has_excerpt( $post ) ) {
+			return wp_strip_all_tags( get_the_excerpt( $post ) );
+		}
+		$desc = class_exists( 'TWTAEO_AI_Description' ) ? (string) TWTAEO_AI_Description::get_existing_description( $post->ID ) : '';
+		return ( '' !== $desc && false === strpos( $desc, '%' ) ) ? wp_strip_all_tags( $desc ) : '';
+	}
+
 	public static function maybe_serve_markdown() {
 		// Public, read-only content negotiation on `template_redirect`. This runs for
 		// anonymous front-end requests (AI agents and crawlers): nothing here writes
@@ -725,14 +902,21 @@ class TWTAEO_AI_Ready {
 		//   • the Accept header, sanitized below; and
 		//   • the `aeo_format` query value, registered as a query var (see
 		//     add_query_vars()) so it is read through get_query_var() rather than the
-		//     raw $_GET superglobal, then sanitized and compared to a fixed literal.
-		$s          = self::get_settings();
-		$accept     = sanitize_text_field( wp_unslash( $_SERVER['HTTP_ACCEPT'] ?? '' ) );
-		$via_accept = strpos( $accept, 'text/markdown' ) !== false;
-		$format     = sanitize_key( get_query_var( 'aeo_format' ) );
-		$via_param  = ! empty( $s['url_fallback'] ) && 'markdown' === $format;
-
-		if ( ! $via_accept && ! $via_param ) {
+		//     raw $_GET superglobal, then sanitized and compared to a fixed literal;
+		//   • a /page.md path, resolved by route_md_suffix() to the page it shadows.
+		// markdown_requested() is the one place these are read, so the crawler log
+		// and this handler can never disagree about what was served.
+		if ( ! self::markdown_requested() ) {
+			// A /page.md for something with no Markdown twin (a password-protected
+			// post, an archive): never fall through to a themed HTML page at a
+			// .md address.
+			if ( self::$md_suffix ) {
+				status_header( 404 );
+				nocache_headers();
+				header( 'Content-Type: text/plain; charset=utf-8' );
+				echo "No Markdown version of this page.\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- plain-text body, no HTML context.
+				exit;
+			}
 			return;
 		}
 
@@ -750,14 +934,28 @@ class TWTAEO_AI_Ready {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
 			$content     = apply_filters( $core_filter, $post->post_content );
 			$markdown    = TWTAEO_HTML_To_Markdown::convert( $content );
-			$title       = get_the_title( $post );
+			$title       = html_entity_decode( get_the_title( $post ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 			$url         = get_permalink( $post );
 
-			$output  = '# ' . $title . "\n\n";
+			$output  = self::frontmatter( array(
+				'title'       => $title,
+				'url'         => $url,
+				'description' => self::markdown_description( $post ),
+				'author'      => get_the_author_meta( 'display_name', (int) $post->post_author ),
+				'published'   => get_post_time( 'c', true, $post ),
+				'modified'    => get_post_modified_time( 'c', true, $post ),
+				'language'    => get_bloginfo( 'language' ),
+				'site'        => html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+			) );
+			// The page's own H1 is its real heading; adding the title on top of
+			// it gives the document two.
+			if ( ! preg_match( '/^# /m', $markdown ) ) {
+				$output .= '# ' . $title . "\n\n";
+			}
 			$output .= 'Source: ' . $url . "\n\n";
 			$output .= $markdown;
 
-			self::output_markdown_response( $output );
+			self::output_markdown_response( $output, $url, (int) get_post_modified_time( 'U', true, $post ) );
 		}
 
 		// Homepage — either a static front page (caught above as singular) or the
@@ -766,7 +964,12 @@ class TWTAEO_AI_Ready {
 			$site_name = get_bloginfo( 'name' );
 			$tagline   = html_entity_decode( get_bloginfo( 'description' ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 
-			$output  = '# ' . $site_name . "\n\n";
+			$output  = self::frontmatter( array(
+				'title'    => html_entity_decode( $site_name, ENT_QUOTES | ENT_HTML5, 'UTF-8' ),
+				'url'      => home_url( '/' ),
+				'language' => get_bloginfo( 'language' ),
+			) );
+			$output .= '# ' . $site_name . "\n\n";
 			if ( $tagline ) {
 				$output .= '> ' . $tagline . "\n\n";
 			}
@@ -790,17 +993,54 @@ class TWTAEO_AI_Ready {
 			}
 			wp_reset_postdata();
 
-			self::output_markdown_response( $output );
+			self::output_markdown_response( $output, home_url( '/' ), 0 );
 		}
 	}
 
-	private static function output_markdown_response( $output ) {
+	/**
+	 * Send a Markdown twin.
+	 *
+	 * Built fresh on every request, never saved: a page's rendered content
+	 * also depends on shortcodes, reusable blocks and live product data that
+	 * change without the post being saved, so a stored copy would go stale.
+	 * Building it costs less than the themed HTML page it replaces.
+	 *
+	 * @param string $output        The Markdown document.
+	 * @param string $canonical     The HTML page this is a version of.
+	 * @param int    $last_modified Unix time the post last changed, 0 when unknown.
+	 */
+	private static function output_markdown_response( $output, $canonical = '', $last_modified = 0 ) {
 		// Rough token estimate: ~4 UTF-8 characters per token (English average).
 		$tokens = (int) ceil( mb_strlen( $output ) / 4 );
+		// ETag from the document itself: it changes exactly when what an agent
+		// would read changes, whatever caused it.
+		$etag = '"' . md5( $output ) . '"';
 
 		status_header( 200 );
+		// Never stored by a page cache or CDN: at the page's own address a
+		// cache that ignores Vary: Accept could hand this Markdown to the next
+		// human visitor, and a cached copy would also hide AI-crawler fetches
+		// from the crawler log (same reason as llms.txt).
+		nocache_headers();
 		header( 'Content-Type: text/markdown; charset=utf-8' );
+		header( 'Vary: Accept' );
 		header( 'X-Markdown-Tokens: ' . absint( $tokens ) );
+		header( 'ETag: ' . $etag );
+		if ( $last_modified > 0 ) {
+			header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT' );
+		}
+		// The HTML page stays the canonical copy, so a search engine that finds
+		// /page.md never treats it as duplicate content.
+		if ( $canonical ) {
+			header( 'Link: <' . esc_url_raw( $canonical ) . '>; rel="canonical"', false );
+		}
+
+		$if_none_match = isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) : '';
+		if ( '' !== $if_none_match && false !== strpos( $if_none_match, $etag ) ) {
+			status_header( 304 );
+			exit;
+		}
+
 		// Raw Markdown output — not HTML. wp_kses_post() entity-encodes the
 		// document (`>` blockquotes become &gt;, `&` becomes &amp;), which
 		// corrupts the Markdown agents receive; a text/markdown body cannot
@@ -894,12 +1134,21 @@ class TWTAEO_AI_Ready {
 			}
 		}
 
+		// Optionally point each entry at the page's Markdown twin, the llms.txt
+		// proposal's own convention. Off by default: the HTML page is the one
+		// every agent can read.
+		$s         = self::get_settings();
+		$md_links  = ! empty( $s['llms_md_links'] ) && ! empty( $s['markdown_negotiation'] );
+		$page_link = static function ( $p ) use ( $md_links ) {
+			return $md_links ? self::markdown_url( $p ) : get_permalink( $p );
+		};
+
 		if ( ! empty( $posts ) ) {
 			$output .= "## Pages\n\n";
 			foreach ( $posts as $p ) {
 				$title   = html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 				$excerpt = self::clean_llms_excerpt( $p, $title );
-				$output .= '- [' . $title . '](' . get_permalink( $p ) . ')';
+				$output .= '- [' . $title . '](' . $page_link( $p ) . ')';
 				if ( $excerpt ) {
 					$output .= ': ' . $excerpt;
 				}

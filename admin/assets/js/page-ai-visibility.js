@@ -486,8 +486,14 @@
 		$stop.prop( 'hidden', ! on ).prop( 'disabled', false );
 	}
 
-	function progressLine( cursor, total, check ) {
+	function progressLine( cursor, total, check, followups ) {
 		var line = cursor + '/' + total;
+		// Follow-up turns are added as answers arrive, so the total grows:
+		// say how much of it is first questions and how much follow-ups.
+		if ( followups > 0 ) {
+			line += ' (' + ( total - followups ) + ' ' + ( strings.firstChecks || 'first questions' ) + ' + '
+				+ followups + ' ' + ( strings.followupsSoFar || 'follow-up turns so far' ) + ')';
+		}
 		if ( check ) {
 			line += ' · ' + ( strings.last || 'last:' ) + ' ' + engineLabel( check.engine )
 				+ ' · ' + ( check.verdict || 'unavailable' );
@@ -532,7 +538,7 @@
 			}
 			if ( resp.done ) {
 				if ( typeof resp.cursor !== 'undefined' ) {
-					progressLine( resp.cursor, resp.total, resp.check );
+					progressLine( resp.cursor, resp.total, resp.check, resp.followups || 0 );
 				}
 				$progress.text( strings.done || 'Run complete.' );
 				finishRun( true, null );
@@ -544,7 +550,16 @@
 				finishRun( false, resp.error || ( strings.error || 'Something went wrong.' ) );
 				return;
 			}
-			progressLine( resp.cursor, resp.total, resp.check );
+			if ( resp.waiting ) {
+				// Every other check is done; slow engines answer in the background.
+				$progress.text( ( strings.waitingFor || 'Waiting for background answers:' ) + ' ' + ( resp.pending || 0 ) + ' ' + ( strings.pendingLeft || 'still out. Safe to close this page — the run finishes on its own.' ) );
+				window.setTimeout( stepLoop, 5000 );
+				return;
+			}
+			progressLine( resp.cursor, resp.total, resp.check, resp.followups || 0 );
+			if ( resp.submitted ) {
+				$progress.text( $progress.text() + ' · ' + ( resp.pending || 0 ) + ' ' + ( strings.inBackground || 'answering in the background' ) );
+			}
 			stepLoop();
 		} ).fail( function () {
 			netFails++;
@@ -557,6 +572,39 @@
 		} );
 	}
 
+	// "Search from": Automatic / No location need nothing more; a country
+	// shows its region list (English-first markets) or a typed region, and a city.
+	var $locPick    = $( '.twt-aeo-vis__location-pick' );
+	var $locCountry = $( '#twt-aeo-vis-loc-country' );
+	var $locDetail  = $locPick.find( '.twt-aeo-vis__location-detail' );
+	var $locRegionS = $( '#twt-aeo-vis-loc-region-select' );
+	var $locRegionT = $( '#twt-aeo-vis-loc-region-text' );
+	var $locCity    = $( '#twt-aeo-vis-loc-city' );
+	var locRegions  = $locPick.data( 'regions' ) || {};
+
+	function syncLocation() {
+		var cc = $locCountry.val() || '';
+		if ( ! cc || 'auto' === cc || 'none' === cc ) {
+			$locDetail.prop( 'hidden', true );
+			return;
+		}
+		$locDetail.prop( 'hidden', false );
+		var list = locRegions[ cc ];
+		if ( list && list.length ) {
+			$locRegionS.empty().append( $( '<option></option>' ).val( '' ).text( strings.anyRegion || 'Any state or region' ) );
+			$.each( list, function ( _i, name ) {
+				$( '<option></option>' ).val( name ).text( name ).appendTo( $locRegionS );
+			} );
+			$locRegionS.prop( 'hidden', false );
+			$locRegionT.prop( 'hidden', true ).val( '' );
+		} else {
+			$locRegionS.prop( 'hidden', true ).empty();
+			$locRegionT.prop( 'hidden', false );
+		}
+	}
+	$locCountry.on( 'change', syncLocation );
+	syncLocation();
+
 	$start.on( 'click', function () {
 		if ( running ) {
 			return;
@@ -565,6 +613,11 @@
 		var data = allocData();
 		data.persona = $persona.val() || '';
 		data.journey = $( '#twt-aeo-vis-journey' ).val() || '0';
+		if ( $locCountry.length ) {
+			data.loc_country = $locCountry.val() || 'auto';
+			data.loc_region  = $locRegionS.prop( 'hidden' ) ? ( $locRegionT.val() || '' ) : ( $locRegionS.val() || '' );
+			data.loc_city    = $locCity.val() || '';
+		}
 		runUi( true );
 		$progress.text( strings.starting || 'Starting…' );
 		post( actions.start, data ).done( function ( resp ) {

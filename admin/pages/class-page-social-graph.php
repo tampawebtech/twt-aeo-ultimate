@@ -448,6 +448,26 @@ class TWTAEO_Page_Social_Graph {
 					</div>
 				<?php else : ?>
 				<?php $render_pager(); ?>
+				<?php
+				$cut_off_count = 0;
+				foreach ( $results as $cut_item ) {
+					if ( ! empty( $cut_item['og_data']['cut_off'] ) ) {
+						$cut_off_count++;
+					}
+				}
+				if ( $cut_off_count ) :
+				?>
+				<p style="margin:0 0 12px;font-size:13px;color:#b45309;max-width:820px;">
+					<span class="dashicons dashicons-warning" style="font-size:16px;width:16px;height:16px;vertical-align:text-bottom;"></span>
+					<?php
+					printf(
+						/* translators: %d: number of pages. */
+						esc_html( _n( '%d page on this screen has a description that stops mid-sentence, marked "Cut off" below. Search results and AI answers show it that way. Edit it, or regenerate it: new AI descriptions now end at a full sentence.', '%d pages on this screen have a description that stops mid-sentence, marked "Cut off" below. Search results and AI answers show them that way. Edit them, or regenerate them: new AI descriptions now end at a full sentence.', $cut_off_count, 'twt-aeo-ultimate' ) ),
+						(int) $cut_off_count
+					);
+					?>
+				</p>
+				<?php endif; ?>
 				<div class="twt-aeo-page-table-wrap">
 					<table class="twt-aeo-page-table twt-aeo-og-table" id="twt-sg-table">
 						<thead>
@@ -538,6 +558,12 @@ class TWTAEO_Page_Social_Graph {
 										</span>
 									<?php else : ?>
 										<span class="twt-aeo-tag twt-aeo-tag--missing"><?php esc_html_e( 'Missing', 'twt-aeo-ultimate' ); ?></span>
+									<?php endif; ?>
+									<?php if ( ! empty( $og['cut_off'] ) ) : ?>
+										<span class="twt-aeo-tag twt-aeo-tag--missing" style="margin-top:4px;display:inline-block;"
+											title="<?php echo esc_attr( sprintf( /* translators: %s: which descriptions, e.g. "og:description, meta description". */ __( 'Stops mid-sentence: %s', 'twt-aeo-ultimate' ), implode( ', ', $og['cut_off'] ) ) ); ?>">
+											<?php esc_html_e( 'Cut off', 'twt-aeo-ultimate' ); ?>
+										</span>
 									<?php endif; ?>
 								</td>
 

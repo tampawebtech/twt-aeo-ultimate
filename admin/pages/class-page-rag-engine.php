@@ -190,7 +190,7 @@ class TWTAEO_Page_RAG_Engine {
 					? sprintf( __( '%s pages and posts indexed; updates are picked up automatically.', 'twt-aeo-ultimate' ), number_format_i18n( $counts['post']['sources'] ) )
 					: __( 'Index your published pages so they can be compared with your documents.', 'twt-aeo-ultimate' ),
 				self::url( 'documents' ),
-				'done' === $site['status'] ? __( 'Rebuild', 'twt-aeo-ultimate' ) : __( 'Index my pages', 'twt-aeo-ultimate' )
+				'done' === $site['status'] ? __( 'Re-index pages', 'twt-aeo-ultimate' ) : __( 'Index my pages', 'twt-aeo-ultimate' )
 			);
 			self::status_row(
 				$status['google']['ready'],
@@ -218,7 +218,7 @@ class TWTAEO_Page_RAG_Engine {
 				__( 'AI citation check', 'twt-aeo-ultimate' ),
 				$run
 					/* translators: %s: time since the run. */
-					? sprintf( __( 'Last run %s ago. Feeds AI Citations — the RAG Engine reads these results and never re-runs them.', 'twt-aeo-ultimate' ), human_time_diff( strtotime( $run['started_at'] . ' UTC' ), time() ) ) . self::partial_note( $run )
+					? sprintf( __( 'Last run %s ago. Feeds AI Citations — the RAG Engine reads these results and never re-runs them. A new run shows up there by itself as soon as it has answers; nothing needs rebuilding.', 'twt-aeo-ultimate' ), human_time_diff( strtotime( $run['started_at'] . ' UTC' ), time() ) ) . self::partial_note( $run )
 					: ( $status['visibility']['module']
 						? __( 'No AI Visibility run yet. Run one to see which AI answers leave you out.', 'twt-aeo-ultimate' )
 						: __( 'The AI Visibility module is switched off. Turn it on under Modules, then run a check.', 'twt-aeo-ultimate' ) ),
@@ -463,6 +463,10 @@ class TWTAEO_Page_RAG_Engine {
 				/* translators: %s: domains. */
 				$parts[] = sprintf( __( 'engines cited %s instead', 'twt-aeo-ultimate' ), implode( ', ', $opp['others'] ) );
 			}
+			if ( ! empty( $opp['no_sources'] ) ) {
+				/* translators: %s: engine names. */
+				$parts[] = sprintf( __( '%s gave no sources', 'twt-aeo-ultimate' ), self::engine_names( $opp['no_sources'] ) );
+			}
 			self::render_opportunity( 'c' . $i, $opp['question'], implode( ' · ', $parts ), $opp, false, $opp['our_urls'] );
 		}
 
@@ -505,6 +509,8 @@ class TWTAEO_Page_RAG_Engine {
 			'perplexity' => 'Perplexity',
 			'grok'       => 'Grok',
 			'mistral'    => 'Le Chat',
+			'deepseek'   => 'DeepSeek',
+			'meta'       => 'Muse',
 		);
 		return implode(
 			', ',
@@ -549,12 +555,20 @@ class TWTAEO_Page_RAG_Engine {
 					number_format_i18n( (int) $data['hiring'] )
 				)
 			);
+			if ( ! empty( $data['business_count'] ) ) {
+				/* translators: %s: number of questions. */
+				echo ' ' . esc_html( sprintf( _n( '%s asks about your business itself.', '%s ask about your business itself.', (int) $data['business_count'], 'twt-aeo-ultimate' ), number_format_i18n( (int) $data['business_count'] ) ) );
+			}
 			if ( '' !== $data['persona'] ) {
 				/* translators: %s: persona the run was asked as. */
 				echo ' ' . esc_html( sprintf( __( 'The run was asked as %s.', 'twt-aeo-ultimate' ), $data['persona'] ) );
 			}
 			?>
 		</p>
+
+		<?php if ( ! empty( $data['business'] ) ) : ?>
+			<?php self::render_business_questions( $data['business'], (int) $data['business_count'] ); ?>
+		<?php endif; ?>
 
 		<?php if ( $data['opportunities'] ) : ?>
 			<h3><?php esc_html_e( 'Your documents answer these', 'twt-aeo-ultimate' ); ?></h3>
@@ -608,9 +622,123 @@ class TWTAEO_Page_RAG_Engine {
 			</table>
 		<?php endif; ?>
 
-		<?php if ( ! $data['opportunities'] && ! $data['gaps'] ) : ?>
+		<?php if ( ! $data['opportunities'] && ! $data['gaps'] && empty( $data['business'] ) ) : ?>
 			<p><strong><?php esc_html_e( 'Every predicted follow-up is either answered on your pages or looking for a business to hire.', 'twt-aeo-ultimate' ); ?></strong></p>
 		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Follow-ups about the business itself, grouped by topic: turnaround,
+	 * warranty, rush service… No document answers these; a page of the
+	 * owner's own does, and the engines then have it to cite at that step.
+	 *
+	 * @param array $groups topic => [ { question, engines, after, asked, page } ].
+	 * @param int   $count  Questions in all.
+	 */
+	private static function render_business_questions( array $groups, $count ) {
+		$labels = array(
+			'turnaround' => __( 'Turnaround and lead time', 'twt-aeo-ultimate' ),
+			'warranty'   => __( 'Warranty', 'twt-aeo-ultimate' ),
+			'rush'       => __( 'Rush, emergency and on-site service', 'twt-aeo-ultimate' ),
+			'shipping'   => __( 'Shipping, pickup and drop-off', 'twt-aeo-ultimate' ),
+			'returns'    => __( 'Returns and cancellations', 'twt-aeo-ultimate' ),
+			'trust'      => __( 'Reviews, trust and references', 'twt-aeo-ultimate' ),
+			'pricing'    => __( 'Pricing', 'twt-aeo-ultimate' ),
+			'brands'     => __( 'What you work on', 'twt-aeo-ultimate' ),
+			'contact'    => __( 'Quotes and contact', 'twt-aeo-ultimate' ),
+			'other'      => __( 'Other questions about you', 'twt-aeo-ultimate' ),
+		);
+		uasort(
+			$groups,
+			static function ( $a, $b ) {
+				return count( $b ) <=> count( $a );
+			}
+		);
+		?>
+		<h3><?php esc_html_e( 'Questions about your business', 'twt-aeo-ultimate' ); ?></h3>
+		<p class="description" style="max-width:860px;">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %s: number of questions. */
+					_n(
+						'%s predicted follow-up asks about your business itself. No document answers these; your own pages do. A clear page (or FAQ) on the topics buyers ask about most gives every engine something of yours to cite at this step.',
+						'%s predicted follow-ups ask about your business itself. No document answers these; your own pages do. A clear page (or FAQ) on the topics buyers ask about most gives every engine something of yours to cite at this step.',
+						$count,
+						'twt-aeo-ultimate'
+					),
+					number_format_i18n( $count )
+				)
+			);
+			?>
+		</p>
+		<table class="widefat striped" style="max-width:1100px;">
+			<thead>
+				<tr>
+					<th style="width:220px;"><?php esc_html_e( 'Topic', 'twt-aeo-ultimate' ); ?></th>
+					<th><?php esc_html_e( 'What buyers are expected to ask', 'twt-aeo-ultimate' ); ?></th>
+					<th style="width:260px;"><?php esc_html_e( 'Closest page you have', 'twt-aeo-ultimate' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $groups as $topic => $rows ) : ?>
+					<?php
+					$page = 0;
+					foreach ( $rows as $r ) {
+						if ( $r['page'] ) {
+							$page = (int) $r['page'];
+							break;
+						}
+					}
+					$engines = array();
+					foreach ( $rows as $r ) {
+						$engines = array_merge( $engines, $r['engines'] );
+					}
+					?>
+					<tr>
+						<td>
+							<strong><?php echo esc_html( isset( $labels[ $topic ] ) ? $labels[ $topic ] : $topic ); ?></strong><br />
+							<span class="description">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: 1: number of questions, 2: engine names. */
+										_n( '%1$s question · %2$s', '%1$s questions · %2$s', count( $rows ), 'twt-aeo-ultimate' ),
+										number_format_i18n( count( $rows ) ),
+										self::engine_names( array_values( array_unique( $engines ) ) )
+									)
+								);
+								?>
+							</span>
+						</td>
+						<td>
+							<ul style="margin:0 0 0 16px;list-style:disc;">
+								<?php foreach ( array_slice( $rows, 0, 4 ) as $r ) : ?>
+									<li><?php echo esc_html( $r['question'] ); ?></li>
+								<?php endforeach; ?>
+								<?php if ( count( $rows ) > 4 ) : ?>
+									<?php /* translators: %s: number of further questions. */ ?>
+									<li class="description"><?php echo esc_html( sprintf( __( 'and %s more like these', 'twt-aeo-ultimate' ), number_format_i18n( count( $rows ) - 4 ) ) ); ?></li>
+								<?php endif; ?>
+							</ul>
+						</td>
+						<td>
+							<?php if ( $page ) : ?>
+								<?php echo esc_html( wp_strip_all_tags( get_the_title( $page ) ) ); ?>
+								<br /><span class="description"><?php esc_html_e( 'your page for this topic: check it answers these', 'twt-aeo-ultimate' ); ?></span>
+								<?php $edit = get_edit_post_link( $page ); ?>
+								<?php if ( $edit ) : ?>
+									· <a href="<?php echo esc_url( $edit ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Edit page', 'twt-aeo-ultimate' ); ?></a>
+								<?php endif; ?>
+							<?php else : ?>
+								<span class="description"><?php esc_html_e( 'No page for this topic yet. A page (or an FAQ section) that answers these gives the engines something of yours to cite here.', 'twt-aeo-ultimate' ); ?></span>
+							<?php endif; ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
 		<?php
 	}
 
@@ -682,8 +810,46 @@ class TWTAEO_Page_RAG_Engine {
 				$lead = __( 'The page Google ranks for this search:', 'twt-aeo-ultimate' );
 			}
 			?>
+			<?php
+			if ( isset( $opp['type'] ) && 'restore' === $opp['type'] ) {
+				$lead = ''; // The restore note below says it all.
+			}
+			?>
 			<?php if ( '' !== $lead ) : ?>
 				<p style="margin:0 0 6px;"><?php echo esc_html( $lead ); ?></p>
+			<?php endif; ?>
+
+			<?php
+			if ( isset( $opp['type'] ) && 'restore' === $opp['type'] && ! empty( $opp['former'] ) ) :
+				$fid      = (int) $opp['former']['post_id'];
+				$where    = array(
+					'trash'   => __( 'in the Trash', 'twt-aeo-ultimate' ),
+					'draft'   => __( 'back to a draft', 'twt-aeo-ultimate' ),
+					'pending' => __( 'waiting for review', 'twt-aeo-ultimate' ),
+					'private' => __( 'set to private', 'twt-aeo-ultimate' ),
+				);
+				$status   = (string) $opp['former']['status'];
+				$act_url  = 'trash' === $status
+					? wp_nonce_url( admin_url( 'post.php?post=' . $fid . '&action=untrash' ), 'untrash-post_' . $fid )
+					: (string) get_edit_post_link( $fid, 'raw' );
+				$act_text = 'trash' === $status ? __( 'Restore from Trash', 'twt-aeo-ultimate' ) : __( 'Open it to publish', 'twt-aeo-ultimate' );
+				?>
+				<p style="margin:0 0 8px;padding:6px 10px;background:#edfaef;border-left:3px solid #00a32a;">
+					<strong><?php esc_html_e( 'You used to have a page for this.', 'twt-aeo-ultimate' ); ?></strong>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: 1: page title, 2: where it is now, e.g. "in the Trash". */
+							__( '"%1$s" is %2$s, and the search still ranks. Putting the page back at its old address is the quickest way to keep that ranking; a new page starts from nothing. If it was removed on purpose, redirect its old address to the closest page instead.', 'twt-aeo-ultimate' ),
+							'' !== $opp['former']['title'] ? $opp['former']['title'] : __( '(no title)', 'twt-aeo-ultimate' ),
+							isset( $where[ $status ] ) ? $where[ $status ] : $status
+						)
+					);
+					?>
+					<?php if ( '' !== $act_url ) : ?>
+						<br /><a href="<?php echo esc_url( $act_url ); ?>"><strong><?php echo esc_html( $act_text ); ?></strong></a>
+					<?php endif; ?>
+				</p>
 			<?php endif; ?>
 
 			<?php if ( $candidates ) : ?>
@@ -711,7 +877,7 @@ class TWTAEO_Page_RAG_Engine {
 				</ul>
 			<?php elseif ( ! empty( $opp['page_url'] ) ) : ?>
 				<p style="margin:0 0 8px;"><?php esc_html_e( 'Ranking URL (not a page on this site):', 'twt-aeo-ultimate' ); ?> <a href="<?php echo esc_url( $opp['page_url'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $opp['page_url'] ); ?></a></p>
-			<?php else : ?>
+			<?php elseif ( ! isset( $opp['type'] ) || 'restore' !== $opp['type'] ) : ?>
 				<p style="margin:0 0 8px;color:#646970;"><?php esc_html_e( 'No page on your site matches this yet — add the answer where it fits best, or give it a page of its own.', 'twt-aeo-ultimate' ); ?></p>
 			<?php endif; ?>
 
@@ -787,9 +953,11 @@ class TWTAEO_Page_RAG_Engine {
 				<?php
 			}
 			?>
+			<?php if ( ! empty( $opp['docs'] ) ) : ?>
 			<p style="margin:8px 0 4px;font-weight:600;"><?php echo $publish ? esc_html__( 'What the document covers (a start for the summary):', 'twt-aeo-ultimate' ) : esc_html__( 'Your documents answer it — copy, then paste into the page:', 'twt-aeo-ultimate' ); ?></p>
+			<?php endif; ?>
 			<?php
-			foreach ( $opp['docs'] as $n => $hit ) {
+			foreach ( (array) $opp['docs'] as $n => $hit ) {
 				TWTAEO_Page_Documents::render_passage( 'twtaeo-rag-' . $key . '-' . $n, $hit, $title, $profiles, $titles, $edit_url );
 			}
 			?>

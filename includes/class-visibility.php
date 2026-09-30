@@ -154,9 +154,13 @@ final class TWTAEO_Visibility {
 
 		$deadline = time() + self::BATCH_SECONDS;
 		do {
-			// Refreshed per step: one engine call can take 20-30s, and a lock
-			// that outlives its TTL mid-batch would let a second stepper in.
-			set_transient( self::LOCK_KEY, time(), 120 );
+			// Refreshed per step: one engine call can take 20-30s (Muse up to
+			// 90s, plus the follow-up call), and a lock that expires mid-step
+			// would let a second stepper in.
+			set_transient( self::LOCK_KEY, time(), 180 );
+			if ( function_exists( 'set_time_limit' ) && false === strpos( (string) ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
+				set_time_limit( 120 ); // Per step, as the AJAX step handler does.
+			}
 			$result = TWTAEO_Visibility_Store::step_run( $run_id );
 			if ( ! is_array( $result ) || ! empty( $result['done'] ) || ! empty( $result['paused'] ) ) {
 				break;
@@ -166,6 +170,11 @@ final class TWTAEO_Visibility {
 				break;
 			}
 			if ( empty( $result['ok'] ) ) {
+				break;
+			}
+			// Only background answers left: nothing to do until they are due
+			// another poll, so hand back and come round again.
+			if ( ! empty( $result['waiting'] ) ) {
 				break;
 			}
 		} while ( time() < $deadline );
@@ -270,6 +279,28 @@ final class TWTAEO_Visibility {
 		}
 		// Journey mode: follow-up turns past the first answer (0 = off).
 		$opts['journey'] = min( (int) TWTAEO_Visibility_Types::JOURNEY_MAX, self::post_int( 'journey', 0 ) );
+		// Where the run searches from. Nothing chosen (or "auto") means the
+		// site's own location; "none" is the only way to search from nowhere.
+		if ( class_exists( 'TWTAEO_Visibility_Location' ) ) {
+			$country = strtoupper( self::post_text( 'loc_country' ) );
+			if ( '' === $country || 'AUTO' === $country ) {
+				$location = TWTAEO_Visibility_Location::site_default();
+			} elseif ( 'NONE' === $country ) {
+				$location = null;
+			} else {
+				$location = TWTAEO_Visibility_Location::clean(
+					array(
+						'country' => $country,
+						'region'  => self::post_text( 'loc_region' ),
+						'city'    => self::post_text( 'loc_city' ),
+						'source'  => 'owner',
+					)
+				);
+			}
+			if ( $location ) {
+				$opts['location'] = $location;
+			}
+		}
 		// A site that never wrote personas gets some suggested from its own
 		// pages, once, for the next run's picker. This run stays the baseline.
 		$before = count( TWTAEO_Visibility_Personas::all() );

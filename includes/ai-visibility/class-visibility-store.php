@@ -442,6 +442,13 @@ final class TWTAEO_Visibility_Store {
 		$alloc_with_engine = $a;
 		$alloc_with_engine['engines'] = $engines;
 		$alloc_with_engine['journey'] = isset( $opts['journey'] ) ? max( 0, min( (int) TWTAEO_Visibility_Types::JOURNEY_MAX, (int) $opts['journey'] ) ) : 0;
+		// Where this run searches from, copied like the persona: changing the
+		// Local Pack address mid-run must not move the rest of the run. Kept in
+		// the allocation JSON, so no table change; runs without it had none.
+		$location = isset( $opts['location'] ) && class_exists( 'TWTAEO_Visibility_Location' ) ? TWTAEO_Visibility_Location::clean( $opts['location'] ) : null;
+		if ( $location ) {
+			$alloc_with_engine['location'] = $location;
+		}
 		$run = array(
 			'id'          => wp_generate_uuid4(),
 			'started_at'  => $now,
@@ -514,6 +521,10 @@ final class TWTAEO_Visibility_Store {
 			if ( isset( $row['summary'] ) && '' !== (string) $row['summary'] ) {
 				$summary = json_decode( (string) $row['summary'], true );
 			}
+			// Summaries saved before follow-up turns were counted are redone once.
+			if ( is_array( $summary ) && ! empty( $summary['journey'] ) && ! isset( $summary['turns'] ) ) {
+				$summary = null;
+			}
 			if ( ! is_array( $summary ) || ! isset( $summary['id'] ) ) {
 				$run = self::get_run( $row['id'] );
 				if ( ! $run ) {
@@ -527,12 +538,24 @@ final class TWTAEO_Visibility_Store {
 		return $out;
 	}
 
+	/** Seconds between two polls of the same background answer. */
+	const POLL_GAP = 5;
+
+	/** A background answer not back after this long is recorded as no answer. */
+	const ASYNC_WAIT_MAX = 600;
+
 	/**
-	 * Advance a run by ONE check. Budget first (pause, don't fail), then ask,
+	 * Advance a run by ONE action. Budget first (pause, don't fail), then ask,
 	 * judge, record.
 	 *
+	 * Engines that answer slowly (TWTAEO_Visibility_Engines::ASYNC_ENGINES)
+	 * are submitted in background mode and move the cursor on at once; their
+	 * answers are collected by later steps, one poll per step, and scored the
+	 * same way. The run is done when the queue is through AND nothing is
+	 * still out; until then a step with nothing else to do says `waiting`.
+	 *
 	 * @param string $id
-	 * @return array { ok, done?, check?, run?: summary, cursor?, total?, paused?, needs_key?, error? }
+	 * @return array { ok, done?, waiting?, pending?, check?, run?: summary, cursor?, total?, paused?, needs_key?, error? }
 	 */
 	public static function step_run( $id ) {
 		$run = self::get_run( $id );
@@ -544,8 +567,56 @@ final class TWTAEO_Visibility_Store {
 			return array( 'ok' => true, 'done' => true, 'run' => self::summarize( $run ), 'cursor' => (int) $run['cursor'], 'total' => $total );
 		}
 
+		// Collect one background answer that is due a poll.
+		$dirty   = false;
+		$now     = time();
+		$pending = self::pending( $run );
+		foreach ( $pending as $i => $p ) {
+			if ( $now - (int) $p['polled'] < self::POLL_GAP ) {
+				continue;
+			}
+			$key = TWTAEO_Visibility_Engines::key_for( $p['engine'] );
+			if ( $now - (int) $p['submitted'] > self::ASYNC_WAIT_MAX ) {
+				$answer          = self::blank_answer( $p );
+				$answer['error'] = __( 'No answer within 10 minutes.', 'twt-aeo-ultimate' );
+			} elseif ( '' === $key ) {
+				$answer          = self::blank_answer( $p );
+				$answer['error'] = __( 'No key for this engine.', 'twt-aeo-ultimate' );
+			} else {
+				$polled = TWTAEO_Visibility_Engines::poll_async( $p['engine'], $key, $p['id'], (array) $p['tools'] );
+				if ( 'done' !== $polled['state'] ) {
+					$run['allocation']['pending'][ $i ]['polled'] = $now;
+					$dirty = true;
+					break; // One poll per step; carry on with the queue below.
+				}
+				$answer = $polled['answer'];
+			}
+			$answer['latency_ms'] = max( 0, $now - (int) $p['submitted'] ) * 1000;
+			unset( $run['allocation']['pending'][ $i ] );
+			$run['allocation']['pending'] = array_values( $run['allocation']['pending'] );
+
+			$question = self::find_question( $run, $p['question_id'] );
+			$check    = self::new_check( $p['engine'], $p['question_id'], (int) $p['turn'], (int) $p['turn'] > 1 ? (string) $p['asked'] : '' );
+			return self::record_answer( $run, $check, $question, (string) $p['asked'], $answer, $key, self::ask_opts( $run ), false );
+		}
+
 		$step = self::next_step( $run );
 		if ( null === $step ) {
+			if ( ! empty( $run['allocation']['pending'] ) ) {
+				// Only background answers left: say so, keep the run open.
+				if ( $dirty ) {
+					self::save_run( $run );
+				}
+				return array(
+					'ok'      => true,
+					'done'    => false,
+					'waiting' => true,
+					'pending' => count( $run['allocation']['pending'] ),
+					'run'     => self::summarize( $run ),
+					'cursor'  => (int) $run['cursor'],
+					'total'   => $total,
+				);
+			}
 			$run['status']      = 'done';
 			$run['finished_at'] = $run['finished_at'] ? $run['finished_at'] : self::now_iso();
 			self::save_run( $run );
@@ -564,6 +635,9 @@ final class TWTAEO_Visibility_Store {
 		$engine = (string) $step['engine'];
 		$key    = TWTAEO_Visibility_Engines::key_for( $engine );
 		if ( '' === $key ) {
+			if ( $dirty ) {
+				self::save_run( $run );
+			}
 			$label = isset( TWTAEO_Visibility_Types::ENGINES[ $engine ]['label'] ) ? TWTAEO_Visibility_Types::ENGINES[ $engine ]['label'] : $engine;
 			return array(
 				'ok'        => false,
@@ -573,41 +647,10 @@ final class TWTAEO_Visibility_Store {
 			);
 		}
 
-		$question = null;
-		foreach ( $run['questions'] as $q ) {
-			if ( is_array( $q ) && isset( $q['id'] ) && (string) $q['id'] === (string) $step['question_id'] ) {
-				$question = $q;
-				break;
-			}
-		}
-		$turn = isset( $step['turn'] ) ? max( 1, (int) $step['turn'] ) : 1;
-
-		$key_rejected = false;
-		$check        = array(
-			'question_id' => (string) $step['question_id'],
-			'engine'      => $engine,
-			'at'          => self::now_iso(),
-			'verdict'     => 'unavailable',
-			'accuracy'    => 'n/a',
-			'cited_urls'  => array(),
-			'our_urls'         => array(),
-			'domains'          => array(),
-			'owned_domains'    => array(),
-			'citation_surface' => '',
-			'brand_hits'       => array(),
-			'mentions'         => array(),
-			'excerpt'          => '',
-			'answer'           => '',
-			'latency_ms'  => 0,
-			'error'       => null,
-			'model'       => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
-			'tools'       => '',
-			'follow_ups'       => array(),
-			'follow_ups_error' => null,
-			'turn'             => $turn,
-			'asked'            => '',
-		);
-		$ask_opts = ! empty( $run['persona']['label'] ) ? array( 'persona' => (string) $run['persona']['label'] ) : array();
+		$question = self::find_question( $run, $step['question_id'] );
+		$turn     = isset( $step['turn'] ) ? max( 1, (int) $step['turn'] ) : 1;
+		$check    = self::new_check( $engine, (string) $step['question_id'], $turn, '' );
+		$ask_opts = self::ask_opts( $run );
 
 		// Journey mode: a later turn asks the engine's own top follow-up from
 		// the turn before, with the conversation so far as history.
@@ -625,12 +668,71 @@ final class TWTAEO_Visibility_Store {
 			);
 		}
 
+		$answer = null;
 		if ( null === $question ) {
 			$check['error'] = __( 'Question missing from the run snapshot.', 'twt-aeo-ultimate' );
 		} elseif ( '' === $asked ) {
 			$check['error'] = __( 'Nothing to follow up on: the turn before recorded no follow-up question.', 'twt-aeo-ultimate' );
+		} elseif ( TWTAEO_Visibility_Engines::is_async( $engine ) ) {
+			$sub = TWTAEO_Visibility_Engines::submit_async( $engine, $key, $asked, $ask_opts );
+			if ( null === $sub['error'] ) {
+				// Out for an answer: note the ticket and move on.
+				$run['allocation']['pending'][] = array(
+					'question_id' => (string) $step['question_id'],
+					'engine'      => $engine,
+					'turn'        => $turn,
+					'asked'       => $asked,
+					'id'          => $sub['id'],
+					'tools'       => $sub['tools'],
+					'submitted'   => time(),
+					'polled'      => time(),
+				);
+				$run['cursor'] = (int) $run['cursor'] + 1;
+				$run['status'] = 'running';
+				self::save_run( $run );
+				return array(
+					'ok'        => true,
+					'done'      => false,
+					'submitted' => true,
+					'pending'   => count( $run['allocation']['pending'] ),
+					'followups' => self::followup_count( $run ),
+					'run'       => self::summarize( $run ),
+					'cursor'    => (int) $run['cursor'],
+					'total'     => $total,
+				);
+			}
+			// Refused at submission (bad key, bad request): record it like any failed check.
+			$answer          = self::blank_answer( array( 'engine' => $engine, 'tools' => $sub['tools'] ) );
+			$answer['error'] = $sub['error'];
 		} else {
-			$answer              = TWTAEO_Visibility_Engines::ask_with_citations( $engine, $key, $asked, $ask_opts );
+			$answer = TWTAEO_Visibility_Engines::ask_with_citations( $engine, $key, $asked, $ask_opts );
+		}
+
+		return self::record_answer( $run, $check, $question, $asked, $answer, $key, $ask_opts, true );
+	}
+
+	/**
+	 * Score an answer, store the check, and move the run on: journey turn,
+	 * rejected key, budget, finished. Shared by answers that came back at once
+	 * and background answers collected later.
+	 *
+	 * @param array      $run
+	 * @param array      $check    From new_check(); may already carry an error.
+	 * @param array|null $question
+	 * @param string     $asked
+	 * @param array|null $answer   ask_with_citations() shape, or null when nothing was asked.
+	 * @param string     $key
+	 * @param array      $ask_opts Persona and location, for the follow-up call.
+	 * @param bool       $advance  Move the cursor (false for a background answer: moved at submission).
+	 * @return array step_run() result.
+	 */
+	private static function record_answer( array $run, array $check, $question, $asked, $answer, $key, array $ask_opts, $advance ) {
+		$engine       = (string) $check['engine'];
+		$turn         = (int) $check['turn'];
+		$key_rejected = false;
+		unset( $ask_opts['history'] ); // Follow-ups are asked about this answer alone.
+
+		if ( is_array( $answer ) ) {
 			$check['latency_ms'] = (int) $answer['latency_ms'];
 			$check['cited_urls'] = $answer['cited_urls'];
 			$check['excerpt']    = self::excerpt( $answer['text'] );
@@ -658,8 +760,8 @@ final class TWTAEO_Visibility_Store {
 				}
 				// Same engine, same persona, no search. A failure here leaves the
 				// verdict alone -- the check stands with its reason beside it.
-				if ( '' !== trim( (string) $answer['text'] ) ) {
-					$follow                    = TWTAEO_Visibility_Engines::follow_ups( $engine, $key, $asked, (string) $answer['text'], $ask_opts );
+				if ( '' !== trim( (string) $answer['text'] ) && '' !== $key ) {
+					$follow                    = TWTAEO_Visibility_Engines::follow_ups( $engine, $key, (string) $asked, (string) $answer['text'], $ask_opts );
 					$check['follow_ups']       = $follow['follow_ups'];
 					$check['follow_ups_error'] = $follow['error'];
 				}
@@ -672,13 +774,15 @@ final class TWTAEO_Visibility_Store {
 		} else {
 			$run['checks'][] = $check;
 		}
-		$run['cursor'] = (int) $run['cursor'] + 1;
+		if ( $advance ) {
+			$run['cursor'] = (int) $run['cursor'] + 1;
+		}
 		$run['status'] = 'running';
 
-		// Continue the conversation straight away: the next turn goes right
-		// after this one, so each question's whole conversation finishes before
-		// the next question starts. A run stopped halfway (or paused at the
-		// daily cap) still holds complete conversations for everything it asked.
+		// Continue the conversation: the next turn goes right after the cursor,
+		// so each question's whole conversation finishes before the next
+		// question starts. A run stopped halfway (or paused at the daily cap)
+		// still holds complete conversations for everything it asked.
 		$depth = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
 		if ( $turn <= $depth && null === $check['error'] && ! empty( $check['follow_ups'] ) ) {
 			$queue = array_values( (array) $run['queue'] );
@@ -688,25 +792,24 @@ final class TWTAEO_Visibility_Store {
 				0,
 				array(
 					array(
-						'question_id' => (string) $step['question_id'],
+						'question_id' => (string) $check['question_id'],
 						'engine'      => $engine,
 						'turn'        => $turn + 1,
 					),
 				)
 			);
 			$run['queue'] = $queue;
-			$total        = count( $run['queue'] );
 		}
-		if ( ! empty( $key_rejected ) ) {
+		if ( $key_rejected ) {
 			self::drop_engine( $run, $engine, (int) $run['cursor'] );
-			$total = count( $run['queue'] );
 		}
+		$total          = count( $run['queue'] );
 		$run['message'] = self::key_notice( $run );
 		if ( 'unavailable' !== $check['verdict'] ) {
 			TWTAEO_Visibility_Budget::record( 1 );
 		}
 
-		$done = $run['cursor'] >= $total;
+		$done = $run['cursor'] >= $total && empty( $run['allocation']['pending'] );
 		if ( $done ) {
 			$run['status']      = 'done';
 			$run['finished_at'] = self::now_iso();
@@ -718,12 +821,96 @@ final class TWTAEO_Visibility_Store {
 		}
 
 		return array(
-			'ok'     => true,
-			'done'   => $done,
-			'check'  => $check,
-			'run'    => self::summarize( $run ),
-			'cursor' => (int) $run['cursor'],
-			'total'  => $total,
+			'ok'      => true,
+			'done'    => $done,
+			'check'   => $check,
+			'pending'   => count( (array) ( $run['allocation']['pending'] ?? array() ) ),
+			'followups' => self::followup_count( $run ),
+			'run'       => self::summarize( $run ),
+			'cursor'    => (int) $run['cursor'],
+			'total'     => $total,
+		);
+	}
+
+	/** Queued checks that are follow-up turns (journey mode), not first questions. */
+	private static function followup_count( array $run ) {
+		$n = 0;
+		foreach ( (array) $run['queue'] as $item ) {
+			if ( is_array( $item ) && isset( $item['turn'] ) && (int) $item['turn'] > 1 ) {
+				++$n;
+			}
+		}
+		return $n;
+	}
+
+	/** Background answers still out for a run, oldest first. */
+	private static function pending( array $run ) {
+		$out = array();
+		foreach ( (array) ( $run['allocation']['pending'] ?? array() ) as $p ) {
+			if ( is_array( $p ) && ! empty( $p['id'] ) && ! empty( $p['engine'] ) ) {
+				$out[] = $p + array( 'turn' => 1, 'asked' => '', 'tools' => array(), 'submitted' => 0, 'polled' => 0, 'question_id' => '' );
+			}
+		}
+		return $out;
+	}
+
+	/** An answer carrying only an error, for a background ticket that never came back. */
+	private static function blank_answer( array $p ) {
+		$engine = isset( $p['engine'] ) ? (string) $p['engine'] : '';
+		return array(
+			'text'          => '',
+			'cited_urls'    => array(),
+			'searched_urls' => array(),
+			'error'         => null,
+			'latency_ms'    => 0,
+			'model'         => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
+			'tools'         => isset( $p['tools'] ) ? (array) $p['tools'] : array(),
+		);
+	}
+
+	private static function find_question( array $run, $question_id ) {
+		foreach ( (array) $run['questions'] as $q ) {
+			if ( is_array( $q ) && isset( $q['id'] ) && (string) $q['id'] === (string) $question_id ) {
+				return $q;
+			}
+		}
+		return null;
+	}
+
+	/** Persona and location the whole run is asked with. */
+	private static function ask_opts( array $run ) {
+		$opts = ! empty( $run['persona']['label'] ) ? array( 'persona' => (string) $run['persona']['label'] ) : array();
+		if ( ! empty( $run['allocation']['location'] ) && is_array( $run['allocation']['location'] ) ) {
+			$opts['location'] = $run['allocation']['location'];
+		}
+		return $opts;
+	}
+
+	/** A check with nothing recorded yet. */
+	private static function new_check( $engine, $question_id, $turn, $asked ) {
+		return array(
+			'question_id'      => (string) $question_id,
+			'engine'           => (string) $engine,
+			'at'               => self::now_iso(),
+			'verdict'          => 'unavailable',
+			'accuracy'         => 'n/a',
+			'cited_urls'       => array(),
+			'our_urls'         => array(),
+			'domains'          => array(),
+			'owned_domains'    => array(),
+			'citation_surface' => '',
+			'brand_hits'       => array(),
+			'mentions'         => array(),
+			'excerpt'          => '',
+			'answer'           => '',
+			'latency_ms'       => 0,
+			'error'            => null,
+			'model'            => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
+			'tools'            => '',
+			'follow_ups'       => array(),
+			'follow_ups_error' => null,
+			'turn'             => max( 1, (int) $turn ),
+			'asked'            => (string) $asked,
 		);
 	}
 
@@ -1310,8 +1497,10 @@ final class TWTAEO_Visibility_Store {
 		if ( class_exists( 'TWTAEO_Visibility_Verdict' ) && method_exists( 'TWTAEO_Visibility_Verdict', 'summarize_run' ) ) {
 			$s = TWTAEO_Visibility_Verdict::summarize_run( $run );
 			if ( is_array( $s ) ) {
-				$s['persona'] = isset( $run['persona'] ) ? $run['persona'] : null;
-				$s['journey'] = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
+				$s['persona']  = isset( $run['persona'] ) ? $run['persona'] : null;
+				$s['journey']  = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
+				$s['turns']    = count( (array) ( isset( $run['journey'] ) ? $run['journey'] : array() ) );
+				$s['location'] = ! empty( $run['allocation']['location'] ) ? $run['allocation']['location'] : null;
 				return $s;
 			}
 		}
@@ -1347,6 +1536,8 @@ final class TWTAEO_Visibility_Store {
 			'by_engine'   => array(),
 			'persona'     => isset( $run['persona'] ) ? $run['persona'] : null,
 			'journey'     => isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0,
+			'turns'       => count( (array) ( isset( $run['journey'] ) ? $run['journey'] : array() ) ),
+			'location'    => ! empty( $run['allocation']['location'] ) ? $run['allocation']['location'] : null,
 		);
 	}
 
