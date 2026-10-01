@@ -437,3 +437,25 @@
 .twt-aeo-vis__row--followup td { background: #f8fafc; }
 .twt-aeo-vis__row--followup .twt-aeo-vis__td-q { padding-left: 24px; }
 .twt-aeo-vis__followup-tag { display: inline-block; margin: 0 6px 2px 0; padding: 0 8px; border-radius: 999px; background: #e7eff8; color: #1d4f7c; font-size: 11px; font-weight: 600; white-space: nowrap; }
+
+/* Question list: reword a question, add your own. */
+.twt-aeo-vis__qedit,
+.twt-aeo-vis__qrestore { margin-left: 8px; font-size: 12px; }
+.twt-aeo-vis__qinput { display: block; margin: 4px 0; }
+.twt-aeo-vis__qlevel--custom { margin-bottom: 12px; }
+.twt-aeo-vis__qlevel--custom textarea { margin: 6px 0 4px; }
+
+/* "Is this you?" and pages about you. */
+.twt-aeo-vis__claim { margin: 10px 0 12px; }
+.twt-aeo-vis__claim p { margin: 4px 0 8px; }
+.twt-aeo-vis__claim-list,
+.twt-aeo-vis__about-list { margin: 0; padding: 0; list-style: none; }
+.twt-aeo-vis__claim-list li,
+.twt-aeo-vis__about-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 5px 0; border-top: 1px solid #e3e5e7; overflow-wrap: anywhere; }
+.twt-aeo-vis__claim-list li:first-child,
+.twt-aeo-vis__about-list li:first-child { border-top: 0; }
+.twt-aeo-vis__claim-actions { margin-left: auto; display: inline-flex; gap: 6px; font-size: 12px; }
+.twt-aeo-vis__claim-list li.is-mine .twt-aeo-vis__claim-actions { color: #1f8f6f; font-weight: 600; }
+.twt-aeo-vis__claim-list li.is-not-mine { opacity: .6; }
+.twt-aeo-vis__about { margin-top: 16px; }
+.twt-aeo-vis__about h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; }

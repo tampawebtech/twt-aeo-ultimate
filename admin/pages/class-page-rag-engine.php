@@ -407,7 +407,7 @@ class TWTAEO_Page_RAG_Engine {
 			self::setup_notice(
 				__( 'No AI citation check has been run yet.', 'twt-aeo-ultimate' ),
 				$status['visibility']['module']
-					? __( 'Run an AI Visibility check first. It asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask and records who they cite; this tab then shows which of those answers your documents could win.', 'twt-aeo-ultimate' )
+					? __( 'Run an AI Visibility check first. It asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions your customers ask and records who they cite; this tab then shows which of those answers your documents could win.', 'twt-aeo-ultimate' )
 					: __( 'The AI Visibility module is switched off. Turn it on under Modules, run a check, and this tab will show which AI answers your documents could win.', 'twt-aeo-ultimate' ),
 				$status['visibility']['module'] ? $status['visibility_url'] : $status['modules_url'],
 				$status['visibility']['module'] ? __( 'Go to AI Visibility', 'twt-aeo-ultimate' ) : __( 'Open Modules', 'twt-aeo-ultimate' )

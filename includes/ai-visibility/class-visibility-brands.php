@@ -41,7 +41,7 @@ final class TWTAEO_Visibility_Brands {
 
 	/** Phrases and owned URLs per item — a brand needs a handful, not a corpus. */
 	const MAX_PHRASES = 12;
-	const MAX_URLS    = 12;
+	const MAX_URLS    = 25;
 
 	/** Shortest word that carries meaning in a loose phrase match ("of" does not). */
 	const MIN_WORD = 3;
@@ -71,7 +71,20 @@ final class TWTAEO_Visibility_Brands {
 		'play.google.com', 'microsoft.com', 'discord.com', 'discord.gg', 'slack.com',
 		'twitch.tv', 'vimeo.com', 'soundcloud.com', 'spotify.com', 'behance.net',
 		'dribbble.com', 'wellfound.com', 'angel.co', 'meetup.com', 'eventbrite.com',
+		// App stores whose listings sit one path below the host: a bare
+		// `apps.shopify.com` would claim every Shopify app ever cited.
+		'apps.shopify.com', 'wix.com', 'chromewebstore.google.com',
 	);
+
+	/**
+	 * wordpress.org's language copies (en-gb.wordpress.org, jv.wordpress.org)
+	 * carry the same plugin and theme pages under the same paths. Two or three
+	 * letters, optionally a region: `make.` and `learn.` are not languages.
+	 */
+	const WPORG_LOCALE_HOST = '/^[a-z]{2,3}(?:-[a-z0-9]{2,5})?\.wordpress\.org$/';
+
+	/** Shortest handle worth asking about: "aeo" alone would match half the web. */
+	const MIN_HANDLE = 5;
 
 	/*
 	 * Deliberately NOT listed: the PaaS and static-hosting apexes (netlify.app,
@@ -170,7 +183,12 @@ final class TWTAEO_Visibility_Brands {
 		$h = strtolower( trim( self::to_string( $host ) ) );
 		$h = preg_replace( '/^www\./', '', $h );
 		$h = preg_replace( '/\.$/', '', (string) $h );
-		return in_array( $h, self::SHARED_HOSTS, true );
+		return in_array( $h, self::SHARED_HOSTS, true ) || 1 === preg_match( self::WPORG_LOCALE_HOST, (string) $h );
+	}
+
+	/** One host for the pages that are the same everywhere: a wordpress.org language copy is wordpress.org. */
+	private static function match_host( $host ) {
+		return 1 === preg_match( self::WPORG_LOCALE_HOST, (string) $host ) ? 'wordpress.org' : (string) $host;
 	}
 
 	/**
@@ -218,7 +236,7 @@ final class TWTAEO_Visibility_Brands {
 		if ( null === $cited ) {
 			return false;
 		}
-		if ( $cited['host'] !== $property['host'] ) {
+		if ( self::match_host( $cited['host'] ) !== self::match_host( $property['host'] ) ) {
 			return false;
 		}
 		$want = isset( $property['path'] ) ? (string) $property['path'] : '';
@@ -226,7 +244,140 @@ final class TWTAEO_Visibility_Brands {
 			return true;
 		}
 		$have = $cited['path'];
-		return $have === $want || 0 === strpos( $have, $want . '/' );
+		if ( $have === $want || 0 === strpos( $have, $want . '/' ) ) {
+			return true;
+		}
+		// A LinkedIn post lives at /posts/<handle>_<slug>, not under the page
+		// that wrote it, so a company's own posts never matched its page.
+		if ( 'linkedin.com' === $cited['host'] && preg_match( '#^/(?:company|showcase|in)/([^/]+)$#', $want, $m ) ) {
+			return 0 === strpos( $have, '/posts/' . $m[1] . '_' );
+		}
+		return false;
+	}
+
+	/* ─────────────────────────────── handles ───────────────────────────── */
+
+	/**
+	 * The names a business goes by, in the form they take in a web address:
+	 * "TWT AEO Ultimate" becomes `twt-aeo-ultimate` and `twtaeoultimate`.
+	 * Quotes and punctuation drop out; anything shorter than MIN_HANDLE is
+	 * too common to mean anything.
+	 *
+	 * @param array $names Company name, host labels, brand labels and phrases.
+	 * @return string[] Lowercase handles, longest first.
+	 */
+	public static function handles( array $names ) {
+		$out = array();
+		foreach ( $names as $name ) {
+			$slug = strtolower( trim( self::to_string( $name ) ) );
+			$slug = trim( (string) preg_replace( '/[^a-z0-9]+/', '-', $slug ), '-' );
+			foreach ( array( $slug, str_replace( '-', '', $slug ) ) as $h ) {
+				if ( strlen( $h ) >= self::MIN_HANDLE && ! in_array( $h, $out, true ) ) {
+					$out[] = $h;
+				}
+			}
+		}
+		usort(
+			$out,
+			static function ( $a, $b ) {
+				return strlen( $b ) - strlen( $a );
+			}
+		);
+		return $out;
+	}
+
+	/** Does this address piece carry the handle as whole words? `twt-aeo-ultimate` carries `aeo-ultimate`; `aeo-ultimately` does not. */
+	private static function carries_handle( $piece, $handle ) {
+		$piece = strtolower( (string) $piece );
+		return false !== strpos( '-' . str_replace( '_', '-', $piece ) . '-', '-' . $handle . '-' );
+	}
+
+	/**
+	 * What a cited page is to us, judged from its address alone.
+	 *
+	 *   'owned'     — one of our hosts, or a page we registered.
+	 *   'candidate' — a shared platform whose account or listing slot (the
+	 *                 first two path segments) carries our handle:
+	 *                 apps.shopify.com/aeo-ultimate, clutch.co/profile/aeo-ultimate.
+	 *                 Very likely us, never assumed — the merchant is asked.
+	 *   'about'     — our handle sits anywhere else in the address
+	 *                 (someblog.com/reviews/aeo-ultimate-review): a page about
+	 *                 us that somebody else wrote. Not us, not a competitor.
+	 *   ''          — none of the above.
+	 *
+	 * @param mixed $url        Cited URL.
+	 * @param array $handles    From handles().
+	 * @param array $properties Property[] (hosts included).
+	 * @param array $not_me     Page keys (page_key()) the merchant said are not theirs.
+	 * @return string
+	 */
+	public static function classify_cited( $url, array $handles, array $properties, array $not_me = array() ) {
+		$cited = self::normalize_property( $url, 'site' );
+		if ( null === $cited ) {
+			return '';
+		}
+		if ( ! empty( self::properties_for( $url, $properties ) ) ) {
+			return 'owned';
+		}
+		if ( empty( $handles ) ) {
+			return '';
+		}
+		$segments = array_values( array_filter( explode( '/', $cited['path'] ), 'strlen' ) );
+		$asked_no = in_array( self::page_key( $url, $handles ), $not_me, true );
+		$slots    = array_slice( $segments, 0, 2 );
+		// /posts/<author>_<title>: only the author is the account. Somebody
+		// else's post with us in the title is about us, not by us.
+		if ( 'linkedin.com' === $cited['host'] && isset( $slots[0], $slots[1] ) && 'posts' === $slots[0] ) {
+			$slots = array( strtok( $slots[1], '_' ) );
+		}
+		if ( ! $asked_no && self::is_shared_host( $cited['host'] ) ) {
+			foreach ( $slots as $seg ) {
+				foreach ( $handles as $h ) {
+					if ( self::carries_handle( $seg, $h ) ) {
+						return 'candidate';
+					}
+				}
+			}
+		}
+		foreach ( $segments as $seg ) {
+			foreach ( $handles as $h ) {
+				if ( self::carries_handle( $seg, $h ) ) {
+					return 'about';
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * The page to register for a candidate: the address cut after the segment
+	 * that carries the handle, so apps.shopify.com/aeo-ultimate/reviews offers
+	 * apps.shopify.com/aeo-ultimate (which then covers /reviews too). A
+	 * LinkedIn post is offered as itself — the page that wrote it is not in
+	 * the address. Also the key a "not me" answer is remembered under.
+	 *
+	 * @param mixed $url     Cited URL.
+	 * @param array $handles From handles().
+	 * @return string The page address (scheme, host and path), or empty when it cannot be one.
+	 */
+	public static function page_key( $url, array $handles ) {
+		$cited = self::normalize_property( $url, 'site' );
+		if ( null === $cited ) {
+			return '';
+		}
+		$segments = array_values( array_filter( explode( '/', $cited['path'] ), 'strlen' ) );
+		$keep     = $segments;
+		if ( 'linkedin.com' !== $cited['host'] ) {
+			foreach ( array_slice( $segments, 0, 2 ) as $i => $seg ) {
+				foreach ( $handles as $h ) {
+					if ( self::carries_handle( $seg, $h ) ) {
+						$keep = array_slice( $segments, 0, $i + 1 );
+						break 2;
+					}
+				}
+			}
+		}
+		return 'https://' . $cited['host'] . ( $keep ? '/' . implode( '/', $keep ) : '' );
 	}
 
 	/**

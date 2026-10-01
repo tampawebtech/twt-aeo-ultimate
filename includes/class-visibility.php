@@ -32,8 +32,15 @@ final class TWTAEO_Visibility {
 	/** Company profiles + tracked brand items (the brand citation tracker). */
 	const AJAX_SAVE_B = 'twtaeo_visibility_save_brands';
 
+	/** "Is this you?" — yes (register the page, re-score) or no (never ask again). */
+	const AJAX_CLAIM = 'twtaeo_visibility_claim_page';
+
 	/** Post questions AI-rephrased per request; the page loops until none remain. */
 	const POLISH_CHUNK = 20;
+
+	/** The merchant's own questions: how many, and how long each may be. */
+	const CUSTOM_MAX     = 50;
+	const CUSTOM_MAX_LEN = 300;
 
 	/** WP-Cron hook: advances a running run when no board page is doing it. */
 	const CRON_HOOK = 'twtaeo_visibility_cron';
@@ -82,6 +89,7 @@ final class TWTAEO_Visibility {
 			self::AJAX_SAVE_Q                     => 'ajax_save_questions',
 			self::AJAX_POLISH                     => 'ajax_polish_questions',
 			self::AJAX_SAVE_B                     => 'ajax_save_brands',
+			self::AJAX_CLAIM                      => 'ajax_claim_page',
 			TWTAEO_Visibility_Types::AJAX_PERSONAS_SAVE    => 'ajax_personas_save',
 			TWTAEO_Visibility_Types::AJAX_PERSONAS_SUGGEST => 'ajax_personas_suggest',
 			TWTAEO_Visibility_Types::AJAX_PERSONAS_TOGGLE  => 'ajax_personas_toggle',
@@ -527,6 +535,9 @@ final class TWTAEO_Visibility {
 			)
 		);
 
+		// Kept runs are judged again against the new list — free, nothing is asked.
+		TWTAEO_Visibility_Store::rescore_runs();
+
 		$items    = isset( $saved['brand_items'] ) ? (array) $saved['brand_items'] : array();
 		$profiles = count( isset( $saved['company_urls'] ) ? (array) $saved['company_urls'] : array() );
 		foreach ( $items as $item ) {
@@ -544,6 +555,34 @@ final class TWTAEO_Visibility {
 				'company_urls' => isset( $saved['company_urls'] ) ? $saved['company_urls'] : array(),
 				'brand_items'  => $items,
 				'rejected'     => $rejected,
+			)
+		);
+	}
+
+	/**
+	 * Answer to "Is this you?" for one cited page. `mine=1` registers it under
+	 * the company and re-scores every kept run; `mine=0` remembers the answer
+	 * so the page is never asked about again.
+	 */
+	public static function ajax_claim_page() {
+		self::guard();
+		$url  = esc_url_raw( self::post_text( 'url' ) );
+		$mine = 1 === self::post_int( 'mine', 0 );
+		if ( '' === $url ) {
+			wp_send_json_error( array( 'error' => __( 'No page was given.', 'twt-aeo-ultimate' ) ) );
+		}
+		if ( ! $mine ) {
+			TWTAEO_Visibility_Store::disown_page( $url );
+			wp_send_json_success( array( 'message' => __( 'Noted — we will not ask about that page again.', 'twt-aeo-ultimate' ) ) );
+		}
+		$result = TWTAEO_Visibility_Store::claim_page( $url );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'error' => $result->get_error_message() ) );
+		}
+		wp_send_json_success(
+			array(
+				'message' => __( 'Added to the pages your company owns. Your kept runs were re-scored — reload to see the new numbers.', 'twt-aeo-ultimate' ),
+				'changed' => (int) $result['changed'],
 			)
 		);
 	}
@@ -594,6 +633,14 @@ final class TWTAEO_Visibility {
 
 		$next = $settings;
 		$next['allocation'] = $alloc;
+		// What was tickable when these ticks were saved, so an engine keyed
+		// later can be told apart from one deliberately left off.
+		$next['engines_seen'] = array();
+		foreach ( (array) TWTAEO_Visibility_Engines::availability() as $row ) {
+			if ( is_array( $row ) && ! empty( $row['available'] ) && isset( $row['engine'] ) ) {
+				$next['engines_seen'][] = (string) $row['engine'];
+			}
+		}
 
 		$cap = self::post_text( 'daily_cap' );
 		if ( '' !== $cap && is_numeric( $cap ) ) {
@@ -784,10 +831,17 @@ final class TWTAEO_Visibility {
 				$ticked[ substr( (string) $key, 2 ) ] = true;
 			}
 		}
-		$clean   = array();
-		$enabled = 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$has_box = isset( $_POST['custom_questions'] );
+		$clean   = $has_box ? self::post_custom_questions() : array();
+		$enabled = count( $clean );
 		foreach ( $list as $q ) {
 			if ( ! is_array( $q ) || empty( $q['id'] ) || empty( $q['text'] ) ) {
+				continue;
+			}
+			// The box below the list is the only editor for the merchant's own
+			// questions; whatever the list still carries of them is stale.
+			if ( $has_box && 'custom' === ( $q['source'] ?? '' ) ) {
 				continue;
 			}
 			$id    = sanitize_text_field( (string) $q['id'] );
@@ -809,10 +863,13 @@ final class TWTAEO_Visibility {
 				'scope_label' => sanitize_text_field( isset( $q['scope_label'] ) ? (string) $q['scope_label'] : '' ),
 				'family'      => sanitize_key( isset( $q['family'] ) ? (string) $q['family'] : '' ),
 				'text'        => sanitize_text_field( (string) $q['text'] ),
-				'source'      => in_array( isset( $q['source'] ) ? $q['source'] : '', array( 'template', 'ai', 'merchant' ), true ) ? $q['source'] : 'template',
+				'source'      => in_array( isset( $q['source'] ) ? $q['source'] : '', array( 'template', 'ai', 'merchant', 'custom' ), true ) ? $q['source'] : 'template',
 				'truth'       => $truth,
 				'enabled'     => isset( $ticked[ $id ] ),
 			);
+			if ( in_array( $row['source'], array( 'ai', 'merchant' ), true ) && ! empty( $q['template_text'] ) ) {
+				$row['template_text'] = sanitize_text_field( (string) $q['template_text'] );
+			}
 			if ( $row['enabled'] ) {
 				$enabled++;
 			}
@@ -821,16 +878,59 @@ final class TWTAEO_Visibility {
 		if ( empty( $clean ) ) {
 			wp_send_json_error( array( 'error' => __( 'Nothing to save.', 'twt-aeo-ultimate' ) ) );
 		}
-		TWTAEO_Visibility_Store::save_questions( $clean );
+		$saved = TWTAEO_Visibility_Store::save_questions( $clean );
 		wp_send_json_success( array(
 			'total'   => count( $clean ),
 			'enabled' => $enabled,
+			'custom'  => TWTAEO_Visibility_Store::count_custom_questions( $saved ),
 			'message' => sprintf(
 				/* translators: 1: enabled count, 2: total count */
 				__( '%1$d of %2$d questions enabled. Runs ask the enabled ones.', 'twt-aeo-ultimate' ),
 				$enabled,
 				count( $clean )
 			),
+			'html'    => TWTAEO_Page_AI_Visibility::render_question_list( $saved ),
 		) );
+	}
+
+	/**
+	 * The merchant's own questions from the `custom_questions` box: one per
+	 * line, trimmed, de-duplicated, capped. Each gets an id from its words, so
+	 * the same question keeps its id run after run and its results compare.
+	 *
+	 * @return array Question rows, all enabled.
+	 */
+	private static function post_custom_questions() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- guard() ran check_ajax_referer.
+		$raw   = isset( $_POST['custom_questions'] ) ? sanitize_textarea_field( wp_unslash( $_POST['custom_questions'] ) ) : '';
+		$rows  = array();
+		$seen  = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) $raw ) as $line ) {
+			$text = trim( preg_replace( '/\s+/', ' ', $line ) );
+			$len  = function_exists( 'mb_strlen' ) ? mb_strlen( $text ) : strlen( $text );
+			if ( $len < 3 || $len > self::CUSTOM_MAX_LEN ) {
+				continue;
+			}
+			$id = TWTAEO_Visibility_Store::custom_question_id( $text );
+			if ( isset( $seen[ $id ] ) ) {
+				continue;
+			}
+			$seen[ $id ] = true;
+			$rows[]      = array(
+				'id'          => $id,
+				'level'       => 'company',
+				'scope_id'    => '',
+				'scope_label' => __( 'Your question', 'twt-aeo-ultimate' ),
+				'family'      => 'custom',
+				'text'        => $text,
+				'source'      => 'custom',
+				'truth'       => null,
+				'enabled'     => true,
+			);
+			if ( count( $rows ) >= self::CUSTOM_MAX ) {
+				break;
+			}
+		}
+		return $rows;
 	}
 }

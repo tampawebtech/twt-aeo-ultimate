@@ -32,6 +32,8 @@ final class TWTAEO_Page_AI_Visibility {
 	const COMPETITOR_COLORS = array( '#1f8f6f', '#d9a21b', '#7b57c9', '#d0603f', '#c2417f', '#5c5f62' );
 	/** The "everyone else" slice. */
 	const OTHER_COLOR = '#e3e5e7';
+	/** Pages about us that someone else wrote: next to our blue, never a competitor colour. */
+	const ABOUT_COLOR = '#93c5fd';
 	/** One colour per question level, shared by the allocation bar and the table. */
 	const LEVEL_COLOR = array(
 		'company'    => '#0ea5e9',
@@ -120,6 +122,11 @@ final class TWTAEO_Page_AI_Visibility {
 				$available_ids[] = $id;
 			}
 		}
+		$alloc['engines'] = array_values( array_intersect( TWTAEO_Visibility_Store::effective_engines( $settings, $available_ids ), $available_ids ) );
+		// No ticks saved means every engine with a key — show it that way.
+		if ( empty( $alloc['engines'] ) ) {
+			$alloc['engines'] = $available_ids;
+		}
 
 		$counts = TWTAEO_Visibility_Inputs::catalog_counts();
 		$counts = is_array( $counts ) ? $counts : array();
@@ -127,6 +134,13 @@ final class TWTAEO_Page_AI_Visibility {
 			$counts[ $k ] = isset( $counts[ $k ] ) ? (int) $counts[ $k ] : 0;
 		}
 		$totals = TWTAEO_Visibility_Questions::allocation_totals( $alloc, $counts );
+		// The merchant's own questions are asked on top of the counts.
+		$counts['custom'] = TWTAEO_Visibility_Store::count_custom_questions( TWTAEO_Visibility_Store::load_questions() );
+		if ( $counts['custom'] > 0 ) {
+			$totals['questions']          += $counts['custom'];
+			$totals['by_level']['company'] = ( isset( $totals['by_level']['company'] ) ? (int) $totals['by_level']['company'] : 0 ) + $counts['custom'];
+			$totals['checks']              = $totals['questions'] * count( $alloc['engines'] );
+		}
 
 		$budget = TWTAEO_Visibility_Budget::check();
 		$budget = is_array( $budget ) ? $budget : array();
@@ -287,7 +301,7 @@ final class TWTAEO_Page_AI_Visibility {
 			<?php esc_html_e( 'These checks call the assistants’ APIs with web search on your own keys. They approximate what the consumer apps say — those personalise and change daily — and are the closest reproducible measure. A question you’re not named for is a finding with a fix, not a failure.', 'twt-aeo-ultimate' ); ?>
 		</div>
 		<p class="twt-aeo-vis__lede">
-			<?php esc_html_e( 'Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions people ask about your company, your brands, your categories, your products and your posts, then records per engine whether you were cited (a link to something you own), named without a link, or absent — and who was cited instead. A citation of a profile you own counts as a citation; the board shows which surface it landed on, so you can still tell your own pages from your LinkedIn. Where we already know the answer (your policies, where you ship, your variants and prices) it also checks whether what the engine said was true. Every check is one model call with one web search on your key, so your provider bills it at their rate — this page shows counts, never dollars. Nothing runs until you press Start, and a run pauses at your daily cap rather than failing.', 'twt-aeo-ultimate' ); ?>
+			<?php esc_html_e( 'Asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions people ask about your company, your brands, your categories, your products and your posts, then records per engine whether you were cited (a link to something you own), named without a link, or absent — and who was cited instead. A citation of a profile you own counts as a citation; the board shows which surface it landed on, so you can still tell your own pages from your LinkedIn. Where we already know the answer (your policies, where you ship, your variants and prices) it also checks whether what the engine said was true. Every check is one model call with one web search on your key, so your provider bills it at their rate — this page shows counts, never dollars. Nothing runs until you press Start, and a run pauses at your daily cap rather than failing.', 'twt-aeo-ultimate' ); ?>
 		</p>
 		<?php
 	}
@@ -848,6 +862,7 @@ final class TWTAEO_Page_AI_Visibility {
 				data-types="<?php echo esc_attr( $counts['types'] ); ?>"
 				data-products="<?php echo esc_attr( $counts['products'] ); ?>"
 				data-posts="<?php echo esc_attr( $counts['posts'] ); ?>"
+				data-custom="<?php echo esc_attr( isset( $counts['custom'] ) ? (int) $counts['custom'] : 0 ); ?>"
 				data-cap="<?php echo esc_attr( $cap ); ?>"
 				data-cap-used="<?php echo esc_attr( (int) $d['cap_used'] ); ?>">
 				<p class="twt-aeo-card__note"><?php esc_html_e( 'Questions per item at each level. The bar shows where a run’s questions go; the line under it is the arithmetic.', 'twt-aeo-ultimate' ); ?></p>
@@ -956,7 +971,7 @@ final class TWTAEO_Page_AI_Visibility {
 				<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Nothing is asked that you have not seen here first', 'twt-aeo-ultimate' ); ?></span>
 			</div>
 			<div class="twt-aeo-card">
-				<p class="twt-aeo-card__note"><?php esc_html_e( 'Questions are filled from templates using data we already hold — site name, policies, categories, product types, products and their variants, posts — so runs stay comparable week to week and engine to engine. Building the list reads your catalogue and spends nothing. Untick anything you do not want asked.', 'twt-aeo-ultimate' ); ?></p>
+				<p class="twt-aeo-card__note"><?php esc_html_e( 'Questions are filled from templates using data we already hold — site name, policies, categories, product types, products and their variants, posts — so runs stay comparable week to week and engine to engine. Building the list reads your catalogue and spends nothing. Untick anything you do not want asked, click Edit to reword a question, or add your own questions at the top of the list.', 'twt-aeo-ultimate' ); ?></p>
 				<div class="twt-aeo-vis__actions">
 					<button type="button" class="button" id="twt-aeo-vis-preview"><?php echo $saved ? esc_html__( 'Rebuild from templates', 'twt-aeo-ultimate' ) : esc_html__( 'Build the question list', 'twt-aeo-ultimate' ); ?></button>
 					<?php if ( $saved ) : ?>
@@ -993,7 +1008,13 @@ final class TWTAEO_Page_AI_Visibility {
 			$grouped[ $level ] = array();
 		}
 		$enabled = 0;
+		$custom  = array();
 		foreach ( $questions as $q ) {
+			if ( is_array( $q ) && 'custom' === ( $q['source'] ?? '' ) ) {
+				$custom[] = $q;
+				$enabled += empty( $q['enabled'] ) ? 0 : 1;
+				continue;
+			}
 			if ( ! is_array( $q ) || ! isset( $q['level'], $grouped[ $q['level'] ] ) ) {
 				continue;
 			}
@@ -1014,6 +1035,10 @@ final class TWTAEO_Page_AI_Visibility {
 			return ob_get_clean();
 		}
 		$parts = array();
+		if ( $custom ) {
+			/* translators: %d: number of questions the site owner wrote. */
+			$parts[] = sprintf( __( '%d your own', 'twt-aeo-ultimate' ), count( $custom ) );
+		}
 		foreach ( $grouped as $level => $list ) {
 			if ( $list ) {
 				$parts[] = count( $list ) . ' ' . strtolower( TWTAEO_Visibility_Types::LEVEL_LABEL[ $level ] );
@@ -1030,6 +1055,25 @@ final class TWTAEO_Page_AI_Visibility {
 				· <?php echo $enabled === $total ? esc_html__( 'all enabled', 'twt-aeo-ultimate' ) : esc_html( sprintf( __( '%d enabled', 'twt-aeo-ultimate' ), $enabled ) ); ?>
 			</span>
 			<button type="button" class="button-link twt-aeo-vis__q-toggle" data-open="<?php esc_attr_e( 'Expand to review', 'twt-aeo-ultimate' ); ?>" data-close="<?php esc_attr_e( 'Hide the list', 'twt-aeo-ultimate' ); ?>"><?php esc_html_e( 'Expand to review', 'twt-aeo-ultimate' ); ?></button>
+		</div>
+		<div class="twt-aeo-vis__qlevel twt-aeo-vis__qlevel--custom">
+			<div class="twt-aeo-vis__qlevel-head">
+				<span class="twt-aeo-vis__swatch" style="background:<?php echo esc_attr( self::LEVEL_COLOR['company'] ); ?>"></span>
+				<strong><?php esc_html_e( 'Your own questions', 'twt-aeo-ultimate' ); ?></strong>
+				<span class="twt-aeo-vis__muted"><?php esc_html_e( 'optional', 'twt-aeo-ultimate' ); ?></span>
+			</div>
+			<label class="screen-reader-text" for="twt-aeo-vis-custom-q"><?php esc_html_e( 'Your own questions, one per line', 'twt-aeo-ultimate' ); ?></label>
+			<textarea id="twt-aeo-vis-custom-q" name="custom_questions" rows="<?php echo esc_attr( max( 3, min( 12, count( $custom ) + 1 ) ) ); ?>" class="large-text" placeholder="<?php esc_attr_e( "Where can I buy handmade leather wallets online?\nIs Example Co worth the price?", 'twt-aeo-ultimate' ); ?>"><?php echo esc_textarea( implode( "\n", wp_list_pluck( $custom, 'text' ) ) ); ?></textarea>
+			<p class="twt-aeo-vis__muted">
+				<?php
+				printf(
+					/* translators: %d: maximum number of questions. */
+					esc_html__( 'One question per line, written the way a customer would ask it. These are asked on every run, on top of the counts above, and kept when you rebuild from templates. Delete a line to stop asking it. Up to %d.', 'twt-aeo-ultimate' ),
+					(int) TWTAEO_Visibility::CUSTOM_MAX
+				);
+				?>
+			</p>
+			<button type="submit" class="button"><?php esc_html_e( 'Save question set', 'twt-aeo-ultimate' ); ?></button>
 		</div>
 		<div class="twt-aeo-vis__qlevels" hidden>
 			<?php foreach ( $grouped as $level => $list ) :
@@ -1057,11 +1101,13 @@ final class TWTAEO_Page_AI_Visibility {
 						<?php foreach ( $list as $q ) :
 							$truth = isset( $q['truth'] ) && is_array( $q['truth'] ) && ! empty( $q['truth']['statement'] ) ? (string) $q['truth']['statement'] : '';
 							?>
-							<li>
+							<li data-qid="<?php echo esc_attr( $q['id'] ); ?>">
 								<label>
 									<input type="checkbox" name="q_<?php echo esc_attr( $q['id'] ); ?>" value="on" <?php checked( ! empty( $q['enabled'] ) ); ?> disabled>
-									<span><?php echo esc_html( (string) $q['text'] ); ?></span>
+									<span class="twt-aeo-vis__qtext"><?php echo esc_html( (string) $q['text'] ); ?></span>
 								</label>
+								<button type="button" class="button-link twt-aeo-vis__qedit"><?php esc_html_e( 'Edit', 'twt-aeo-ultimate' ); ?></button>
+								<button type="button" class="button-link twt-aeo-vis__qrestore" title="<?php echo esc_attr( isset( $q['template_text'] ) ? (string) $q['template_text'] : '' ); ?>"<?php echo in_array( $q['source'] ?? '', array( 'ai', 'merchant' ), true ) && ! empty( $q['template_text'] ) ? '' : ' hidden'; ?>><?php esc_html_e( 'Use the original wording', 'twt-aeo-ultimate' ); ?></button>
 								<span class="twt-aeo-vis__muted twt-aeo-vis__qmeta">
 									<?php echo esc_html( isset( $q['family'] ) ? (string) $q['family'] : '' ); ?>
 									<?php if ( 'company' !== $level && ! empty( $q['scope_label'] ) ) : ?> · <?php echo esc_html( (string) $q['scope_label'] ); ?><?php endif; ?>
@@ -1246,6 +1292,9 @@ final class TWTAEO_Page_AI_Visibility {
 		}
 
 		$per_engine = self::engine_stats( $checks, $run_engines );
+		// Pages that carry our name: listings to ask about, and pages others wrote about us.
+		$about_ctx  = $is_demo ? array() : TWTAEO_Visibility_Store::about_context();
+		$about_pgs  = $is_demo ? array( 'candidates' => array(), 'about' => array() ) : TWTAEO_Visibility_Store::pages_about_us( $selected, $about_ctx );
 		$cited_pct  = isset( $summary['cited_pct'] ) ? (int) $summary['cited_pct'] : 0;
 		$named_pct  = isset( $summary['named_pct'] ) ? (int) $summary['named_pct'] : 0;
 		$wrong      = isset( $summary['wrong'] ) ? (int) $summary['wrong'] : 0;
@@ -1275,7 +1324,7 @@ final class TWTAEO_Page_AI_Visibility {
 		}
 		$voice = array();
 		foreach ( $run_engines as $e ) {
-			$v = TWTAEO_Visibility_Verdict::share_of_voice( $scope_checks, $questions, array( 'engine' => $e ), $hosts );
+			$v = TWTAEO_Visibility_Verdict::share_of_voice( $scope_checks, $questions, array( 'engine' => $e ), $hosts, $about_ctx );
 			$voice[] = is_array( $v ) ? $v : array( 'engine' => $e, 'checks' => 0, 'answered' => 0, 'unavailable' => 0, 'with_citations' => 0, 'our_cited_pct' => 0, 'slices' => array() );
 		}
 		$items_label = self::scope_items_label( $scope, $scope_q, $d['counts'] );
@@ -1348,10 +1397,14 @@ final class TWTAEO_Page_AI_Visibility {
 						if ( ! isset( $s['id'] ) ) {
 							continue;
 						}
+						// A plain variable, not a ternary, as the count: make-pot skips
+						// _n() calls whose count it cannot parse, and this string was
+						// missing from the 2.28.0 POT.
+						$s_checks = isset( $s['checks'] ) ? (int) $s['checks'] : 0;
 						$label = ( ! empty( $s['demo'] ) ? __( 'SAMPLE', 'twt-aeo-ultimate' ) . ' — ' : '' )
 							. self::fmt_date( isset( $s['started_at'] ) ? $s['started_at'] : '', true )
 							/* translators: %d: number of checks recorded in that run. */
-							. ' — ' . sprintf( _n( '%d check', '%d checks', isset( $s['checks'] ) ? (int) $s['checks'] : 0, 'twt-aeo-ultimate' ), isset( $s['checks'] ) ? (int) $s['checks'] : 0 )
+							. ' — ' . sprintf( _n( '%d check', '%d checks', $s_checks, 'twt-aeo-ultimate' ), $s_checks )
 							/* translators: %d: follow-up checks asked after the first answers (journey mode). */
 							. ( ! empty( $s['turns'] ) ? ' + ' . sprintf( _n( '%d follow-up turn', '%d follow-up turns', (int) $s['turns'], 'twt-aeo-ultimate' ), (int) $s['turns'] ) : '' )
 							. ' · ' . ( isset( $s['status'] ) ? (string) $s['status'] : '' )
@@ -1441,6 +1494,7 @@ final class TWTAEO_Page_AI_Visibility {
 				</span>
 			<?php endforeach; ?>
 		</div>
+		<?php self::render_is_this_you( $about_pgs['candidates'] ); ?>
 		<p class="twt-aeo-vis__muted">
 			<?php /* translators: 1: run start date, 2: run status. */ ?>
 			<?php echo esc_html( sprintf( __( 'Run started %1$s · %2$s', 'twt-aeo-ultimate' ), self::fmt_date( isset( $selected['started_at'] ) ? $selected['started_at'] : '', true ), $status ) ); ?>
@@ -1625,6 +1679,7 @@ final class TWTAEO_Page_AI_Visibility {
 					<?php endif; ?>
 				<?php endforeach; ?>
 			</div>
+			<?php self::render_about_you( $about_pgs['about'] ); ?>
 		</div>
 
 		<?php /* Question table */ ?>
@@ -2494,6 +2549,102 @@ final class TWTAEO_Page_AI_Visibility {
 		return sprintf( _n( '%d item in scope', '%d items in scope', $n, 'twt-aeo-ultimate' ), $n );
 	}
 
+	/**
+	 * "Is this you?" — cited listings on shared platforms whose address
+	 * carries the business's name in the account slot. Asked, never assumed:
+	 * the answer either registers the page (and re-scores) or is remembered
+	 * so the page is never asked about again.
+	 *
+	 * @param array $rows From TWTAEO_Visibility_Store::pages_about_us()['candidates'].
+	 */
+	private static function render_is_this_you( array $rows ) {
+		if ( empty( $rows ) ) {
+			return;
+		}
+		$rows = array_slice( $rows, 0, 8 );
+		?>
+		<div class="twt-aeo-vis__notice twt-aeo-vis__notice--info twt-aeo-vis__claim" id="twt-aeo-vis-claim">
+			<strong>
+				<?php
+				printf(
+					/* translators: %d: number of cited pages that look like the business's own listings. */
+					esc_html( _n( '%d cited page looks like your own listing. Is it you?', '%d cited pages look like your own listings. Are they you?', count( $rows ), 'twt-aeo-ultimate' ) ),
+					count( $rows )
+				);
+				?>
+			</strong>
+			<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Your name is in the account part of these addresses. Yes adds the page to what counts as you and re-scores your kept runs for free; No means we never ask about it again. Other sites often make pages about a product — only say yes to the ones you run.', 'twt-aeo-ultimate' ); ?></p>
+			<ul class="twt-aeo-vis__claim-list">
+				<?php foreach ( $rows as $r ) : ?>
+					<li data-url="<?php echo esc_attr( $r['url'] ); ?>">
+						<a href="<?php echo esc_url( $r['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( preg_replace( '#^https://#', '', $r['url'] ) ); ?></a>
+						<span class="twt-aeo-vis__muted">
+							<?php
+							printf(
+								/* translators: 1: times cited, 2: engine names. */
+								esc_html( _n( 'cited %1$d time by %2$s', 'cited %1$d times by %2$s', (int) $r['count'], 'twt-aeo-ultimate' ) ),
+								(int) $r['count'],
+								esc_html( implode( ', ', array_map( array( __CLASS__, 'engine_label' ), (array) $r['engines'] ) ) )
+							);
+							?>
+						</span>
+						<span class="twt-aeo-vis__claim-actions">
+							<button type="button" class="button button-small button-primary twt-aeo-vis__claim-btn" data-mine="1"><?php esc_html_e( 'Yes, that’s me', 'twt-aeo-ultimate' ); ?></button>
+							<button type="button" class="button button-small twt-aeo-vis__claim-btn" data-mine="0"><?php esc_html_e( 'No', 'twt-aeo-ultimate' ); ?></button>
+						</span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+			<span class="twt-aeo-vis__status" id="twt-aeo-vis-claim-status" aria-live="polite"></span>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Pages about the business that somebody else wrote and an engine cited:
+	 * reviews, comparisons, roundups. Not a citation of us and not a
+	 * competitor either — evidence of which sites the engines trust to talk
+	 * about us.
+	 *
+	 * @param array $rows From TWTAEO_Visibility_Store::pages_about_us()['about'].
+	 */
+	private static function render_about_you( array $rows ) {
+		if ( empty( $rows ) ) {
+			return;
+		}
+		$shown = array_slice( $rows, 0, 15 );
+		?>
+		<div class="twt-aeo-vis__about">
+			<h4>
+				<span class="twt-aeo-vis__swatch" style="background:<?php echo esc_attr( self::ABOUT_COLOR ); ?>"></span>
+				<?php esc_html_e( 'Pages about you', 'twt-aeo-ultimate' ); ?>
+			</h4>
+			<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Pages other sites wrote about you — reviews, comparisons, roundups — that the engines cited in this run, plus listings still waiting for your answer above. They are counted as their own slice, not as competitors.', 'twt-aeo-ultimate' ); ?></p>
+			<ul class="twt-aeo-vis__about-list">
+				<?php foreach ( $shown as $r ) : ?>
+					<li>
+						<a href="<?php echo esc_url( $r['url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( preg_replace( '#^https://#', '', $r['url'] ) ); ?></a>
+						<span class="twt-aeo-vis__muted">
+							<?php
+							printf(
+								/* translators: 1: times cited, 2: engine names. */
+								esc_html( _n( 'cited %1$d time by %2$s', 'cited %1$d times by %2$s', (int) $r['count'], 'twt-aeo-ultimate' ) ),
+								(int) $r['count'],
+								esc_html( implode( ', ', array_map( array( __CLASS__, 'engine_label' ), (array) $r['engines'] ) ) )
+							);
+							?>
+						</span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+			<?php if ( count( $rows ) > count( $shown ) ) : ?>
+				<?php /* translators: %d: number of further pages not listed. */ ?>
+				<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( _n( 'and %d more page.', 'and %d more pages.', count( $rows ) - count( $shown ), 'twt-aeo-ultimate' ), count( $rows ) - count( $shown ) ) ); ?></p>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
 	/** Where to go to fix a finding for this question. */
 	private static function fix_link( array $q ) {
 		$level  = isset( $q['level'] ) ? (string) $q['level'] : '';
@@ -2637,6 +2788,7 @@ final class TWTAEO_Page_AI_Visibility {
 	/** The drawn slices: ours (accent), up to $max_named competitors (hues), then "other". */
 	private static function donut_slices( array $slices, $max_named = 6 ) {
 		$ours   = array();
+		$about  = array();
 		$others = array();
 		foreach ( $slices as $s ) {
 			if ( ! is_array( $s ) ) {
@@ -2649,6 +2801,8 @@ final class TWTAEO_Page_AI_Visibility {
 			);
 			if ( $row['ours'] ) {
 				$ours[] = $row;
+			} elseif ( ! empty( $s['about'] ) ) {
+				$about[] = $row;
 			} else {
 				$others[] = $row;
 			}
@@ -2662,6 +2816,9 @@ final class TWTAEO_Page_AI_Visibility {
 		$drawn = array();
 		foreach ( $ours as $s ) {
 			$drawn[] = array( 'label' => $s['label'], 'count' => $s['count'], 'color' => self::OURS_COLOR, 'ours' => true );
+		}
+		foreach ( $about as $s ) {
+			$drawn[] = array( 'label' => __( 'pages about you', 'twt-aeo-ultimate' ), 'count' => $s['count'], 'color' => self::ABOUT_COLOR, 'ours' => false, 'about' => true );
 		}
 		foreach ( $named as $i => $s ) {
 			$drawn[] = array( 'label' => $s['label'], 'count' => $s['count'], 'color' => self::COMPETITOR_COLORS[ min( $i, count( self::COMPETITOR_COLORS ) - 1 ) ], 'ours' => false );

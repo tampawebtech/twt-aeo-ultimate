@@ -44,6 +44,8 @@ DeepSeek support is new: it works, and is still being tested. Most of DeepSeek's
 * **Buyer personas**: ask a run as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise; the question is sent exactly as written. Type your own or have them suggested from your main pages.
 * **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
 * **Follow the conversation**: ask the engine its own top follow-up in the same conversation, one or two turns deep, and see whether you are still cited further into the buyer's research.
+* **Your own questions**: add the questions you want asked, one per line, and reword any built-in question. Both are kept when the list is rebuilt.
+* **Is this you?** (new in 2.28.1): when an engine cites a listing that carries your name (your Shopify app, Clutch profile, plugin page or LinkedIn page), you are asked once whether it is yours. Yes counts it as you and re-scores your past runs for free; pages other sites wrote about you get their own slice instead of counting as competitors.
 * **CSV export**: every question, answer, verdict and follow-up in one file, with the persona, the full answer text and pattern columns (brand and subject position, model numbers, places, hiring or how-to). Rows name the site and business type, so exports from many client sites stack into one sheet.
 
 These are controlled simulations through the engines' APIs, not a copy of any one user's private chat history.

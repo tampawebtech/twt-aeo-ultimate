@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.28.0\n"
+"Project-Id-Version: TWT AEO Ultimate 2.28.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-30T15:18:49+00:00\n"
+"POT-Creation-Date: 2026-10-01T06:21:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -55,6 +55,7 @@ msgid "Running…"
 msgstr ""
 
 #: admin/class-admin-assets.php:91
+#: admin/class-admin-assets.php:324
 #: admin/pages/class-page-faq-detector.php:290
 #: admin/pages/class-page-image-seo.php:240
 #: admin/pages/class-page-schema-detector.php:381
@@ -163,28 +164,28 @@ msgstr ""
 msgid "Pick at least %d products. A shorter list is a pair, not a collection."
 msgstr ""
 
-#: admin/class-admin-assets.php:290
+#: admin/class-admin-assets.php:291
 msgid "Starting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:291
+#: admin/class-admin-assets.php:292
 msgid "Stopping after this check…"
 msgstr ""
 
-#: admin/class-admin-assets.php:292
+#: admin/class-admin-assets.php:293
 msgid "Stopped."
 msgstr ""
 
-#: admin/class-admin-assets.php:293
+#: admin/class-admin-assets.php:294
 msgid "Run complete — loading results…"
 msgstr ""
 
-#: admin/class-admin-assets.php:294
+#: admin/class-admin-assets.php:295
 msgid "last:"
 msgstr ""
 
-#: admin/class-admin-assets.php:295
-#: admin/class-admin-assets.php:349
+#: admin/class-admin-assets.php:296
+#: admin/class-admin-assets.php:356
 #: admin/pages/class-page-command-center.php:2800
 #: admin/pages/class-page-faq-detector.php:338
 #: admin/pages/class-page-image-seo.php:345
@@ -197,130 +198,167 @@ msgstr ""
 msgid "Saving…"
 msgstr ""
 
-#: admin/class-admin-assets.php:296
+#: admin/class-admin-assets.php:297
 msgid "Building the list — reads your catalogue, spends nothing…"
 msgstr ""
 
-#: admin/class-admin-assets.php:297
+#: admin/class-admin-assets.php:298
 msgid "Loading…"
 msgstr ""
 
-#: admin/class-admin-assets.php:298
+#: admin/class-admin-assets.php:299
 #: admin/assets/js/ai-ready.js:102
 msgid "Removing…"
 msgstr ""
 
-#: admin/class-admin-assets.php:299
+#: admin/class-admin-assets.php:300
 msgid "Network hiccup — retrying…"
 msgstr ""
 
-#: admin/class-admin-assets.php:300
+#: admin/class-admin-assets.php:301
 msgid "The background worker is on it — waiting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:301
+#: admin/class-admin-assets.php:302
 msgid "Every other check is done. Waiting for background answers:"
 msgstr ""
 
-#: admin/class-admin-assets.php:302
+#: admin/class-admin-assets.php:303
 msgid "still out. Safe to close this page — the run finishes on its own."
 msgstr ""
 
-#: admin/class-admin-assets.php:303
+#: admin/class-admin-assets.php:304
 msgid "answering in the background"
 msgstr ""
 
-#: admin/class-admin-assets.php:304
+#: admin/class-admin-assets.php:305
 msgid "first questions"
 msgstr ""
 
-#: admin/class-admin-assets.php:305
+#: admin/class-admin-assets.php:306
 msgid "follow-up turns so far"
 msgstr ""
 
-#: admin/class-admin-assets.php:306
+#: admin/class-admin-assets.php:307
 msgid "Any state or region"
 msgstr ""
 
-#: admin/class-admin-assets.php:307
+#: admin/class-admin-assets.php:308
 msgid "Asking your AI provider to rephrase the post questions…"
 msgstr ""
 
 #. translators: %1$s: number of questions rephrased.
-#: admin/class-admin-assets.php:309
+#: admin/class-admin-assets.php:310
 #, php-format
 msgid "%1$s questions rephrased — saved with source “ai”."
 msgstr ""
 
-#: admin/class-admin-assets.php:310
+#: admin/class-admin-assets.php:311
 msgid "Too many network failures in a row — the run is saved; resume it any time."
 msgstr ""
 
-#: admin/class-admin-assets.php:311
-#: admin/class-admin-assets.php:356
+#: admin/class-admin-assets.php:312
+#: admin/class-admin-assets.php:363
 msgid "Something went wrong."
 msgstr ""
 
-#: admin/class-admin-assets.php:312
+#: admin/class-admin-assets.php:313
 msgid "day"
 msgstr ""
 
-#: admin/class-admin-assets.php:313
+#: admin/class-admin-assets.php:314
 #: admin/pages/class-page-promotions.php:751
 msgid "days"
 msgstr ""
 
 #. translators: %d: number of days this run needs at the current daily cap.
-#: admin/class-admin-assets.php:314
-#: admin/pages/class-page-ai-visibility.php:909
+#: admin/class-admin-assets.php:315
+#: admin/pages/class-page-ai-visibility.php:924
 msgid "— (cap is 0)"
 msgstr ""
 
-#: admin/class-admin-assets.php:315
-#: admin/pages/class-page-ai-visibility.php:907
+#: admin/class-admin-assets.php:316
+#: admin/pages/class-page-ai-visibility.php:922
 msgid "fits in"
 msgstr ""
 
 #. translators: 1: enabled question count, 2: total question count.
-#: admin/class-admin-assets.php:317
+#: admin/class-admin-assets.php:318
 #, php-format
 msgid "%1$s of %2$s questions enabled."
 msgstr ""
 
-#: admin/class-admin-assets.php:318
+#: admin/class-admin-assets.php:319
 msgid "Not saved — these would not match anything:"
 msgstr ""
 
-#: admin/class-admin-assets.php:319
+#: admin/class-admin-assets.php:320
 msgid "Buyer personas were suggested from your site — pick one under “Ask as” for your next run."
 msgstr ""
 
-#: admin/class-admin-assets.php:350
+#: admin/class-admin-assets.php:321
+msgid "Adding it and re-scoring your runs…"
+msgstr ""
+
+#: admin/class-admin-assets.php:322
+msgid "Counted as you."
+msgstr ""
+
+#: admin/class-admin-assets.php:323
+msgid "Not you — we will not ask again."
+msgstr ""
+
+#: admin/class-admin-assets.php:325
+#: admin/pages/class-page-ai-visibility.php:1109
+#: admin/pages/class-page-command-center.php:1678
+#: admin/pages/class-page-contact-detector.php:183
+#: admin/pages/class-page-dashboard.php:584
+#: admin/pages/class-page-eeat.php:322
+#: admin/pages/class-page-faq-detector.php:202
+#: admin/pages/class-page-image-seo.php:155
+#: admin/pages/class-page-image-seo.php:363
+#: admin/pages/class-page-local-pack.php:540
+#: admin/pages/class-page-news.php:272
+#: admin/pages/class-page-not-indexed.php:184
+#: admin/pages/class-page-schema-detector.php:291
+#: admin/pages/class-page-schema-detector.php:647
+#: admin/pages/class-page-schema-detector.php:1051
+#: admin/pages/class-page-service-detector.php:205
+#: admin/pages/class-page-smart-collections.php:450
+#: admin/pages/class-page-social-graph.php:628
+msgid "Edit"
+msgstr ""
+
+#: admin/class-admin-assets.php:326
+msgid "Changed — click “Save question set” to keep it."
+msgstr ""
+
+#: admin/class-admin-assets.php:357
 msgid "Reading your main pages and asking your AI provider…"
 msgstr ""
 
-#: admin/class-admin-assets.php:351
-#: admin/pages/class-page-ai-visibility.php:704
+#: admin/class-admin-assets.php:358
+#: admin/pages/class-page-ai-visibility.php:718
 msgid "suggested from your site"
 msgstr ""
 
-#: admin/class-admin-assets.php:352
-#: admin/pages/class-page-ai-visibility.php:703
+#: admin/class-admin-assets.php:359
+#: admin/pages/class-page-ai-visibility.php:717
 msgid "Click to edit"
 msgstr ""
 
 #. translators: %s: persona label.
-#: admin/class-admin-assets.php:354
-#: admin/pages/class-page-ai-visibility.php:706
+#: admin/class-admin-assets.php:361
+#: admin/pages/class-page-ai-visibility.php:720
 #, php-format
 msgid "Remove %s"
 msgstr ""
 
-#: admin/class-admin-assets.php:355
+#: admin/class-admin-assets.php:362
 msgid "That’s the maximum — remove one to add another."
 msgstr ""
 
-#: admin/class-admin-assets.php:380
+#: admin/class-admin-assets.php:387
 #: admin/class-hub-metabox.php:138
 #: admin/class-hub-metabox.php:149
 #: admin/pages/class-page-ai-ready.php:85
@@ -336,7 +374,7 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: admin/class-admin-assets.php:381
+#: admin/class-admin-assets.php:388
 #: admin/class-hub-metabox.php:53
 #: admin/pages/class-page-diagnostics.php:75
 #: admin/assets/js/ai-ready.js:44
@@ -345,7 +383,7 @@ msgstr ""
 msgid "Copied!"
 msgstr ""
 
-#: admin/class-admin-assets.php:382
+#: admin/class-admin-assets.php:389
 #: admin/pages/class-page-command-center.php:994
 #: admin/pages/class-page-command-center.php:1241
 #: admin/pages/class-page-local-pack.php:422
@@ -354,11 +392,11 @@ msgstr ""
 msgid "Disconnect"
 msgstr ""
 
-#: admin/class-admin-assets.php:383
+#: admin/class-admin-assets.php:390
 msgid "Disconnecting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:384
+#: admin/class-admin-assets.php:391
 msgid "Disconnect {service}? Your stored credentials will be removed."
 msgstr ""
 
@@ -416,7 +454,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:142
 #: admin/class-admin-menu.php:143
-#: admin/pages/class-page-ai-visibility.php:2527
+#: admin/pages/class-page-ai-visibility.php:2678
 #: admin/pages/class-page-command-center.php:66
 #: admin/pages/class-page-setup-wizard.php:869
 msgid "Command Center"
@@ -464,7 +502,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:233
 #: admin/class-admin-menu.php:234
-#: admin/pages/class-page-ai-visibility.php:2525
+#: admin/pages/class-page-ai-visibility.php:2676
 #: admin/pages/class-page-smart-collections.php:88
 #: admin/pages/class-page-woocommerce-detector.php:147
 msgid "Smart Collections"
@@ -1579,11 +1617,11 @@ msgid "Bot"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:935
-#: admin/pages/class-page-ai-visibility.php:537
-#: admin/pages/class-page-ai-visibility.php:831
+#: admin/pages/class-page-ai-visibility.php:551
+#: admin/pages/class-page-ai-visibility.php:845
 #: admin/pages/class-page-command-center.php:3035
 #: admin/pages/class-page-command-center.php:3133
-#: includes/class-visibility.php:512
+#: includes/class-visibility.php:520
 #: admin/assets/js/crawler-dataviews.js:76
 msgid "Company"
 msgstr ""
@@ -1735,7 +1773,7 @@ msgid "OAuth Clients"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:1161
-#: admin/pages/class-page-ai-visibility.php:613
+#: admin/pages/class-page-ai-visibility.php:627
 #: admin/pages/class-page-author-box.php:147
 #: admin/pages/class-page-author.php:170
 #: admin/pages/class-page-knowledge-graph.php:205
@@ -1860,7 +1898,7 @@ msgstr ""
 msgid "Please enter a client name."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:69
+#: admin/pages/class-page-ai-visibility.php:71
 #: admin/pages/class-page-company.php:25
 #: admin/pages/class-page-index-now.php:341
 #: admin/pages/class-page-local-pack.php:32
@@ -1884,247 +1922,248 @@ msgstr ""
 msgid "Permission denied."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:87
+#: admin/pages/class-page-ai-visibility.php:89
 msgid "What each engine means"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:89
+#: admin/pages/class-page-ai-visibility.php:91
 msgid "Each engine column is that assistant’s API with web search, asked the same question on your key. Cited means the answer linked to something you own — your domain, or a profile registered under “What counts as you”; the surface is shown alongside, so a citation that only ever lands on your LinkedIn page still reads as one. Named means it mentioned you without a link; absent means neither; unavailable means no answer was recorded (a refused or errored call), which is never counted as absent. The shares are of answered checks. This board reports presence and citations — it does not track positions, because assistants do not have them."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:179
+#: admin/pages/class-page-ai-visibility.php:193
 msgid "All (every level)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:272
+#: admin/pages/class-page-ai-visibility.php:286
 msgid "AI visibility"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:274
+#: admin/pages/class-page-ai-visibility.php:288
 msgid "Are the assistants sending shoppers to you?"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:277
+#: admin/pages/class-page-ai-visibility.php:291
 msgid "Free — your own keys"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:286
+#: admin/pages/class-page-ai-visibility.php:300
 msgid "What these checks are — and are not."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:287
+#: admin/pages/class-page-ai-visibility.php:301
 msgid "These checks call the assistants’ APIs with web search on your own keys. They approximate what the consumer apps say — those personalise and change daily — and are the closest reproducible measure. A question you’re not named for is a finding with a fix, not a failure."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:290
-msgid "Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions people ask about your company, your brands, your categories, your products and your posts, then records per engine whether you were cited (a link to something you own), named without a link, or absent — and who was cited instead. A citation of a profile you own counts as a citation; the board shows which surface it landed on, so you can still tell your own pages from your LinkedIn. Where we already know the answer (your policies, where you ship, your variants and prices) it also checks whether what the engine said was true. Every check is one model call with one web search on your key, so your provider bills it at their rate — this page shows counts, never dollars. Nothing runs until you press Start, and a run pauses at your daily cap rather than failing."
+#: admin/pages/class-page-ai-visibility.php:304
+msgid "Asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions people ask about your company, your brands, your categories, your products and your posts, then records per engine whether you were cited (a link to something you own), named without a link, or absent — and who was cited instead. A citation of a profile you own counts as a citation; the board shows which surface it landed on, so you can still tell your own pages from your LinkedIn. Where we already know the answer (your policies, where you ship, your variants and prices) it also checks whether what the engine said was true. Every check is one model call with one web search on your key, so your provider bills it at their rate — this page shows counts, never dollars. Nothing runs until you press Start, and a run pauses at your daily cap rather than failing."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:305
+#: admin/pages/class-page-ai-visibility.php:319
 msgid "AI referrals — who is sending visitors"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:306
+#: admin/pages/class-page-ai-visibility.php:320
 msgid "Observed · last 28 days"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:317
+#: admin/pages/class-page-ai-visibility.php:331
 msgid "No sessions from an AI assistant in this window yet."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:330
+#: admin/pages/class-page-ai-visibility.php:344
 msgid "sessions"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:332
+#: admin/pages/class-page-ai-visibility.php:346
 msgid "users"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:339
+#: admin/pages/class-page-ai-visibility.php:353
 msgid "sessions from AI assistants"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:345
-#: admin/pages/class-page-ai-visibility.php:357
+#: admin/pages/class-page-ai-visibility.php:359
+#: admin/pages/class-page-ai-visibility.php:371
 msgid "Google Analytics can tell us an AI assistant sent the visit; it cannot tell us which answer or which citation. That is what the probes below are for."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:349
+#: admin/pages/class-page-ai-visibility.php:363
 msgid "Google Analytics is not connected."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:350
+#: admin/pages/class-page-ai-visibility.php:364
 msgid "Connect it once and this strip shows how many sessions each assistant (ChatGPT, Perplexity, Gemini, Claude, Copilot…) sent you."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:355
+#: admin/pages/class-page-ai-visibility.php:369
 msgid "Connect Google in the Command Center"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:362
+#: admin/pages/class-page-ai-visibility.php:376
 msgid "Search Console — top queries"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:362
+#: admin/pages/class-page-ai-visibility.php:376
 msgid "Connect Search Console"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:363
+#: admin/pages/class-page-ai-visibility.php:377
 #: admin/pages/class-page-command-center.php:130
 #: admin/pages/class-page-command-center.php:271
 msgid "Bing Webmaster"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:363
+#: admin/pages/class-page-ai-visibility.php:377
 msgid "Connect Bing Webmaster"
 msgstr ""
 
 #. translators: %s: comma-separated list of landing pages.
-#: admin/pages/class-page-ai-visibility.php:381
+#: admin/pages/class-page-ai-visibility.php:395
 #, php-format
 msgid "Landing pages: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:395
+#: admin/pages/class-page-ai-visibility.php:409
 msgid "Not connected."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:444
+#: admin/pages/class-page-ai-visibility.php:458
 msgid "impr."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:449
+#: admin/pages/class-page-ai-visibility.php:463
 msgid "Connected — no rows in this window yet."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:452
+#: admin/pages/class-page-ai-visibility.php:466
 msgid "Open report ↗"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:466
+#: admin/pages/class-page-ai-visibility.php:480
 #: admin/pages/class-page-index-now.php:197
 msgid "Engines"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:467
+#: admin/pages/class-page-ai-visibility.php:481
 msgid "All on your own keys"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:481
+#: admin/pages/class-page-ai-visibility.php:495
 msgid "coming soon"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:483
+#: admin/pages/class-page-ai-visibility.php:497
 msgid "Key on file"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:485
+#: admin/pages/class-page-ai-visibility.php:499
 msgid "No key"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:488
+#: admin/pages/class-page-ai-visibility.php:502
 msgid "add it in Settings"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:492
+#: admin/pages/class-page-ai-visibility.php:506
+#: admin/pages/class-page-ai-visibility.php:1063
 msgid "optional"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:495
+#: admin/pages/class-page-ai-visibility.php:509
 msgid "The consumer app’s default model — what a shopper’s phone runs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:501
+#: admin/pages/class-page-ai-visibility.php:515
 msgid "A key on file means we can ask that engine. Whether that key’s tier allows web search is only known once a check runs — an engine that refuses is recorded as unavailable for that check, never as absent."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:527
-#: admin/pages/class-page-ai-visibility.php:2519
+#: admin/pages/class-page-ai-visibility.php:541
+#: admin/pages/class-page-ai-visibility.php:2670
 msgid "What counts as you"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:528
+#: admin/pages/class-page-ai-visibility.php:542
 msgid "Company items and brand items"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:532
+#: admin/pages/class-page-ai-visibility.php:546
 msgid "Being cited on a profile you own is still being cited. Register those profiles here and an answer that links your LinkedIn page counts as a citation instead of counting as a competitor. The board still shows which surface was cited, so you can tell “my own domain got picked up” from “only my profiles did”."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:540
+#: admin/pages/class-page-ai-visibility.php:554
 msgid "Your own hosts, always counted as you:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:548
+#: admin/pages/class-page-ai-visibility.php:562
 msgid "Found on your Company profile and counted automatically:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:552
+#: admin/pages/class-page-ai-visibility.php:566
 msgid "edit them"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:556
+#: admin/pages/class-page-ai-visibility.php:570
 msgid "No social profiles are on file yet."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:557
+#: admin/pages/class-page-ai-visibility.php:571
 msgid "Add them to your Company profile"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:558
+#: admin/pages/class-page-ai-visibility.php:572
 msgid "— they feed your schema as well, and they will be counted here automatically."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:563
+#: admin/pages/class-page-ai-visibility.php:577
 msgid "Other sites and profiles the company owns (one per line)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:565
+#: admin/pages/class-page-ai-visibility.php:579
 msgid "A domain of your own goes in whole — every page under it counts. On a shared platform (LinkedIn, X, YouTube, GitHub…) paste the full page address instead: your page there is yours, the platform is not, and the bare domain would count every citation on it as yours."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:568
+#: admin/pages/class-page-ai-visibility.php:582
 msgid "Brands"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:570
+#: admin/pages/class-page-ai-visibility.php:584
 msgid "A product or sub-brand you want tracked in its own right. Give it a phrase to watch for and whatever it owns — its own website, its pages on other platforms, or both. A channel the brand does not have is simply left blank; it is never reported as a gap."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:584
+#: admin/pages/class-page-ai-visibility.php:598
 msgid "Add a brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:585
+#: admin/pages/class-page-ai-visibility.php:599
 msgid "Save tracking"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:614
+#: admin/pages/class-page-ai-visibility.php:628
 #: includes/class-abilities.php:58
 msgid "AEO Ultimate"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:617
+#: admin/pages/class-page-ai-visibility.php:631
 msgid "Phrases to watch for (one per line)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:619
+#: admin/pages/class-page-ai-visibility.php:633
 msgid "In quotes = that exact phrase. Without quotes = every word of three letters or more, in any order — looser, so it also catches “the Ultimate AEO plugin”. Whole words either way: “Ace” never matches “Aceto”."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:622
+#: admin/pages/class-page-ai-visibility.php:636
 msgid "Website and profiles this brand owns (one per line)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:624
+#: admin/pages/class-page-ai-visibility.php:638
 msgid "A brand with its own website goes in whole. Its pages on shared platforms need the full address."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:630
+#: admin/pages/class-page-ai-visibility.php:644
 msgid "Track this brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:632
+#: admin/pages/class-page-ai-visibility.php:646
 #: admin/pages/class-page-knowledge-graph.php:334
 #: admin/pages/class-page-local-pack.php:324
 #: admin/pages/class-page-local-pack.php:350
@@ -2137,249 +2176,255 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:647
+#: admin/pages/class-page-ai-visibility.php:661
 msgid "Who is asking"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:648
+#: admin/pages/class-page-ai-visibility.php:662
 msgid "Buyer personas"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:653
+#: admin/pages/class-page-ai-visibility.php:667
 msgid "Use buyer personas"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:658
+#: admin/pages/class-page-ai-visibility.php:672
 msgid "Off: every run asks as nobody in particular, and no personas are suggested. Follow-up questions are still recorded. Your saved personas are kept for when you switch this back on."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:662
+#: admin/pages/class-page-ai-visibility.php:676
 msgid "The consumer assistants know things about the person asking, and their answers change with it. A run can be asked as one of your buyers — the persona goes to the assistant as background about the user, the way the apps do it, and the question itself is sent exactly as written. Each answer also comes back with the follow-up questions that engine expects this person to ask next."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:666
+#: admin/pages/class-page-ai-visibility.php:680
 msgid "Add your buyer personas to see how answers change for different customers."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:667
+#: admin/pages/class-page-ai-visibility.php:681
 msgid "Runs still work without them — they ask as nobody in particular, and follow-ups are recorded either way. Type your own, or let the plugin suggest some from your main pages."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:673
+#: admin/pages/class-page-ai-visibility.php:687
 msgid "The same list is on"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:674
+#: admin/pages/class-page-ai-visibility.php:688
 msgid "Local Pack → Business Profile"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:675
+#: admin/pages/class-page-ai-visibility.php:689
 msgid "— edit it in either place."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:709
+#: admin/pages/class-page-ai-visibility.php:723
 msgid "Add a buyer persona"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:709
+#: admin/pages/class-page-ai-visibility.php:723
 msgid "Type a persona and press Enter — e.g. machine shop owner"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:712
+#: admin/pages/class-page-ai-visibility.php:726
 msgid "Enter or a comma adds one; paste a comma-separated list to add several. Click a persona to edit it. Up to 10 — each run is asked as one of them."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:715
+#: admin/pages/class-page-ai-visibility.php:729
 msgid "Save personas"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:717
+#: admin/pages/class-page-ai-visibility.php:731
 msgid "Suggest personas from my site"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:736
+#: admin/pages/class-page-ai-visibility.php:750
 msgid "your Local Pack address"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:737
+#: admin/pages/class-page-ai-visibility.php:751
 msgid "your store country"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:738
+#: admin/pages/class-page-ai-visibility.php:752
 msgid "your site language"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:755
+#: admin/pages/class-page-ai-visibility.php:769
 msgid "Search from"
 msgstr ""
 
 #. translators: 1: a place, 2: where it came from, e.g. "your Local Pack address".
-#: admin/pages/class-page-ai-visibility.php:761
+#: admin/pages/class-page-ai-visibility.php:775
 #, php-format
 msgid "Automatic: %1$s (%2$s)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:765
+#: admin/pages/class-page-ai-visibility.php:779
 msgid "No location"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:766
+#: admin/pages/class-page-ai-visibility.php:780
 msgid "English-speaking markets"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:773
+#: admin/pages/class-page-ai-visibility.php:787
 msgid "All countries"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:780
-#: admin/pages/class-page-ai-visibility.php:781
+#: admin/pages/class-page-ai-visibility.php:794
+#: admin/pages/class-page-ai-visibility.php:795
 msgid "State or region"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:781
+#: admin/pages/class-page-ai-visibility.php:795
 msgid "State or region (optional)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:782
+#: admin/pages/class-page-ai-visibility.php:796
 msgid "City (optional)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:782
+#: admin/pages/class-page-ai-visibility.php:796
 #: admin/pages/class-page-local-pack.php:237
 #: admin/pages/class-page-schema-detector.php:950
 #: admin/pages/class-page-schema-detector.php:1146
 msgid "City"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:784
+#: admin/pages/class-page-ai-visibility.php:798
 msgid "The consumer apps know roughly where the person asking is, and search results change with it. Without a location, a check searches from wherever the provider's servers are. Automatic uses your business's own location; one location per run, so to see several markets or branches, run once for each. Claude, ChatGPT, Perplexity, DeepSeek and Muse search from the location; Gemini, Grok and Le Chat have no search location in their APIs, so they are only told where the user is."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:832
+#: admin/pages/class-page-ai-visibility.php:846
 msgid "Per brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:833
+#: admin/pages/class-page-ai-visibility.php:847
 msgid "Per category"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:834
+#: admin/pages/class-page-ai-visibility.php:848
 msgid "Per product type"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:835
+#: admin/pages/class-page-ai-visibility.php:849
 msgid "Per product"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:836
+#: admin/pages/class-page-ai-visibility.php:850
 msgid "Per post"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:842
+#: admin/pages/class-page-ai-visibility.php:856
 msgid "Allocation — how many questions, where"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:843
+#: admin/pages/class-page-ai-visibility.php:857
 msgid "You see the size of a run before anything is spent"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:853
+#: admin/pages/class-page-ai-visibility.php:868
 msgid "Questions per item at each level. The bar shows where a run’s questions go; the line under it is the arithmetic."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:885
+#: admin/pages/class-page-ai-visibility.php:900
 msgid "no key"
 msgstr ""
 
 #. translators: 1: questions, 2: engines, 3: checks
-#: admin/pages/class-page-ai-visibility.php:898
+#: admin/pages/class-page-ai-visibility.php:913
 #, php-format
 msgid "%1$s questions × %2$s engines = %3$s checks"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:905
+#: admin/pages/class-page-ai-visibility.php:920
 msgid "today’s cap"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:906
+#: admin/pages/class-page-ai-visibility.php:921
 msgid "used"
 msgstr ""
 
 #. translators: %d: number of days this run needs at the current daily cap.
-#: admin/pages/class-page-ai-visibility.php:909
+#: admin/pages/class-page-ai-visibility.php:924
 #, php-format
 msgid "%d day"
 msgid_plural "%d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-ai-visibility.php:913
+#: admin/pages/class-page-ai-visibility.php:928
 msgid "Cap, X handle and alternate hosts"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:915
+#: admin/pages/class-page-ai-visibility.php:930
 msgid "Daily cap (checks per day)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:918
+#: admin/pages/class-page-ai-visibility.php:933
 msgid "X (Twitter) handle"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:921
+#: admin/pages/class-page-ai-visibility.php:936
 msgid "Alternate hosts that are also you (comma-separated)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:928
+#: admin/pages/class-page-ai-visibility.php:943
 msgid "Save allocation"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:955
+#: admin/pages/class-page-ai-visibility.php:970
 msgid "Questions"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:956
+#: admin/pages/class-page-ai-visibility.php:971
 msgid "Nothing is asked that you have not seen here first"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:959
-msgid "Questions are filled from templates using data we already hold — site name, policies, categories, product types, products and their variants, posts — so runs stay comparable week to week and engine to engine. Building the list reads your catalogue and spends nothing. Untick anything you do not want asked."
+#: admin/pages/class-page-ai-visibility.php:974
+msgid "Questions are filled from templates using data we already hold — site name, policies, categories, product types, products and their variants, posts — so runs stay comparable week to week and engine to engine. Building the list reads your catalogue and spends nothing. Untick anything you do not want asked, click Edit to reword a question, or add your own questions at the top of the list."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:961
+#: admin/pages/class-page-ai-visibility.php:976
 msgid "Rebuild from templates"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:961
+#: admin/pages/class-page-ai-visibility.php:976
 msgid "Build the question list"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:963
+#: admin/pages/class-page-ai-visibility.php:978
 msgid "Post titles dropped into templates can read clumsily. This sends the post questions to your enrichment AI provider (the one behind meta descriptions) and keeps the natural rewrites — a few cheap calls, nothing web-searched, nothing run."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:963
+#: admin/pages/class-page-ai-visibility.php:978
 msgid "Polish awkward questions with AI"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:964
+#: admin/pages/class-page-ai-visibility.php:979
 msgid "Reset to templates"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:973
+#: admin/pages/class-page-ai-visibility.php:988
 msgid "No question set yet — build one from the templates above. A run without a saved set uses the templates for the saved allocation."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1010
+#: admin/pages/class-page-ai-visibility.php:1031
 msgid "No questions for this allocation."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1011
+#: admin/pages/class-page-ai-visibility.php:1032
 msgid "Raise a number in the allocation above, or add categories, product types, products or posts for the templates to fill from."
 msgstr ""
 
+#. translators: %d: number of questions the site owner wrote.
+#: admin/pages/class-page-ai-visibility.php:1040
+#, php-format
+msgid "%d your own"
+msgstr ""
+
 #. translators: %d: number of questions.
-#: admin/pages/class-page-ai-visibility.php:1027
-#: admin/pages/class-page-ai-visibility.php:1045
+#: admin/pages/class-page-ai-visibility.php:1052
+#: admin/pages/class-page-ai-visibility.php:1089
 #, php-format
 msgid "%d question"
 msgid_plural "%d questions"
@@ -2387,108 +2432,133 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of questions ticked to be asked.
-#: admin/pages/class-page-ai-visibility.php:1030
+#: admin/pages/class-page-ai-visibility.php:1055
 msgid "all enabled"
 msgstr ""
 
 #. translators: %d: number of questions ticked to be asked.
-#: admin/pages/class-page-ai-visibility.php:1030
+#: admin/pages/class-page-ai-visibility.php:1055
 #, php-format
 msgid "%d enabled"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1032
+#: admin/pages/class-page-ai-visibility.php:1057
 msgid "Expand to review"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1032
+#: admin/pages/class-page-ai-visibility.php:1057
 msgid "Hide the list"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1046
-msgid "Show"
+#: admin/pages/class-page-ai-visibility.php:1062
+msgid "Your own questions"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1046
-msgid "Hide"
+#: admin/pages/class-page-ai-visibility.php:1065
+msgid "Your own questions, one per line"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1068
-msgid "we know the answer:"
+#: admin/pages/class-page-ai-visibility.php:1066
+msgid ""
+"Where can I buy handmade leather wallets online?\n"
+"Is Example Co worth the price?"
+msgstr ""
+
+#. translators: %d: maximum number of questions.
+#: admin/pages/class-page-ai-visibility.php:1071
+#, php-format
+msgid "One question per line, written the way a customer would ask it. These are asked on every run, on top of the counts above, and kept when you rebuild from templates. Delete a line to stop asking it. Up to %d."
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:1076
+#: admin/pages/class-page-ai-visibility.php:1122
 msgid "Save question set"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1100
-#: admin/pages/class-page-ai-visibility.php:1345
+#: admin/pages/class-page-ai-visibility.php:1090
+msgid "Show"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:1090
+msgid "Hide"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:1110
+msgid "Use the original wording"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:1114
+msgid "we know the answer:"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:1146
+#: admin/pages/class-page-ai-visibility.php:1394
 msgid "Run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1101
+#: admin/pages/class-page-ai-visibility.php:1147
 msgid "One check at a time, here or in the background"
 msgstr ""
 
 #. translators: 1: checks, 2: questions, 3: engines, 4: runs kept
-#: admin/pages/class-page-ai-visibility.php:1108
+#: admin/pages/class-page-ai-visibility.php:1154
 #, php-format
 msgid "Runs %1$s checks (%2$s questions × %3$s engines), one at a time. The last %4$d runs are kept."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1118
+#: admin/pages/class-page-ai-visibility.php:1164
 msgid "Add an AI key first."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1119
+#: admin/pages/class-page-ai-visibility.php:1165
 msgid "Every check runs on your own key."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1120
+#: admin/pages/class-page-ai-visibility.php:1166
 msgid "Add a Claude, OpenAI, Gemini or Perplexity key in Settings"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1121
+#: admin/pages/class-page-ai-visibility.php:1167
 msgid "and come back."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1126
+#: admin/pages/class-page-ai-visibility.php:1172
 msgid "Ask as"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1128
+#: admin/pages/class-page-ai-visibility.php:1174
 msgid "Nobody in particular (baseline)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1133
+#: admin/pages/class-page-ai-visibility.php:1179
 msgid "One persona per run, so its numbers compare like with like. To see each buyer, run once per persona — each run costs the same number of checks."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1138
+#: admin/pages/class-page-ai-visibility.php:1184
 msgid "Follow the conversation"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1140
+#: admin/pages/class-page-ai-visibility.php:1186
 msgid "Off — first answers only"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1141
+#: admin/pages/class-page-ai-visibility.php:1187
 msgid "1 follow-up turn"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1142
+#: admin/pages/class-page-ai-visibility.php:1188
 msgid "2 follow-up turns"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1144
+#: admin/pages/class-page-ai-visibility.php:1190
 msgid "After each answer, ask the engine the top follow-up question it predicted, in the same conversation — the way a buyer keeps going in the app — and record whether you are cited at that step too. Each turn is another searched check on your key and counts toward your daily cap, so one turn can up to double a run. Follow-up turns are shown beside the first answers and never mixed into the numbers above."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1147
+#: admin/pages/class-page-ai-visibility.php:1193
 msgid "Start run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1148
+#: admin/pages/class-page-ai-visibility.php:1194
 #: admin/pages/class-page-dashboard.php:197
 #: admin/pages/class-page-image-seo.php:99
 #: admin/pages/class-page-image-seo.php:283
@@ -2498,57 +2568,65 @@ msgid "Stop"
 msgstr ""
 
 #. translators: 1: date, 2: cursor, 3: total
-#: admin/pages/class-page-ai-visibility.php:1154
+#: admin/pages/class-page-ai-visibility.php:1200
 #, php-format
 msgid "Resume the %1$s run (%2$d/%3$d)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1165
+#: admin/pages/class-page-ai-visibility.php:1211
 msgid "You can close this page mid-run — a background worker picks the run up from where it stopped and finishes it. It rides WordPress cron, so progress between visits depends on your site getting traffic; keeping this page open is always the fastest way through a run."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1181
+#: admin/pages/class-page-ai-visibility.php:1227
 msgid "Results"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1182
+#: admin/pages/class-page-ai-visibility.php:1228
 msgid "Presence and citations, per engine, per question"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1186
+#: admin/pages/class-page-ai-visibility.php:1232
 msgid "No runs yet. Results for each run appear here: cited and named share per engine, who was cited instead, and every question with what each engine said."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1187
+#: admin/pages/class-page-ai-visibility.php:1233
 msgid "Load sample data"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1189
+#: admin/pages/class-page-ai-visibility.php:1235
 msgid "Sample data is fabricated from your real categories, products and posts so you can see the board before a key is spent. It is labelled as sample everywhere, kept out of trends, and removed with one click. Your own-site citations in it carry the tags the assistants really add —"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1191
+#: admin/pages/class-page-ai-visibility.php:1237
 msgid "— which is what an AI referral looks like in your analytics."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1337
+#: admin/pages/class-page-ai-visibility.php:1386
 msgid "Sample data — not real answers."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1338
+#: admin/pages/class-page-ai-visibility.php:1387
 msgid "Everything below is fabricated from your catalogue to show what a run looks like. No assistant was asked anything. It never enters a trend. Remove it before reading anything into the numbers."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1339
+#: admin/pages/class-page-ai-visibility.php:1388
 msgid "Remove sample data"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1351
+#: admin/pages/class-page-ai-visibility.php:1404
 msgid "SAMPLE"
 msgstr ""
 
+#. translators: %d: number of checks recorded in that run.
+#: admin/pages/class-page-ai-visibility.php:1407
+#, php-format
+msgid "%d check"
+msgid_plural "%d checks"
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: %d: follow-up checks asked after the first answers (journey mode).
-#: admin/pages/class-page-ai-visibility.php:1356
+#: admin/pages/class-page-ai-visibility.php:1409
 #, php-format
 msgid "%d follow-up turn"
 msgid_plural "%d follow-up turns"
@@ -2556,84 +2634,84 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: persona the run was asked as.
-#: admin/pages/class-page-ai-visibility.php:1359
+#: admin/pages/class-page-ai-visibility.php:1412
 #, php-format
 msgid "as %s"
 msgstr ""
 
 #. translators: %s: where the run searched from, e.g. "Tampa, Florida, United States".
-#: admin/pages/class-page-ai-visibility.php:1361
+#: admin/pages/class-page-ai-visibility.php:1414
 #, php-format
 msgid "from %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1384
+#: admin/pages/class-page-ai-visibility.php:1437
 msgid "Export CSV"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1385
+#: admin/pages/class-page-ai-visibility.php:1438
 msgid "This run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1386
+#: admin/pages/class-page-ai-visibility.php:1439
 msgid "All kept runs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1387
+#: admin/pages/class-page-ai-visibility.php:1440
 msgid "One row per question asked, each followed by the follow-up questions that engine predicted — with the persona, the verdict, the full answer and pattern columns (brand and subject position, model numbers, place, hiring or how-to). Every row names the site and business type, so exports from several sites stack into one sheet. Follow-ups are each engine’s prediction, not questions real users typed."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1394
-#: admin/pages/class-page-ai-visibility.php:1961
+#: admin/pages/class-page-ai-visibility.php:1447
+#: admin/pages/class-page-ai-visibility.php:2016
 msgid "Cited"
 msgstr ""
 
 #. translators: %s: number of answered checks in this run.
-#: admin/pages/class-page-ai-visibility.php:1398
+#: admin/pages/class-page-ai-visibility.php:1451
 #, php-format
 msgid "of answered checks (%s in this run)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1399
-#: admin/pages/class-page-ai-visibility.php:1407
-#: admin/pages/class-page-ai-visibility.php:1417
+#: admin/pages/class-page-ai-visibility.php:1452
+#: admin/pages/class-page-ai-visibility.php:1460
+#: admin/pages/class-page-ai-visibility.php:1470
 msgid "vs previous run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1403
-#: admin/pages/class-page-ai-visibility.php:1962
+#: admin/pages/class-page-ai-visibility.php:1456
+#: admin/pages/class-page-ai-visibility.php:2017
 msgid "Named"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1406
+#: admin/pages/class-page-ai-visibility.php:1459
 msgid "of answered checks, cited included"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1411
+#: admin/pages/class-page-ai-visibility.php:1464
 msgid "Wrong answers"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1414
+#: admin/pages/class-page-ai-visibility.php:1467
 msgid "contradict a fact you publish"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1428
+#: admin/pages/class-page-ai-visibility.php:1481
 msgid "no answers"
 msgstr ""
 
 #. translators: 1: cited percentage, 2: named percentage.
-#: admin/pages/class-page-ai-visibility.php:1431
+#: admin/pages/class-page-ai-visibility.php:1484
 #, php-format
 msgid "cited %1$d%% · named %2$d%%"
 msgstr ""
 
 #. translators: 1: answers with no sources, 2: answers.
-#: admin/pages/class-page-ai-visibility.php:1434
+#: admin/pages/class-page-ai-visibility.php:1487
 msgid "Answers that linked to no one. Not cited there means no one was cited in your place, not that a competitor won."
 msgstr ""
 
 #. translators: 1: answers with no sources, 2: answers.
-#: admin/pages/class-page-ai-visibility.php:1434
+#: admin/pages/class-page-ai-visibility.php:1487
 #, php-format
 msgid "%1$d of %2$d answer gave no sources"
 msgid_plural "%1$d of %2$d answers gave no sources"
@@ -2641,7 +2719,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of answers that contradicted a fact you publish.
-#: admin/pages/class-page-ai-visibility.php:1438
+#: admin/pages/class-page-ai-visibility.php:1491
 #, php-format
 msgid "%d wrong"
 msgid_plural "%d wrong"
@@ -2649,63 +2727,63 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of checks where no answer was recorded.
-#: admin/pages/class-page-ai-visibility.php:1440
+#: admin/pages/class-page-ai-visibility.php:1493
 #, php-format
 msgid "%d unavailable"
 msgstr ""
 
 #. translators: 1: run start date, 2: run status.
-#: admin/pages/class-page-ai-visibility.php:1446
+#: admin/pages/class-page-ai-visibility.php:1500
 #, php-format
 msgid "Run started %1$s · %2$s"
 msgstr ""
 
 #. translators: %s: persona the run was asked as.
-#: admin/pages/class-page-ai-visibility.php:1449
+#: admin/pages/class-page-ai-visibility.php:1503
 #, php-format
 msgid "asked as %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1451
+#: admin/pages/class-page-ai-visibility.php:1505
 msgid "asked as nobody in particular"
 msgstr ""
 
 #. translators: %s: where the run searched from.
-#: admin/pages/class-page-ai-visibility.php:1455
+#: admin/pages/class-page-ai-visibility.php:1509
 #, php-format
 msgid "searched from %s"
 msgstr ""
 
 #. translators: %s: engine names.
-#: admin/pages/class-page-ai-visibility.php:1466
+#: admin/pages/class-page-ai-visibility.php:1520
 #, php-format
 msgid "approximate for %s: their APIs take no search location, so only the assistant was told where the user is"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1469
+#: admin/pages/class-page-ai-visibility.php:1523
 msgid "no search location"
 msgstr ""
 
 #. translators: 1: checks completed so far, 2: total checks queued.
-#: admin/pages/class-page-ai-visibility.php:1473
+#: admin/pages/class-page-ai-visibility.php:1527
 #, php-format
 msgid "%1$d of %2$d checks"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1476
+#: admin/pages/class-page-ai-visibility.php:1530
 msgid "Per-engine shares are of that engine’s answered checks; unavailable checks are counted separately."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1477
+#: admin/pages/class-page-ai-visibility.php:1531
 msgid "The trend and “vs previous run” compare only runs asked as the same persona from the same location."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1482
+#: admin/pages/class-page-ai-visibility.php:1536
 msgid "Follow-up turns"
 msgstr ""
 
 #. translators: 1: follow-up turn checks, 2: cited percent, 3: named percent.
-#: admin/pages/class-page-ai-visibility.php:1488
+#: admin/pages/class-page-ai-visibility.php:1542
 #, php-format
 msgid "%1$s check further into the conversation: cited %2$s%%, named %3$s%% of those answered. Kept out of the numbers above so this run still compares with runs that stopped at the first answer. Open a cell below to read each conversation."
 msgid_plural "%1$s checks further into the conversation: cited %2$s%%, named %3$s%% of those answered. Kept out of the numbers above so this run still compares with runs that stopped at the first answer. Open a cell below to read each conversation."
@@ -2713,366 +2791,366 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of past runs shown in the trend.
-#: admin/pages/class-page-ai-visibility.php:1506
+#: admin/pages/class-page-ai-visibility.php:1560
 #, php-format
 msgid "Trend — cited %% of answered checks, per engine, across your last %d runs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1527
+#: admin/pages/class-page-ai-visibility.php:1581
 msgid "latest"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1532
+#: admin/pages/class-page-ai-visibility.php:1586
 msgid "Trend lines appear once you have two real runs. Sample runs never enter the trend."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1538
+#: admin/pages/class-page-ai-visibility.php:1592
 msgid "Who gets cited instead — share of voice from this run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1539
+#: admin/pages/class-page-ai-visibility.php:1593
 msgid "From the same answers, never a second query: every citation’s domain, per engine, for the scope you pick. Your slice is the blue one; the centre number is your cited share of that engine’s checks in this scope."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1541
+#: admin/pages/class-page-ai-visibility.php:1595
 msgid "Scope"
 msgstr ""
 
 #. translators: %s: scope name, e.g. "Category: Shoes".
-#: admin/pages/class-page-ai-visibility.php:1552
+#: admin/pages/class-page-ai-visibility.php:1606
 #, php-format
 msgid "%s — not in this run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1561
+#: admin/pages/class-page-ai-visibility.php:1615
 msgid "This run asked nothing in that scope, so there is nothing to chart — which is not the same as “you were not cited there”."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1562
+#: admin/pages/class-page-ai-visibility.php:1616
 msgid "The dropdown lists everything you have; a run covers as many as its allocation reached. Raise that level in Allocation and run again, or pick a scope that is not marked “not in this run”."
 msgstr ""
 
 #. translators: %s: engine name.
-#: admin/pages/class-page-ai-visibility.php:1574
+#: admin/pages/class-page-ai-visibility.php:1628
 #, php-format
 msgid "No results for %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1575
+#: admin/pages/class-page-ai-visibility.php:1629
 msgid "0 checks in this scope"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1581
+#: admin/pages/class-page-ai-visibility.php:1635
 msgid "cited"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1587
-#: admin/pages/class-page-ai-visibility.php:1813
+#: admin/pages/class-page-ai-visibility.php:1641
+#: admin/pages/class-page-ai-visibility.php:1868
 msgid "you"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1595
+#: admin/pages/class-page-ai-visibility.php:1649
 msgid "No citations in these answers."
 msgstr ""
 
 #. translators: 1: answered checks, 2: total checks, 3: checks containing citations, 4: unavailable checks.
-#: admin/pages/class-page-ai-visibility.php:1607
+#: admin/pages/class-page-ai-visibility.php:1661
 #, php-format
 msgid "%1$d of %2$d answered · %3$d with citations · %4$d unavailable, not counted against you"
 msgstr ""
 
 #. translators: 1: number of checks, 2: checks containing citations.
-#: admin/pages/class-page-ai-visibility.php:1616
+#: admin/pages/class-page-ai-visibility.php:1670
 #, php-format
 msgid "%1$d checks · %2$d with citations"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1632
+#: admin/pages/class-page-ai-visibility.php:1687
 msgid "Every question, every engine"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1637
+#: admin/pages/class-page-ai-visibility.php:1692
 msgid "second mark, when we know the answer: ✓ correct, ✗ wrong, — not stated. Click a cell to read what the engine said. Rows with a wrong answer come first."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1643
+#: admin/pages/class-page-ai-visibility.php:1698
 #: includes/class-product-faq-generator.php:464
 #: includes/class-product-faq-generator.php:474
 msgid "Question"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1644
+#: admin/pages/class-page-ai-visibility.php:1699
 msgid "Level / scope"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1648
+#: admin/pages/class-page-ai-visibility.php:1703
 msgid "What to fix"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1663
+#: admin/pages/class-page-ai-visibility.php:1718
 msgid "we know:"
 msgstr ""
 
 #. translators: %s: accuracy verdict — correct, wrong or not stated.
-#: admin/pages/class-page-ai-visibility.php:1685
-#: admin/pages/class-page-ai-visibility.php:1773
+#: admin/pages/class-page-ai-visibility.php:1740
+#: admin/pages/class-page-ai-visibility.php:1828
 #, php-format
 msgid "accuracy: %s"
 msgstr ""
 
 #. translators: %d: conversation turn number (2, 3).
-#: admin/pages/class-page-ai-visibility.php:1725
+#: admin/pages/class-page-ai-visibility.php:1780
 #, php-format
 msgid "↳ Follow-up · turn %d"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1730
+#: admin/pages/class-page-ai-visibility.php:1785
 msgid "Each engine asked its own next question — hover a dot to see it, click to read the conversation."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1734
+#: admin/pages/class-page-ai-visibility.php:1789
 msgid "Follow-up"
 msgstr ""
 
 #. translators: 1: turn number, 2: the follow-up question asked, 3: verdict.
-#: admin/pages/class-page-ai-visibility.php:1747
+#: admin/pages/class-page-ai-visibility.php:1802
 #, php-format
 msgid "Turn %1$d: “%2$s” — %3$s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1778
-#: admin/pages/class-page-ai-visibility.php:1848
+#: admin/pages/class-page-ai-visibility.php:1833
+#: admin/pages/class-page-ai-visibility.php:1903
 msgid "(no answer text recorded)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1780
+#: admin/pages/class-page-ai-visibility.php:1835
 msgid "Where the answer named you:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1804
+#: admin/pages/class-page-ai-visibility.php:1859
 msgid "No prose mention of your name recorded in this answer."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1808
+#: admin/pages/class-page-ai-visibility.php:1863
 msgid "Cited:"
 msgstr ""
 
 #. translators: %d: number of cited URLs not shown.
-#: admin/pages/class-page-ai-visibility.php:1816
+#: admin/pages/class-page-ai-visibility.php:1871
 #, php-format
 msgid "and %d more"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1819
+#: admin/pages/class-page-ai-visibility.php:1874
 msgid "Gave no sources."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1819
+#: admin/pages/class-page-ai-visibility.php:1874
 msgid "This answer links to no one, so no one was cited in your place."
 msgstr ""
 
 #. translators: %s: engine name.
-#: admin/pages/class-page-ai-visibility.php:1823
+#: admin/pages/class-page-ai-visibility.php:1878
 #, php-format
 msgid "What they’re likely to ask next, according to %s:"
 msgstr ""
 
 #. translators: %s: why no follow-up questions were recorded.
-#: admin/pages/class-page-ai-visibility.php:1831
+#: admin/pages/class-page-ai-visibility.php:1886
 #, php-format
 msgid "No follow-up questions recorded: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1835
+#: admin/pages/class-page-ai-visibility.php:1890
 msgid "The conversation continued"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1835
+#: admin/pages/class-page-ai-visibility.php:1890
 msgid "each turn asked the engine’s own top follow-up, with the answers before it as history."
 msgstr ""
 
 #. translators: 1: turn number, 2: the follow-up question asked.
-#: admin/pages/class-page-ai-visibility.php:1843
+#: admin/pages/class-page-ai-visibility.php:1898
 #, php-format
 msgid "Turn %1$d: “%2$s”"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1850
+#: admin/pages/class-page-ai-visibility.php:1905
 msgid "Cited you:"
 msgstr ""
 
 #. translators: %s: cited domains.
-#: admin/pages/class-page-ai-visibility.php:1857
+#: admin/pages/class-page-ai-visibility.php:1912
 #, php-format
 msgid "Cited instead: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1859
+#: admin/pages/class-page-ai-visibility.php:1914
 msgid "Gave no sources: no one was cited in your place."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1866
+#: admin/pages/class-page-ai-visibility.php:1921
 msgid "API approximates the app — the consumer assistant personalises and changes daily; this is the closest reproducible measure."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1942
+#: admin/pages/class-page-ai-visibility.php:1997
 msgid "Where your citations landed"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1944
+#: admin/pages/class-page-ai-visibility.php:1999
 msgid "on a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1945
+#: admin/pages/class-page-ai-visibility.php:2000
 msgid "on your page on someone else’s platform"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1946
+#: admin/pages/class-page-ai-visibility.php:2001
 msgid "on both"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1950
+#: admin/pages/class-page-ai-visibility.php:2005
 msgid "Every citation this run landed on your page on somebody else’s platform rather than on a site you own. That still counts — but your own pages are not what the assistants are reaching for yet."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1956
+#: admin/pages/class-page-ai-visibility.php:2011
 msgid "By brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1960
-#: includes/class-visibility.php:517
+#: admin/pages/class-page-ai-visibility.php:2015
+#: includes/class-visibility.php:525
 msgid "Brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1963
+#: admin/pages/class-page-ai-visibility.php:2018
 msgid "Checks"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1978
+#: admin/pages/class-page-ai-visibility.php:2033
 msgid "Named counts cited answers too, so it is never lower than cited. A brand with no owned profiles can still be named — it simply cannot be cited until it has somewhere to be cited."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2020
+#: admin/pages/class-page-ai-visibility.php:2075
 msgid "Each brand over time"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2023
+#: admin/pages/class-page-ai-visibility.php:2078
 msgid "One run so far. A second real run gives each brand a line to compare against — a single point is a reading, not a trend."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2039
+#: admin/pages/class-page-ai-visibility.php:2094
 msgid "level"
 msgstr ""
 
 #. translators: %s: signed percentage-point change since the first run this brand was tracked in.
-#: admin/pages/class-page-ai-visibility.php:2043
+#: admin/pages/class-page-ai-visibility.php:2098
 #, php-format
 msgid "%s pts since first tracked"
 msgstr ""
 
 #. translators: %s: number of runs this brand has data for.
-#: admin/pages/class-page-ai-visibility.php:2051
+#: admin/pages/class-page-ai-visibility.php:2106
 #, php-format
 msgid "· %s runs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2094
+#: admin/pages/class-page-ai-visibility.php:2149
 msgid "Cited here, visited from there"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2098
+#: admin/pages/class-page-ai-visibility.php:2153
 #: admin/pages/class-page-index-now.php:297
 msgid "Engine"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2099
+#: admin/pages/class-page-ai-visibility.php:2154
 msgid "Cited (this run)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2100
+#: admin/pages/class-page-ai-visibility.php:2155
 msgid "Sessions (28 days)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2101
+#: admin/pages/class-page-ai-visibility.php:2156
 msgid "Reading"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2112
+#: admin/pages/class-page-ai-visibility.php:2167
 msgid "Not asked in this run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2114
+#: admin/pages/class-page-ai-visibility.php:2169
 msgid "Cited, and people arrive"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2116
+#: admin/pages/class-page-ai-visibility.php:2171
 msgid "Cited, but nobody clicks through yet"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2118
+#: admin/pages/class-page-ai-visibility.php:2173
 msgid "People arrive anyway — for questions you are not asking"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2120
+#: admin/pages/class-page-ai-visibility.php:2175
 msgid "Neither"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2133
+#: admin/pages/class-page-ai-visibility.php:2188
 msgid "These two columns are not cause and effect. The left is a sample of questions asked on your keys in this run; the right is 28 days of real sessions your analytics attributed to that assistant, for your whole site."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2135
+#: admin/pages/class-page-ai-visibility.php:2190
 msgid "You have a scope selected, so the left column is narrowed and the right is not — compare them at “All”."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2137
+#: admin/pages/class-page-ai-visibility.php:2192
 msgid "Sessions arriving from an assistant that never cites you in this run usually means people are asking things your question set does not cover."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2258
+#: admin/pages/class-page-ai-visibility.php:2313
 msgid "Questions you are not answering"
 msgstr ""
 
 #. translators: 1: questions where you were absent, 2: how many of those cited somebody else.
-#: admin/pages/class-page-ai-visibility.php:2263
+#: admin/pages/class-page-ai-visibility.php:2318
 #, php-format
 msgid "You were absent from %1$s questions in this scope. On %2$s of them the assistant cited somebody else — those are the ones worth writing for, because the answer already exists and it simply is not yours."
 msgstr ""
 
 #. translators: 1: engine names, 2: number of engines that answered.
-#: admin/pages/class-page-ai-visibility.php:2284
+#: admin/pages/class-page-ai-visibility.php:2339
 #, php-format
 msgid "Absent on %1$s (of %2$s that answered)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2292
+#: admin/pages/class-page-ai-visibility.php:2347
 msgid "Cited instead:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2299
+#: admin/pages/class-page-ai-visibility.php:2354
 msgid "No sources cited at all — the assistants answered from memory, so there is no page to outrank here, only an entity to be better known as."
 msgstr ""
 
 #. translators: %s: number of further questions not listed.
-#: admin/pages/class-page-ai-visibility.php:2313
+#: admin/pages/class-page-ai-visibility.php:2368
 #, php-format
 msgid "and %s more not listed here — the table above carries every one of them."
 msgstr ""
 
 #. translators: 1-4: counts
-#: admin/pages/class-page-ai-visibility.php:2473
+#: admin/pages/class-page-ai-visibility.php:2528
 #, php-format
 msgid "%1$d categories · %2$d types · %3$d products · %4$d posts in scope"
 msgstr ""
 
 #. translators: %d: number of catalogue items the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2487
+#: admin/pages/class-page-ai-visibility.php:2542
 #, php-format
 msgid "%d catalogue items in scope"
 msgstr ""
 
 #. translators: %d: number of posts the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2491
+#: admin/pages/class-page-ai-visibility.php:2546
 #, php-format
 msgid "%d post in scope"
 msgid_plural "%d posts in scope"
@@ -3080,90 +3158,145 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of items the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2494
+#: admin/pages/class-page-ai-visibility.php:2549
 #, php-format
 msgid "%d item in scope"
 msgid_plural "%d items in scope"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-ai-visibility.php:2507
+#. translators: %d: number of cited pages that look like the business's own listings.
+#: admin/pages/class-page-ai-visibility.php:2571
+#, php-format
+msgid "%d cited page looks like your own listing. Is it you?"
+msgid_plural "%d cited pages look like your own listings. Are they you?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/pages/class-page-ai-visibility.php:2576
+msgid "Your name is in the account part of these addresses. Yes adds the page to what counts as you and re-scores your kept runs for free; No means we never ask about it again. Other sites often make pages about a product — only say yes to the ones you run."
+msgstr ""
+
+#. translators: 1: times cited, 2: engine names.
+#: admin/pages/class-page-ai-visibility.php:2585
+#: admin/pages/class-page-ai-visibility.php:2631
+#, php-format
+msgid "cited %1$d time by %2$s"
+msgid_plural "cited %1$d times by %2$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/pages/class-page-ai-visibility.php:2592
+msgid "Yes, that’s me"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:2593
+#: includes/class-smart-collections.php:412
+#: includes/class-smart-collections.php:421
+#: includes/class-smart-collections.php:433
+#: includes/class-smart-collections.php:444
+#: includes/class-smart-collections.php:457
+#: includes/class-smart-collections.php:472
+msgid "No"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:2620
+msgid "Pages about you"
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:2622
+msgid "Pages other sites wrote about you — reviews, comparisons, roundups — that the engines cited in this run, plus listings still waiting for your answer above. They are counted as their own slice, not as competitors."
+msgstr ""
+
+#. translators: %d: number of further pages not listed.
+#: admin/pages/class-page-ai-visibility.php:2642
+#, php-format
+msgid "and %d more page."
+msgid_plural "and %d more pages."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/pages/class-page-ai-visibility.php:2658
 msgid "Company profile — policies"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2507
+#: admin/pages/class-page-ai-visibility.php:2658
 #: includes/class-aeo-score.php:244
 #: includes/class-aeo-score.php:471
 msgid "Company profile"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2515
+#: admin/pages/class-page-ai-visibility.php:2666
 msgid "FAQ content"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2533
+#: admin/pages/class-page-ai-visibility.php:2684
 msgid "Edit product"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2536
+#: admin/pages/class-page-ai-visibility.php:2687
 msgid "Product FAQs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2541
+#: admin/pages/class-page-ai-visibility.php:2692
 msgid "Edit post"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2551
+#: admin/pages/class-page-ai-visibility.php:2702
 msgid "Cited — linked to your page on another platform, not to a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2554
+#: admin/pages/class-page-ai-visibility.php:2705
 msgid "Cited — linked to a site you own and to your page on another platform"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2556
+#: admin/pages/class-page-ai-visibility.php:2707
 msgid "Cited — linked to a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2558
+#: admin/pages/class-page-ai-visibility.php:2709
 msgid "Named — mentioned, no link"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2560
+#: admin/pages/class-page-ai-visibility.php:2711
 msgid "Absent — not mentioned"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2562
+#: admin/pages/class-page-ai-visibility.php:2713
 msgid "Unavailable — no answer recorded"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2573
+#: admin/pages/class-page-ai-visibility.php:2724
 msgid "no change"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2575
+#: admin/pages/class-page-ai-visibility.php:2726
 msgid "pts"
 msgstr ""
 
+#: admin/pages/class-page-ai-visibility.php:2821
+msgid "pages about you"
+msgstr ""
+
 #. translators: %d: number of remaining cited domains grouped as "other".
-#: admin/pages/class-page-ai-visibility.php:2671
+#: admin/pages/class-page-ai-visibility.php:2828
 #, php-format
 msgid "other (%d domains)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2694
+#: admin/pages/class-page-ai-visibility.php:2851
 msgid "Share of voice"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2723
+#: admin/pages/class-page-ai-visibility.php:2880
 msgid "Questions per level"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2734
+#: admin/pages/class-page-ai-visibility.php:2891
 msgid "questions"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2772
+#: admin/pages/class-page-ai-visibility.php:2929
 msgid "Trend"
 msgstr ""
 
@@ -4809,25 +4942,6 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:1677
 msgid "(untitled)"
-msgstr ""
-
-#: admin/pages/class-page-command-center.php:1678
-#: admin/pages/class-page-contact-detector.php:183
-#: admin/pages/class-page-dashboard.php:584
-#: admin/pages/class-page-eeat.php:322
-#: admin/pages/class-page-faq-detector.php:202
-#: admin/pages/class-page-image-seo.php:155
-#: admin/pages/class-page-image-seo.php:363
-#: admin/pages/class-page-local-pack.php:540
-#: admin/pages/class-page-news.php:272
-#: admin/pages/class-page-not-indexed.php:184
-#: admin/pages/class-page-schema-detector.php:291
-#: admin/pages/class-page-schema-detector.php:647
-#: admin/pages/class-page-schema-detector.php:1051
-#: admin/pages/class-page-service-detector.php:205
-#: admin/pages/class-page-smart-collections.php:450
-#: admin/pages/class-page-social-graph.php:628
-msgid "Edit"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:1803
@@ -9109,7 +9223,7 @@ msgid "No AI citation check has been run yet."
 msgstr ""
 
 #: admin/pages/class-page-rag-engine.php:410
-msgid "Run an AI Visibility check first. It asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions your customers ask and records who they cite; this tab then shows which of those answers your documents could win."
+msgid "Run an AI Visibility check first. It asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions your customers ask and records who they cite; this tab then shows which of those answers your documents could win."
 msgstr ""
 
 #: admin/pages/class-page-rag-engine.php:411
@@ -13007,7 +13121,7 @@ msgid "Coming soon"
 msgstr ""
 
 #: includes/ai-visibility/class-visibility-engines.php:181
-#: includes/ai-visibility/class-visibility-store.php:584
+#: includes/ai-visibility/class-visibility-store.php:677
 msgid "No key for this engine."
 msgstr ""
 
@@ -13115,46 +13229,54 @@ msgstr ""
 msgid "No personas could be suggested. Add a few by hand."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:473
+#: includes/ai-visibility/class-visibility-store.php:566
 msgid "No engine has a key yet — add one in Settings."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:474
+#: includes/ai-visibility/class-visibility-store.php:567
 msgid "No questions to ask — raise the allocation or enable some questions."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:563
+#: includes/ai-visibility/class-visibility-store.php:656
 msgid "That run no longer exists."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:581
+#: includes/ai-visibility/class-visibility-store.php:674
 msgid "No answer within 10 minutes."
 msgstr ""
 
 #. translators: %s: engine name
-#: includes/ai-visibility/class-visibility-store.php:646
+#: includes/ai-visibility/class-visibility-store.php:739
 #, php-format
 msgid "No key for %s — add it in Settings."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:673
+#: includes/ai-visibility/class-visibility-store.php:766
 msgid "Question missing from the run snapshot."
 msgstr ""
 
-#: includes/ai-visibility/class-visibility-store.php:675
+#: includes/ai-visibility/class-visibility-store.php:768
 msgid "Nothing to follow up on: the turn before recorded no follow-up question."
 msgstr ""
 
 #. translators: 1: engine name, 2: number of questions.
-#: includes/ai-visibility/class-visibility-store.php:1439
+#: includes/ai-visibility/class-visibility-store.php:1532
 #, php-format
 msgid "%1$s rejected its API key, so its remaining %2$d question was skipped."
 msgid_plural "%1$s rejected its API key, so its remaining %2$d questions were skipped."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/ai-visibility/class-visibility-store.php:1445
+#: includes/ai-visibility/class-visibility-store.php:1538
 msgid "Check the key in Settings; the next run will try it again."
+msgstr ""
+
+#: includes/ai-visibility/class-visibility-store.php:1834
+msgid "That address cannot be registered as a page you own."
+msgstr ""
+
+#: includes/ai-visibility/class-visibility-store.php:1841
+msgid "Your company already has the most pages it can register. Remove one under “What counts as you” first."
 msgstr ""
 
 #: includes/class-abilities.php:59
@@ -16340,15 +16462,6 @@ msgstr ""
 msgid "Other (your own intent phrases)"
 msgstr ""
 
-#: includes/class-smart-collections.php:412
-#: includes/class-smart-collections.php:421
-#: includes/class-smart-collections.php:433
-#: includes/class-smart-collections.php:444
-#: includes/class-smart-collections.php:457
-#: includes/class-smart-collections.php:472
-msgid "No"
-msgstr ""
-
 #: includes/class-smart-collections.php:422
 msgid "The Smart Collections module is switched off."
 msgstr ""
@@ -16573,100 +16686,116 @@ msgstr ""
 msgid "Acceptable"
 msgstr ""
 
-#: includes/class-visibility.php:199
-#: includes/class-visibility.php:362
+#: includes/class-visibility.php:207
+#: includes/class-visibility.php:370
 msgid "You do not have permission to do that."
 msgstr ""
 
-#: includes/class-visibility.php:271
+#: includes/class-visibility.php:279
 msgid "Tick at least one engine you hold a key for."
 msgstr ""
 
-#: includes/class-visibility.php:313
+#: includes/class-visibility.php:321
 msgid "Could not start a run."
 msgstr ""
 
-#: includes/class-visibility.php:340
+#: includes/class-visibility.php:348
 msgid "Personas cleared. Runs will ask as nobody in particular."
 msgstr ""
 
 #. translators: %d: number of personas saved.
-#: includes/class-visibility.php:342
+#: includes/class-visibility.php:350
 #, php-format
 msgid "%d persona saved."
 msgid_plural "%d personas saved."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-visibility.php:369
+#: includes/class-visibility.php:377
 msgid "There are no recorded checks to export yet. Sample data is never exported."
 msgstr ""
 
 #. translators: %d: number of personas added.
-#: includes/class-visibility.php:405
+#: includes/class-visibility.php:413
 #, php-format
 msgid "%d persona suggested from your site. Edit or remove it as you like."
 msgid_plural "%d personas suggested from your site. Edit or remove any of them as you like."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-visibility.php:406
+#: includes/class-visibility.php:414
 msgid "Nothing new to suggest — your list already covers what your pages describe."
 msgstr ""
 
-#: includes/class-visibility.php:418
-#: includes/class-visibility.php:448
+#: includes/class-visibility.php:426
+#: includes/class-visibility.php:456
 msgid "Missing run id."
 msgstr ""
 
-#: includes/class-visibility.php:435
+#: includes/class-visibility.php:443
 msgid "The run could not be advanced."
 msgstr ""
 
 #. translators: 1: number of brand items, 2: number of owned profile URLs.
-#: includes/class-visibility.php:540
+#: includes/class-visibility.php:551
 #, php-format
 msgid "%1$s brand tracked, %2$s owned profile watched."
 msgid_plural "%1$s brands tracked, %2$s owned profiles watched."
 msgstr[0] ""
 msgstr[1] ""
 
+#: includes/class-visibility.php:572
+msgid "No page was given."
+msgstr ""
+
 #: includes/class-visibility.php:576
+msgid "Noted — we will not ask about that page again."
+msgstr ""
+
+#: includes/class-visibility.php:584
+msgid "Added to the pages your company owns. Your kept runs were re-scored — reload to see the new numbers."
+msgstr ""
+
+#: includes/class-visibility.php:615
 msgid "This is a shared platform, so add the full page address — your own page on it, like linkedin.com/company/your-brand. The bare domain would count every citation on that platform as yours. (A domain of your own needs no path — paste it as it is.)"
 msgstr ""
 
-#: includes/class-visibility.php:578
+#: includes/class-visibility.php:617
 msgid "Not a usable http(s) address."
 msgstr ""
 
-#: includes/class-visibility.php:626
+#: includes/class-visibility.php:673
 msgid "Allocation saved. Runs will use these numbers until you change them."
 msgstr ""
 
-#: includes/class-visibility.php:652
+#: includes/class-visibility.php:699
 msgid "Question set reset to the templates."
 msgstr ""
 
-#: includes/class-visibility.php:672
+#: includes/class-visibility.php:719
 msgid "The AI client is not available on this install."
 msgstr ""
 
-#: includes/class-visibility.php:676
+#: includes/class-visibility.php:723
 msgid "Build and save the question list first — polishing works on the saved set."
 msgstr ""
 
-#: includes/class-visibility.php:778
+#: includes/class-visibility.php:825
 msgid "Build the question list first, then save it."
 msgstr ""
 
-#: includes/class-visibility.php:822
+#: includes/class-visibility.php:879
 msgid "Nothing to save."
 msgstr ""
 
 #. translators: 1: enabled count, 2: total count
-#: includes/class-visibility.php:830
+#: includes/class-visibility.php:888
 #, php-format
 msgid "%1$d of %2$d questions enabled. Runs ask the enabled ones."
+msgstr ""
+
+#: includes/class-visibility.php:923
+msgid "Your question"
 msgstr ""
 
 #: includes/class-wc-extensions.php:1047

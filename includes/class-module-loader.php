@@ -320,7 +320,7 @@ class TWTAEO_Module_Loader {
 			'ai-visibility' => array(
 				'slug'        => 'ai-visibility',
 				'title'       => 'AI Visibility — citation engine',
-				'description' => 'Asks ChatGPT, Gemini, Claude, Perplexity, Grok and Le Chat the questions shoppers ask, on your own keys, and shows whether your site was cited, named or absent — and who was cited instead.',
+				'description' => 'Asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions shoppers ask, on your own keys, and shows whether your site was cited, named or absent — and who was cited instead.',
 				'icon'        => 'dashicons-visibility',
 				'phase'       => 'free',
 				'default'     => true,

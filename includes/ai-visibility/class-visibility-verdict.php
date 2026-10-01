@@ -385,10 +385,17 @@ final class TWTAEO_Visibility_Verdict {
 	 * @param array $checks    Check[].
 	 * @param array $questions Question[].
 	 * @param array $filter    [ engine, level?, scope_id? ].
+	 * Pages about us that somebody else wrote (a review of our product, a
+	 * comparison) and listings that look like ours but are not confirmed yet
+	 * fold into one `about` slice rather than counting as competitors. Pass
+	 * `$about` to turn that on; without it the board reads as it always did.
+	 *
 	 * @param array $our_hosts The site's hosts.
+	 * @param array $about     [ handles[], properties[], not_me[] ] — see TWTAEO_Visibility_Brands::classify_cited().
 	 * @return array ShareOfVoice.
 	 */
-	public static function share_of_voice( array $checks, array $questions, array $filter, array $our_hosts ) {
+	public static function share_of_voice( array $checks, array $questions, array $filter, array $our_hosts, array $about = array() ) {
+		$about_on = ! empty( $about['handles'] ) && class_exists( 'TWTAEO_Visibility_Brands' );
 		$engine   = isset( $filter['engine'] ) ? (string) $filter['engine'] : '';
 		$level    = isset( $filter['level'] ) ? (string) $filter['level'] : '';
 		$by_scope = array_key_exists( 'scope_id', $filter );
@@ -423,6 +430,7 @@ final class TWTAEO_Visibility_Verdict {
 		}
 
 		$counts         = array();
+		$about_n        = 0;
 		$ours           = 0;
 		$with_citations = 0;
 		$cited          = 0;
@@ -456,12 +464,41 @@ final class TWTAEO_Visibility_Verdict {
 			foreach ( $raw_owned as $od ) {
 				$owned[ self::normalize_host( $od ) ] = true;
 			}
-			$counted_ours = false;
+			// Hosts this answer cited only for pages about us. A host that also
+			// carried an unrelated page in the same answer stays a competitor.
+			$about_hosts = array();
+			if ( $about_on ) {
+				$plain = array();
+				foreach ( isset( $c['cited_urls'] ) && is_array( $c['cited_urls'] ) ? $c['cited_urls'] : array() as $u ) {
+					$kind = TWTAEO_Visibility_Brands::classify_cited(
+						$u,
+						(array) $about['handles'],
+						isset( $about['properties'] ) ? (array) $about['properties'] : array(),
+						isset( $about['not_me'] ) ? (array) $about['not_me'] : array()
+					);
+					$h    = self::normalize_host( self::host_of( $u ) );
+					if ( 'about' === $kind || 'candidate' === $kind ) {
+						$about_hosts[ $h ] = true;
+					} elseif ( 'owned' !== $kind ) {
+						$plain[ $h ] = true;
+					}
+				}
+				$about_hosts = array_diff_key( $about_hosts, $plain );
+			}
+			$counted_ours  = false;
+			$counted_about = false;
 			foreach ( $domains as $d ) {
 				if ( self::is_our_host( $d, $our_hosts ) || isset( $owned[ self::normalize_host( $d ) ] ) ) {
 					if ( ! $counted_ours ) {
 						$ours++;
 						$counted_ours = true;
+					}
+					continue;
+				}
+				if ( isset( $about_hosts[ self::normalize_host( $d ) ] ) ) {
+					if ( ! $counted_about ) {
+						$about_n++;
+						$counted_about = true;
 					}
 					continue;
 				}
@@ -476,6 +513,14 @@ final class TWTAEO_Visibility_Verdict {
 				'domain' => self::normalize_host( $our_hosts[0] ),
 				'count'  => $ours,
 				'ours'   => true,
+			);
+		}
+		if ( $about_n > 0 ) {
+			$slices[] = array(
+				'domain' => 'about',
+				'count'  => $about_n,
+				'ours'   => false,
+				'about'  => true,
 			);
 		}
 		$competitors = array();

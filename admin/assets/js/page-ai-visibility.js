@@ -97,7 +97,8 @@
 			post:       parseInt( $allocForm.attr( 'data-posts' ), 10 ) || 0
 		};
 		var byLevel = {
-			company:    allocValue( 'company' ),
+			// The merchant's own questions ride on top of the company count.
+			company:    allocValue( 'company' ) + ( parseInt( $allocForm.attr( 'data-custom' ), 10 ) || 0 ),
 			brand:      allocValue( 'per_brand' ) * counts.brand,
 			collection: allocValue( 'per_collection' ) * counts.collection,
 			type:       allocValue( 'per_type' ) * counts.type,
@@ -404,14 +405,125 @@
 		}
 	} );
 
+	/*
+	 * Rewording a question. The list travels as the hidden `questions` JSON,
+	 * so an edit rewrites that row: new text, source `merchant`, and the
+	 * template wording kept beside it so "Use the original wording" can put
+	 * it back. The id never changes, so the question's results still compare
+	 * run to run.
+	 */
+	function questionRows() {
+		var $input = $qList.find( 'input[name="questions"]' );
+		var rows;
+		try {
+			rows = JSON.parse( $input.val() || '[]' );
+		} catch ( err ) {
+			rows = [];
+		}
+		return {
+			rows: rows,
+			find: function ( id ) {
+				for ( var i = 0; i < rows.length; i++ ) {
+					if ( rows[ i ] && String( rows[ i ].id ) === String( id ) ) {
+						return rows[ i ];
+					}
+				}
+				return null;
+			},
+			save: function () {
+				$input.val( JSON.stringify( rows ) );
+			}
+		};
+	}
+
+	function finishQuestionEdit( $li ) {
+		var $field = $li.find( '.twt-aeo-vis__qinput' );
+		if ( ! $field.length ) {
+			return;
+		}
+		var text = $.trim( String( $field.val() || '' ).replace( /\s+/g, ' ' ) );
+		var $text = $li.find( '.twt-aeo-vis__qtext' );
+		$field.remove();
+		$text.prop( 'hidden', false );
+		$li.find( '.twt-aeo-vis__qedit' ).text( strings.qEdit || 'Edit' );
+
+		var list = questionRows();
+		var row  = list.find( $li.attr( 'data-qid' ) );
+		if ( ! row || '' === text || text === row.text ) {
+			return;
+		}
+		if ( ! row.template_text && ( ! row.source || 'template' === row.source ) ) {
+			row.template_text = row.text;
+		}
+		row.text   = text;
+		row.source = 'merchant';
+		list.save();
+		$text.text( text );
+		$li.find( '.twt-aeo-vis__qrestore' ).attr( 'title', row.template_text || '' ).prop( 'hidden', ! row.template_text );
+		setStatus( $qStatus, strings.qUnsaved || 'Changed — click “Save question set” to keep it.' );
+	}
+
+	$qList.on( 'click', '.twt-aeo-vis__qedit', function () {
+		var $li = $( this ).closest( 'li' );
+		if ( $li.find( '.twt-aeo-vis__qinput' ).length ) {
+			finishQuestionEdit( $li );
+			return;
+		}
+		var $text = $li.find( '.twt-aeo-vis__qtext' );
+		var $field = $( '<input>', { type: 'text', 'class': 'twt-aeo-vis__qinput large-text', maxlength: 300 } ).val( $text.text() );
+		$text.prop( 'hidden', true ).after( $field );
+		$( this ).text( strings.qDone || 'Done' );
+		$field.trigger( 'focus' );
+	} );
+
+	// Enter finishes the edit instead of submitting the whole form; Escape abandons it.
+	$qList.on( 'keydown', '.twt-aeo-vis__qinput', function ( e ) {
+		var $li = $( this ).closest( 'li' );
+		if ( 13 === e.which ) {
+			e.preventDefault();
+			finishQuestionEdit( $li );
+		} else if ( 27 === e.which ) {
+			e.preventDefault();
+			$( this ).val( $li.find( '.twt-aeo-vis__qtext' ).text() );
+			finishQuestionEdit( $li );
+		}
+	} );
+
+	$qList.on( 'click', '.twt-aeo-vis__qrestore', function () {
+		var $li  = $( this ).closest( 'li' );
+		var list = questionRows();
+		var row  = list.find( $li.attr( 'data-qid' ) );
+		if ( ! row || ! row.template_text ) {
+			return;
+		}
+		row.text   = row.template_text;
+		row.source = 'template';
+		delete row.template_text;
+		list.save();
+		$li.find( '.twt-aeo-vis__qinput' ).remove();
+		$li.find( '.twt-aeo-vis__qtext' ).text( row.text ).prop( 'hidden', false );
+		$li.find( '.twt-aeo-vis__qedit' ).text( strings.qEdit || 'Edit' );
+		$( this ).prop( 'hidden', true );
+		setStatus( $qStatus, strings.qUnsaved || 'Changed — click “Save question set” to keep it.' );
+	} );
+
 	$( '#twt-aeo-vis-q-form' ).on( 'submit', function ( e ) {
 		e.preventDefault();
+		// An edit still open counts — finish it so its text is in the JSON.
+		$qList.find( '.twt-aeo-vis__qinput' ).each( function () {
+			finishQuestionEdit( $( this ).closest( 'li' ) );
+		} );
 		setStatus( $qStatus, strings.saving || 'Saving…' );
 		var data = $( this ).serialize()
 			+ '&action=' + encodeURIComponent( actions.saveQuestions )
 			+ '&nonce=' + encodeURIComponent( cfg.nonce );
 		$.post( cfg.ajaxUrl, data ).done( function ( resp ) {
 			if ( resp && resp.success ) {
+				// Your own questions change the size of a run.
+				if ( resp.data && 'number' === typeof resp.data.custom ) {
+					$allocForm.attr( 'data-custom', resp.data.custom );
+					refreshTotals();
+				}
 				setStatus( $qStatus, ( resp.data && resp.data.message ) || 'Saved.', 'ok' );
 			} else {
 				setStatus( $qStatus, errorOf( resp ), 'err' );
@@ -725,6 +837,40 @@
 		var open = $drawer.prop( 'hidden' );
 		$drawer.prop( 'hidden', ! open );
 		$( this ).attr( 'aria-expanded', open ? 'true' : 'false' );
+	} );
+
+	/*
+	 * "Is this you?" — one answer per cited listing. Yes registers the page
+	 * and re-scores every kept run on the server; once the last question is
+	 * answered and at least one was a yes, the page reloads so the numbers
+	 * shown are the re-scored ones.
+	 */
+	var claimedAny = false;
+	$( '#twt-aeo-vis-claim' ).on( 'click', '.twt-aeo-vis__claim-btn', function () {
+		var $btn    = $( this );
+		var $li     = $btn.closest( 'li' );
+		var $box    = $( '#twt-aeo-vis-claim' );
+		var $status = $( '#twt-aeo-vis-claim-status' );
+		var mine    = '1' === String( $btn.attr( 'data-mine' ) );
+		$li.find( '.twt-aeo-vis__claim-btn' ).prop( 'disabled', true );
+		setStatus( $status, mine ? ( strings.claiming || 'Adding it and re-scoring your runs…' ) : ( strings.saving || 'Saving…' ) );
+		post( actions.claimPage, { url: $li.attr( 'data-url' ), mine: mine ? 1 : 0 } ).done( function ( resp ) {
+			if ( ! resp || ! resp.success ) {
+				$li.find( '.twt-aeo-vis__claim-btn' ).prop( 'disabled', false );
+				setStatus( $status, errorOf( resp ), 'err' );
+				return;
+			}
+			claimedAny = claimedAny || mine;
+			$li.addClass( mine ? 'is-mine' : 'is-not-mine' ).find( '.twt-aeo-vis__claim-actions' )
+				.text( mine ? ( strings.claimedYes || 'Counted as you.' ) : ( strings.claimedNo || 'Not you — will not ask again.' ) );
+			setStatus( $status, ( resp.data && resp.data.message ) || '', 'ok' );
+			if ( ! $box.find( '.twt-aeo-vis__claim-btn:enabled' ).length && claimedAny ) {
+				window.location.reload();
+			}
+		} ).fail( function () {
+			$li.find( '.twt-aeo-vis__claim-btn' ).prop( 'disabled', false );
+			setStatus( $status, strings.error || 'Something went wrong.', 'err' );
+		} );
 	} );
 
 	refreshTotals();

@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.28.0
+Stable tag: 2.28.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,8 @@ DeepSeek support is new: it works, and is still being tested. Most of DeepSeek's
 * **Buyer personas**: ask as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise, and the question is sent exactly as written. Type your own, or have them suggested from your main pages. Switch personas off to ask as nobody in particular.
 * **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
 * **Follow the conversation**: optionally ask the engine its own top follow-up in the same conversation, one or two turns deep, and see whether you are still cited further into the buyer's research. Follow-up turns are kept out of the headline numbers so runs stay comparable.
+* **Your own questions**: add the questions you want asked, one per line, and reword any built-in question. Both are kept when the list is rebuilt.
+* **Is this you?**: when an engine cites a listing that carries your name (your Shopify app, Clutch profile, plugin page or LinkedIn page), you are asked once whether it is yours. Yes counts it as you and re-scores your past runs for free; pages other sites wrote about you get their own slice instead of counting as competitors.
 * **CSV export**: every question, answer, verdict and follow-up in one file, with the persona, the full answer text and pattern columns (where a brand or subject falls in the question, model numbers, places, hiring or how-to). Each row names the site and business type, so exports from several client sites stack into one sheet for analysis.
 
 These are controlled simulations through the engines' APIs, not a copy of any one user's private chat history: the consumer apps personalise and change daily, and a run is the closest reproducible measure.
@@ -193,6 +195,17 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.28.1 =
+* New: add your own questions to AI Visibility, one per line. They are asked on every run on top of the allocation and kept when you rebuild the list from templates.
+* New: reword any question with Edit, and put a single question back to its original wording without resetting the list.
+* New: "Is this you?" on AI Visibility results. Cited listings on platforms such as Shopify, Clutch, GitHub, LinkedIn and wordpress.org that carry your name in their address are offered for confirmation. Yes counts the page as you and re-scores your kept runs without asking the engines again; No is remembered and never asked again.
+* New: pages about you. Reviews, comparisons and other pages that other sites wrote about you, and listings waiting for your answer, get their own "pages about you" slice and list instead of counting as competitors.
+* Improved: saving "What counts as you" now re-scores your kept runs, so registering a page you own corrects past results for free.
+* Improved: your plugin page's language copies on wordpress.org (en-gb., de. and so on) and your company's LinkedIn posts now count as you once the page is registered.
+* Improved: a company can register up to 25 owned pages (was 12).
+* Changed: app store addresses (apps.shopify.com, Wix, the Chrome Web Store) need the full listing address, so a bare store address can no longer claim every app cited there.
+* Fixed: AI engines you added a key for after saving your allocation stayed unticked, so runs skipped them (Grok, DeepSeek and Muse on existing sites). They are now ticked; an engine you untick yourself stays off.
 
 = 2.28.0 =
 * New: Muse (Meta AI) joins AI Visibility, through the Meta Model API with web search. Muse answers slowly, so its questions are sent in the background and collected as they finish: the rest of the run never waits for it.
@@ -347,6 +360,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.28.1 =
+AI Visibility now asks every engine you hold a key for, lets you add and reword questions, and asks "Is this you?" about cited listings that carry your name, re-scoring past runs for free.
 
 = 2.28.0 =
 Adds Muse (Meta AI) and DeepSeek to AI Visibility, a search location for each run, Markdown versions of your pages, and FAQ schema drift detection. RAG Engine matching is tighter and follow-ups about your business are grouped by topic.

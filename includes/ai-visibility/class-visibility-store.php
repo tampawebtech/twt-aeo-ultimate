@@ -195,7 +195,61 @@ final class TWTAEO_Visibility_Store {
 		if ( isset( $stored['personas_on'] ) ) {
 			$s['personas_on'] = (bool) $stored['personas_on'];
 		}
+		if ( isset( $stored['engines_seen'] ) && is_array( $stored['engines_seen'] ) ) {
+			$s['engines_seen'] = self::clean_engine_ids( $stored['engines_seen'] );
+		}
+		$s['not_me'] = isset( $stored['not_me'] ) ? self::clean_page_keys( $stored['not_me'] ) : array();
 		return $s;
+	}
+
+	/** Pages the merchant said are not theirs, as full page addresses, newest kept. */
+	private static function clean_page_keys( $keys ) {
+		$out = array();
+		foreach ( (array) $keys as $k ) {
+			$k = esc_url_raw( trim( (string) $k ) );
+			if ( '' !== $k && ! in_array( $k, $out, true ) ) {
+				$out[] = $k;
+			}
+		}
+		return array_slice( $out, -200 );
+	}
+
+	/** Known engine ids only, de-duplicated. */
+	private static function clean_engine_ids( array $ids ) {
+		$out = array();
+		foreach ( $ids as $e ) {
+			if ( is_string( $e ) && isset( TWTAEO_Visibility_Types::ENGINES[ $e ] ) && ! in_array( $e, $out, true ) ) {
+				$out[] = $e;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * The saved engine ticks, plus any engine whose key arrived after the
+	 * allocation was last saved. The ticks only list what was tickable then,
+	 * so a key added later left that engine silently out of every run. An
+	 * engine that had a key at save time and was left unticked stays off.
+	 * An empty list already means "every engine with a key" and is kept.
+	 *
+	 * @param array $settings  From get_settings().
+	 * @param array $available Engine ids with a key on file now.
+	 * @return array Engine ids.
+	 */
+	public static function effective_engines( array $settings, array $available ) {
+		$saved = isset( $settings['allocation']['engines'] ) && is_array( $settings['allocation']['engines'] ) ? $settings['allocation']['engines'] : array();
+		if ( empty( $saved ) ) {
+			return array();
+		}
+		// Saved before engines_seen existed: the ticks are all we know of, so
+		// every other keyed engine counts as new.
+		$seen = isset( $settings['engines_seen'] ) && is_array( $settings['engines_seen'] ) ? $settings['engines_seen'] : $saved;
+		foreach ( $available as $e ) {
+			if ( ! in_array( $e, $seen, true ) && ! in_array( $e, $saved, true ) ) {
+				$saved[] = $e;
+			}
+		}
+		return array_values( $saved );
 	}
 
 	/**
@@ -208,6 +262,12 @@ final class TWTAEO_Visibility_Store {
 		$current = self::get_settings();
 		if ( isset( $settings['allocation'] ) && is_array( $settings['allocation'] ) ) {
 			$current['allocation'] = self::clamp_allocation( array_merge( $current['allocation'], $settings['allocation'] ) );
+		}
+		if ( isset( $settings['engines_seen'] ) && is_array( $settings['engines_seen'] ) ) {
+			$current['engines_seen'] = self::clean_engine_ids( $settings['engines_seen'] );
+		}
+		if ( isset( $settings['not_me'] ) && is_array( $settings['not_me'] ) ) {
+			$current['not_me'] = self::clean_page_keys( $settings['not_me'] );
 		}
 		if ( isset( $settings['daily_cap'] ) ) {
 			$cap = (int) $settings['daily_cap'];
@@ -333,8 +393,15 @@ final class TWTAEO_Visibility_Store {
 		}
 		$enabled_by_id = array();
 		$text_by_id    = array();
+		$custom        = array();
 		foreach ( $saved as $q ) {
 			if ( ! is_array( $q ) || ! isset( $q['id'] ) ) {
+				continue;
+			}
+			// The merchant's own questions are not built from any template, so
+			// they ride along as saved — first, so a capped run keeps them.
+			if ( 'custom' === ( $q['source'] ?? '' ) && ! empty( $q['text'] ) ) {
+				$custom[] = $q;
 				continue;
 			}
 			$enabled_by_id[ (string) $q['id'] ] = ! empty( $q['enabled'] );
@@ -351,12 +418,32 @@ final class TWTAEO_Visibility_Store {
 				$q['enabled'] = $enabled_by_id[ $id ];
 			}
 			if ( isset( $text_by_id[ $id ] ) ) {
-				$q['text']   = $text_by_id[ $id ]['text'];
-				$q['source'] = $text_by_id[ $id ]['source'];
+				// Keep the template wording beside the edit, so one question can
+				// go back to it without resetting the whole list.
+				$q['template_text'] = (string) $q['text'];
+				$q['text']          = $text_by_id[ $id ]['text'];
+				$q['source']        = $text_by_id[ $id ]['source'];
 			}
 		}
 		unset( $q );
-		return array_values( $fresh );
+		return array_merge( $custom, array_values( $fresh ) );
+	}
+
+	/** Stable id for a merchant-written question: the same words keep the same id, so runs compare. */
+	public static function custom_question_id( $text ) {
+		$norm = strtolower( preg_replace( '/\s+/', ' ', trim( (string) $text ) ) );
+		return 'custom-' . substr( md5( $norm ), 0, 12 );
+	}
+
+	/** How many of the merchant's own questions a run will ask. */
+	public static function count_custom_questions( $saved ) {
+		$n = 0;
+		foreach ( (array) $saved as $q ) {
+			if ( is_array( $q ) && 'custom' === ( $q['source'] ?? '' ) && ! empty( $q['enabled'] ) && ! empty( $q['text'] ) ) {
+				++$n;
+			}
+		}
+		return $n;
 	}
 
 	/**
@@ -378,6 +465,12 @@ final class TWTAEO_Visibility_Store {
 		$out  = array();
 		foreach ( $saved as $q ) {
 			if ( ! is_array( $q ) || empty( $q['enabled'] ) ) {
+				continue;
+			}
+			// Questions the merchant wrote are always asked; the counts above
+			// size the template questions only.
+			if ( 'custom' === ( $q['source'] ?? '' ) ) {
+				$out[] = $q;
 				continue;
 			}
 			$level = isset( $q['level'] ) ? (string) $q['level'] : 'company';
@@ -1558,6 +1651,219 @@ final class TWTAEO_Visibility_Store {
 			return rtrim( mb_substr( $t, 0, 299 ) ) . '…';
 		}
 		return strlen( $t ) > 300 ? rtrim( substr( $t, 0, 299 ) ) . '…' : $t;
+	}
+
+	/* ─────────────────────── pages that might be us ───────────────────── */
+
+	/**
+	 * What share_of_voice() and the "Is this you?" notice judge pages with:
+	 * our handles (the names we go by, in web-address form), every property
+	 * we own, and the pages the merchant already said are not theirs.
+	 *
+	 * @return array [ handles[], properties[], not_me[] ]
+	 */
+	public static function about_context() {
+		if ( ! class_exists( 'TWTAEO_Visibility_Brands' ) ) {
+			return array( 'handles' => array(), 'properties' => array(), 'not_me' => array() );
+		}
+		$ctx   = self::verdict_context();
+		$names = (array) $ctx['names'];
+		foreach ( (array) $ctx['items'] as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$names[] = isset( $item['label'] ) ? (string) $item['label'] : '';
+			foreach ( (array) ( isset( $item['phrases'] ) ? $item['phrases'] : array() ) as $ph ) {
+				$names[] = is_array( $ph ) && isset( $ph['text'] ) ? (string) $ph['text'] : '';
+			}
+		}
+		$settings = self::get_settings();
+		return array(
+			'handles'    => TWTAEO_Visibility_Brands::handles( $names ),
+			'properties' => (array) $ctx['properties'],
+			'not_me'     => isset( $settings['not_me'] ) ? (array) $settings['not_me'] : array(),
+		);
+	}
+
+	/**
+	 * Cited pages in a run, sorted into the two lists the board shows:
+	 * `candidates` (listings that look like ours — ask) and `about` (pages
+	 * other people wrote about us). Each page counted once per answer.
+	 *
+	 * @param array      $run Run with checks.
+	 * @param array|null $ctx about_context(), or null to build it.
+	 * @return array [ candidates => Row[], about => Row[] ], Row = [ url, host, count, engines[] ]
+	 */
+	public static function pages_about_us( array $run, $ctx = null ) {
+		$ctx = is_array( $ctx ) ? $ctx : self::about_context();
+		$out = array( 'candidates' => array(), 'about' => array() );
+		if ( empty( $ctx['handles'] ) || ! empty( $run['demo'] ) ) {
+			return $out;
+		}
+		$all   = array_merge(
+			isset( $run['checks'] ) ? (array) $run['checks'] : array(),
+			isset( $run['journey'] ) ? (array) $run['journey'] : array()
+		);
+		$lists = array( 'candidates' => array(), 'about' => array() );
+		foreach ( $all as $c ) {
+			if ( ! is_array( $c ) ) {
+				continue;
+			}
+			$engine = isset( $c['engine'] ) ? (string) $c['engine'] : '';
+			$seen   = array();
+			foreach ( isset( $c['cited_urls'] ) ? (array) $c['cited_urls'] : array() as $u ) {
+				$kind = TWTAEO_Visibility_Brands::classify_cited( $u, $ctx['handles'], $ctx['properties'], $ctx['not_me'] );
+				if ( 'candidate' === $kind ) {
+					$list = 'candidates';
+					$key  = TWTAEO_Visibility_Brands::page_key( $u, $ctx['handles'] );
+				} elseif ( 'about' === $kind ) {
+					$list = 'about';
+					$p    = TWTAEO_Visibility_Brands::normalize_property( $u, 'site' );
+					$key  = $p ? 'https://' . $p['host'] . $p['path'] : '';
+				} else {
+					continue;
+				}
+				if ( '' === $key || isset( $seen[ $list . $key ] ) ) {
+					continue;
+				}
+				$seen[ $list . $key ] = true;
+				if ( ! isset( $lists[ $list ][ $key ] ) ) {
+					$lists[ $list ][ $key ] = array(
+						'url'     => $key,
+						'host'    => (string) wp_parse_url( $key, PHP_URL_HOST ),
+						'count'   => 0,
+						'engines' => array(),
+					);
+				}
+				++$lists[ $list ][ $key ]['count'];
+				if ( '' !== $engine && ! in_array( $engine, $lists[ $list ][ $key ]['engines'], true ) ) {
+					$lists[ $list ][ $key ]['engines'][] = $engine;
+				}
+			}
+		}
+		foreach ( $lists as $name => $rows ) {
+			$rows = array_values( $rows );
+			usort(
+				$rows,
+				static function ( $a, $b ) {
+					if ( $a['count'] !== $b['count'] ) {
+						return $b['count'] - $a['count'];
+					}
+					return strcmp( $a['url'], $b['url'] );
+				}
+			);
+			$out[ $name ] = $rows;
+		}
+		return $out;
+	}
+
+	/**
+	 * Judge every answered check again against what counts as us today.
+	 * Nothing is asked: the stored answer and its cited links are re-read,
+	 * so registering a page you own corrects past runs for free. The
+	 * accuracy mark (a separate judgement) and the answer stay as they were.
+	 *
+	 * @param string $run_id One run, or '' for every kept run.
+	 * @return int Checks whose verdict changed.
+	 */
+	public static function rescore_runs( $run_id = '' ) {
+		global $wpdb;
+		if ( ! self::tables_exist() ) {
+			return 0;
+		}
+		$ctx    = self::verdict_context();
+		$checks = self::checks_table();
+		$runs   = self::runs_table();
+		if ( '' !== (string) $run_id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- custom table names built from $wpdb->prefix + class constants; never user input.
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT c.id, c.run_id, c.verdict, c.error, c.cited_urls, c.answer, c.excerpt FROM {$checks} c INNER JOIN {$runs} r ON r.id = c.run_id WHERE r.demo = 0 AND c.run_id = %s", (string) $run_id ), ARRAY_A );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- custom table names built from $wpdb->prefix + class constants; never user input.
+			$rows = $wpdb->get_results( "SELECT c.id, c.run_id, c.verdict, c.error, c.cited_urls, c.answer, c.excerpt FROM {$checks} c INNER JOIN {$runs} r ON r.id = c.run_id WHERE r.demo = 0", ARRAY_A );
+		}
+		$changed = 0;
+		$touched = array();
+		foreach ( (array) $rows as $r ) {
+			// An errored or unanswered check has nothing to re-read.
+			if ( 'unavailable' === $r['verdict'] || ( null !== $r['error'] && '' !== $r['error'] ) ) {
+				continue;
+			}
+			$text   = '' !== (string) $r['answer'] ? (string) $r['answer'] : (string) $r['excerpt'];
+			$judged = self::judge_verdict( array( 'text' => $text, 'cited_urls' => self::json_list( $r['cited_urls'] ) ), $ctx );
+			if ( $judged['verdict'] !== $r['verdict'] ) {
+				++$changed;
+			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table.
+			$wpdb->update(
+				$checks,
+				array(
+					'verdict'          => $judged['verdict'],
+					'our_urls'         => wp_json_encode( $judged['our_urls'] ),
+					'domains'          => wp_json_encode( $judged['domains'] ),
+					'owned_domains'    => wp_json_encode( isset( $judged['owned_domains'] ) ? $judged['owned_domains'] : array() ),
+					'citation_surface' => isset( $judged['citation_surface'] ) ? (string) $judged['citation_surface'] : '',
+					'brand_hits'       => wp_json_encode( isset( $judged['brand_hits'] ) ? $judged['brand_hits'] : array() ),
+					'mentions'         => wp_json_encode( isset( $judged['mentions'] ) ? $judged['mentions'] : array() ),
+				),
+				array( 'id' => (int) $r['id'] ),
+				array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' ),
+				array( '%d' )
+			);
+			$touched[ (string) $r['run_id'] ] = true;
+		}
+		foreach ( array_keys( $touched ) as $id ) {
+			$run = self::get_run( $id );
+			if ( $run ) {
+				self::store_summary( $id, self::summarize( $run ) );
+			}
+		}
+		return $changed;
+	}
+
+	/**
+	 * The merchant confirmed a cited page is theirs: add it to the company's
+	 * owned pages, forget any earlier "not me" for it, and re-score every
+	 * kept run.
+	 *
+	 * @param string $url Page address (page_key() form).
+	 * @return array|WP_Error [ added: bool, changed: int ]
+	 */
+	public static function claim_page( $url ) {
+		$url = esc_url_raw( trim( (string) $url ) );
+		if ( '' === $url || ! class_exists( 'TWTAEO_Visibility_Brands' ) || null === TWTAEO_Visibility_Brands::normalize_property( $url, 'profile' ) ) {
+			return new WP_Error( 'twtaeo_vis_page', __( 'That address cannot be registered as a page you own.', 'twt-aeo-ultimate' ) );
+		}
+		$settings = self::get_settings();
+		$urls     = isset( $settings['company_urls'] ) ? (array) $settings['company_urls'] : array();
+		$added    = ! in_array( $url, $urls, true );
+		if ( $added ) {
+			if ( count( $urls ) >= TWTAEO_Visibility_Brands::MAX_URLS ) {
+				return new WP_Error( 'twtaeo_vis_full', __( 'Your company already has the most pages it can register. Remove one under “What counts as you” first.', 'twt-aeo-ultimate' ) );
+			}
+			$urls[] = $url;
+		}
+		self::save_settings(
+			array(
+				'company_urls' => $urls,
+				'not_me'       => array_values( array_diff( isset( $settings['not_me'] ) ? (array) $settings['not_me'] : array(), array( $url ) ) ),
+			)
+		);
+		return array(
+			'added'   => $added,
+			'changed' => self::rescore_runs(),
+		);
+	}
+
+	/** The merchant said a cited page is not theirs: never ask about it again. */
+	public static function disown_page( $url ) {
+		$url = esc_url_raw( trim( (string) $url ) );
+		if ( '' === $url ) {
+			return;
+		}
+		$settings = self::get_settings();
+		$not_me   = isset( $settings['not_me'] ) ? (array) $settings['not_me'] : array();
+		$not_me[] = $url;
+		self::save_settings( array( 'not_me' => $not_me ) );
 	}
 
 	/**

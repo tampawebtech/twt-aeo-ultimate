@@ -283,6 +283,7 @@ class TWTAEO_Admin_Assets {
 					'saveQuestions' => TWTAEO_Visibility::AJAX_SAVE_Q,
 					'polish'        => TWTAEO_Visibility::AJAX_POLISH,
 					'saveBrands'    => TWTAEO_Visibility::AJAX_SAVE_B,
+					'claimPage'     => TWTAEO_Visibility::AJAX_CLAIM,
 					'personasToggle' => TWTAEO_Visibility_Types::AJAX_PERSONAS_TOGGLE,
 				),
 				'engines' => $engine_labels,
@@ -317,6 +318,12 @@ class TWTAEO_Admin_Assets {
 					'enabledOf'  => __( '%1$s of %2$s questions enabled.', 'twt-aeo-ultimate' ),
 					'notSaved'   => __( 'Not saved — these would not match anything:', 'twt-aeo-ultimate' ),
 					'personasSuggested' => __( 'Buyer personas were suggested from your site — pick one under “Ask as” for your next run.', 'twt-aeo-ultimate' ),
+					'claiming'   => __( 'Adding it and re-scoring your runs…', 'twt-aeo-ultimate' ),
+					'claimedYes' => __( 'Counted as you.', 'twt-aeo-ultimate' ),
+					'claimedNo'  => __( 'Not you — we will not ask again.', 'twt-aeo-ultimate' ),
+					'qDone'      => __( 'Done', 'twt-aeo-ultimate' ),
+					'qEdit'      => __( 'Edit', 'twt-aeo-ultimate' ),
+					'qUnsaved'   => __( 'Changed — click “Save question set” to keep it.', 'twt-aeo-ultimate' ),
 				),
 			) );
 		}
