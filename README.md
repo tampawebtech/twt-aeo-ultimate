@@ -70,7 +70,7 @@ Product and ProductGroup schema with per-variant offers, identifiers, shipping a
 
 ### And more
 
-AEO Score (your site graded 0 to 100), a Setup Wizard with one-click Autopilot, E-E-A-T scorecards, author boxes and hover cards, Open Graph and Twitter/X cards, Local SEO with a NAP audit, sitemaps and IndexNow, a Not Indexed report, Command Center (Search Console, GA4, Bing Webmaster, PageSpeed), Smart 404 Rescue, Funnel Audit, customer reviews, PR Bridge AI, and a Diagnostics screen that catches fatal errors.
+AEO Score (your site graded 0 to 100), a Setup Wizard with one-click Autopilot, E-E-A-T scorecards, author boxes and hover cards, Open Graph and Twitter/X cards, Local SEO with a NAP audit, sitemaps and IndexNow, a Not Indexed report that also warns when Google stops crawling an indexed page (new in 2.29), Command Center (Search Console, GA4, Bing Webmaster, PageSpeed), Smart 404 Rescue, Funnel Audit, customer reviews, PR Bridge AI, and a Diagnostics screen that catches fatal errors.
 
 ## Requirements
 

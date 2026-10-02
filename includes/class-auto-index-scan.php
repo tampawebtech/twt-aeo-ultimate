@@ -3,9 +3,11 @@
  * Auto Index Scan
  *
  * Makes the "detect" half of the Detect & Correct loop hands-free. A daily
- * cron inspects recent URLs via the GSC URL Inspection API (paired with the
- * local heuristics), in small self-chaining batches so no single request
- * exceeds a few API calls. When the resulting de-indexed set *changes*, the
+ * cron inspects a rolling slice of the site via the GSC URL Inspection API
+ * (paired with the local heuristics) — never-checked pages first, then the
+ * ones checked longest ago — so over successive days every page is re-read,
+ * including old pages Google has quietly stopped crawling. Inspections run in
+ * small self-chaining batches so no single request exceeds a few API calls. When the resulting de-indexed set *changes*, the
  * report ships to the Agency hub automatically — no one has to log in and
  * click "Send to Pro".
  *
@@ -28,8 +30,8 @@ class TWTAEO_Auto_Index_Scan {
 	const OPTION_FP    = 'twtaeo_deindex_fingerprint';
 	const OPTION_LAST  = 'twtaeo_auto_scan_last';
 
-	/** URLs inspected per scan (most recently modified first). */
-	const SCAN_LIMIT = 50;
+	/** URLs inspected per daily run — 5% of Google's 2,000/day inspection quota. */
+	const SCAN_LIMIT = 100;
 
 	/** Inspections per tick — keeps each cron request to ~10 short API calls. */
 	const BATCH = 10;
@@ -61,7 +63,9 @@ class TWTAEO_Auto_Index_Scan {
 			return;
 		}
 
-		$entries = TWTAEO_Index_Status::get_scannable_urls( self::SCAN_LIMIT );
+		TWTAEO_Index_Status::prune_results();
+
+		$entries = TWTAEO_Index_Status::get_rolling_scan_urls( self::SCAN_LIMIT );
 		if ( empty( $entries ) ) {
 			return;
 		}
@@ -90,12 +94,15 @@ class TWTAEO_Auto_Index_Scan {
 		}
 
 		$batch = array_splice( $queue['entries'], 0, self::BATCH );
+		$rows  = array();
 
 		foreach ( $batch as $entry ) {
 			$gsc = TWTAEO_Index_Status::inspect_url( $entry['url'], $queue['site_url'] );
 
 			if ( is_wp_error( $gsc ) ) {
-				// Quota, auth, or API failure — abort this run; tomorrow retries.
+				// Quota, auth, or API failure — keep what this batch already
+				// inspected, abort the run; tomorrow continues the rotation.
+				TWTAEO_Index_Status::save_results( $rows );
 				if ( class_exists( 'TWTAEO_Logger' ) ) {
 					TWTAEO_Logger::warning( 'Auto index scan aborted: ' . $gsc->get_error_message(), array( 'code' => $gsc->get_error_code() ) );
 				}
@@ -104,8 +111,10 @@ class TWTAEO_Auto_Index_Scan {
 			}
 
 			$heuristics = TWTAEO_Index_Heuristics::analyze( $entry['post_id'] );
-			TWTAEO_Index_Status::save_result( $entry['post_id'], $gsc, $heuristics ?? array() );
+			$rows[ $entry['post_id'] ] = array( 'gsc' => $gsc, 'heuristics' => $heuristics ?? array() );
 		}
+
+		TWTAEO_Index_Status::save_results( $rows );
 
 		if ( ! empty( $queue['entries'] ) ) {
 			update_option( self::OPTION_QUEUE, $queue, false );

@@ -31,6 +31,8 @@ class TWTAEO_Page_Not_Indexed {
 		}
 
 		$total_count = count( $not_indexed );
+		$stale       = TWTAEO_Index_Status::get_stale_crawls();
+		$stale_risk  = count( wp_list_filter( $stale, array( 'risk' => 'risk' ) ) );
 
 		$gsc_connected = (bool) TWTAEO_Google_OAuth::get_access_token();
 		?>
@@ -46,6 +48,11 @@ class TWTAEO_Page_Not_Indexed {
 						<?php if ( $total_count > 0 ) : ?>
 						<span class="twt-aeo-badge twt-aeo-badge--alert">
 							<?php echo esc_html( $total_count ); ?> <?php esc_html_e( 'pages not indexed', 'twt-aeo-ultimate' ); ?>
+						</span>
+						<?php endif; ?>
+						<?php if ( $stale_risk > 0 ) : ?>
+						<span class="twt-aeo-badge twt-aeo-badge--alert" style="background:#fef3c7;color:#92400e;">
+							<?php echo esc_html( $stale_risk ); ?> <?php esc_html_e( 'at risk of dropping', 'twt-aeo-ultimate' ); ?>
 						</span>
 						<?php endif; ?>
 					</div>
@@ -203,6 +210,81 @@ class TWTAEO_Page_Not_Indexed {
 				</div>
 			</div>
 
+			<?php endif; ?>
+
+			<?php if ( $gsc_connected && ! empty( $stale ) ) : ?>
+			<section class="twt-aeo-section">
+				<h2 style="margin:24px 0 6px;"><?php esc_html_e( 'Indexed, But Google Hasn\'t Been Back', 'twt-aeo-ultimate' ); ?></h2>
+				<p style="color:#646970;font-size:13px;margin:0 0 12px;max-width:820px;">
+					<?php
+					printf(
+						/* translators: 1: watch threshold in days, 2: risk threshold in days. */
+						esc_html__( 'These pages are still indexed, but Googlebot hasn\'t crawled them in %1$d+ days. Pages left uncrawled for about %2$d days are much more likely to drop out of the index, and after about 190 days Google tends to forget the URL entirely. Rare crawling usually means Google sees the page as low priority, so asking Google to re-crawl it won\'t fix much on its own. Link to it from your stronger pages, keep it in your XML sitemap with an accurate last-modified date, and give it a genuine update — or merge it into a stronger page.', 'twt-aeo-ultimate' ),
+						absint( TWTAEO_Index_Status::CRAWL_WATCH_DAYS ),
+						absint( TWTAEO_Index_Status::CRAWL_RISK_DAYS )
+					);
+					?>
+				</p>
+				<div class="twt-aeo-page-table-wrap">
+					<table class="twt-aeo-page-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Page', 'twt-aeo-ultimate' ); ?></th>
+								<th><?php esc_html_e( 'Last Crawled', 'twt-aeo-ultimate' ); ?></th>
+								<th><?php esc_html_e( 'Status', 'twt-aeo-ultimate' ); ?></th>
+								<th><?php esc_html_e( 'Actions', 'twt-aeo-ultimate' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php foreach ( $stale as $item ) : ?>
+							<tr class="twt-aeo-page-row">
+								<td class="twt-aeo-page-row__title">
+									<a href="<?php echo esc_url( get_edit_post_link( $item['post_id'] ) ); ?>">
+										<?php echo esc_html( $item['title'] ?: basename( $item['url'] ) ); ?>
+									</a>
+									<div style="font-size:11px;color:#646970;margin-top:2px;word-break:break-all;">
+										<?php echo esc_html( $item['url'] ); ?>
+									</div>
+								</td>
+								<td style="font-size:12px;">
+									<?php
+									/* translators: %d: number of days. */
+									echo esc_html( sprintf( _n( '%d day ago', '%d days ago', $item['age_days'], 'twt-aeo-ultimate' ), $item['age_days'] ) );
+									?>
+									<div class="twt-aeo-muted" style="font-size:11px;margin-top:2px;">
+										<?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $item['last_crawl'] ) ) ); ?>
+									</div>
+								</td>
+								<td>
+									<?php if ( 'risk' === $item['risk'] ) : ?>
+										<span class="twt-aeo-tag twt-aeo-tag--missing"><?php esc_html_e( 'At risk', 'twt-aeo-ultimate' ); ?></span>
+									<?php else : ?>
+										<span class="twt-aeo-tag" style="background:#fef3c7;color:#92400e;"><?php esc_html_e( 'Watch', 'twt-aeo-ultimate' ); ?></span>
+									<?php endif; ?>
+									<?php if ( $item['scanned_at'] ) : ?>
+									<div class="twt-aeo-muted" style="font-size:11px;margin-top:4px;">
+										<?php
+										/* translators: %s: human-readable time span, e.g. "3 days". */
+										echo esc_html( sprintf( __( 'Checked %s ago', 'twt-aeo-ultimate' ), human_time_diff( (int) $item['scanned_at'], time() ) ) );
+										?>
+									</div>
+									<?php endif; ?>
+								</td>
+								<td>
+									<a href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" class="twt-aeo-link">
+										<?php esc_html_e( 'View', 'twt-aeo-ultimate' ); ?>
+									</a>
+									&middot;
+									<a href="<?php echo esc_url( get_edit_post_link( $item['post_id'] ) ); ?>" class="twt-aeo-link">
+										<?php esc_html_e( 'Edit', 'twt-aeo-ultimate' ); ?>
+									</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			</section>
 			<?php endif; ?>
 
 		</div>
@@ -394,6 +476,7 @@ class TWTAEO_Page_Not_Indexed {
 			'Duplicate without user-selected canonical'                   => 'Multiple similar pages exist with no canonical tag — Google can\'t tell which is the primary version.',
 			'Duplicate, Google chose different canonical than user'       => 'You set a canonical but Google disagrees — the chosen canonical may be stronger or more linked-to.',
 			'Excluded by \'noindex\' tag'                                 => 'A noindex directive is telling Google to skip this page — check your SEO plugin meta robots settings.',
+			'URL is unknown to Google'                                    => 'Google has no record of this URL — it was never found, or went so long without a crawl that Google forgot it. Link to it from strong pages and make sure it is in your XML sitemap.',
 		);
 		return $tips[ $state ] ?? 'Google excluded this page from its index — check the URL in Google Search Console for details.';
 	}

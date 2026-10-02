@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.28.1
+Stable tag: 2.29.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,7 +91,7 @@ LocalBusiness schema with a business-type picker, opening hours, service area an
 
 = Sitemaps & Indexing =
 
-A cached XML sitemap and a Google News sitemap, with IndexNow pinging Bing and other engines on publish. The **Not Indexed** report finds published pages missing from Google's index and flags likely causes.
+A cached XML sitemap and a Google News sitemap, with IndexNow pinging Bing and other engines on publish. The **Not Indexed** report finds published pages missing from Google's index and flags likely causes, and warns about indexed pages Google has stopped crawling before they drop out.
 
 = Command Center =
 
@@ -191,10 +191,16 @@ Each request sends only the data needed for that action, using your own API key.
 9. **Image SEO**: Finds images missing alt text across your posts and pages and generates descriptive, AEO-friendly alt attributes.
 10. **Modules Screen**: Enable or disable each feature independently.
 11. **WooCommerce AEO**: Product schema with one-click sync to Google and Bing Merchant Center, integrity scoring, and rejection logs.
-12. **Not Indexed**: Uses Google Search Console to surface published pages missing from Google's index and flags likely causes: thin content, high keyword density, and missing heading hierarchy.
+12. **Not Indexed**: Uses Google Search Console to surface published pages missing from Google's index and flags likely causes: thin content, high keyword density, and missing heading hierarchy. It also lists indexed pages Google hasn't crawled in 90 days or more, since pages left uncrawled for about 130 days are much more likely to be dropped.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.29.0 =
+* New: crawl age on Index Status and the Not Indexed page. Every scanned page shows how many days ago Google last crawled it, amber from 90 days and red from 130, where pages become much more likely to drop out of Google's index.
+* New: "Indexed, But Google Hasn't Been Back" on the Not Indexed page lists indexed pages Google is crawling less and less, oldest first, with what to do about them. Index Status gets a Crawl Going Stale count.
+* Improved: the daily index check now works through your whole site, 100 pages a day, pages never checked first and then the ones checked longest ago. It used to check only the 50 most recently edited pages, so old pages were never re-checked.
+* Fixed: pages Google reports as "URL is unknown to Google" counted as indexed. They are now reported as not indexed.
 
 = 2.28.1 =
 * New: add your own questions to AI Visibility, one per line. They are asked on every run on top of the allocation and kept when you rebuild the list from templates.
@@ -360,6 +366,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.29.0 =
+Warns about indexed pages Google has stopped crawling before they drop out of the index, checks your whole site over time instead of only recent pages, and reports pages Google has forgotten.
 
 = 2.28.1 =
 AI Visibility now asks every engine you hold a key for, lets you add and reword questions, and asks "Is this you?" about cited listings that carry your name, re-scoring past runs for free.

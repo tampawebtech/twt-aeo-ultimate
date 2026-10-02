@@ -2190,6 +2190,32 @@ class TWTAEO_Page_Command_Center {
 
 	// ── Index Status Tab ────────────────────────────────────────────────────
 
+	/**
+	 * "N days ago" under a Last Crawl date — amber in the watch range, red in
+	 * the risk range (indexed pages only; not-indexed rows are already red).
+	 *
+	 * @param array $gsc Stored GSC result row.
+	 */
+	private static function render_crawl_age( array $gsc ) {
+		$age = TWTAEO_Index_Status::crawl_age_days( $gsc );
+		if ( null === $age ) {
+			return;
+		}
+		$risk  = TWTAEO_Index_Status::crawl_risk( $gsc );
+		$style = 'risk' === $risk ? 'color:#b91c1c;font-weight:600;' : ( 'watch' === $risk ? 'color:#92400e;font-weight:600;' : '' );
+		$tip   = 'risk' === $risk
+			? __( 'Google hasn\'t crawled this indexed page in over 130 days. Pages this stale are much more likely to be dropped from the index.', 'twt-aeo-ultimate' )
+			: ( 'watch' === $risk ? __( 'Getting close to the ~130-day mark where uncrawled pages start dropping from Google\'s index.', 'twt-aeo-ultimate' ) : '' );
+		?>
+		<span style="display:block;font-size:11px;<?php echo esc_attr( $style ); ?>" title="<?php echo esc_attr( $tip ); ?>">
+			<?php
+			/* translators: %d: number of days. */
+			echo esc_html( sprintf( _n( '%d day ago', '%d days ago', $age, 'twt-aeo-ultimate' ), $age ) );
+			?>
+		</span>
+		<?php
+	}
+
 	private static function render_index_status_tab() {
 		$connected = TWTAEO_Google_OAuth::is_connected();
 		$config    = TWTAEO_Google_OAuth::get_config();
@@ -2200,6 +2226,13 @@ class TWTAEO_Page_Command_Center {
 		// so problem pages are only discovered by inspecting each one. We then show
 		// just the ones that need work (below). Cap keeps quota/time sane.
 		$scan_urls = TWTAEO_Index_Status::get_scannable_urls( 500 );
+		// The daily rolling scan reaches older pages past that cap — list every
+		// page that has a stored result so its crawl age is visible here too.
+		$listed_ids = array_map( 'intval', wp_list_pluck( $scan_urls, 'post_id' ) );
+		$extra_ids  = array_diff( array_map( 'intval', array_keys( $results ) ), $listed_ids );
+		if ( $extra_ids ) {
+			$scan_urls = array_merge( $scan_urls, TWTAEO_Index_Status::get_urls_for_posts( $extra_ids ) );
+		}
 		$pro_connected = TWTAEO_Pro_Transmitter::is_connected();
 
 		if ( ! $connected ) : ?>
@@ -2227,6 +2260,7 @@ class TWTAEO_Page_Command_Center {
 		$not_indexed = 0;
 		$indexed     = 0;
 		$needs_work  = 0;
+		$stale_crawl = 0;
 		foreach ( $results as $r ) {
 			$gsc = $r['gsc'] ?? null;
 			if ( ! $gsc ) {
@@ -2237,7 +2271,11 @@ class TWTAEO_Page_Command_Center {
 			} else {
 				$indexed++;
 			}
-			if ( ! empty( $gsc['not_indexed'] ) || ! empty( $r['heuristics']['flags'] ) ) {
+			$crawl_risk = TWTAEO_Index_Status::crawl_risk( $gsc );
+			if ( '' !== $crawl_risk ) {
+				$stale_crawl++;
+			}
+			if ( ! empty( $gsc['not_indexed'] ) || ! empty( $r['heuristics']['flags'] ) || '' !== $crawl_risk ) {
 				$needs_work++;
 			}
 		}
@@ -2250,7 +2288,8 @@ class TWTAEO_Page_Command_Center {
 			if ( ! $gsc ) {
 				return false;
 			}
-			return ! empty( $gsc['not_indexed'] ) || ! empty( $r['heuristics']['flags'] );
+			return ! empty( $gsc['not_indexed'] ) || ! empty( $r['heuristics']['flags'] )
+				|| '' !== TWTAEO_Index_Status::crawl_risk( $gsc );
 		};
 
 		// Worst-first ranking, shared by the scan queue and the display sort.
@@ -2265,10 +2304,11 @@ class TWTAEO_Page_Command_Center {
 				return 0; // Worst: indexed for nobody.
 			}
 			$severities = wp_list_pluck( $flags, 'severity' );
-			if ( in_array( 'critical', $severities, true ) ) {
-				return 1;
+			$crawl_risk = TWTAEO_Index_Status::crawl_risk( $gsc );
+			if ( in_array( 'critical', $severities, true ) || 'risk' === $crawl_risk ) {
+				return 1; // Includes "Google hasn't crawled this in 130+ days".
 			}
-			if ( in_array( 'warning', $severities, true ) ) {
+			if ( in_array( 'warning', $severities, true ) || 'watch' === $crawl_risk ) {
 				return 2;
 			}
 			return 4; // Indexed and clean — bottom.
@@ -2373,6 +2413,13 @@ class TWTAEO_Page_Command_Center {
 				<span class="twt-aeo-cc__metric-value" style="font-size:28px;color:#b91c1c;"><?php echo esc_html( $not_indexed ); ?></span>
 				<span class="twt-aeo-cc__metric-label"><?php esc_html_e( 'Not Indexed', 'twt-aeo-ultimate' ); ?></span>
 			</div>
+			<div class="twt-aeo-cc__metric" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:16px 24px;min-width:130px;text-align:center;"
+				title="<?php
+				/* translators: %d: number of days. */
+				echo esc_attr( sprintf( __( 'Indexed pages Google hasn\'t crawled in %d+ days. Pages left uncrawled for about 130 days are much more likely to drop out of the index.', 'twt-aeo-ultimate' ), TWTAEO_Index_Status::CRAWL_WATCH_DAYS ) ); ?>">
+				<span class="twt-aeo-cc__metric-value" style="font-size:28px;color:#92400e;"><?php echo esc_html( $stale_crawl ); ?></span>
+				<span class="twt-aeo-cc__metric-label"><?php esc_html_e( 'Crawl Going Stale', 'twt-aeo-ultimate' ); ?></span>
+			</div>
 			<div style="display:flex;flex-direction:column;justify-content:center;gap:8px;margin-left:auto;">
 				<button id="twt-aeo-index-scan-btn" class="button button-primary">
 					<?php echo $total_scanned ? esc_html__( 'Re-scan All', 'twt-aeo-ultimate' ) : esc_html__( 'Run Index Scan', 'twt-aeo-ultimate' ); ?>
@@ -2404,6 +2451,8 @@ class TWTAEO_Page_Command_Center {
 		<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#1e3a8a;line-height:1.5;">
 			<strong><?php esc_html_e( 'Why isn\'t a page indexed?', 'twt-aeo-ultimate' ); ?></strong>
 			<?php esc_html_e( 'A meta description alone won\'t get a page indexed — it only affects the snippet Google shows. The most common reasons a page stays out of the index are: a "noindex" setting, a canonical URL pointing to a different page, the page missing from your XML sitemap, thin or duplicate content, or no internal links pointing to it. Fix the red Critical items first, then the Warnings.', 'twt-aeo-ultimate' ); ?>
+			<br><strong><?php esc_html_e( 'Watch the crawl age too.', 'twt-aeo-ultimate' ); ?></strong>
+			<?php esc_html_e( 'An indexed page Google hasn\'t crawled in about 130 days is much more likely to be dropped, and after about 190 days Google tends to forget the URL entirely. Infrequent crawling usually means Google sees the page as low priority — link to it from your stronger pages, keep it in your sitemap with an accurate last-modified date, and give it a genuine update (or merge it into a stronger page).', 'twt-aeo-ultimate' ); ?>
 		</div>
 
 		<div style="background:#fff;border:1px solid #ddd;border-radius:6px;overflow:hidden;">
@@ -2463,14 +2512,26 @@ class TWTAEO_Page_Command_Center {
 							<?php
 							if ( $gsc && $gsc['last_crawl'] ) {
 								echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $gsc['last_crawl'] ) ) );
+								self::render_crawl_age( $gsc );
 							} else {
 								echo '—';
 							}
 							?>
 						</td>
 						<td class="twt-aeo-issues-cell" style="padding:10px 12px;font-size:12px;">
+							<?php
+							$crawl_risk = TWTAEO_Index_Status::crawl_risk( $gsc );
+							if ( '' !== $crawl_risk ) :
+								?>
+								<span style="display:inline-block;background:<?php echo esc_attr( 'risk' === $crawl_risk ? '#fee2e2' : '#fef3c7' ); ?>;color:<?php echo esc_attr( 'risk' === $crawl_risk ? '#b91c1c' : '#92400e' ); ?>;border-radius:10px;padding:2px 8px;font-size:11px;margin:2px 2px 2px 0;"
+									title="<?php esc_attr_e( 'Add links to this page from your stronger pages, make sure it is in your XML sitemap with an accurate last-modified date, and give it a genuine content update — or merge it into a stronger page.', 'twt-aeo-ultimate' ); ?>">
+									<?php echo 'risk' === $crawl_risk ? esc_html__( 'Google stopped crawling', 'twt-aeo-ultimate' ) : esc_html__( 'Crawl going stale', 'twt-aeo-ultimate' ); ?>
+								</span>
+							<?php endif; ?>
 							<?php if ( ! $gsc ) : ?>
 								<span style="color:#999;">—</span>
+							<?php elseif ( empty( $flags ) && '' !== $crawl_risk ) : ?>
+								<?php /* Crawl badge above is the only issue. */ ?>
 							<?php elseif ( empty( $flags ) ) : ?>
 								<span style="color:#1a6629;">&#10003; <?php esc_html_e( 'No issues', 'twt-aeo-ultimate' ); ?></span>
 							<?php elseif ( $is_bad ) : ?>
@@ -2563,7 +2624,7 @@ class TWTAEO_Page_Command_Center {
 
 		<?php /* ── Quota Note ── */ ?>
 		<p style="font-size:12px;color:#999;margin-top:12px;">
-			<?php esc_html_e( 'Scanning inspects every published page via the Google Search Console URL Inspection API (one request per page; 2,000/day quota), then shows the pages that need work. Google has no bulk index-status export, so each page must be inspected individually. Results are stored until you re-scan.', 'twt-aeo-ultimate' ); ?>
+			<?php esc_html_e( 'Scanning inspects every published page via the Google Search Console URL Inspection API (one request per page; 2,000/day quota), then shows the pages that need work. Google has no bulk index-status export, so each page must be inspected individually. Results are stored until you re-scan. A daily background check also re-inspects up to 100 pages, oldest-checked first, so crawl ages across the whole site stay current without a manual scan.', 'twt-aeo-ultimate' ); ?>
 		</p>
 
 		<?php /* ── Inline JS ── */ ?>
@@ -2642,8 +2703,23 @@ class TWTAEO_Page_Command_Center {
 					statusCell.innerHTML = '<span style="background:#d1fae5;color:#065f46;border-radius:12px;padding:3px 10px;font-size:12px;font-weight:600;">&#10003; Indexed</span>';
 				}
 
-				// Last crawl (index 2)
-				row.cells[2].textContent = gsc.last_crawl ? gsc.last_crawl.substring(0,10) : '—';
+				// Last crawl (index 2) — date plus age, coloured past the thresholds.
+				var crawlCell = row.cells[2];
+				crawlCell.textContent = gsc.last_crawl ? gsc.last_crawl.substring(0,10) : '—';
+				var crawlTs = gsc.last_crawl ? Date.parse(gsc.last_crawl) : NaN;
+				if (!isNaN(crawlTs)) {
+					var days = Math.max(0, Math.floor((Date.now() - crawlTs) / 86400000));
+					var age  = document.createElement('span');
+					age.style.display  = 'block';
+					age.style.fontSize = '11px';
+					if (!gsc.not_indexed && days >= <?php echo (int) TWTAEO_Index_Status::CRAWL_RISK_DAYS; ?>) {
+						age.style.color = '#b91c1c'; age.style.fontWeight = '600';
+					} else if (!gsc.not_indexed && days >= <?php echo (int) TWTAEO_Index_Status::CRAWL_WATCH_DAYS; ?>) {
+						age.style.color = '#92400e'; age.style.fontWeight = '600';
+					}
+					age.textContent = <?php /* translators: %d: number of days. */ echo wp_json_encode( __( '%d days ago', 'twt-aeo-ultimate' ) ); ?>.split('%d').join(days);
+					crawlCell.appendChild(age);
+				}
 
 				// Issues & Fixes (index 3) — same structure the server renders.
 				var titleLink = row.cells[0].querySelector('a');

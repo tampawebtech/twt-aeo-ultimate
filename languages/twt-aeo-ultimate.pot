@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.28.1\n"
+"Project-Id-Version: TWT AEO Ultimate 2.29.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-01T06:21:59+00:00\n"
+"POT-Creation-Date: 2026-10-02T04:19:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -186,10 +186,10 @@ msgstr ""
 
 #: admin/class-admin-assets.php:296
 #: admin/class-admin-assets.php:356
-#: admin/pages/class-page-command-center.php:2800
+#: admin/pages/class-page-command-center.php:2876
 #: admin/pages/class-page-faq-detector.php:338
 #: admin/pages/class-page-image-seo.php:345
-#: admin/pages/class-page-not-indexed.php:332
+#: admin/pages/class-page-not-indexed.php:414
 #: admin/pages/class-page-schema-conflicts.php:589
 #: admin/pages/class-page-schema-detector.php:423
 #: admin/pages/class-page-schema-detector.php:1254
@@ -319,7 +319,8 @@ msgstr ""
 #: admin/pages/class-page-image-seo.php:363
 #: admin/pages/class-page-local-pack.php:540
 #: admin/pages/class-page-news.php:272
-#: admin/pages/class-page-not-indexed.php:184
+#: admin/pages/class-page-not-indexed.php:191
+#: admin/pages/class-page-not-indexed.php:279
 #: admin/pages/class-page-schema-detector.php:291
 #: admin/pages/class-page-schema-detector.php:647
 #: admin/pages/class-page-schema-detector.php:1051
@@ -561,8 +562,8 @@ msgstr ""
 
 #: admin/class-admin-menu.php:336
 #: admin/class-admin-menu.php:337
-#: admin/pages/class-page-command-center.php:2374
-#: admin/pages/class-page-command-center.php:2454
+#: admin/pages/class-page-command-center.php:2414
+#: admin/pages/class-page-command-center.php:2503
 #: admin/pages/class-page-dashboard-v2.php:66
 msgid "Not Indexed"
 msgstr ""
@@ -645,8 +646,8 @@ msgid "AEO Status"
 msgstr ""
 
 #: admin/class-metabox.php:86
-#: admin/pages/class-page-command-center.php:2826
-#: admin/pages/class-page-not-indexed.php:268
+#: admin/pages/class-page-command-center.php:2902
+#: admin/pages/class-page-not-indexed.php:350
 #: admin/pages/class-page-social-graph.php:1255
 #: includes/class-ai-description.php:132
 #: includes/class-author-meta.php:722
@@ -901,7 +902,8 @@ msgstr ""
 #: admin/pages/class-page-documents.php:555
 #: admin/pages/class-page-faq-detector.php:198
 #: admin/pages/class-page-image-seo.php:159
-#: admin/pages/class-page-not-indexed.php:180
+#: admin/pages/class-page-not-indexed.php:187
+#: admin/pages/class-page-not-indexed.php:275
 #: admin/pages/class-page-rag-engine.php:871
 #: admin/pages/class-page-schema-detector.php:289
 #: admin/pages/class-page-schema-detector.php:645
@@ -917,8 +919,8 @@ msgid "PR Bridge — Review & Edit"
 msgstr ""
 
 #: admin/class-pr-metabox.php:226
-#: admin/pages/class-page-command-center.php:2558
-#: admin/pages/class-page-not-indexed.php:200
+#: admin/pages/class-page-command-center.php:2619
+#: admin/pages/class-page-not-indexed.php:207
 #: admin/pages/class-page-smart-collections.php:858
 msgid "Close"
 msgstr ""
@@ -1610,8 +1612,8 @@ msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:934
 #: admin/pages/class-page-command-center.php:1323
-#: admin/pages/class-page-command-center.php:3034
-#: admin/pages/class-page-command-center.php:3132
+#: admin/pages/class-page-command-center.php:3110
+#: admin/pages/class-page-command-center.php:3208
 #: admin/assets/js/crawler-dataviews.js:49
 msgid "Bot"
 msgstr ""
@@ -1619,8 +1621,8 @@ msgstr ""
 #: admin/pages/class-page-ai-ready.php:935
 #: admin/pages/class-page-ai-visibility.php:551
 #: admin/pages/class-page-ai-visibility.php:845
-#: admin/pages/class-page-command-center.php:3035
-#: admin/pages/class-page-command-center.php:3133
+#: admin/pages/class-page-command-center.php:3111
+#: admin/pages/class-page-command-center.php:3209
 #: includes/class-visibility.php:520
 #: admin/assets/js/crawler-dataviews.js:76
 msgid "Company"
@@ -1632,6 +1634,7 @@ msgstr ""
 #: admin/pages/class-page-documents.php:379
 #: admin/pages/class-page-faq-detector.php:140
 #: admin/pages/class-page-index-now.php:298
+#: admin/pages/class-page-not-indexed.php:234
 #: admin/pages/class-page-pr-bridge.php:100
 #: admin/pages/class-page-reviews.php:169
 #: admin/pages/class-page-schema-conflicts.php:157
@@ -3701,13 +3704,14 @@ msgstr[1] ""
 #: admin/pages/class-page-command-center.php:368
 #: admin/pages/class-page-command-center.php:760
 #: admin/pages/class-page-command-center.php:1475
-#: admin/pages/class-page-command-center.php:2413
-#: admin/pages/class-page-command-center.php:3134
+#: admin/pages/class-page-command-center.php:2462
+#: admin/pages/class-page-command-center.php:3210
 #: admin/pages/class-page-contact-detector.php:111
 #: admin/pages/class-page-dashboard.php:411
 #: admin/pages/class-page-faq-detector.php:136
 #: admin/pages/class-page-funnel-audit.php:92
-#: admin/pages/class-page-not-indexed.php:103
+#: admin/pages/class-page-not-indexed.php:110
+#: admin/pages/class-page-not-indexed.php:232
 #: admin/pages/class-page-schema-detector.php:199
 #: admin/pages/class-page-schema-detector.php:592
 #: admin/pages/class-page-schema-detector.php:987
@@ -4004,7 +4008,7 @@ msgid "Page Speed"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:133
-#: admin/pages/class-page-command-center.php:2414
+#: admin/pages/class-page-command-center.php:2463
 msgid "Index Status"
 msgstr ""
 
@@ -4069,7 +4073,7 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:201
 #: admin/pages/class-page-command-center.php:252
 #: admin/pages/class-page-command-center.php:1461
-#: admin/pages/class-page-command-center.php:2216
+#: admin/pages/class-page-command-center.php:2249
 msgid "Configure"
 msgstr ""
 
@@ -4433,7 +4437,7 @@ msgid "Severity"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:759
-#: admin/pages/class-page-not-indexed.php:144
+#: admin/pages/class-page-not-indexed.php:151
 msgid "Issue"
 msgstr ""
 
@@ -4953,7 +4957,7 @@ msgid "Likely bots"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:1819
-#: admin/pages/class-page-command-center.php:2348
+#: admin/pages/class-page-command-center.php:2388
 msgid "Needs work"
 msgstr ""
 
@@ -4966,115 +4970,162 @@ msgid "(query not provided)"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2207
-msgid "Index Status requires a Google Search Console connection. Connect Google in the Settings tab first."
+msgid "Google hasn't crawled this indexed page in over 130 days. Pages this stale are much more likely to be dropped from the index."
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2208
-#: admin/pages/class-page-command-center.php:3382
+msgid "Getting close to the ~130-day mark where uncrawled pages start dropping from Google's index."
+msgstr ""
+
+#. translators: %d: number of days.
+#: admin/pages/class-page-command-center.php:2213
+#: admin/pages/class-page-not-indexed.php:252
+#, php-format
+msgid "%d day ago"
+msgid_plural "%d days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/pages/class-page-command-center.php:2240
+msgid "Index Status requires a Google Search Console connection. Connect Google in the Settings tab first."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2241
+#: admin/pages/class-page-command-center.php:3458
 #: admin/pages/class-page-pr-bridge.php:76
 msgid "Go to Settings"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2215
+#: admin/pages/class-page-command-center.php:2248
 msgid "Enter your GSC Site URL in Settings → Google Configuration to enable Index Status scans."
 msgstr ""
 
 #. translators: 1: range start, 2: range end, 3: total needing work.
-#: admin/pages/class-page-command-center.php:2329
+#: admin/pages/class-page-command-center.php:2369
 #, php-format
 msgid "Showing %1$d–%2$d of %3$d pages that need work."
 msgstr ""
 
 #. translators: 1: range start, 2: range end, 3: total scanned.
-#: admin/pages/class-page-command-center.php:2337
+#: admin/pages/class-page-command-center.php:2377
 #, php-format
 msgid "Showing %1$d–%2$d of %3$d scanned pages."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2352
+#: admin/pages/class-page-command-center.php:2392
 msgid "All scanned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2362
+#: admin/pages/class-page-command-center.php:2402
 #: admin/pages/class-page-dashboard.php:250
 msgid "Total Pages"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2366
+#: admin/pages/class-page-command-center.php:2406
 msgid "Need Work"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2370
-#: admin/pages/class-page-command-center.php:2458
+#: admin/pages/class-page-command-center.php:2410
+#: admin/pages/class-page-command-center.php:2507
 msgid "Indexed"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2378
+#. translators: %d: number of days.
+#: admin/pages/class-page-command-center.php:2419
+#, php-format
+msgid "Indexed pages Google hasn't crawled in %d+ days. Pages left uncrawled for about 130 days are much more likely to drop out of the index."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2421
+msgid "Crawl Going Stale"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2425
 msgid "Re-scan All"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2378
+#: admin/pages/class-page-command-center.php:2425
 msgid "Run Index Scan"
 msgstr ""
 
 #. translators: %d: number of de-indexed pages to send to TWT Agency.
-#: admin/pages/class-page-command-center.php:2384
+#: admin/pages/class-page-command-center.php:2431
 #, php-format
 msgid "Send %d De-indexed to TWT Agency"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2389
+#: admin/pages/class-page-command-center.php:2436
 msgid "Clear Results"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2405
+#: admin/pages/class-page-command-center.php:2452
 msgid "Why isn't a page indexed?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2406
+#: admin/pages/class-page-command-center.php:2453
 msgid "A meta description alone won't get a page indexed — it only affects the snippet Google shows. The most common reasons a page stays out of the index are: a \"noindex\" setting, a canonical URL pointing to a different page, the page missing from your XML sitemap, thin or duplicate content, or no internal links pointing to it. Fix the red Critical items first, then the Warnings."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2415
+#: admin/pages/class-page-command-center.php:2454
+msgid "Watch the crawl age too."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2455
+msgid "An indexed page Google hasn't crawled in about 130 days is much more likely to be dropped, and after about 190 days Google tends to forget the URL entirely. Infrequent crawling usually means Google sees the page as low priority — link to it from your stronger pages, keep it in your sitemap with an accurate last-modified date, and give it a genuine update (or merge it into a stronger page)."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2464
 msgid "Last Crawl"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2416
+#: admin/pages/class-page-command-center.php:2465
 msgid "Issues & Fixes"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2424
+#: admin/pages/class-page-command-center.php:2473
 msgid "No pages scanned yet. Click “Run Index Scan” to check your pages against Google."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2426
+#: admin/pages/class-page-command-center.php:2475
 msgid "🎉 No pages need work — every scanned page is indexed and issue-free."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2428
+#: admin/pages/class-page-command-center.php:2477
 msgid "No scanned pages to show."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2451
+#: admin/pages/class-page-command-center.php:2500
 #: admin/pages/class-page-dashboard.php:574
-#: admin/pages/class-page-not-indexed.php:159
+#: admin/pages/class-page-not-indexed.php:166
 msgid "Not scanned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2475
-#: admin/pages/class-page-command-center.php:2666
+#: admin/pages/class-page-command-center.php:2527
+msgid "Add links to this page from your stronger pages, make sure it is in your XML sitemap with an accurate last-modified date, and give it a genuine content update — or merge it into a stronger page."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2528
+msgid "Google stopped crawling"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2528
+msgid "Crawl going stale"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2536
+#: admin/pages/class-page-command-center.php:2742
 msgid "No issues"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2497
-#: admin/pages/class-page-command-center.php:2683
-#: admin/pages/class-page-not-indexed.php:152
+#: admin/pages/class-page-command-center.php:2558
+#: admin/pages/class-page-command-center.php:2759
+#: admin/pages/class-page-not-indexed.php:159
 #: admin/pages/class-page-woocommerce-detector.php:616
 msgid "Fix →"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2504
-#: admin/pages/class-page-command-center.php:2688
+#: admin/pages/class-page-command-center.php:2565
+#: admin/pages/class-page-command-center.php:2764
 #: admin/pages/class-page-documents.php:558
 #: admin/pages/class-page-rag-engine.php:612
 #: admin/pages/class-page-rag-engine.php:732
@@ -5082,69 +5133,75 @@ msgstr ""
 msgid "Edit page"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2537
+#: admin/pages/class-page-command-center.php:2598
 #: admin/pages/class-page-social-graph.php:372
 #: admin/pages/class-page-woocommerce-detector.php:243
 #: includes/class-scan-pager.php:58
 msgid "Prev"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2548
+#: admin/pages/class-page-command-center.php:2609
 #: admin/pages/class-page-social-graph.php:398
 #: admin/pages/class-page-woocommerce-detector.php:267
 #: includes/class-scan-pager.php:82
 msgid "Next"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2566
-msgid "Scanning inspects every published page via the Google Search Console URL Inspection API (one request per page; 2,000/day quota), then shows the pages that need work. Google has no bulk index-status export, so each page must be inspected individually. Results are stored until you re-scan."
+#: admin/pages/class-page-command-center.php:2627
+msgid "Scanning inspects every published page via the Google Search Console URL Inspection API (one request per page; 2,000/day quota), then shows the pages that need work. Google has no bulk index-status export, so each page must be inspected individually. Results are stored until you re-scan. A daily background check also re-inspects up to 100 pages, oldest-checked first, so crawl ages across the whole site stay current without a manual scan."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2589
+#: admin/pages/class-page-command-center.php:2650
 #: admin/pages/class-page-dashboard.php:132
 #: admin/pages/class-page-social-graph.php:1378
 msgid "Scanning…"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2598
+#: admin/pages/class-page-command-center.php:2659
 msgid "Scan complete. Reload to see updated totals."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2696
+#. translators: %d: number of days.
+#: admin/pages/class-page-command-center.php:2720
+#, php-format
+msgid "%d days ago"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2772
 msgid "Clear all scan results?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2707
+#: admin/pages/class-page-command-center.php:2783
 msgid "Sending…"
 msgstr ""
 
 #. translators: %d: number of URLs submitted.
-#: admin/pages/class-page-command-center.php:2715
+#: admin/pages/class-page-command-center.php:2791
 #, php-format
 msgid "URLs sent: %d ✓"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2746
-#: admin/pages/class-page-not-indexed.php:252
+#: admin/pages/class-page-command-center.php:2822
+#: admin/pages/class-page-not-indexed.php:334
 msgid "Fixed ✓"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-command-center.php:2753
+#: admin/pages/class-page-command-center.php:2829
 #, php-format
 msgid "Fix: Open Graph — %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2759
+#: admin/pages/class-page-command-center.php:2835
 msgid "OG Title"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2761
+#: admin/pages/class-page-command-center.php:2837
 msgid "OG Description"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2763
-#: admin/pages/class-page-not-indexed.php:307
+#: admin/pages/class-page-command-center.php:2839
+#: admin/pages/class-page-not-indexed.php:389
 #: admin/pages/class-page-social-graph.php:723
 #: admin/pages/class-page-social-graph.php:795
 #: includes/class-ai-description.php:101
@@ -5153,15 +5210,15 @@ msgstr ""
 msgid "Generate with AI"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2764
+#: admin/pages/class-page-command-center.php:2840
 msgid "OG Image"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2767
+#: admin/pages/class-page-command-center.php:2843
 msgid "Generate image with AI"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2770
+#: admin/pages/class-page-command-center.php:2846
 #: admin/pages/class-page-eeat.php:565
 #: admin/pages/class-page-schema-conflicts.php:214
 #: admin/pages/class-page-social-graph.php:249
@@ -5171,231 +5228,231 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2787
+#: admin/pages/class-page-command-center.php:2863
 msgid "Generating… (~20s)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2808
-#: admin/pages/class-page-not-indexed.php:339
-#: admin/pages/class-page-not-indexed.php:370
+#: admin/pages/class-page-command-center.php:2884
+#: admin/pages/class-page-not-indexed.php:421
+#: admin/pages/class-page-not-indexed.php:452
 #: includes/class-ai-description.php:133
 msgid "Saved ✓"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-command-center.php:2817
-#: admin/pages/class-page-not-indexed.php:259
+#: admin/pages/class-page-command-center.php:2893
+#: admin/pages/class-page-not-indexed.php:341
 #, php-format
 msgid "Fix: FAQ schema — %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2819
-#: admin/pages/class-page-not-indexed.php:261
+#: admin/pages/class-page-command-center.php:2895
+#: admin/pages/class-page-not-indexed.php:343
 msgid "Generate FAQPage schema from the Q&A-style content already on this page. This adds structured data — it does not change your content."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2821
-#: admin/pages/class-page-not-indexed.php:263
+#: admin/pages/class-page-command-center.php:2897
+#: admin/pages/class-page-not-indexed.php:345
 msgid "Generate FAQ schema"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2831
-#: admin/pages/class-page-not-indexed.php:273
+#: admin/pages/class-page-command-center.php:2907
+#: admin/pages/class-page-not-indexed.php:355
 msgid "Q&A pairs added ✓"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2907
+#: admin/pages/class-page-command-center.php:2983
 msgid "Total Crawls (30 days)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2911
+#: admin/pages/class-page-command-center.php:2987
 msgid "Unique Bots"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2917
+#: admin/pages/class-page-command-center.php:2993
 msgid "Last AI Crawl"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2949
+#: admin/pages/class-page-command-center.php:3025
 msgid "AI Discovery File Hits"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2951
+#: admin/pages/class-page-command-center.php:3027
 msgid "30-day window"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2953
+#: admin/pages/class-page-command-center.php:3029
 msgid "How many AI crawlers fetched your machine-readable discovery files. A rising count means bots are actively using your structured signals."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2976
+#: admin/pages/class-page-command-center.php:3052
 msgid "bot crawls"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2986
+#: admin/pages/class-page-command-center.php:3062
 msgid "A physical robots.txt on disk is served by the web server without running PHP, so crawler hits to it cannot be counted."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2986
+#: admin/pages/class-page-command-center.php:3062
 msgid "Static file — not tracked"
 msgstr ""
 
 #. translators: %s: human-readable time ago
-#: admin/pages/class-page-command-center.php:2990
+#: admin/pages/class-page-command-center.php:3066
 #, php-format
 msgid "Last: %s ago"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2994
+#: admin/pages/class-page-command-center.php:3070
 msgid "Not yet recorded"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3010
+#: admin/pages/class-page-command-center.php:3086
 msgid "Note: hits are only recorded when WordPress handles the request in PHP. A physical robots.txt on disk, or a full-page cache in front of WordPress (a host page cache such as Nexcess NxAccel, or a CDN like Cloudflare), serves these files without invoking PHP — so those hits are not captured and the counts may understate real crawler activity. The plugin sends no-cache headers on llms.txt and llms-full.txt to reduce this, though some host caches ignore them."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3020
+#: admin/pages/class-page-command-center.php:3096
 msgid "Bot Breakdown"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3024
+#: admin/pages/class-page-command-center.php:3100
 msgid "Block or rate-limit specific crawlers"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3025
+#: admin/pages/class-page-command-center.php:3101
 msgid "Manage bot controls"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3029
+#: admin/pages/class-page-command-center.php:3105
 msgid "No AI crawls recorded yet."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3036
+#: admin/pages/class-page-command-center.php:3112
 msgid "Visits"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3037
+#: admin/pages/class-page-command-center.php:3113
 msgid "Last Seen"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3060
+#: admin/pages/class-page-command-center.php:3136
 msgid "Google does not publish a dedicated AI bot. The Google bots tracked here (Googlebot, GoogleOther, Google-Agent, Google-InspectionTool, Google-NotebookLM) are standard Google crawlers whose purpose is inferred from their documented behavior — not from an official AI-specific declaration by Google."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3067
+#: admin/pages/class-page-command-center.php:3143
 msgid "Most Crawled Pages"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3070
+#: admin/pages/class-page-command-center.php:3146
 msgid "No pages recorded yet."
 msgstr ""
 
 #. translators: %s: number of crawls (formatted integer).
-#: admin/pages/class-page-command-center.php:3083
+#: admin/pages/class-page-command-center.php:3159
 #, php-format
 msgid "%s crawl"
 msgid_plural "%s crawls"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-command-center.php:3099
+#: admin/pages/class-page-command-center.php:3175
 msgid "Live Feed — Last 48 Hours"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3101
+#: admin/pages/class-page-command-center.php:3177
 msgid "Live Feed — Last 50 Crawls (30 Days)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3106
+#: admin/pages/class-page-command-center.php:3182
 msgid "Clear all crawler log entries?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3110
+#: admin/pages/class-page-command-center.php:3186
 #: admin/pages/class-page-index-now.php:285
 msgid "Clear Log"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3119
+#: admin/pages/class-page-command-center.php:3195
 msgid "No AI crawlers detected yet. Logs will appear here as AI bots visit your site."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3120
+#: admin/pages/class-page-command-center.php:3196
 msgid "Monitoring: OpenAI GPTBot, ClaudeBot, Google-Extended, PerplexityBot, and 20+ more."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3131
+#: admin/pages/class-page-command-center.php:3207
 #: admin/pages/class-page-diagnostics.php:101
 #: admin/pages/class-page-index-now.php:296
 #: admin/assets/js/crawler-dataviews.js:39
 msgid "Time"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3157
+#: admin/pages/class-page-command-center.php:3233
 #: admin/assets/js/crawler-dataviews.js:107
 msgid "Markdown"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3172
+#: admin/pages/class-page-command-center.php:3248
 msgid "What AI Crawler Watch monitors:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3173
+#: admin/pages/class-page-command-center.php:3249
 msgid "OpenAI GPTBot &amp; ChatGPT-User · Anthropic ClaudeBot · Google-Extended · PerplexityBot · Meta FacebookBot · Apple Applebot-Extended · ByteDance Bytespider · Amazon Amazonbot · Diffbot · Cohere · Common Crawl CCBot · You.com YouBot · and more."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3174
+#: admin/pages/class-page-command-center.php:3250
 msgid "Logs are stored locally for 30 days."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3223
+#: admin/pages/class-page-command-center.php:3299
 msgid "Google credentials saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3239
+#: admin/pages/class-page-command-center.php:3315
 msgid "Google configuration saved."
 msgstr ""
 
 #. translators: %s: service account email address.
-#: admin/pages/class-page-command-center.php:3256
+#: admin/pages/class-page-command-center.php:3332
 #, php-format
 msgid "Service account saved. Now add %s as a Full user in Search Console and a Viewer in GA4."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3268
+#: admin/pages/class-page-command-center.php:3344
 msgid "Service account key removed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3278
+#: admin/pages/class-page-command-center.php:3354
 msgid "Google API key saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3279
+#: admin/pages/class-page-command-center.php:3355
 msgid "Google API key removed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3291
+#: admin/pages/class-page-command-center.php:3367
 msgid "Bing settings saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3299
+#: admin/pages/class-page-command-center.php:3375
 msgid "Crawler log cleared."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3315
+#: admin/pages/class-page-command-center.php:3391
 msgid "Google account connected successfully."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3345
+#: admin/pages/class-page-command-center.php:3421
 #: admin/pages/class-page-rag-engine.php:1017
 msgid "Refresh data"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3346
+#: admin/pages/class-page-command-center.php:3422
 msgid "Refresh"
 msgstr ""
 
 #. translators: %s: service name (e.g. 'Google Analytics').
-#: admin/pages/class-page-command-center.php:3369
+#: admin/pages/class-page-command-center.php:3445
 #, php-format
 msgid "Set up %s"
 msgstr ""
@@ -5720,7 +5777,8 @@ msgstr ""
 #: admin/pages/class-page-eeat.php:260
 #: admin/pages/class-page-faq-detector.php:141
 #: admin/pages/class-page-image-seo.php:123
-#: admin/pages/class-page-not-indexed.php:107
+#: admin/pages/class-page-not-indexed.php:114
+#: admin/pages/class-page-not-indexed.php:235
 #: admin/pages/class-page-pr-bridge.php:102
 #: admin/pages/class-page-reviews.php:170
 #: admin/pages/class-page-schema-detector.php:204
@@ -8215,143 +8273,172 @@ msgstr ""
 msgid "News settings saved."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:43
+#: admin/pages/class-page-not-indexed.php:45
 msgid "Not Indexed Pages"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:48
+#: admin/pages/class-page-not-indexed.php:50
 msgid "pages not indexed"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:58
+#: admin/pages/class-page-not-indexed.php:55
+msgid "at risk of dropping"
+msgstr ""
+
+#: admin/pages/class-page-not-indexed.php:65
 msgid "Google Search Console Not Connected"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:59
+#: admin/pages/class-page-not-indexed.php:66
 msgid "Connect Google Search Console to detect pages that are published but not appearing in Google search results. Once connected, run a scan from the Command Center to populate this report."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:62
+#: admin/pages/class-page-not-indexed.php:69
 msgid "→ Connect in Command Center"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:70
+#: admin/pages/class-page-not-indexed.php:77
 msgid "No Scan Data Yet"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:71
+#: admin/pages/class-page-not-indexed.php:78
 msgid "GSC is connected but no URL inspection results are stored. Go to the Command Center and run an index status scan to identify not-indexed pages."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:74
+#: admin/pages/class-page-not-indexed.php:81
 msgid "→ Run Scan in Command Center"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:82
+#: admin/pages/class-page-not-indexed.php:89
 msgid "All Scanned Pages Are Indexed"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:83
+#: admin/pages/class-page-not-indexed.php:90
 msgid "Great news — every scanned page is confirmed indexed by Google. Run a fresh scan periodically to catch newly published or de-indexed pages."
 msgstr ""
 
 #. translators: %d: number of published pages not in Google.
-#: admin/pages/class-page-not-indexed.php:93
+#: admin/pages/class-page-not-indexed.php:100
 #, php-format
 msgid "%d page(s) are published but not appearing in Google search results."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:104
+#: admin/pages/class-page-not-indexed.php:111
 msgid "Google's Reason"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:105
+#: admin/pages/class-page-not-indexed.php:112
 msgid "Issues Found"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:106
+#: admin/pages/class-page-not-indexed.php:113
+#: admin/pages/class-page-not-indexed.php:233
 msgid "Last Crawled"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:132
-#: admin/pages/class-page-not-indexed.php:174
+#: admin/pages/class-page-not-indexed.php:139
+#: admin/pages/class-page-not-indexed.php:181
 msgid "Unknown"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:157
+#: admin/pages/class-page-not-indexed.php:164
 msgid "No heuristic issues"
 msgstr ""
 
 #. translators: %d: number of words in the page.
-#: admin/pages/class-page-not-indexed.php:165
+#: admin/pages/class-page-not-indexed.php:172
 #, php-format
 msgid "%d words"
 msgstr ""
 
+#: admin/pages/class-page-not-indexed.php:217
+msgid "Indexed, But Google Hasn't Been Back"
+msgstr ""
+
+#. translators: 1: watch threshold in days, 2: risk threshold in days.
+#: admin/pages/class-page-not-indexed.php:222
+#, php-format
+msgid "These pages are still indexed, but Googlebot hasn't crawled them in %1$d+ days. Pages left uncrawled for about %2$d days are much more likely to drop out of the index, and after about 190 days Google tends to forget the URL entirely. Rare crawling usually means Google sees the page as low priority, so asking Google to re-crawl it won't fix much on its own. Link to it from your stronger pages, keep it in your XML sitemap with an accurate last-modified date, and give it a genuine update — or merge it into a stronger page."
+msgstr ""
+
+#: admin/pages/class-page-not-indexed.php:260
+msgid "At risk"
+msgstr ""
+
+#: admin/pages/class-page-not-indexed.php:262
+msgid "Watch"
+msgstr ""
+
+#. translators: %s: human-readable time span, e.g. "3 days".
+#: admin/pages/class-page-not-indexed.php:268
+#, php-format
+msgid "Checked %s ago"
+msgstr ""
+
 #. translators: %s: page title.
-#: admin/pages/class-page-not-indexed.php:286
+#: admin/pages/class-page-not-indexed.php:368
 #, php-format
 msgid "Fix: Image alt text — %s"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-not-indexed.php:287
+#: admin/pages/class-page-not-indexed.php:369
 msgid "Loading images…"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:295
+#: admin/pages/class-page-not-indexed.php:377
 msgid "No images found in this content."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:296
+#: admin/pages/class-page-not-indexed.php:378
 msgid "Fill in descriptive alt text for each image, or let AI describe them for you."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:302
+#: admin/pages/class-page-not-indexed.php:384
 msgid "Describe this image…"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:308
+#: admin/pages/class-page-not-indexed.php:390
 msgid "Save alt text"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:317
+#: admin/pages/class-page-not-indexed.php:399
 msgid "Generating with AI vision… this can take a few seconds per image."
 msgstr ""
 
 #. translators: %d: number of images given alt text.
-#: admin/pages/class-page-not-indexed.php:324
+#: admin/pages/class-page-not-indexed.php:406
 #, php-format
 msgid "Images filled: %d ✓"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-not-indexed.php:352
+#: admin/pages/class-page-not-indexed.php:434
 #, php-format
 msgid "Fix: duplicate meta description — %s"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:354
+#: admin/pages/class-page-not-indexed.php:436
 msgid "This page shares its meta description word-for-word with other pages on the site. Identical descriptions read as templated duplicate content to Google and AI engines. Generate a description that only fits this page — it is written from the page's own content and saved immediately."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:355
+#: admin/pages/class-page-not-indexed.php:437
 msgid "Current (shared):"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:357
+#: admin/pages/class-page-not-indexed.php:439
 msgid "Write a unique description with AI"
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:363
+#: admin/pages/class-page-not-indexed.php:445
 msgid "AI descriptions are not available — configure a provider under Settings first."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:365
+#: admin/pages/class-page-not-indexed.php:447
 msgid "Writing… this uses your configured AI provider and takes a few seconds."
 msgstr ""
 
-#: admin/pages/class-page-not-indexed.php:373
+#: admin/pages/class-page-not-indexed.php:455
 msgid "New description:"
 msgstr ""
 
