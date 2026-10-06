@@ -1,6 +1,10 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.30.2 =
+
+* **Fixed: `undo_change` description.** It said the tool undoes "a meta description or FAQ schema", left over from 2.30.0-dev3; since dev4 undo restores every change kind (meta, Open Graph, FAQ schema, alt text, redirects, schema suppression, AI Ready switches, tracked questions, personas, company and author profile fields). Directory review requires tool descriptions to match behaviour.
+
 = 2.30.1 =
 
 * **Fixed: the hosted-connector setup showed no connection key (`TWTAEO_Page_Claude::render_content()`).** The "Claude on the web and mobile" card told owners to paste "the connection key above", but the only standalone key box lived in a card that was held back from 2.30.0, so the key appeared only inside the Claude Code command. The card now has its own copy box for the key (shown once, right after the connection password is created), then the connector URL, and explains that the URL is shared by everyone while the key links the site to the owner's aeoultimate.app account (which can use any email address).

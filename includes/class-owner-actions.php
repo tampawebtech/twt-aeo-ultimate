@@ -412,7 +412,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'undo-change'             => array(
 				'label'        => __( 'Undo a change', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Puts back exactly what one earlier change replaced (a meta description or FAQ schema), whoever made it. Find the change_id with get_change_log. An AI Visibility check cannot be undone. The undo is itself logged and can be undone.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Puts back exactly what one earlier change through this connector replaced (meta description, Open Graph text, FAQ schema, image alt text, a redirect, a schema or AI Ready setting, tracked questions, personas, or a company or author profile field), whoever made it. Find the change_id with get_change_log. An AI Visibility check cannot be undone. The undo is itself logged and can be undone.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
