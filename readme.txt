@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.2
+Stable tag: 2.30.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -201,6 +201,9 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.30.3 =
+* Changed: the Claude connector's tool descriptions now describe what each tool does instead of instructing Claude, as the Claude connector directory requires. The safeguards are unchanged: every change still needs a preview and the owner's approval before it is applied.
+
 = 2.30.2 =
 * Fixed: the Claude connector's undo tool described itself as undoing only meta descriptions and FAQ schema. It undoes every kind of change made through the connector, and now says so.
 
@@ -391,6 +394,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.3 =
+Claude connector tool descriptions reworded for the Claude connector directory. No change to how the connector works.
 
 = 2.30.2 =
 Corrects the description of the Claude connector's undo tool.

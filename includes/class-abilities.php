@@ -83,7 +83,7 @@ final class TWTAEO_Abilities {
 		return array(
 			'get-ai-visibility-summary' => array(
 				'label'        => __( 'Get AI visibility summary', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Results of the latest AI Visibility run: for each AI engine (ChatGPT, Gemini, Claude and others), how many tracked questions cited this site, mentioned it without a link, or did not cite it, plus the per-question result. Use it to answer "am I showing up in AI answers?".', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Results of the latest AI Visibility run: for each AI engine (ChatGPT, Gemini, Claude and others), how many tracked questions cited this site, mentioned it without a link, or did not cite it, plus the per-question result. Answers "am I showing up in AI answers?".', 'twt-aeo-ultimate' ),
 				'input_schema' => $empty_input,
 				'execute'      => array( __CLASS__, 'ai_visibility_summary' ),
 			),
@@ -108,7 +108,7 @@ final class TWTAEO_Abilities {
 			),
 			'get-uncrawled-pages'       => array(
 				'label'        => __( 'Get pages AI crawlers have not visited', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Published, indexable pages that no AI crawler has requested during the crawler log\'s window. Check window.days in the result before drawing conclusions: a short window means "not visited recently", not "never visited".', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Published, indexable pages that no AI crawler has requested during the crawler log\'s window. window.days in the result gives the span of the crawler log: with a short window, a page listed here was not visited recently, which is not the same as never visited.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -132,7 +132,7 @@ final class TWTAEO_Abilities {
 			),
 			'get-page-aeo-report'       => array(
 				'label'        => __( 'Get AEO report for a page', 'twt-aeo-ultimate' ),
-				'description'  => __( 'The stored AEO readiness breakdown for one page: its score, each category, and every check that is not fully passing with the reason and the suggested fix. Pass post_id or the page URL.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'The stored AEO readiness breakdown for one page: its score, each category, and every check that is not fully passing with the reason and the suggested fix. Takes post_id or the page URL.', 'twt-aeo-ultimate' ),
 				'input_schema' => self::page_input_schema(),
 				'execute'      => array( __CLASS__, 'page_aeo_report' ),
 			),
@@ -180,7 +180,7 @@ final class TWTAEO_Abilities {
 			),
 			'get-lowest-scoring-pages'  => array(
 				'label'        => __( 'Get lowest-scoring pages', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Published pages with the lowest AEO readiness scores, each with the single fix worth the most points. Use get_page_aeo_report for a page\'s full breakdown.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Published pages with the lowest AEO readiness scores, each with the single fix worth the most points. get_page_aeo_report has each page\'s full breakdown.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -240,7 +240,7 @@ final class TWTAEO_Abilities {
 			),
 			'search-content'            => array(
 				'label'        => __( 'Search pages and documents', 'twt-aeo-ultimate' ),
-				'description'  => __( 'RAG Engine search: the passages on the site\'s pages and in the owner\'s uploaded documents that best answer a question or match a keyword. Use it to check whether a question already has an answer somewhere.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'RAG Engine search: the passages on the site\'s pages and in the owner\'s uploaded documents that best answer a question or match a keyword. Shows whether a question already has an answer somewhere.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(

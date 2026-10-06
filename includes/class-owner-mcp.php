@@ -374,7 +374,7 @@ final class TWTAEO_Owner_MCP {
 	}
 
 	/** Appended to every action's description. */
-	const TWO_STEP = 'Two steps: call without confirm_token to get a preview that changes nothing. Show the preview to the site owner. Only after they explicitly say yes, call again with exactly the same arguments plus the confirm_token from the preview. Never confirm on your own.';
+	const TWO_STEP = 'Works in two steps: a call without confirm_token returns a preview and changes nothing; the change is applied only when the same arguments are sent again with the confirm_token from that preview. The confirm_token stands for the approval of that preview by the site owner, and it expires after 15 minutes.';
 
 	private static function action_schema( array $schema ) {
 		$schema['properties']['confirm_token'] = array(

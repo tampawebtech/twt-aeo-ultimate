@@ -45,7 +45,7 @@ final class TWTAEO_Owner_Actions {
 		return array(
 			'run-ai-visibility-check' => array(
 				'label'        => __( 'Run an AI Visibility check', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Asks the AI engines the site has API keys for (ChatGPT, Gemini, Claude and others) the tracked questions and records whether each answer cites the site. Runs in the background for a few minutes and spends the owner\'s own API credits: one paid call per question per engine. Read the results afterwards with get_ai_visibility_summary.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Asks the AI engines the site has API keys for (ChatGPT, Gemini, Claude and others) the tracked questions and records whether each answer cites the site. Runs in the background for a few minutes and spends the owner\'s own API credits: one paid call per question per engine. The results appear in get_ai_visibility_summary when the run finishes.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -53,7 +53,7 @@ final class TWTAEO_Owner_Actions {
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'maximum'     => 200,
-							'description' => __( 'Ask only the first N tracked questions, to keep the cost down. Leave out to ask them all.', 'twt-aeo-ultimate' ),
+							'description' => __( 'Asks only the first N tracked questions, to keep the cost down. When left out, all of them are asked.', 'twt-aeo-ultimate' ),
 						),
 					),
 					'additionalProperties' => false,
@@ -88,7 +88,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'sync-faq-schema'         => array(
 				'label'        => __( 'Update a page\'s FAQ schema', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Rewrites one page\'s FAQPage schema from the questions and answers on the page now: adds schema to a page whose FAQ has none, or brings out-of-date FAQ schema back in line. Use get_faq_schema_status to find pages that need it. Costs nothing.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Rewrites one page\'s FAQPage schema from the questions and answers on the page now: adds schema to a page whose FAQ has none, or brings out-of-date FAQ schema back in line. get_faq_schema_status lists the pages that need it. Costs nothing.', 'twt-aeo-ultimate' ),
 				'input_schema' => TWTAEO_Abilities::page_input_schema(),
 				'preview'      => array( __CLASS__, 'faq_preview' ),
 				'apply'        => array( __CLASS__, 'faq_apply' ),
@@ -100,7 +100,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'edit-tracked-questions'  => array(
 				'label'        => __( 'Edit tracked questions', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Adds questions for AI Visibility to ask (the owner\'s own questions are always asked), and switches existing questions off or on by question_id from get_tracked_questions. Good questions are what a real customer would type into ChatGPT. Costs nothing until a check runs.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Adds questions for AI Visibility to ask (the owner\'s own questions are always asked), and switches existing questions off or on by question_id from get_tracked_questions. Questions are asked word for word, as a customer would type them into ChatGPT. Costs nothing until a check runs.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -201,7 +201,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'add-404-redirect'        => array(
 				'label'        => __( 'Add a 404 redirect', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Permanently redirects an old URL on this site that now returns 404 to a live page (to_post_id or to_url). Only for URLs that are not live pages. get_404_report lists dead URLs with suggested targets.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Permanently redirects an old URL on this site that now returns 404 to a live page (to_post_id or to_url). Accepts only URLs that are not live pages. get_404_report lists dead URLs with suggested targets.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -233,7 +233,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'suppress-duplicate-schema' => array(
 				'label'        => __( 'Suppress a duplicate schema type', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Stops (or lets again) another SEO plugin output one schema type that AEO Ultimate also outputs, so the page carries one version. Use the plugin key and type from get_schema_conflicts.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Stops (or lets again) another SEO plugin output one schema type that AEO Ultimate also outputs, so the page carries one version. Takes the plugin key and type that get_schema_conflicts reports.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -322,7 +322,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'update-company-profile'  => array(
 				'label'        => __( 'Update the company profile', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Fills or corrects company profile fields that feed the Organization schema: legal_name, description, founding_year, phone, email and social profile URLs (social_facebook, social_twitter, social_linkedin, social_instagram, social_youtube, social_wikipedia, social_pinterest). Only fields passed change. Only facts the owner confirms.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Fills or corrects company profile fields that feed the Organization schema: legal_name, description, founding_year, phone, email and social profile URLs (social_facebook, social_twitter, social_linkedin, social_instagram, social_youtube, social_wikipedia, social_pinterest). Only fields passed change. Meant for facts the owner has confirmed.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(
@@ -352,7 +352,7 @@ final class TWTAEO_Owner_Actions {
 			),
 			'update-author-profile'   => array(
 				'label'        => __( 'Update an author profile', 'twt-aeo-ultimate' ),
-				'description'  => __( 'Fills or corrects one author\'s E-E-A-T details (user_id from get_eeat_scorecard): bio, job_title, credentials, expertise, years_experience, and profile links under social (linkedin, facebook, twitter, github, youtube, website, industry). Only fields passed change. Never invent credentials.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'Fills or corrects one author\'s E-E-A-T details (user_id from get_eeat_scorecard): bio, job_title, credentials, expertise, years_experience, and profile links under social (linkedin, facebook, twitter, github, youtube, website, industry). Only fields passed change. Meant for details the author has confirmed; credentials are published as given.', 'twt-aeo-ultimate' ),
 				'input_schema' => array(
 					'type'                 => 'object',
 					'properties'           => array(

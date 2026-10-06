@@ -1,6 +1,10 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.30.3 =
+
+* **Changed: tool descriptions describe instead of instruct (`TWTAEO_Owner_MCP::TWO_STEP`, action and ability descriptions).** Anthropic's directory policy rejects tool descriptions that give the model instructions. The shared two-step suffix said "Show the preview to the site owner... Never confirm on your own"; it now states the mechanism (a call without `confirm_token` returns a preview and changes nothing; the same call with the preview's token applies it; the token stands for the owner's approval and expires after 15 minutes). Thirteen other sentences such as "Use get_page_aeo_report for...", "Check window.days..." and "Never invent credentials" were reworded the same way. Behaviour is unchanged: `confirm_token` is still required and HMAC-checked server-side, and the server instructions still ask for approval before every change.
+
 = 2.30.2 =
 
 * **Fixed: `undo_change` description.** It said the tool undoes "a meta description or FAQ schema", left over from 2.30.0-dev3; since dev4 undo restores every change kind (meta, Open Graph, FAQ schema, alt text, redirects, schema suppression, AI Ready switches, tracked questions, personas, company and author profile fields). Directory review requires tool descriptions to match behaviour.
