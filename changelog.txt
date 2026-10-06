@@ -1,6 +1,10 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.30.1 =
+
+* **Fixed: the hosted-connector setup showed no connection key (`TWTAEO_Page_Claude::render_content()`).** The "Claude on the web and mobile" card told owners to paste "the connection key above", but the only standalone key box lived in a card that was held back from 2.30.0, so the key appeared only inside the Claude Code command. The card now has its own copy box for the key (shown once, right after the connection password is created), then the connector URL, and explains that the URL is shared by everyone while the key links the site to the owner's aeoultimate.app account (which can use any email address).
+
 = 2.30.0 =
 
 * **New: Use with Claude, a private MCP server for the site owner (`TWTAEO_Owner_MCP`, `includes/class-owner-mcp.php`).** `POST /wp-json/aeo/v1/owner-mcp` speaks the Model Context Protocol over Streamable HTTP (JSON replies, stateless; GET and DELETE answer 405). Off by default (`twtaeo_owner_mcp_enabled`), `manage_options` only, authenticated with a WordPress Application Password as HTTP Basic auth. Requests carrying a foreign `Origin` are refused, each user is limited to 600 calls an hour (transient), and the last use is recorded for the MCPs tab (`twtaeo_owner_mcp_last_used`). It is separate from the public visitor MCP at `/aeo/v1/mcp`.

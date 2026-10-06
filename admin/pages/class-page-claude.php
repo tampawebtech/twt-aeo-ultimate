@@ -217,13 +217,15 @@ class TWTAEO_Page_Claude {
 						echo wp_kses(
 							sprintf(
 								/* translators: %s: link to app.aeoultimate.app */
-								esc_html__( 'Create a free account at %s, add this site, and paste the connection key above into its Claude section. Then in Claude open Settings → Connectors → Add custom connector, paste this URL and sign in with that account:', 'twt-aeo-ultimate' ),
+								esc_html__( 'Create a free account at %s (any email address works) and add this site. Paste this site\'s connection key into the site\'s Claude section there:', 'twt-aeo-ultimate' ),
 								'<a href="https://app.aeoultimate.app" target="_blank" rel="noopener noreferrer">app.aeoultimate.app</a>'
 							),
 							array( 'a' => array( 'href' => true, 'target' => true, 'rel' => true ) )
 						);
 						?>
 					</p>
+					<?php self::copy_box( 'twt-aeo-claude-key', '' !== $auth ? substr( $auth, 6 ) : __( 'Click "Create connection password" above to see this site\'s connection key. It is shown only once.', 'twt-aeo-ultimate' ), 1 ); ?>
+					<p><?php esc_html_e( 'Then in Claude open Settings → Connectors → Add custom connector, paste this URL and sign in with your aeoultimate.app account. The URL is the same for everyone; the connection key is what links this site to your account.', 'twt-aeo-ultimate' ); ?></p>
 					<?php self::copy_box( 'twt-aeo-claude-hosted', 'https://mcp.aeoultimate.app/mcp', 1 ); ?>
 					<p class="twt-aeo-card__note"><?php esc_html_e( 'One account connects all your sites to Claude on the web, desktop and mobile. One site is free; connecting a second site starts a 14-day trial of the multi-site plan. Your key is stored encrypted, and this site keeps its own rules: admin only, changes only when allowed below, each one previewed first.', 'twt-aeo-ultimate' ); ?></p>
 				</div>

@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.0
+Stable tag: 2.30.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -201,6 +201,10 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.30.1 =
+* Fixed: the "Claude on the web and mobile" setup on Settings → MCPs now shows the site's connection key to paste into app.aeoultimate.app. It referred to a key the page didn't display.
+* Improved: the setup explains that the connector URL is the same for everyone and the connection key is what links the site to your account, and that any email address works for the account.
+
 = 2.30.0 =
 * New: Use with Claude. A private connector (MCP server) lets Claude read this site's AEO data and, if you allow it, make changes. It is off by default, only administrators can use it, and Claude signs in with a WordPress Application Password you create for it on the new Settings → MCPs tab, which also shows the exact setup for Claude Code, Claude Desktop and Cowork.
 * New: Claude on the web and mobile. Add the site and its connection key to a free account at app.aeoultimate.app and connect Claude once at mcp.aeoultimate.app, with no password to paste into Claude. One site is free; connecting more sites to one account is a paid plan that starts with a 14-day trial. The connector in this plugin stays free either way.
@@ -384,6 +388,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.1 =
+Shows the connection key you need to connect Claude on the web and mobile.
 
 = 2.30.0 =
 Use your AEO data in Claude: an optional, admin-only connector with 36 tools and six ready-made analyses. Changes are off by default, always previewed first, logged and reversible.
