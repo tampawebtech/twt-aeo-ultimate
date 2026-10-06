@@ -73,6 +73,17 @@ Terms: [Plugin Terms](https://tampawebtech.com/plugin-terms/) · Privacy: [Plugi
 | **Token telemetry** (off by default; Settings → Usage Telemetry) | `tampawebtech.com/wp-json/twt-aeo/v1/token-telemetry` | AI provider name, model name, token counts and plugin version. Never content, titles, URLs or site details. |
 | **TWT Agency dashboard** (off by default; Settings → Pro Dashboard) | The dashboard URL you enter | Scores, scan results and events for the site you connected |
 
+### Claude connector (off by default; Settings → MCPs)
+
+When you turn the connector on, this site answers requests from the Claude app **you** connect, signed in with a WordPress Application Password you create for it. The plugin does not send anything out on its own: Claude asks, and the site replies to that request only.
+
+| Route | Who receives data | What is sent | Terms | Privacy |
+|---|---|---|---|---|
+| **Claude Code / Claude Desktop** (direct) | Anthropic, through the Claude app you connected | The answers to the tools Claude calls: AEO data such as AI citation results, AI crawler visits, indexing status, schema and page scores. Never API keys, settings, visitor IP addresses or the full text of AI answers | [Terms](https://www.anthropic.com/legal/consumer-terms) | [Privacy](https://www.anthropic.com/legal/privacy) |
+| **Claude on the web and mobile** via the hosted connector (`mcp.aeoultimate.app`, optional) | Tampa Web Technologies relays the request to this site and the answer back to Claude | The same tool answers, passed through. The connection key you paste at app.aeoultimate.app is stored encrypted; tool answers are not stored | [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/) |
+
+Changes (when you allow them) are always previewed first and applied only after you confirm, and each one is logged under Settings → MCPs where you can revert it.
+
 ### Pages you ask the plugin to fetch
 
 **Bot View**, **Chunk View** and the crawler tester fetch the URLs you enter or that your own site links to, the way a search crawler would. That is an ordinary web request to that URL; no key or site data is attached.
@@ -91,4 +102,4 @@ The admin screens link to these sites for setup help, profile claiming and citat
 
 **Social and identity profiles:** facebook.com, instagram.com, linkedin.com, pinterest.com, twitter.com, x.com, youtube.com, gravatar.com, en.wikipedia.org, wikidata.org
 
-**Account consoles and documentation:** console.cloud.google.com, search.google.com, google.com (the law check's "Search for the current version" link), maps.google.com, ads.microsoft.com, bing.com, developers.facebook.com, developer.wordpress.org, wordpress.org, woocommerce.com, github.com, datatracker.ietf.org, rfc-editor.org, contentsignals.org, isitagentready.com, aeoultimate.com, tampawebtech.com
+**Account consoles and documentation:** console.cloud.google.com, search.google.com, google.com (the law check's "Search for the current version" link), maps.google.com, ads.microsoft.com, bing.com, developers.facebook.com, developer.wordpress.org, wordpress.org, woocommerce.com, github.com, datatracker.ietf.org, rfc-editor.org, contentsignals.org, isitagentready.com, aeoultimate.com, app.aeoultimate.app, tampawebtech.com

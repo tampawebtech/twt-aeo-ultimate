@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.29.0
+Stable tag: 2.30.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -97,13 +97,17 @@ A cached XML sitemap and a Google News sitemap, with IndexNow pinging Bing and o
 
 Google Search Console, Google Analytics 4 and Bing Webmaster Tools in one view, with Google PageSpeed audits (Lighthouse score and Core Web Vitals). AI Crawler Watch shows which AI bots read your site and what they waste requests on, and the plugin counts visits that arrive from ChatGPT, Perplexity, Claude, Gemini and Copilot, with no cookies and no per-visitor data. A traffic-leak scan finds high-traffic pages that lose mobile visitors to slow loads, and a content scan flags inline scripts, base64 images and other page-builder leftovers.
 
+= Use with Claude =
+
+Ask Claude about your AI citations, AI crawler visits, Google indexing, schema and content gaps, and let it make fixes you approve. Switch the connector on under Settings → MCPs (off by default, administrators only) and connect Claude Code or Claude Desktop with one command, or Claude on the web and mobile through an aeoultimate.app account (free for one site; more sites are a paid plan with a 14-day trial). Every change is previewed first, logged, and can be reverted.
+
 = More Tools =
 
 Customer reviews with AggregateRating and Review schema, a "Last Updated" freshness badge, PR Bridge AI for press releases, and an AI Prompt Rate Limiter to protect your API budget.
 
 = External Services =
 
-Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok, Mistral, Meta (Muse) and DeepSeek using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled EXTERNAL-SERVICES.md for the complete inventory.
+Optional AI features connect to Anthropic Claude, OpenAI, Google Gemini, Perplexity, xAI Grok, Mistral, Meta (Muse) and DeepSeek using your own API keys. Other optional integrations cover Google and Microsoft APIs, IndexNow and press-release services. Nothing is sent anywhere until you configure a feature and use it. See the FAQ for the full list with terms and privacy links, and the bundled external-services.txt for the complete inventory.
 
 == Installation ==
 
@@ -174,9 +178,10 @@ Only the ones you configure, and only when you trigger them:
 * **IndexNow**: URL submission on publish. [Terms & Privacy](https://www.indexnow.org/terms)
 * **EIN Presswire**: press-release distribution. [Terms](https://www.einpresswire.com/legal/terms) | [Privacy](https://www.einpresswire.com/legal/privacy)
 * **EasyPRwire**: press-release distribution. [Terms](https://easyprwire.com/terms-and-condition) | [Privacy](https://easyprwire.com/privacy-policy)
-* **Tampa Web Technologies** (opt-in only): token-usage telemetry and the optional Pro Dashboard connection. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/)
+* **Claude connector** (off by default): answers the Claude app you connect; optionally relayed through Tampa Web Technologies' hosted connector at mcp.aeoultimate.app for Claude on the web and mobile. [Terms](https://www.anthropic.com/legal/consumer-terms) | [Privacy](https://www.anthropic.com/legal/privacy)
+* **Tampa Web Technologies** (opt-in only): token-usage telemetry, the optional Pro Dashboard connection and the hosted Claude connector. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/)
 
-Each request sends only the data needed for that action, using your own API key. No site-visitor personal data is ever transmitted. The plugin also displays outbound links to industry directories and documentation sites; no data is sent to those. The complete inventory (every service that receives data, what it receives, and its terms and privacy policy, plus every linked site) ships in EXTERNAL-SERVICES.md inside the plugin folder.
+Each request sends only the data needed for that action, using your own API key. No site-visitor personal data is ever transmitted. The plugin also displays outbound links to industry directories and documentation sites; no data is sent to those. The complete inventory (every service that receives data, what it receives, and its terms and privacy policy, plus every linked site) ships in external-services.txt inside the plugin folder.
 
 == Screenshots ==
 
@@ -195,6 +200,19 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.30.0 =
+* New: Use with Claude. A private connector (MCP server) lets Claude read this site's AEO data and, if you allow it, make changes. It is off by default, only administrators can use it, and Claude signs in with a WordPress Application Password you create for it on the new Settings → MCPs tab, which also shows the exact setup for Claude Code, Claude Desktop and Cowork.
+* New: Claude on the web and mobile. Add the site and its connection key to a free account at app.aeoultimate.app and connect Claude once at mcp.aeoultimate.app, with no password to paste into Claude. One site is free; connecting more sites to one account is a paid plan that starts with a 14-day trial. The connector in this plugin stays free either way.
+* New: 22 read tools. AI Visibility summary and competitor citations, AI crawler activity and pages AI crawlers have not visited, AI referral traffic, a full AEO report for any page, lowest-scoring pages, a site overview, content gaps, Google index status, schema conflicts, the AI-readiness checklist, FAQ schema status, the E-E-A-T scorecard, what AI crawlers see on a page, the 404 and redirect report, the funnel audit, image alt-text gaps, tracked questions and personas, search across pages and documents, and the log of changes made through Claude.
+* New: export_data hands Claude whole datasets as paged CSV (AI Visibility results, crawler visits, referrals, index status and more), so it can analyse trends across every run instead of a summary.
+* New: six ready-made analyses Claude can start from: analyse AI Visibility, analyse AI crawlers, a full AEO health report, quick wins, competitor gap analysis, and a deep dive on one page.
+* New: 14 change tools, behind a separate Allow changes switch that is off by default. Set a meta description or Open Graph text, update FAQ schema, write image alt text, add a 404 redirect, suppress a duplicate schema type, turn an AI Ready feature on or off, edit tracked questions and buyer personas, update the company and author profiles, re-check a page in Google, run an AI Visibility check, and undo a change.
+* New: every change works in two steps. Claude first shows exactly what will change, and applies it only after you say yes, with a confirmation that expires after 15 minutes. One page at a time, never in bulk.
+* New: change history with revert. The last 50 changes made through Claude are listed on the MCPs tab with before and after values and who made them. Revert puts the exact previous value back, warns you if the page was edited since, and Claude can undo a change too.
+* New: Claude's suggestions are grounded in what the connector can actually do on this site. Read results end with related tools and fixes, and fixes are only offered when changes are allowed.
+* Security: the connector refuses requests from other websites, is limited to 600 calls an hour per user, never shares API keys, settings, visitor IP addresses or the full text of AI answers, and treats questions and answers written by other AI models as data, never as instructions.
+* Changed: the external-services inventory is now external-services.txt (previously EXTERNAL-SERVICES.md) and lists the Claude connector.
 
 = 2.29.0 =
 * New: crawl age on Index Status and the Not Indexed page. Every scanned page shows how many days ago Google last crawled it, amber from 90 days and red from 130, where pages become much more likely to drop out of Google's index.
@@ -366,6 +384,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.0 =
+Use your AEO data in Claude: an optional, admin-only connector with 36 tools and six ready-made analyses. Changes are off by default, always previewed first, logged and reversible.
 
 = 2.29.0 =
 Warns about indexed pages Google has stopped crawling before they drop out of the index, checks your whole site over time instead of only recent pages, and reports pages Google has forgotten.

@@ -1230,6 +1230,11 @@ class TWTAEO_AI_Description {
 
 	// ── Helpers ───────────────────────────────────────────────────────────────
 
+	/** The description exactly as save_description() would store it (for previews). */
+	public static function prepare_description( $text ) {
+		return self::clean_description( $text );
+	}
+
 	private static function clean_description( $text ) {
 		$text = wp_strip_all_tags( (string) $text );
 		$text = trim( preg_replace( '/\s+/', ' ', $text ) );

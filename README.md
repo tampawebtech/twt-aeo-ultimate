@@ -60,6 +60,10 @@ JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Produc
 
 `llms.txt` and `llms-full.txt`, Markdown versions of every page at `/page.md` (with content negotiation and discovery links), Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
 
+### Use with Claude (new in 2.30)
+
+Ask Claude about your AI citations, AI crawler visits, Google indexing, schema and content gaps, and let it make fixes you approve. Switch the connector on under **Settings → MCPs** (off by default, administrators only): 22 read tools, six ready-made analyses and 14 change tools behind a separate Allow changes switch. Every change is previewed first, applied only after you say yes, logged, and can be reverted. Connect Claude Code or Claude Desktop with the command shown on that tab, or Claude on the web and mobile through an [aeoultimate.app](https://app.aeoultimate.app) account (free for one site).
+
 ### WordPress Abilities (new in 2.27)
 
 On WordPress 6.9+, the plugin registers five read-only abilities so an AI assistant you connect (for example through the WordPress MCP Adapter) can read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, any page's AEO report and your RAG Engine content gaps. Administrators only. Answers are summaries: no visitor data, raw crawler requests, full AI answers, settings or keys are returned, and text written by outsiders (crawler URLs, AI-predicted questions) never goes out raw.
@@ -92,7 +96,7 @@ Full setup guide: [aeoultimate.com/docs/getting-started](https://aeoultimate.com
 
 ## Privacy and external services
 
-Nothing is sent anywhere until you configure a feature and use it. Uploaded documents are processed on your own server. Every outside service the plugin can contact, what it sends and the provider's terms are listed in [EXTERNAL-SERVICES.md](EXTERNAL-SERVICES.md).
+Nothing is sent anywhere until you configure a feature and use it. Uploaded documents are processed on your own server. Every outside service the plugin can contact, what it sends and the provider's terms are listed in [external-services.txt](external-services.txt).
 
 ## Changelog
 

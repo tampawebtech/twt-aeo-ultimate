@@ -63,6 +63,13 @@ function twtaeo_uninstall_cleanup() {
 
 		// AEO Score history.
 		'twtaeo_score_history',
+
+		// Use with Claude (owner MCP connector). The Application Passwords it
+		// created belong to the user and stay; they can be revoked on the profile.
+		'twtaeo_owner_mcp_enabled',
+		'twtaeo_owner_mcp_last_used',
+		'twtaeo_owner_mcp_writes',
+		'twtaeo_owner_mcp_log',
 	);
 
 	foreach ( $options as $twtaeo_option ) {

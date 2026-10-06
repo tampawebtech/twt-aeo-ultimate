@@ -488,16 +488,14 @@ final class TWTAEO_Visibility_Store {
 	/* ───────────────────────────── runs ───────────────────────────── */
 
 	/**
-	 * Open a run: snapshot the questions, queue every (question × engine-with-
-	 * a-key) pair, persist. Nothing is asked here — the client loop calls
-	 * `step_run()` once per check.
+	 * What start_run() would ask, without starting anything or spending a
+	 * check: the clamped allocation, the engines that hold a key, and the
+	 * questions. Shared with the owner's Claude connector, which previews a
+	 * run before the owner confirms it.
 	 *
-	 * @param array $alloc Allocation; `engines` [] means every engine with a key.
-	 * @param array $opts  { max_questions?: int, sample?: bool (first engine only), persona?: Persona|null, journey?: int follow-up turns 0..JOURNEY_MAX }
-	 * @return array Run
+	 * @return array { allocation, engines, questions }
 	 */
-	public static function start_run( array $alloc, array $opts = array() ) {
-		self::maybe_create_tables();
+	public static function plan_run( array $alloc, array $opts = array() ) {
 		$a = self::clamp_allocation( $alloc );
 
 		$available = array();
@@ -522,7 +520,29 @@ final class TWTAEO_Visibility_Store {
 		if ( isset( $opts['max_questions'] ) && is_numeric( $opts['max_questions'] ) && (int) $opts['max_questions'] >= 0 ) {
 			$questions = array_slice( $questions, 0, (int) $opts['max_questions'] );
 		}
-		$questions = array_values( $questions );
+
+		return array(
+			'allocation' => $a,
+			'engines'    => $engines,
+			'questions'  => array_values( $questions ),
+		);
+	}
+
+	/**
+	 * Open a run: snapshot the questions, queue every (question × engine-with-
+	 * a-key) pair, persist. Nothing is asked here — the client loop calls
+	 * `step_run()` once per check.
+	 *
+	 * @param array $alloc Allocation; `engines` [] means every engine with a key.
+	 * @param array $opts  { max_questions?: int, sample?: bool (first engine only), persona?: Persona|null, journey?: int follow-up turns 0..JOURNEY_MAX }
+	 * @return array Run
+	 */
+	public static function start_run( array $alloc, array $opts = array() ) {
+		self::maybe_create_tables();
+		$plan      = self::plan_run( $alloc, $opts );
+		$a         = $plan['allocation'];
+		$engines   = $plan['engines'];
+		$questions = $plan['questions'];
 
 		$queue = array();
 		foreach ( $questions as $q ) {

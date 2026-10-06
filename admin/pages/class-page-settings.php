@@ -23,6 +23,10 @@ class TWTAEO_Page_Settings {
 			self::handle_save();
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- tab choice only, nothing is saved from it.
+		$active_tab = ( isset( $_GET['tab'] ) && 'mcps' === sanitize_key( wp_unslash( $_GET['tab'] ) ) ) ? 'mcps' : 'general';
+		$base_url   = admin_url( 'admin.php?page=twt-aeo-settings' );
+
 		$settings = get_option( 'twtaeo_settings', array() );
 
 		// Decrypt secret fields for display (stored encrypted at rest).
@@ -43,6 +47,27 @@ class TWTAEO_Page_Settings {
 					</h1>
 				</div>
 			</div>
+
+			<nav class="twt-aeo-tabs">
+				<a href="<?php echo esc_url( $base_url ); ?>"
+				   class="twt-aeo-tab <?php echo 'general' === $active_tab ? 'twt-aeo-tab--active' : ''; ?>">
+					<span class="dashicons dashicons-admin-settings"></span>
+					<?php esc_html_e( 'General', 'twt-aeo-ultimate' ); ?>
+				</a>
+				<a href="<?php echo esc_url( add_query_arg( 'tab', 'mcps', $base_url ) ); ?>"
+				   class="twt-aeo-tab <?php echo 'mcps' === $active_tab ? 'twt-aeo-tab--active' : ''; ?>">
+					<span class="dashicons dashicons-admin-plugins"></span>
+					<?php esc_html_e( 'MCPs', 'twt-aeo-ultimate' ); ?>
+				</a>
+			</nav>
+
+			<?php if ( 'mcps' === $active_tab ) : ?>
+				<?php TWTAEO_Page_Claude::render_content(); ?>
+				</div>
+				<?php
+				return;
+			endif;
+			?>
 
 			<form method="post" action="">
 				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>

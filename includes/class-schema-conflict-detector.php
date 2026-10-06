@@ -68,9 +68,10 @@ class TWTAEO_Schema_Conflict_Detector {
 	 * Perform a full schema conflict scan.
 	 * Should only be called from an AJAX handler — NOT during page render.
 	 *
+	 * @param bool $transmit Send conflicts to the agency dashboard (false for read-only callers).
 	 * @return array|WP_Error
 	 */
-	public static function scan() {
+	public static function scan( $transmit = true ) {
 		$html = self::fetch_homepage_html();
 		if ( is_wp_error( $html ) ) {
 			return $html;
@@ -129,7 +130,7 @@ class TWTAEO_Schema_Conflict_Detector {
 			}
 		}
 
-		if ( ! empty( $conflicts ) && class_exists( 'TWTAEO_Pro_Transmitter' ) ) {
+		if ( $transmit && ! empty( $conflicts ) && class_exists( 'TWTAEO_Pro_Transmitter' ) ) {
 			foreach ( $conflicts as $conflict ) {
 				TWTAEO_Pro_Transmitter::send_schema_conflict( $conflict );
 			}

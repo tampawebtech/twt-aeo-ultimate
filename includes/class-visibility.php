@@ -122,7 +122,7 @@ final class TWTAEO_Visibility {
 	}
 
 	/** The newest real run still in `running` state, or ''. */
-	private static function active_run_id() {
+	public static function active_run_id() {
 		if ( ! class_exists( 'TWTAEO_Visibility_Store' ) ) {
 			return '';
 		}
@@ -191,6 +191,20 @@ final class TWTAEO_Visibility {
 		if ( '' !== self::active_run_id() ) {
 			self::schedule_worker( 60 );
 		}
+	}
+
+	/**
+	 * Start a run with nobody's browser stepping it: cron carries it from the
+	 * first check (the owner's Claude connector, TWTAEO_Owner_Actions).
+	 *
+	 * @return array|WP_Error The run, as TWTAEO_Visibility_Store::start_run() returns it.
+	 */
+	public static function start_background_run( array $alloc, array $opts = array() ) {
+		$run = TWTAEO_Visibility_Store::start_run( $alloc, $opts );
+		if ( is_array( $run ) && ! empty( $run['id'] ) ) {
+			self::schedule_worker( 30 );
+		}
+		return $run;
 	}
 
 	/** The capability the board and its handlers require. */
