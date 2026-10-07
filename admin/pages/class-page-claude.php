@@ -87,14 +87,17 @@ class TWTAEO_Page_Claude {
 		}
 		$shown_auth = $auth ? $auth : 'Basic YOUR-CONNECTION-PASSWORD';
 
+		// The second header carries the same value for servers that strip
+		// Authorization (see TWTAEO_Owner_MCP::FALLBACK_AUTH_HEADER).
 		$code_cmd = sprintf(
-			'claude mcp add --transport http --scope user %1$s %2$s --header "Authorization: %3$s"',
+			'claude mcp add --transport http --scope user %1$s %2$s --header "Authorization: %3$s" --header "%4$s: %3$s"',
 			$name,
 			$endpoint,
-			$shown_auth
+			$shown_auth,
+			TWTAEO_Owner_MCP::FALLBACK_AUTH_HEADER
 		);
 
-		$remote_args = array( '-y', 'mcp-remote', $endpoint, '--header', 'Authorization:${AEO_AUTH}' );
+		$remote_args = array( '-y', 'mcp-remote', $endpoint, '--header', 'Authorization:${AEO_AUTH}', '--header', TWTAEO_Owner_MCP::FALLBACK_AUTH_HEADER . ':${AEO_AUTH}' );
 		if ( 0 === strpos( $endpoint, 'http://' ) ) {
 			$remote_args[] = '--allow-http';
 		}

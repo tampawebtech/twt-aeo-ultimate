@@ -55,9 +55,53 @@ final class TWTAEO_Owner_MCP {
 	/** Newest first; the first is offered when the client asks for one we do not know. */
 	const PROTOCOL_VERSIONS = array( '2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05' );
 
+	/**
+	 * Second header for the same Basic credentials. Servers that run PHP as
+	 * CGI (common on cPanel) drop Authorization before WordPress sees it, and
+	 * no .htaccess rule gets it back; a custom header always gets through.
+	 */
+	const FALLBACK_AUTH_HEADER = 'X-AEO-Authorization';
+
 	public static function init() {
+		self::populate_fallback_auth();
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
 		add_filter( 'rest_pre_serve_request', array( __CLASS__, 'empty_body_for_accepted' ), 10, 3 );
+	}
+
+	/**
+	 * When Authorization did not arrive but X-AEO-Authorization did, hand its
+	 * credentials to WordPress the way core's
+	 * wp_populate_basic_auth_from_authorization_header() does, so the normal
+	 * Application Password check runs on them. Only for this endpoint, and
+	 * only before anyone has asked who the current user is (runs as the
+	 * plugin loads).
+	 */
+	private static function populate_fallback_auth() {
+		if ( isset( $_SERVER['PHP_AUTH_USER'] ) || isset( $_SERVER['PHP_AUTH_PW'] ) || empty( $_SERVER['HTTP_X_AEO_AUTHORIZATION'] ) ) {
+			return;
+		}
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? rawurldecode( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) : '';
+		if ( false === strpos( $uri, self::NAMESPACE_V . self::ROUTE ) ) {
+			return;
+		}
+
+		$header = trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_AEO_AUTHORIZATION'] ) ) );
+		if ( ! preg_match( '%^Basic ([a-z\d/+]*={0,2})$%i', $header, $m ) ) {
+			return;
+		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- HTTP Basic authentication header, not obfuscation.
+		$userpass = (string) base64_decode( $m[1], true );
+		if ( false === strpos( $userpass, ':' ) ) {
+			return;
+		}
+		list( $user, $pass )      = explode( ':', $userpass, 2 );
+		$_SERVER['PHP_AUTH_USER'] = $user;
+		$_SERVER['PHP_AUTH_PW']   = $pass;
+	}
+
+	/** Whether any Basic credentials reached PHP on this request. */
+	private static function credentials_arrived() {
+		return isset( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['HTTP_AUTHORIZATION'] ) || ! empty( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] );
 	}
 
 	public static function is_enabled() {
@@ -96,6 +140,13 @@ final class TWTAEO_Owner_MCP {
 		}
 
 		if ( ! is_user_logged_in() ) {
+			if ( ! self::credentials_arrived() ) {
+				return new WP_Error(
+					'twtaeo_mcp_no_auth',
+					__( 'No sign-in reached WordPress. If your client sent an Authorization header, this server removed it before WordPress saw it (common when PHP runs as CGI). Send the same value in an X-AEO-Authorization header as well, or ask your host to pass the Authorization header to PHP. Help: https://aeoultimate.com/docs/claude/#authorization-header', 'twt-aeo-ultimate' ),
+					array( 'status' => 401 )
+				);
+			}
 			return new WP_Error(
 				'twtaeo_mcp_auth',
 				__( 'Sign in with a WordPress Application Password. Create one under TWT AEO → Settings → MCPs.', 'twt-aeo-ultimate' ),

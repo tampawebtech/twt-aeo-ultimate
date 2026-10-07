@@ -1,6 +1,11 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.30.4 =
+
+* **Fixed: connector sign-in on hosts that strip `Authorization` (`TWTAEO_Owner_MCP::populate_fallback_auth()`).** PHP running as CGI (cPanel + suEXEC) drops the header and no .htaccess rule restores it, so every connection key looked like none and the hub got "Sign in with a WordPress Application Password". The endpoint now also reads the same Basic value from `X-AEO-Authorization` and hands it to core's Application Password check via `PHP_AUTH_USER`/`PHP_AUTH_PW`, exactly as `wp_populate_basic_auth_from_authorization_header()` does. Only for `/aeo/v1/owner-mcp`, only when no credentials arrived otherwise, run as the plugin loads. app.aeoultimate.app sends both headers; the Claude Code command and Claude Desktop config on Settings → MCPs now do too.
+* **Improved: `twtaeo_mcp_no_auth` 401** when no credentials reached PHP at all, naming the likely cause and linking aeoultimate.com/docs/claude/#authorization-header.
+
 = 2.30.3 =
 
 * **Changed: tool descriptions describe instead of instruct (`TWTAEO_Owner_MCP::TWO_STEP`, action and ability descriptions).** Anthropic's directory policy rejects tool descriptions that give the model instructions. The shared two-step suffix said "Show the preview to the site owner... Never confirm on your own"; it now states the mechanism (a call without `confirm_token` returns a preview and changes nothing; the same call with the preview's token applies it; the token stands for the owner's approval and expires after 15 minutes). Thirteen other sentences such as "Use get_page_aeo_report for...", "Check window.days..." and "Never invent credentials" were reworded the same way. Behaviour is unchanged: `confirm_token` is still required and HMAC-checked server-side, and the server instructions still ask for approval before every change.

@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.3
+Stable tag: 2.30.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -201,6 +201,10 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.30.4 =
+* Fixed: the Claude connector now works on hosts that remove the Authorization header before WordPress sees it, which is common on cPanel servers that run PHP as CGI. The connector now also accepts the connection password in a second header that these servers let through, and both app.aeoultimate.app and the setup commands on Settings → MCPs send it.
+* Improved: when no sign-in reaches WordPress at all, the connector says so and explains the likely cause, instead of asking for an Application Password you already sent.
+
 = 2.30.3 =
 * Changed: the Claude connector's tool descriptions now describe what each tool does instead of instructing Claude, as the Claude connector directory requires. The safeguards are unchanged: every change still needs a preview and the owner's approval before it is applied.
 
@@ -394,6 +398,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.4 =
+The Claude connector now works on hosts that strip the Authorization header (common with PHP as CGI on cPanel).
 
 = 2.30.3 =
 Claude connector tool descriptions reworded for the Claude connector directory. No change to how the connector works.

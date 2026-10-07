@@ -62,7 +62,7 @@ JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Produc
 
 ### Use with Claude (new in 2.30)
 
-Ask Claude about your AI citations, AI crawler visits, Google indexing, schema and content gaps, and let it make fixes you approve. Switch the connector on under **Settings → MCPs** (off by default, administrators only): 22 read tools, six ready-made analyses and 14 change tools behind a separate Allow changes switch. Every change is previewed first, applied only after you say yes, logged, and can be reverted. Connect Claude Code or Claude Desktop with the command shown on that tab, or Claude on the web and mobile through an [aeoultimate.app](https://app.aeoultimate.app) account (free for one site).
+Ask Claude about your AI citations, AI crawler visits, Google indexing, schema and content gaps, and let it make fixes you approve. Switch the connector on under **Settings → MCPs** (off by default, administrators only): 22 read tools, six ready-made analyses and 14 change tools behind a separate Allow changes switch. Every change is previewed first, applied only after you say yes, logged, and can be reverted. Connect Claude Code or Claude Desktop with the command shown on that tab, or Claude on the web and mobile through an [aeoultimate.app](https://app.aeoultimate.app) account (free for one site). Since 2.30.4 it also works on hosts that strip the Authorization header (common with PHP as CGI on cPanel).
 
 ### WordPress Abilities (new in 2.27)
 
