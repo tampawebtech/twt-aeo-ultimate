@@ -1693,7 +1693,7 @@ class TWTAEO_Page_Command_Center {
 
 	// ── Data Fetching (with Transient Cache) ─────────────────────────────────
 
-	private static function fetch_ga4_totals( $property_id ) {
+	public static function fetch_ga4_totals( $property_id ) {
 		$cache_key = 'twtaeo_ga4_totals';
 		$cached    = get_transient( $cache_key );
 
@@ -1729,7 +1729,7 @@ class TWTAEO_Page_Command_Center {
 		return $totals;
 	}
 
-	private static function fetch_ga4_top_pages( $property_id ) {
+	public static function fetch_ga4_top_pages( $property_id ) {
 		$cache_key = 'twtaeo_ga4_top_pages_v2';
 		$cached    = get_transient( $cache_key );
 
@@ -1839,7 +1839,7 @@ class TWTAEO_Page_Command_Center {
 	 * @param string $property_id GA4 numeric property ID.
 	 * @return array|WP_Error { sources: array, totals: array }
 	 */
-	private static function fetch_ga4_ai_traffic( $property_id ) {
+	public static function fetch_ga4_ai_traffic( $property_id ) {
 		$cache_key = 'twtaeo_ga4_ai_traffic';
 		$cached    = get_transient( $cache_key );
 
@@ -1901,7 +1901,7 @@ class TWTAEO_Page_Command_Center {
 		return $data;
 	}
 
-	private static function fetch_gsc_totals( $site_url ) {
+	public static function fetch_gsc_totals( $site_url ) {
 		$cache_key = 'twtaeo_gsc_totals';
 		$cached    = get_transient( $cache_key );
 
@@ -1930,7 +1930,7 @@ class TWTAEO_Page_Command_Center {
 		return $totals;
 	}
 
-	private static function fetch_gsc_top_queries( $site_url ) {
+	public static function fetch_gsc_top_queries( $site_url ) {
 		$cache_key = 'twtaeo_gsc_top_queries';
 		$cached    = get_transient( $cache_key );
 
@@ -1964,7 +1964,7 @@ class TWTAEO_Page_Command_Center {
 		return $queries;
 	}
 
-	private static function fetch_bing_stats() {
+	public static function fetch_bing_stats() {
 		$cache_key = 'twtaeo_bing_stats_v2';
 		$cached    = get_transient( $cache_key );
 
@@ -2063,7 +2063,7 @@ class TWTAEO_Page_Command_Center {
 	 *
 	 * @return array|WP_Error
 	 */
-	private static function fetch_bing_recommendations() {
+	public static function fetch_bing_recommendations() {
 		$cache_key = 'twtaeo_bing_suggestions';
 		$cached    = get_transient( $cache_key );
 
@@ -2128,7 +2128,7 @@ class TWTAEO_Page_Command_Center {
 	 *   WP_Error – API / network failure
 	 *   array    – [ 'crawl_errors' => int, 'host_status' => string, 'blocked' => int ]
 	 */
-	private static function fetch_bing_crawl_status() {
+	public static function fetch_bing_crawl_status() {
 		$cache_key = 'twtaeo_bing_crawl_status';
 		$cached    = get_transient( $cache_key );
 		if ( $cached !== false ) {

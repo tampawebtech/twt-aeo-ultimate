@@ -2631,7 +2631,7 @@ class TWTAEO_Plugin {
 			'twitter'   => $company['social_twitter']   ?? '',
 			'instagram' => $company['social_instagram'] ?? '',
 			'youtube'   => $company['social_youtube']   ?? '',
-			'google'    => '',
+			'google'    => $company['social_google']    ?? '',
 		) );
 	}
 
@@ -2648,6 +2648,7 @@ class TWTAEO_Plugin {
 		$company['social_twitter']   = esc_url_raw( wp_unslash( $_POST['twitter']   ?? '' ) );
 		$company['social_instagram'] = esc_url_raw( wp_unslash( $_POST['instagram'] ?? '' ) );
 		$company['social_youtube']   = esc_url_raw( wp_unslash( $_POST['youtube']   ?? '' ) );
+		$company['social_google']    = esc_url_raw( wp_unslash( $_POST['google']    ?? '' ) );
 
 		update_option( TWTAEO_Company_Profile::OPTION_KEY, $company );
 		TWTAEO_EEAT_Detector::clear_cache();

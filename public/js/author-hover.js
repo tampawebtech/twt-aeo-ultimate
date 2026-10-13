@@ -14,9 +14,15 @@
 ( function () {
 	'use strict';
 
-	var __ = wp.i18n.__;
-	var _n = wp.i18n._n;
-	var sprintf = wp.i18n.sprintf;
+	// Another plugin can overwrite the global wp; keep working, untranslated, if it does.
+	var i18n = ( window.wp && window.wp.i18n ) || {
+		__: function ( s ) { return s; },
+		_n: function ( single, plural, n ) { return 1 === Number( n ) ? single : plural; },
+		sprintf: function ( format ) { var args = [].slice.call( arguments, 1 ); return format.replace( /%[sd]/g, function () { return args.shift(); } ); },
+	};
+	var __ = i18n.__;
+	var _n = i18n._n;
+	var sprintf = i18n.sprintf;
 
 	if ( typeof twtAeoHover === 'undefined' || ! twtAeoHover.authors ) {
 		return;

@@ -289,7 +289,7 @@ class TWTAEO_Schema_Autofill {
 		}
 
 		$sameas = array();
-		foreach ( array( 'social_facebook', 'social_twitter', 'social_linkedin', 'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest' ) as $key ) {
+		foreach ( array( 'social_facebook', 'social_twitter', 'social_linkedin', 'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest', 'social_google' ) as $key ) {
 			if ( ! empty( $company[ $key ] ) ) {
 				$sameas[] = $company[ $key ];
 			}

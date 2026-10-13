@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.4
+Stable tag: 2.30.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -99,7 +99,7 @@ Google Search Console, Google Analytics 4 and Bing Webmaster Tools in one view, 
 
 = Use with Claude =
 
-Ask Claude about your AI citations, AI crawler visits, Google indexing, schema and content gaps, and let it make fixes you approve. Switch the connector on under Settings → MCPs (off by default, administrators only) and connect Claude Code or Claude Desktop with one command, or Claude on the web and mobile through an aeoultimate.app account (free for one site; more sites are a paid plan with a 14-day trial). Every change is previewed first, logged, and can be reverted.
+Ask Claude about your AI citations, AI crawler visits, Google indexing, schema, content gaps and your Google Analytics, Search Console and Bing Webmaster reports, and let it make fixes you approve. Switch the connector on under Settings → MCPs (off by default, administrators only) and connect Claude Code or Claude Desktop with one command, or Claude on the web and mobile through an aeoultimate.app account (free for one site; more sites are a paid plan with a 14-day trial). Every change is previewed first, logged, and can be reverted.
 
 = More Tools =
 
@@ -200,6 +200,12 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.30.5 =
+* New: the Claude connector can read your Google Analytics, Google Search Console and Bing Webmaster Tools reports once they are connected in Command Center: traffic and top pages, visits from AI assistants, search queries, Bing's SEO recommendations and crawl status. Claude no longer has to open those sites to answer.
+* Fixed: the Google Business link in E-E-A-T → Add Links was never saved. It now saves, appears on Company Info and in the setup wizard, and is added to your Organization schema as a sameAs profile.
+* Fixed: Local Pack's business-type picker and several other screens stopped working when another plugin replaced WordPress's `wp` script object. They now keep working alongside such plugins.
+* Improved: the Claude connector sends compact responses, so each answer uses less of Claude's context.
 
 = 2.30.4 =
 * Fixed: the Claude connector now works on hosts that remove the Authorization header before WordPress sees it, which is common on cPanel servers that run PHP as CGI. The connector now also accepts the connection password in a second header that these servers let through, and both app.aeoultimate.app and the setup commands on Settings → MCPs send it.
@@ -398,6 +404,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.5 =
+Google Business links now save, the Claude connector can read Google Analytics, Search Console and Bing reports, and Local Pack keeps working next to plugins that replace WordPress's wp object.
 
 = 2.30.4 =
 The Claude connector now works on hosts that strip the Authorization header (common with PHP as CGI on cPanel).

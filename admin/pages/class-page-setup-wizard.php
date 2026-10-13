@@ -554,6 +554,7 @@ class TWTAEO_Page_Setup_Wizard {
 			'social_youtube'   => __( 'YouTube', 'twt-aeo-ultimate' ),
 			'social_pinterest' => __( 'Pinterest', 'twt-aeo-ultimate' ),
 			'social_wikipedia' => __( 'Wikipedia', 'twt-aeo-ultimate' ),
+			'social_google'    => __( 'Google Business', 'twt-aeo-ultimate' ),
 		);
 		?>
 		<p class="twt-aeo-wizard__subtitle"><?php esc_html_e( 'These URLs populate your Organization schema\'s sameAs property and Open Graph tags.', 'twt-aeo-ultimate' ); ?></p>
@@ -988,7 +989,7 @@ class TWTAEO_Page_Setup_Wizard {
 		$current = TWTAEO_Company_Profile::get();
 		$posted  = map_deep( wp_unslash( $_POST['company'] ), 'sanitize_text_field' );
 
-		$url_fields = array( 'url', 'logo_url', 'social_facebook', 'social_twitter', 'social_linkedin', 'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest' );
+		$url_fields = array( 'url', 'logo_url', 'social_facebook', 'social_twitter', 'social_linkedin', 'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest', 'social_google' );
 
 		$merged = $current;
 		foreach ( $posted as $key => $value ) {

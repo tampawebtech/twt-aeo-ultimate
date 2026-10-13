@@ -2,7 +2,8 @@
 ( function ( $ ) {
 	'use strict';
 
-	var __ = wp.i18n.__;
+	// Another plugin can overwrite the global wp; keep working, untranslated, if it does.
+	var __ = ( window.wp && window.wp.i18n ) ? window.wp.i18n.__ : function ( s ) { return s; };
 
 
 	$( document ).on( 'submit', '.twt-review-form', function ( e ) {

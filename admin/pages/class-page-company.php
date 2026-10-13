@@ -80,6 +80,7 @@ class TWTAEO_Page_Company {
 			'social_youtube'   => array( 'label' => 'YouTube',        'placeholder' => 'https://youtube.com/@yourchannel',     'note' => '' ),
 			'social_wikipedia' => array( 'label' => 'Wikipedia',      'placeholder' => 'https://en.wikipedia.org/wiki/YourCo', 'note' => '' ),
 			'social_pinterest' => array( 'label' => 'Pinterest',      'placeholder' => 'https://pinterest.com/yourhandle',     'note' => '' ),
+			'social_google'    => array( 'label' => 'Google Business', 'placeholder' => 'https://g.page/yourbusiness',         'note' => '' ),
 		);
 
 		if ( 'saved' === $notice ) : ?>

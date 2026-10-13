@@ -505,6 +505,7 @@ class TWTAEO_EEAT_Detector {
 			$social_keys = array(
 				'social_facebook', 'social_twitter', 'social_instagram',
 				'social_linkedin', 'social_youtube', 'social_wikipedia', 'social_pinterest',
+				'social_google',
 			);
 			foreach ( $social_keys as $key ) {
 				if ( ! empty( $company[ $key ] ) ) {

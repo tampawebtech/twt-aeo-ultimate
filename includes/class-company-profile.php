@@ -43,6 +43,7 @@ class TWTAEO_Company_Profile {
 			'social_youtube'   => '',
 			'social_wikipedia' => '',
 			'social_pinterest' => '',
+			'social_google'    => '',
 			// Meta Business.
 			'fb_app_id'     => '',
 			// Output toggles.
@@ -63,6 +64,7 @@ class TWTAEO_Company_Profile {
 		$social_keys = array(
 			'social_facebook', 'social_twitter', 'social_linkedin',
 			'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest',
+			'social_google',
 		);
 
 		$data = array(
@@ -97,6 +99,7 @@ class TWTAEO_Company_Profile {
 		$keys = array(
 			'social_facebook', 'social_twitter', 'social_linkedin',
 			'social_instagram', 'social_youtube', 'social_wikipedia', 'social_pinterest',
+			'social_google',
 		);
 		$urls = array();
 		foreach ( $keys as $key ) {
