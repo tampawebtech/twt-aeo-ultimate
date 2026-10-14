@@ -79,15 +79,32 @@ class TWTAEO_Contact_Detector {
 
 		// ── Content detection ────────────────────────────────────────────────
 
+		// Content-based strategies (1 and 3) need evidence that the page is
+		// for getting in touch: a contact form, or a real phone number or
+		// email address on a short page. Privacy policies, docs and guides
+		// mention "email" and "address" and carry a support address, but
+		// they are not contact pages.
+		$content    = $post->post_content ?? '';
+		$form       = self::has_contact_form( $content );
+		$details    = self::count_contact_details( $content );
+		$words      = str_word_count( wp_strip_all_tags( $content ) );
+		$has_means  = $form || $details > 0;
+		$short_page = $words <= 600;
+
 		// Strategy 1: Page intent classifier.
 		$intent = TWTAEO_Page_Intent::classify( $post );
-		if ( $intent['intent'] === 'contact' ) {
+		if ( $intent['intent'] === 'contact' && $has_means && ( $form || $short_page ) ) {
 			$has_contact = true;
 			$method      = 'intent';
 			$signals[]   = 'Page intent classified as: Contact Page';
 		}
 
-		// Strategy 2: Slug contains contact keywords.
+		// Strategy 2: Slug or title says it is the contact page.
+		if ( ! $has_contact && preg_match( '/\b(contact|get in touch|reach us)\b/i', get_the_title( $post ) ) ) {
+			$has_contact = true;
+			$method      = 'slug';
+			$signals[]   = 'Title names a contact page';
+		}
 		if ( ! $has_contact ) {
 			$contact_slugs = array( 'contact', 'contact-us', 'get-in-touch', 'reach-us', 'reach-out' );
 			$slug          = $post->post_name ?? '';
@@ -101,13 +118,18 @@ class TWTAEO_Contact_Detector {
 			}
 		}
 
-		// Strategy 3: Content keywords.
+		// Strategy 3: Contact details in the content. Words alone are not
+		// enough — a guide that mentions "email" and "address" is not a
+		// contact page — so the page must also carry a contact form or an
+		// actual phone number or email address.
 		if ( ! $has_contact ) {
-			$hits = self::count_contact_keywords( $post->post_content ?? '' );
-			if ( $hits >= 2 ) {
+			$hits = self::count_contact_keywords( $content );
+			if ( $form || ( $details > 0 && $hits >= 2 && $short_page ) ) {
 				$has_contact = true;
 				$method      = 'keywords';
-				$signals[]   = "Found {$hits} contact-related keywords in content";
+				$signals[]   = $form
+					? 'Contact form found in content'
+					: "Found a phone number or email address and {$hits} contact-related keywords in content";
 			}
 		}
 
@@ -250,20 +272,60 @@ class TWTAEO_Contact_Detector {
 		$keywords = array(
 			'contact', 'contact us', 'get in touch', 'reach us',
 			'phone', 'email', 'address', 'location', 'office',
-			'call us', 'send us', 'directions', 'map',
+			'call us', 'send us', 'directions', 'google maps',
 			'business hours', 'hours of operation',
 		);
 
 		$plain    = strtolower( wp_strip_all_tags( $content ) );
 		$hits     = 0;
 
+		// Whole words only: "map" must not match "sitemap".
 		foreach ( $keywords as $kw ) {
-			if ( strpos( $plain, $kw ) !== false ) {
+			if ( preg_match( '/\b' . preg_quote( $kw, '/' ) . '\b/', $plain ) ) {
 				$hits++;
 			}
 		}
 
 		return $hits;
+	}
+
+	/**
+	 * Count phone numbers and email addresses written in the content
+	 * (tel:/mailto: links or plain text).
+	 *
+	 * @param string $content
+	 * @return int
+	 */
+	private static function count_contact_details( $content ) {
+		$count = preg_match_all( '/(?:tel:|mailto:)/i', $content );
+		$plain = wp_strip_all_tags( $content );
+
+		$count += preg_match_all( '/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/', $plain );
+
+		// Phone: 10+ digits, optionally grouped with spaces, dots, dashes or brackets.
+		if ( preg_match_all( '/\+?\(?\d[\d\s().-]{8,}\d/', $plain, $m ) ) {
+			foreach ( $m[0] as $candidate ) {
+				if ( strlen( preg_replace( '/\D/', '', $candidate ) ) >= 10 ) {
+					$count++;
+				}
+			}
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Whether the content holds a contact form block or shortcode from a
+	 * common form plugin.
+	 *
+	 * @param string $content
+	 * @return bool
+	 */
+	private static function has_contact_form( $content ) {
+		return (bool) preg_match(
+			'/<!--\s*wp:(?:wpforms\/form-selector|contact-form-7\/contact-form-selector|gravityforms\/form|fluentfom\/guten-block|formidable\/simple-form|jetpack\/contact-form)\b|\[(?:wpforms|contact-form-7|gravityform|fluentform|formidable|ninja_form)\b/i',
+			$content
+		);
 	}
 
 	/**

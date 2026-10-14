@@ -1690,6 +1690,9 @@ final class TWTAEO_Page_AI_Visibility {
 					<span><?php self::echo_svg( self::svg_verdict_dot( $v, $v ) ); ?> <?php echo esc_html( $v ); ?></span>
 				<?php endforeach; ?>
 				<span class="twt-aeo-vis__muted">· <?php esc_html_e( 'second mark, when we know the answer: ✓ correct, ✗ wrong, — not stated. Click a cell to read what the engine said. Rows with a wrong answer come first.', 'twt-aeo-ultimate' ); ?></span>
+				<?php if ( ! empty( $journey ) ) : ?>
+					<span class="twt-aeo-vis__muted">· <?php esc_html_e( '↳ Follow-up rows: each engine asked its own next question — hover a dot to see it, click to read the conversation.', 'twt-aeo-ultimate' ); ?></span>
+				<?php endif; ?>
 			</p>
 			<div class="twt-aeo-vis__table-wrap">
 				<table class="twt-aeo-vis__table widefat">
@@ -1782,7 +1785,7 @@ final class TWTAEO_Page_AI_Visibility {
 										<?php if ( 1 === count( $texts ) ) : ?>
 											<span><?php echo esc_html( $texts[0] ); ?></span>
 										<?php else : ?>
-											<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Each engine asked its own next question — hover a dot to see it, click to read the conversation.', 'twt-aeo-ultimate' ); ?></span>
+											<span class="twt-aeo-vis__muted"><?php esc_html_e( 'Different question per engine', 'twt-aeo-ultimate' ); ?></span>
 										<?php endif; ?>
 									</td>
 									<td class="twt-aeo-vis__td-level">
@@ -2031,6 +2034,7 @@ final class TWTAEO_Page_AI_Visibility {
 				</table>
 				<p class="twt-aeo-vis__muted">
 					<?php esc_html_e( 'Named counts cited answers too, so it is never lower than cited. A brand with no owned profiles can still be named — it simply cannot be cited until it has somewhere to be cited.', 'twt-aeo-ultimate' ); ?>
+					<?php esc_html_e( 'Cited here counts only links to the brand\'s own website and profiles, out of the checks recorded for that brand. The Cited figure at the top counts a link to anything the company owns, out of answered checks, so it is usually higher.', 'twt-aeo-ultimate' ); ?>
 				</p>
 			<?php endif; ?>
 		</div>

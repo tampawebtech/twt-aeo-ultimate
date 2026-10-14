@@ -332,18 +332,17 @@ class TWTAEO_Page_Schema_Detector {
 		<section class="twt-aeo-section">
 			<h2 class="twt-aeo-section__title"><?php esc_html_e( 'How to Add FAQPage Schema', 'twt-aeo-ultimate' ); ?></h2>
 			<div class="twt-aeo-card">
-				<p class="twt-aeo-card__note"><?php esc_html_e( 'FAQPage schema tells AI systems and search engines that this page directly answers questions. Here are the easiest ways to add it:', 'twt-aeo-ultimate' ); ?></p>
+				<p class="twt-aeo-card__note"><?php esc_html_e( 'FAQPage schema tells AI systems and search engines that this page directly answers questions.', 'twt-aeo-ultimate' ); ?></p>
 				<ul class="twt-aeo-checklist">
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Click "Add FAQ Schema" on a page above, or "Generate All" to do every page at once. AEO Ultimate builds the schema from the questions and answers already on the page: free, no AI calls.', 'twt-aeo-ultimate' ); ?></li>
 					<?php if ( defined( 'RANK_MATH_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Rank Math: Add the Rank Math FAQ block to your page — it generates FAQPage schema automatically.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Already using the Rank Math FAQ block on a page? It writes its own FAQPage schema, so leave that page to Rank Math and use the Conflicts tab to keep one version.', 'twt-aeo-ultimate' ); ?></li>
 					<?php elseif ( defined( 'WPSEO_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Yoast SEO: Use the Yoast FAQ block inside the Gutenberg editor — it generates FAQPage schema automatically.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Already using the Yoast FAQ block on a page? It writes its own FAQPage schema, so leave that page to Yoast and use the Conflicts tab to keep one version.', 'twt-aeo-ultimate' ); ?></li>
 					<?php elseif ( defined( 'SASWP_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Schema & Structured Data for WP & AMP: Open the post editor, go to the Schema tab in the sidebar, add a FAQPage schema type, and enter your questions and answers manually.', 'twt-aeo-ultimate' ); ?></li>
-					<?php else : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Use a plugin like Rank Math, Yoast SEO, or Schema & Structured Data for WP & AMP to add FAQPage schema, or add the JSON-LD manually in your theme.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Already added a FAQPage schema type in Schema & Structured Data for WP & AMP? Leave that page to it and use the Conflicts tab to keep one version.', 'twt-aeo-ultimate' ); ?></li>
 					<?php endif; ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Once added, save the page — TWT AEO Ultimate will re-scan and update the status here.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'When you edit a page later, schema AEO Ultimate generated is updated to match. Schema you edited by hand is flagged here instead, so your edits are never overwritten.', 'twt-aeo-ultimate' ); ?></li>
 				</ul>
 			</div>
 		</section>
@@ -354,6 +353,15 @@ class TWTAEO_Page_Schema_Detector {
 		?>
 		(function($){
 			var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
+
+			// After a save, show the row as done without waiting for a reload.
+			function markFaqRowDone( postId ) {
+				var $row = $('.twt-aeo-faq-gen-one[data-post-id="' + postId + '"]').closest('tr');
+				var $tds = $row.children('td');
+				$tds.eq(3).html('<span class="twt-aeo-status-ok">✓ <?php echo esc_js( __( 'Present', 'twt-aeo-ultimate' ) ); ?></span>');
+				$tds.eq(4).html('<span class="twt-aeo-badge" style="background:rgba(22,163,74,.1);color:#16a34a;"><?php echo esc_js( __( 'Good', 'twt-aeo-ultimate' ) ); ?></span>');
+				$row.removeClass('twt-aeo-page-row--issues').addClass('twt-aeo-page-row--ok');
+			}
 
 			$('#twt-aeo-faq-gen-all').on('click', function(){
 				var btn    = $(this);
@@ -402,6 +410,7 @@ class TWTAEO_Page_Schema_Detector {
 							var rowResult = $('.twt-aeo-faq-gen-one-result[data-post-id="' + postId + '"]');
 							rowBtn.text('<?php echo esc_js( __( 'Regenerate', 'twt-aeo-ultimate' ) ); ?>');
 							rowResult.css('color','#16a34a').text(' ✓ ' + r.data.qa_count + ' Q&A saved');
+							markFaqRowDone( postId );
 						} else {
 							skipped++;
 						}
@@ -426,6 +435,7 @@ class TWTAEO_Page_Schema_Detector {
 					if (r.success) {
 						btn.prop('disabled', false).text('<?php echo esc_js( __( 'Regenerate', 'twt-aeo-ultimate' ) ); ?>');
 						result.css('color','#16a34a').text(' ✓ ' + r.data.qa_count + ' Q&A saved');
+						markFaqRowDone( postId );
 					} else {
 						btn.prop('disabled', false).text('<?php echo esc_js( __( 'Add FAQ Schema', 'twt-aeo-ultimate' ) ); ?>');
 						result.css('color','#dc2626').text(' ✗ ' + (r.data.message || 'Error'));
@@ -1085,14 +1095,13 @@ class TWTAEO_Page_Schema_Detector {
 			<h2 class="twt-aeo-section__title"><?php esc_html_e( 'How to Fix Contact Page Schema', 'twt-aeo-ultimate' ); ?></h2>
 			<div class="twt-aeo-card">
 				<ul class="twt-aeo-checklist">
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Fill in Your Business Info above, then click "Create from this info" on a contact page, or "Create for All". AEO Ultimate adds Organization, PostalAddress, and ContactPoint schema right away: free, no AI calls, no editor needed.', 'twt-aeo-ultimate' ); ?></li>
 					<?php if ( defined( 'RANK_MATH_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Rank Math: Go to Rank Math → Titles & Meta → Local SEO and fill in your business name, address, phone, and email.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Prefer to keep this in Rank Math? Fill in Rank Math → Titles & Meta → Local SEO instead, and use the Conflicts tab so only one version is output.', 'twt-aeo-ultimate' ); ?></li>
 					<?php elseif ( defined( 'WPSEO_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Yoast SEO: Go to Yoast → Company Info and fill in your organization name, logo, and contact details.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Prefer to keep this in Yoast SEO? Fill in Yoast → Company Info instead, and use the Conflicts tab so only one version is output.', 'twt-aeo-ultimate' ); ?></li>
 					<?php elseif ( defined( 'SASWP_VERSION' ) ) : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Schema & Structured Data for WP & AMP: Open your contact page, go to the Schema tab in the post editor sidebar, add an Organization or LocalBusiness schema type, and fill in your address, phone, and email fields.', 'twt-aeo-ultimate' ); ?></li>
-					<?php else : ?>
-					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Use Schema & Structured Data for WP & AMP, Rank Math, or Yoast SEO to add Organization, PostalAddress, and ContactPoint schema to your contact page.', 'twt-aeo-ultimate' ); ?></li>
+					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Prefer to keep this in Schema & Structured Data for WP & AMP? Add an Organization or LocalBusiness schema type from the Schema tab in the post editor instead, and use the Conflicts tab so only one version is output.', 'twt-aeo-ultimate' ); ?></li>
 					<?php endif; ?>
 					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'For entity consolidation — make sure all schema on the page uses the same @id value for your Organization so AI systems recognize them as the same entity.', 'twt-aeo-ultimate' ); ?></li>
 					<li class="twt-aeo-checklist__item twt-aeo-checklist__item--ok"><span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e( 'Once saved, TWT AEO Ultimate will automatically rescan and update the status here.', 'twt-aeo-ultimate' ); ?></li>

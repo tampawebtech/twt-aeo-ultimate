@@ -60,60 +60,34 @@ class TWTAEO_Page_Modules {
 				</h2>
 				<div class="twt-aeo-promo-grid">
 
-					<!-- TWT Content Generator -->
-					<div class="twt-aeo-promo-card">
-						<div class="twt-aeo-promo-card__badge">
-							<span class="twt-aeo-promo-badge twt-aeo-promo-badge--pro-plugin"><?php esc_html_e( 'Available', 'twt-aeo-ultimate' ); ?></span>
-						</div>
-						<div class="twt-aeo-promo-card__head">
-							<div class="twt-aeo-promo-card__icon twt-aeo-promo-card__icon--cg">
-								<span class="dashicons dashicons-edit-large"></span>
-							</div>
-							<div>
-								<h3 class="twt-aeo-promo-card__title"><?php esc_html_e( 'TWT Content Generator', 'twt-aeo-ultimate' ); ?></h3>
-								<p class="twt-aeo-promo-card__tagline"><?php esc_html_e( 'AI-powered content — three models, one workflow', 'twt-aeo-ultimate' ); ?></p>
-							</div>
-						</div>
-						<ul class="twt-aeo-promo-card__features">
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Generate with Claude, ChatGPT & Perplexity simultaneously', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Hub & sub-page architecture for topic clusters', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'AEO semantic elements baked into every prompt', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Tone, audience, intent, format & UVP controls', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Save drafts directly from the generator — no copy-paste', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Inherits your AEO API keys automatically', 'twt-aeo-ultimate' ); ?></li>
-						</ul>
-						<div class="twt-aeo-promo-card__foot">
-							<a class="button twt-aeo-promo-cta twt-aeo-promo-cta--pro-plugin" href="<?php echo esc_url( 'https://tampawebtech.com/content-generator/' ); ?>" target="_blank" rel="noopener">
-								<?php esc_html_e( 'Learn More', 'twt-aeo-ultimate' ); ?> &rarr;
-							</a>
-						</div>
-					</div>
-
-					<!-- TWT Agency -->
+					<!-- AEO Ultimate for WooCommerce -->
 					<div class="twt-aeo-promo-card">
 						<div class="twt-aeo-promo-card__badge">
 							<span class="twt-aeo-promo-badge twt-aeo-promo-badge--pro-plugin"><?php esc_html_e( 'Available', 'twt-aeo-ultimate' ); ?></span>
 						</div>
 						<div class="twt-aeo-promo-card__head">
 							<div class="twt-aeo-promo-card__icon twt-aeo-promo-card__icon--aeo-pro">
-								<span class="dashicons dashicons-chart-line"></span>
+								<span class="dashicons dashicons-cart"></span>
 							</div>
 							<div>
-								<h3 class="twt-aeo-promo-card__title"><?php esc_html_e( 'TWT Agency', 'twt-aeo-ultimate' ); ?></h3>
-								<p class="twt-aeo-promo-card__tagline"><?php esc_html_e( 'Every client site on one dashboard — monitor, alert, fix, and prove your value', 'twt-aeo-ultimate' ); ?></p>
+								<h3 class="twt-aeo-promo-card__title"><?php esc_html_e( 'AEO Ultimate for WooCommerce', 'twt-aeo-ultimate' ); ?></h3>
+								<p class="twt-aeo-promo-card__tagline"><?php esc_html_e( 'Be the store AI assistants name when shoppers ask what to buy, and let AI agents check out', 'twt-aeo-ultimate' ); ?></p>
 							</div>
 						</div>
 						<ul class="twt-aeo-promo-card__features">
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Connect unlimited client sites — this plugin reports in automatically', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Live Wire activity stream & AI crawler analytics across your whole portfolio', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'De-index & anomaly alerts in Slack with one-click fixes pushed back to the site', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'AI remediation plans — approve once and they apply on the client site', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'White-label monthly reports, shareable links & a branded client portal', 'twt-aeo-ultimate' ); ?></li>
-							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Before/after schema-impact reports that prove ROI to clients', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'One connected Product schema graph built from live WooCommerce data: displayed prices, stock from variations, shipping zones', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'Google and Bing Merchant Center parity checks', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'See which AI crawlers read your store and whether AI engines cite it', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'AI agents check out through Google\'s UCP and the ACP used by ChatGPT', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'WooCommerce calculates every total; agents pay through your own Stripe account', 'twt-aeo-ultimate' ); ?></li>
+							<li><span class="twt-aeo-promo-check">✓</span> <?php esc_html_e( 'HPOS and checkout-blocks compatible, no telemetry, 12 video tutorials', 'twt-aeo-ultimate' ); ?></li>
 						</ul>
 						<div class="twt-aeo-promo-card__foot">
-							<a class="button twt-aeo-promo-cta twt-aeo-promo-cta--pro-plugin" href="<?php echo esc_url( 'https://tampawebtech.com/twt-agency/' ); ?>" target="_blank" rel="noopener">
+							<a class="button twt-aeo-promo-cta twt-aeo-promo-cta--pro-plugin" href="<?php echo esc_url( 'https://tampawebtech.com/aeo-ultimate-for-woocommerce/' ); ?>" target="_blank" rel="noopener">
 								<?php esc_html_e( 'Learn More', 'twt-aeo-ultimate' ); ?> &rarr;
+							</a>
+							<a class="button" href="<?php echo esc_url( 'https://aeoultimate.com/docs/woocommerce/' ); ?>" target="_blank" rel="noopener">
+								<?php esc_html_e( 'Documentation', 'twt-aeo-ultimate' ); ?>
 							</a>
 						</div>
 					</div>

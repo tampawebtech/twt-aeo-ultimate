@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.30.5\n"
+"Project-Id-Version: TWT AEO Ultimate 2.30.6\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-13T02:20:41+00:00\n"
+"POT-Creation-Date: 2026-10-14T20:33:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -58,9 +58,9 @@ msgstr ""
 #: admin/class-admin-assets.php:324
 #: admin/pages/class-page-faq-detector.php:290
 #: admin/pages/class-page-image-seo.php:240
-#: admin/pages/class-page-schema-detector.php:381
-#: admin/pages/class-page-schema-detector.php:737
-#: admin/pages/class-page-schema-detector.php:1212
+#: admin/pages/class-page-schema-detector.php:389
+#: admin/pages/class-page-schema-detector.php:747
+#: admin/pages/class-page-schema-detector.php:1221
 #: admin/pages/class-page-woocommerce-detector.php:1478
 msgid "Done"
 msgstr ""
@@ -191,9 +191,9 @@ msgstr ""
 #: admin/pages/class-page-image-seo.php:345
 #: admin/pages/class-page-not-indexed.php:414
 #: admin/pages/class-page-schema-conflicts.php:589
-#: admin/pages/class-page-schema-detector.php:423
-#: admin/pages/class-page-schema-detector.php:1254
-#: admin/pages/class-page-social-graph.php:1078
+#: admin/pages/class-page-schema-detector.php:432
+#: admin/pages/class-page-schema-detector.php:1263
+#: admin/pages/class-page-social-graph.php:1096
 #: admin/assets/js/pr-bridge.js:87
 msgid "Saving…"
 msgstr ""
@@ -322,11 +322,11 @@ msgstr ""
 #: admin/pages/class-page-not-indexed.php:191
 #: admin/pages/class-page-not-indexed.php:279
 #: admin/pages/class-page-schema-detector.php:291
-#: admin/pages/class-page-schema-detector.php:647
-#: admin/pages/class-page-schema-detector.php:1051
+#: admin/pages/class-page-schema-detector.php:657
+#: admin/pages/class-page-schema-detector.php:1061
 #: admin/pages/class-page-service-detector.php:205
 #: admin/pages/class-page-smart-collections.php:450
-#: admin/pages/class-page-social-graph.php:628
+#: admin/pages/class-page-social-graph.php:646
 msgid "Edit"
 msgstr ""
 
@@ -457,7 +457,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:142
 #: admin/class-admin-menu.php:143
-#: admin/pages/class-page-ai-visibility.php:2678
+#: admin/pages/class-page-ai-visibility.php:2682
 #: admin/pages/class-page-command-center.php:66
 #: admin/pages/class-page-setup-wizard.php:870
 msgid "Command Center"
@@ -471,7 +471,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:165
 #: admin/class-admin-menu.php:166
-#: admin/pages/class-page-social-graph.php:123
+#: admin/pages/class-page-social-graph.php:141
 msgid "Social Graph"
 msgstr ""
 
@@ -506,7 +506,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:233
 #: admin/class-admin-menu.php:234
-#: admin/pages/class-page-ai-visibility.php:2676
+#: admin/pages/class-page-ai-visibility.php:2680
 #: admin/pages/class-page-smart-collections.php:88
 #: admin/pages/class-page-woocommerce-detector.php:147
 msgid "Smart Collections"
@@ -652,7 +652,7 @@ msgstr ""
 #: admin/class-metabox.php:86
 #: admin/pages/class-page-command-center.php:2902
 #: admin/pages/class-page-not-indexed.php:350
-#: admin/pages/class-page-social-graph.php:1255
+#: admin/pages/class-page-social-graph.php:1273
 #: includes/class-ai-description.php:132
 #: includes/class-author-meta.php:722
 msgid "Generating…"
@@ -671,11 +671,11 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:1687
 #: admin/pages/class-page-schema-conflicts.php:621
 #: admin/pages/class-page-schema-conflicts.php:655
-#: admin/pages/class-page-social-graph.php:1166
-#: admin/pages/class-page-social-graph.php:1265
-#: admin/pages/class-page-social-graph.php:1362
-#: admin/pages/class-page-social-graph.php:1386
-#: admin/pages/class-page-social-graph.php:1455
+#: admin/pages/class-page-social-graph.php:1184
+#: admin/pages/class-page-social-graph.php:1283
+#: admin/pages/class-page-social-graph.php:1380
+#: admin/pages/class-page-social-graph.php:1404
+#: admin/pages/class-page-social-graph.php:1473
 #: admin/assets/js/ai-ready.js:266
 #: admin/assets/js/index-now.js:95
 msgid "Request failed."
@@ -706,7 +706,8 @@ msgstr ""
 #: admin/pages/class-page-author.php:206
 #: admin/pages/class-page-faq-detector.php:182
 #: admin/pages/class-page-schema-detector.php:241
-#: admin/pages/class-page-schema-detector.php:632
+#: admin/pages/class-page-schema-detector.php:361
+#: admin/pages/class-page-schema-detector.php:642
 #: admin/pages/class-page-service-detector.php:185
 msgid "Present"
 msgstr ""
@@ -723,13 +724,13 @@ msgstr ""
 #: admin/pages/class-page-eeat.php:297
 #: admin/pages/class-page-faq-detector.php:184
 #: admin/pages/class-page-schema-detector.php:243
-#: admin/pages/class-page-schema-detector.php:634
-#: admin/pages/class-page-schema-detector.php:1015
-#: admin/pages/class-page-schema-detector.php:1022
-#: admin/pages/class-page-schema-detector.php:1029
+#: admin/pages/class-page-schema-detector.php:644
+#: admin/pages/class-page-schema-detector.php:1025
+#: admin/pages/class-page-schema-detector.php:1032
+#: admin/pages/class-page-schema-detector.php:1039
 #: admin/pages/class-page-service-detector.php:187
-#: admin/pages/class-page-social-graph.php:549
-#: admin/pages/class-page-social-graph.php:560
+#: admin/pages/class-page-social-graph.php:567
+#: admin/pages/class-page-social-graph.php:578
 msgid "Missing"
 msgstr ""
 
@@ -780,8 +781,8 @@ msgstr ""
 #: admin/pages/class-page-faq-detector.php:350
 #: admin/pages/class-page-faq-detector.php:354
 #: admin/pages/class-page-schema-detector.php:298
-#: admin/pages/class-page-schema-detector.php:430
-#: admin/pages/class-page-schema-detector.php:434
+#: admin/pages/class-page-schema-detector.php:440
+#: admin/pages/class-page-schema-detector.php:444
 msgid "Add FAQ Schema"
 msgstr ""
 
@@ -792,7 +793,7 @@ msgstr ""
 
 #: admin/class-metabox.php:233
 #: admin/class-metabox.php:361
-#: admin/pages/class-page-schema-detector.php:536
+#: admin/pages/class-page-schema-detector.php:546
 #: admin/pages/class-page-service-detector.php:81
 msgid "Service Schema Present"
 msgstr ""
@@ -910,10 +911,10 @@ msgstr ""
 #: admin/pages/class-page-not-indexed.php:275
 #: admin/pages/class-page-rag-engine.php:871
 #: admin/pages/class-page-schema-detector.php:289
-#: admin/pages/class-page-schema-detector.php:645
-#: admin/pages/class-page-schema-detector.php:1049
+#: admin/pages/class-page-schema-detector.php:655
+#: admin/pages/class-page-schema-detector.php:1059
 #: admin/pages/class-page-service-detector.php:201
-#: admin/pages/class-page-social-graph.php:630
+#: admin/pages/class-page-social-graph.php:648
 #: admin/pages/class-page-woocommerce-detector.php:669
 msgid "View"
 msgstr ""
@@ -1643,10 +1644,10 @@ msgstr ""
 #: admin/pages/class-page-reviews.php:169
 #: admin/pages/class-page-schema-conflicts.php:157
 #: admin/pages/class-page-schema-detector.php:203
-#: admin/pages/class-page-schema-detector.php:596
-#: admin/pages/class-page-schema-detector.php:992
+#: admin/pages/class-page-schema-detector.php:606
+#: admin/pages/class-page-schema-detector.php:1002
 #: admin/pages/class-page-service-detector.php:139
-#: admin/pages/class-page-social-graph.php:481
+#: admin/pages/class-page-social-graph.php:499
 #: admin/pages/class-page-woocommerce-detector.php:1771
 #: admin/pages/class-page-woocommerce-detector.php:2229
 msgid "Status"
@@ -2085,7 +2086,7 @@ msgid "A key on file means we can ask that engine. Whether that key’s tier all
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:541
-#: admin/pages/class-page-ai-visibility.php:2670
+#: admin/pages/class-page-ai-visibility.php:2674
 msgid "What counts as you"
 msgstr ""
 
@@ -2174,11 +2175,11 @@ msgstr ""
 #: admin/pages/class-page-knowledge-graph.php:334
 #: admin/pages/class-page-local-pack.php:324
 #: admin/pages/class-page-local-pack.php:350
-#: admin/pages/class-page-schema-detector.php:659
-#: admin/pages/class-page-schema-detector.php:1069
+#: admin/pages/class-page-schema-detector.php:669
+#: admin/pages/class-page-schema-detector.php:1079
 #: admin/pages/class-page-service-detector.php:223
 #: admin/pages/class-page-smart-404.php:161
-#: admin/pages/class-page-social-graph.php:704
+#: admin/pages/class-page-social-graph.php:722
 #: includes/class-author-meta.php:774
 msgid "Remove"
 msgstr ""
@@ -2293,8 +2294,8 @@ msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:796
 #: admin/pages/class-page-local-pack.php:237
-#: admin/pages/class-page-schema-detector.php:950
-#: admin/pages/class-page-schema-detector.php:1146
+#: admin/pages/class-page-schema-detector.php:960
+#: admin/pages/class-page-schema-detector.php:1155
 msgid "City"
 msgstr ""
 
@@ -2570,7 +2571,7 @@ msgstr ""
 #: admin/pages/class-page-dashboard.php:197
 #: admin/pages/class-page-image-seo.php:99
 #: admin/pages/class-page-image-seo.php:283
-#: admin/pages/class-page-social-graph.php:222
+#: admin/pages/class-page-social-graph.php:240
 #: admin/pages/class-page-woocommerce-detector.php:335
 msgid "Stop"
 msgstr ""
@@ -2670,7 +2671,7 @@ msgid "One row per question asked, each followed by the follow-up questions that
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:1447
-#: admin/pages/class-page-ai-visibility.php:2016
+#: admin/pages/class-page-ai-visibility.php:2019
 msgid "Cited"
 msgstr ""
 
@@ -2687,7 +2688,7 @@ msgid "vs previous run"
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:1456
-#: admin/pages/class-page-ai-visibility.php:2017
+#: admin/pages/class-page-ai-visibility.php:2020
 msgid "Named"
 msgstr ""
 
@@ -2853,7 +2854,7 @@ msgid "cited"
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:1641
-#: admin/pages/class-page-ai-visibility.php:1868
+#: admin/pages/class-page-ai-visibility.php:1871
 msgid "you"
 msgstr ""
 
@@ -2881,284 +2882,292 @@ msgstr ""
 msgid "second mark, when we know the answer: ✓ correct, ✗ wrong, — not stated. Click a cell to read what the engine said. Rows with a wrong answer come first."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1698
+#: admin/pages/class-page-ai-visibility.php:1694
+msgid "↳ Follow-up rows: each engine asked its own next question — hover a dot to see it, click to read the conversation."
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:1701
 #: includes/class-product-faq-generator.php:464
 #: includes/class-product-faq-generator.php:474
 msgid "Question"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1699
+#: admin/pages/class-page-ai-visibility.php:1702
 msgid "Level / scope"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1703
+#: admin/pages/class-page-ai-visibility.php:1706
 msgid "What to fix"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1718
+#: admin/pages/class-page-ai-visibility.php:1721
 msgid "we know:"
 msgstr ""
 
 #. translators: %s: accuracy verdict — correct, wrong or not stated.
-#: admin/pages/class-page-ai-visibility.php:1740
-#: admin/pages/class-page-ai-visibility.php:1828
+#: admin/pages/class-page-ai-visibility.php:1743
+#: admin/pages/class-page-ai-visibility.php:1831
 #, php-format
 msgid "accuracy: %s"
 msgstr ""
 
 #. translators: %d: conversation turn number (2, 3).
-#: admin/pages/class-page-ai-visibility.php:1780
+#: admin/pages/class-page-ai-visibility.php:1783
 #, php-format
 msgid "↳ Follow-up · turn %d"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1785
-msgid "Each engine asked its own next question — hover a dot to see it, click to read the conversation."
+#: admin/pages/class-page-ai-visibility.php:1788
+msgid "Different question per engine"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1789
+#: admin/pages/class-page-ai-visibility.php:1792
 msgid "Follow-up"
 msgstr ""
 
 #. translators: 1: turn number, 2: the follow-up question asked, 3: verdict.
-#: admin/pages/class-page-ai-visibility.php:1802
+#: admin/pages/class-page-ai-visibility.php:1805
 #, php-format
 msgid "Turn %1$d: “%2$s” — %3$s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1833
-#: admin/pages/class-page-ai-visibility.php:1903
+#: admin/pages/class-page-ai-visibility.php:1836
+#: admin/pages/class-page-ai-visibility.php:1906
 msgid "(no answer text recorded)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1835
+#: admin/pages/class-page-ai-visibility.php:1838
 msgid "Where the answer named you:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1859
+#: admin/pages/class-page-ai-visibility.php:1862
 msgid "No prose mention of your name recorded in this answer."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1863
+#: admin/pages/class-page-ai-visibility.php:1866
 msgid "Cited:"
 msgstr ""
 
 #. translators: %d: number of cited URLs not shown.
-#: admin/pages/class-page-ai-visibility.php:1871
+#: admin/pages/class-page-ai-visibility.php:1874
 #, php-format
 msgid "and %d more"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1874
+#: admin/pages/class-page-ai-visibility.php:1877
 msgid "Gave no sources."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1874
+#: admin/pages/class-page-ai-visibility.php:1877
 msgid "This answer links to no one, so no one was cited in your place."
 msgstr ""
 
 #. translators: %s: engine name.
-#: admin/pages/class-page-ai-visibility.php:1878
+#: admin/pages/class-page-ai-visibility.php:1881
 #, php-format
 msgid "What they’re likely to ask next, according to %s:"
 msgstr ""
 
 #. translators: %s: why no follow-up questions were recorded.
-#: admin/pages/class-page-ai-visibility.php:1886
+#: admin/pages/class-page-ai-visibility.php:1889
 #, php-format
 msgid "No follow-up questions recorded: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1890
+#: admin/pages/class-page-ai-visibility.php:1893
 msgid "The conversation continued"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1890
+#: admin/pages/class-page-ai-visibility.php:1893
 msgid "each turn asked the engine’s own top follow-up, with the answers before it as history."
 msgstr ""
 
 #. translators: 1: turn number, 2: the follow-up question asked.
-#: admin/pages/class-page-ai-visibility.php:1898
+#: admin/pages/class-page-ai-visibility.php:1901
 #, php-format
 msgid "Turn %1$d: “%2$s”"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1905
+#: admin/pages/class-page-ai-visibility.php:1908
 msgid "Cited you:"
 msgstr ""
 
 #. translators: %s: cited domains.
-#: admin/pages/class-page-ai-visibility.php:1912
+#: admin/pages/class-page-ai-visibility.php:1915
 #, php-format
 msgid "Cited instead: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1914
+#: admin/pages/class-page-ai-visibility.php:1917
 msgid "Gave no sources: no one was cited in your place."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1921
+#: admin/pages/class-page-ai-visibility.php:1924
 msgid "API approximates the app — the consumer assistant personalises and changes daily; this is the closest reproducible measure."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1997
+#: admin/pages/class-page-ai-visibility.php:2000
 msgid "Where your citations landed"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:1999
+#: admin/pages/class-page-ai-visibility.php:2002
 msgid "on a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2000
+#: admin/pages/class-page-ai-visibility.php:2003
 msgid "on your page on someone else’s platform"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2001
+#: admin/pages/class-page-ai-visibility.php:2004
 msgid "on both"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2005
+#: admin/pages/class-page-ai-visibility.php:2008
 msgid "Every citation this run landed on your page on somebody else’s platform rather than on a site you own. That still counts — but your own pages are not what the assistants are reaching for yet."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2011
+#: admin/pages/class-page-ai-visibility.php:2014
 msgid "By brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2015
+#: admin/pages/class-page-ai-visibility.php:2018
 #: includes/class-visibility.php:539
 msgid "Brand"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2018
+#: admin/pages/class-page-ai-visibility.php:2021
 msgid "Checks"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2033
+#: admin/pages/class-page-ai-visibility.php:2036
 msgid "Named counts cited answers too, so it is never lower than cited. A brand with no owned profiles can still be named — it simply cannot be cited until it has somewhere to be cited."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2075
+#: admin/pages/class-page-ai-visibility.php:2037
+msgid "Cited here counts only links to the brand's own website and profiles, out of the checks recorded for that brand. The Cited figure at the top counts a link to anything the company owns, out of answered checks, so it is usually higher."
+msgstr ""
+
+#: admin/pages/class-page-ai-visibility.php:2079
 msgid "Each brand over time"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2078
+#: admin/pages/class-page-ai-visibility.php:2082
 msgid "One run so far. A second real run gives each brand a line to compare against — a single point is a reading, not a trend."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2094
+#: admin/pages/class-page-ai-visibility.php:2098
 msgid "level"
 msgstr ""
 
 #. translators: %s: signed percentage-point change since the first run this brand was tracked in.
-#: admin/pages/class-page-ai-visibility.php:2098
+#: admin/pages/class-page-ai-visibility.php:2102
 #, php-format
 msgid "%s pts since first tracked"
 msgstr ""
 
 #. translators: %s: number of runs this brand has data for.
-#: admin/pages/class-page-ai-visibility.php:2106
+#: admin/pages/class-page-ai-visibility.php:2110
 #, php-format
 msgid "· %s runs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2149
+#: admin/pages/class-page-ai-visibility.php:2153
 msgid "Cited here, visited from there"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2153
+#: admin/pages/class-page-ai-visibility.php:2157
 #: admin/pages/class-page-index-now.php:297
 msgid "Engine"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2154
+#: admin/pages/class-page-ai-visibility.php:2158
 msgid "Cited (this run)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2155
+#: admin/pages/class-page-ai-visibility.php:2159
 msgid "Sessions (28 days)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2156
+#: admin/pages/class-page-ai-visibility.php:2160
 msgid "Reading"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2167
+#: admin/pages/class-page-ai-visibility.php:2171
 msgid "Not asked in this run"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2169
+#: admin/pages/class-page-ai-visibility.php:2173
 msgid "Cited, and people arrive"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2171
+#: admin/pages/class-page-ai-visibility.php:2175
 msgid "Cited, but nobody clicks through yet"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2173
+#: admin/pages/class-page-ai-visibility.php:2177
 msgid "People arrive anyway — for questions you are not asking"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2175
+#: admin/pages/class-page-ai-visibility.php:2179
 msgid "Neither"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2188
+#: admin/pages/class-page-ai-visibility.php:2192
 msgid "These two columns are not cause and effect. The left is a sample of questions asked on your keys in this run; the right is 28 days of real sessions your analytics attributed to that assistant, for your whole site."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2190
+#: admin/pages/class-page-ai-visibility.php:2194
 msgid "You have a scope selected, so the left column is narrowed and the right is not — compare them at “All”."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2192
+#: admin/pages/class-page-ai-visibility.php:2196
 msgid "Sessions arriving from an assistant that never cites you in this run usually means people are asking things your question set does not cover."
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2313
+#: admin/pages/class-page-ai-visibility.php:2317
 msgid "Questions you are not answering"
 msgstr ""
 
 #. translators: 1: questions where you were absent, 2: how many of those cited somebody else.
-#: admin/pages/class-page-ai-visibility.php:2318
+#: admin/pages/class-page-ai-visibility.php:2322
 #, php-format
 msgid "You were absent from %1$s questions in this scope. On %2$s of them the assistant cited somebody else — those are the ones worth writing for, because the answer already exists and it simply is not yours."
 msgstr ""
 
 #. translators: 1: engine names, 2: number of engines that answered.
-#: admin/pages/class-page-ai-visibility.php:2339
+#: admin/pages/class-page-ai-visibility.php:2343
 #, php-format
 msgid "Absent on %1$s (of %2$s that answered)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2347
+#: admin/pages/class-page-ai-visibility.php:2351
 msgid "Cited instead:"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2354
+#: admin/pages/class-page-ai-visibility.php:2358
 msgid "No sources cited at all — the assistants answered from memory, so there is no page to outrank here, only an entity to be better known as."
 msgstr ""
 
 #. translators: %s: number of further questions not listed.
-#: admin/pages/class-page-ai-visibility.php:2368
+#: admin/pages/class-page-ai-visibility.php:2372
 #, php-format
 msgid "and %s more not listed here — the table above carries every one of them."
 msgstr ""
 
 #. translators: 1-4: counts
-#: admin/pages/class-page-ai-visibility.php:2528
+#: admin/pages/class-page-ai-visibility.php:2532
 #, php-format
 msgid "%1$d categories · %2$d types · %3$d products · %4$d posts in scope"
 msgstr ""
 
 #. translators: %d: number of catalogue items the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2542
+#: admin/pages/class-page-ai-visibility.php:2546
 #, php-format
 msgid "%d catalogue items in scope"
 msgstr ""
 
 #. translators: %d: number of posts the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2546
+#: admin/pages/class-page-ai-visibility.php:2550
 #, php-format
 msgid "%d post in scope"
 msgid_plural "%d posts in scope"
@@ -3166,7 +3175,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of items the scope covers.
-#: admin/pages/class-page-ai-visibility.php:2549
+#: admin/pages/class-page-ai-visibility.php:2553
 #, php-format
 msgid "%d item in scope"
 msgid_plural "%d items in scope"
@@ -3174,31 +3183,31 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of cited pages that look like the business's own listings.
-#: admin/pages/class-page-ai-visibility.php:2571
+#: admin/pages/class-page-ai-visibility.php:2575
 #, php-format
 msgid "%d cited page looks like your own listing. Is it you?"
 msgid_plural "%d cited pages look like your own listings. Are they you?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-ai-visibility.php:2576
+#: admin/pages/class-page-ai-visibility.php:2580
 msgid "Your name is in the account part of these addresses. Yes adds the page to what counts as you and re-scores your kept runs for free; No means we never ask about it again. Other sites often make pages about a product — only say yes to the ones you run."
 msgstr ""
 
 #. translators: 1: times cited, 2: engine names.
-#: admin/pages/class-page-ai-visibility.php:2585
-#: admin/pages/class-page-ai-visibility.php:2631
+#: admin/pages/class-page-ai-visibility.php:2589
+#: admin/pages/class-page-ai-visibility.php:2635
 #, php-format
 msgid "cited %1$d time by %2$s"
 msgid_plural "cited %1$d times by %2$s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-ai-visibility.php:2592
+#: admin/pages/class-page-ai-visibility.php:2596
 msgid "Yes, that’s me"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2593
+#: admin/pages/class-page-ai-visibility.php:2597
 #: includes/class-smart-collections.php:412
 #: includes/class-smart-collections.php:421
 #: includes/class-smart-collections.php:433
@@ -3208,104 +3217,104 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2620
+#: admin/pages/class-page-ai-visibility.php:2624
 msgid "Pages about you"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2622
+#: admin/pages/class-page-ai-visibility.php:2626
 msgid "Pages other sites wrote about you — reviews, comparisons, roundups — that the engines cited in this run, plus listings still waiting for your answer above. They are counted as their own slice, not as competitors."
 msgstr ""
 
 #. translators: %d: number of further pages not listed.
-#: admin/pages/class-page-ai-visibility.php:2642
+#: admin/pages/class-page-ai-visibility.php:2646
 #, php-format
 msgid "and %d more page."
 msgid_plural "and %d more pages."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-ai-visibility.php:2658
+#: admin/pages/class-page-ai-visibility.php:2662
 msgid "Company profile — policies"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2658
+#: admin/pages/class-page-ai-visibility.php:2662
 #: includes/class-aeo-score.php:244
 #: includes/class-aeo-score.php:471
 #: includes/class-owner-actions.php:1489
 msgid "Company profile"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2666
+#: admin/pages/class-page-ai-visibility.php:2670
 msgid "FAQ content"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2684
+#: admin/pages/class-page-ai-visibility.php:2688
 msgid "Edit product"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2687
+#: admin/pages/class-page-ai-visibility.php:2691
 msgid "Product FAQs"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2692
+#: admin/pages/class-page-ai-visibility.php:2696
 msgid "Edit post"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2702
+#: admin/pages/class-page-ai-visibility.php:2706
 msgid "Cited — linked to your page on another platform, not to a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2705
+#: admin/pages/class-page-ai-visibility.php:2709
 msgid "Cited — linked to a site you own and to your page on another platform"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2707
+#: admin/pages/class-page-ai-visibility.php:2711
 msgid "Cited — linked to a site you own"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2709
+#: admin/pages/class-page-ai-visibility.php:2713
 msgid "Named — mentioned, no link"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2711
+#: admin/pages/class-page-ai-visibility.php:2715
 msgid "Absent — not mentioned"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2713
+#: admin/pages/class-page-ai-visibility.php:2717
 msgid "Unavailable — no answer recorded"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2724
+#: admin/pages/class-page-ai-visibility.php:2728
 msgid "no change"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2726
+#: admin/pages/class-page-ai-visibility.php:2730
 msgid "pts"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2821
+#: admin/pages/class-page-ai-visibility.php:2825
 msgid "pages about you"
 msgstr ""
 
 #. translators: %d: number of remaining cited domains grouped as "other".
-#: admin/pages/class-page-ai-visibility.php:2828
+#: admin/pages/class-page-ai-visibility.php:2832
 #, php-format
 msgid "other (%d domains)"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2851
+#: admin/pages/class-page-ai-visibility.php:2855
 msgid "Share of voice"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2880
+#: admin/pages/class-page-ai-visibility.php:2884
 msgid "Questions per level"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2891
+#: admin/pages/class-page-ai-visibility.php:2895
 msgid "questions"
 msgstr ""
 
-#: admin/pages/class-page-ai-visibility.php:2929
+#: admin/pages/class-page-ai-visibility.php:2933
 msgid "Trend"
 msgstr ""
 
@@ -3534,8 +3543,8 @@ msgstr ""
 #: admin/pages/class-page-image-seo.php:119
 #: admin/pages/class-page-news.php:249
 #: admin/pages/class-page-smart-collections.php:516
-#: admin/pages/class-page-social-graph.php:477
-#: admin/pages/class-page-social-graph.php:775
+#: admin/pages/class-page-social-graph.php:495
+#: admin/pages/class-page-social-graph.php:793
 msgid "Title"
 msgstr ""
 
@@ -3623,11 +3632,12 @@ msgstr ""
 #: admin/pages/class-page-contact-detector.php:169
 #: admin/pages/class-page-faq-detector.php:192
 #: admin/pages/class-page-schema-detector.php:285
-#: admin/pages/class-page-schema-detector.php:641
-#: admin/pages/class-page-schema-detector.php:1041
+#: admin/pages/class-page-schema-detector.php:362
+#: admin/pages/class-page-schema-detector.php:651
+#: admin/pages/class-page-schema-detector.php:1051
 #: admin/pages/class-page-service-detector.php:195
-#: admin/pages/class-page-social-graph.php:598
-#: admin/pages/class-page-social-graph.php:1156
+#: admin/pages/class-page-social-graph.php:616
+#: admin/pages/class-page-social-graph.php:1174
 #: includes/class-woocommerce-detector.php:2807
 msgid "Good"
 msgstr ""
@@ -3719,10 +3729,10 @@ msgstr[1] ""
 #: admin/pages/class-page-not-indexed.php:110
 #: admin/pages/class-page-not-indexed.php:232
 #: admin/pages/class-page-schema-detector.php:199
-#: admin/pages/class-page-schema-detector.php:592
-#: admin/pages/class-page-schema-detector.php:987
+#: admin/pages/class-page-schema-detector.php:602
+#: admin/pages/class-page-schema-detector.php:997
 #: admin/pages/class-page-service-detector.php:135
-#: admin/pages/class-page-social-graph.php:475
+#: admin/pages/class-page-social-graph.php:493
 #: admin/assets/js/crawler-dataviews.js:88
 msgid "Page"
 msgstr ""
@@ -5365,14 +5375,14 @@ msgid "Edit page"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2598
-#: admin/pages/class-page-social-graph.php:372
+#: admin/pages/class-page-social-graph.php:390
 #: admin/pages/class-page-woocommerce-detector.php:243
 #: includes/class-scan-pager.php:58
 msgid "Prev"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2609
-#: admin/pages/class-page-social-graph.php:398
+#: admin/pages/class-page-social-graph.php:416
 #: admin/pages/class-page-woocommerce-detector.php:267
 #: includes/class-scan-pager.php:82
 msgid "Next"
@@ -5384,7 +5394,7 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:2650
 #: admin/pages/class-page-dashboard.php:132
-#: admin/pages/class-page-social-graph.php:1378
+#: admin/pages/class-page-social-graph.php:1396
 msgid "Scanning…"
 msgstr ""
 
@@ -5433,8 +5443,8 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:2839
 #: admin/pages/class-page-not-indexed.php:389
-#: admin/pages/class-page-social-graph.php:723
-#: admin/pages/class-page-social-graph.php:795
+#: admin/pages/class-page-social-graph.php:741
+#: admin/pages/class-page-social-graph.php:813
 #: includes/class-ai-description.php:101
 #: includes/class-author-meta.php:680
 #: includes/class-product-faq-generator.php:455
@@ -5452,10 +5462,10 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:2846
 #: admin/pages/class-page-eeat.php:565
 #: admin/pages/class-page-schema-conflicts.php:214
-#: admin/pages/class-page-social-graph.php:249
-#: admin/pages/class-page-social-graph.php:274
-#: admin/pages/class-page-social-graph.php:871
-#: admin/pages/class-page-social-graph.php:1169
+#: admin/pages/class-page-social-graph.php:267
+#: admin/pages/class-page-social-graph.php:292
+#: admin/pages/class-page-social-graph.php:889
+#: admin/pages/class-page-social-graph.php:1187
 msgid "Save"
 msgstr ""
 
@@ -5777,12 +5787,12 @@ msgstr ""
 
 #: admin/pages/class-page-company.php:194
 #: admin/pages/class-page-local-pack.php:211
-#: admin/pages/class-page-schema-detector.php:685
+#: admin/pages/class-page-schema-detector.php:695
 #: admin/pages/class-page-service-detector.php:251
 #: admin/pages/class-page-setup-wizard.php:513
-#: admin/pages/class-page-social-graph.php:478
-#: admin/pages/class-page-social-graph.php:733
-#: admin/pages/class-page-social-graph.php:785
+#: admin/pages/class-page-social-graph.php:496
+#: admin/pages/class-page-social-graph.php:751
+#: admin/pages/class-page-social-graph.php:803
 msgid "Description"
 msgstr ""
 
@@ -5798,8 +5808,8 @@ msgstr ""
 
 #: admin/pages/class-page-company.php:206
 #: admin/pages/class-page-local-pack.php:196
-#: admin/pages/class-page-schema-detector.php:936
-#: admin/pages/class-page-schema-detector.php:1128
+#: admin/pages/class-page-schema-detector.php:946
+#: admin/pages/class-page-schema-detector.php:1137
 msgid "Phone"
 msgstr ""
 
@@ -5929,77 +5939,77 @@ msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:52
 #: admin/pages/class-page-contact-detector.php:98
-#: admin/pages/class-page-schema-detector.php:879
-#: admin/pages/class-page-schema-detector.php:975
+#: admin/pages/class-page-schema-detector.php:889
+#: admin/pages/class-page-schema-detector.php:985
 msgid "Contact Pages"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:57
-#: admin/pages/class-page-schema-detector.php:884
+#: admin/pages/class-page-schema-detector.php:894
 msgid "Need Attention"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:62
-#: admin/pages/class-page-schema-detector.php:889
+#: admin/pages/class-page-schema-detector.php:899
 #: includes/class-woocommerce-detector.php:2803
 msgid "Complete"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:70
-#: admin/pages/class-page-schema-detector.php:962
+#: admin/pages/class-page-schema-detector.php:972
 msgid "What This Checks"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:73
-#: admin/pages/class-page-schema-detector.php:964
+#: admin/pages/class-page-schema-detector.php:974
 msgid "For each contact page, the detector validates:"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:78
-#: admin/pages/class-page-schema-detector.php:966
+#: admin/pages/class-page-schema-detector.php:976
 msgid "Organization or LocalBusiness schema — confirms your business entity is defined"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:82
-#: admin/pages/class-page-schema-detector.php:967
+#: admin/pages/class-page-schema-detector.php:977
 msgid "PostalAddress — street, city, state, zip, country"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:86
-#: admin/pages/class-page-schema-detector.php:968
+#: admin/pages/class-page-schema-detector.php:978
 msgid "ContactPoint — phone number and/or email address"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:90
-#: admin/pages/class-page-schema-detector.php:969
+#: admin/pages/class-page-schema-detector.php:979
 msgid "Entity consolidation — only one Organization entity across the page"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:103
-#: admin/pages/class-page-schema-detector.php:979
+#: admin/pages/class-page-schema-detector.php:989
 msgid "No contact pages detected. Pages with \"contact\" in the slug, title, or content will appear here."
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:112
-#: admin/pages/class-page-schema-detector.php:928
-#: admin/pages/class-page-schema-detector.php:988
-#: admin/pages/class-page-schema-detector.php:1120
+#: admin/pages/class-page-schema-detector.php:938
+#: admin/pages/class-page-schema-detector.php:998
+#: admin/pages/class-page-schema-detector.php:1129
 msgid "Organization"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:113
 #: admin/pages/class-page-local-pack.php:229
-#: admin/pages/class-page-schema-detector.php:989
+#: admin/pages/class-page-schema-detector.php:999
 msgid "Address"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:114
-#: admin/pages/class-page-schema-detector.php:990
+#: admin/pages/class-page-schema-detector.php:1000
 msgid "Contact Point"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:115
-#: admin/pages/class-page-schema-detector.php:991
+#: admin/pages/class-page-schema-detector.php:1001
 msgid "Entity"
 msgstr ""
 
@@ -6013,44 +6023,42 @@ msgstr ""
 #: admin/pages/class-page-pr-bridge.php:102
 #: admin/pages/class-page-reviews.php:170
 #: admin/pages/class-page-schema-detector.php:204
-#: admin/pages/class-page-schema-detector.php:597
-#: admin/pages/class-page-schema-detector.php:993
+#: admin/pages/class-page-schema-detector.php:607
+#: admin/pages/class-page-schema-detector.php:1003
 #: admin/pages/class-page-service-detector.php:140
-#: admin/pages/class-page-social-graph.php:482
+#: admin/pages/class-page-social-graph.php:500
 #: admin/pages/class-page-woocommerce-detector.php:572
 msgid "Actions"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:161
-#: admin/pages/class-page-schema-detector.php:1034
+#: admin/pages/class-page-schema-detector.php:1044
 msgid "Consolidated"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:163
-#: admin/pages/class-page-schema-detector.php:1036
+#: admin/pages/class-page-schema-detector.php:1046
 msgid "Duplicate"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:172
-#: admin/pages/class-page-schema-detector.php:1044
-#: admin/pages/class-page-social-graph.php:601
+#: admin/pages/class-page-schema-detector.php:1054
+#: admin/pages/class-page-social-graph.php:619
 msgid "issue"
 msgid_plural "issues"
 msgstr[0] ""
 msgstr[1] ""
 
 #: admin/pages/class-page-contact-detector.php:198
-#: admin/pages/class-page-schema-detector.php:1085
+#: admin/pages/class-page-schema-detector.php:1095
 msgid "How to Fix Contact Page Schema"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:205
-#: admin/pages/class-page-schema-detector.php:1089
 msgid "Rank Math: Go to Rank Math → Titles & Meta → Local SEO and fill in your business name, address, phone, and email."
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:210
-#: admin/pages/class-page-schema-detector.php:1091
 msgid "Yoast SEO: Go to Yoast → Company Info and fill in your organization name, logo, and contact details."
 msgstr ""
 
@@ -6059,12 +6067,12 @@ msgid "Use Schema & Structured Data For WP or Rank Math to add Organization, Pos
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:221
-#: admin/pages/class-page-schema-detector.php:1097
+#: admin/pages/class-page-schema-detector.php:1106
 msgid "For entity consolidation — make sure all schema on the page uses the same @id value for your Organization so AI systems recognize them as the same entity."
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:226
-#: admin/pages/class-page-schema-detector.php:1098
+#: admin/pages/class-page-schema-detector.php:1107
 msgid "Once saved, TWT AEO Ultimate will automatically rescan and update the status here."
 msgstr ""
 
@@ -6500,13 +6508,13 @@ msgid "→ Go to Settings"
 msgstr ""
 
 #: admin/pages/class-page-dashboard.php:1820
-#: admin/pages/class-page-social-graph.php:1397
+#: admin/pages/class-page-social-graph.php:1415
 msgid "generating in background (you can leave this page)…"
 msgstr ""
 
 #. translators: %s: error message.
 #: admin/pages/class-page-dashboard.php:1826
-#: admin/pages/class-page-social-graph.php:1402
+#: admin/pages/class-page-social-graph.php:1420
 #, php-format
 msgid "Stopped: %s"
 msgstr ""
@@ -6518,7 +6526,7 @@ msgid "(created: %d)"
 msgstr ""
 
 #: admin/pages/class-page-dashboard.php:1832
-#: admin/pages/class-page-social-graph.php:1406
+#: admin/pages/class-page-social-graph.php:1424
 msgid "created — stopped."
 msgstr ""
 
@@ -6527,7 +6535,7 @@ msgid "descriptions created."
 msgstr ""
 
 #: admin/pages/class-page-dashboard.php:1859
-#: admin/pages/class-page-social-graph.php:1434
+#: admin/pages/class-page-social-graph.php:1452
 msgid "Finding posts…"
 msgstr ""
 
@@ -6552,7 +6560,7 @@ msgid "billed to your account. It runs in the background, so you can leave this 
 msgstr ""
 
 #: admin/pages/class-page-dashboard.php:1876
-#: admin/pages/class-page-social-graph.php:1440
+#: admin/pages/class-page-social-graph.php:1458
 msgid "Cancelled."
 msgstr ""
 
@@ -6817,7 +6825,7 @@ msgstr ""
 
 #: admin/pages/class-page-documents.php:482
 #: admin/pages/class-page-eeat.php:384
-#: admin/pages/class-page-social-graph.php:421
+#: admin/pages/class-page-social-graph.php:439
 #: admin/pages/class-page-woocommerce-detector.php:530
 msgid "Search"
 msgstr ""
@@ -7098,7 +7106,7 @@ msgstr ""
 #: admin/pages/class-page-setup-wizard.php:357
 #: admin/pages/class-page-setup-wizard.php:552
 #: admin/pages/class-page-setup-wizard.php:640
-#: admin/pages/class-page-social-graph.php:826
+#: admin/pages/class-page-social-graph.php:844
 msgid "LinkedIn"
 msgstr ""
 
@@ -7156,12 +7164,12 @@ msgstr ""
 
 #: admin/pages/class-page-eeat.php:456
 #: admin/pages/class-page-eeat.php:570
-#: admin/pages/class-page-schema-detector.php:780
-#: admin/pages/class-page-schema-detector.php:1282
+#: admin/pages/class-page-schema-detector.php:790
+#: admin/pages/class-page-schema-detector.php:1291
 #: admin/pages/class-page-service-detector.php:297
 #: admin/pages/class-page-smart-collections.php:644
 #: admin/pages/class-page-smart-collections.php:853
-#: admin/pages/class-page-social-graph.php:873
+#: admin/pages/class-page-social-graph.php:891
 msgid "Cancel"
 msgstr ""
 
@@ -7192,7 +7200,7 @@ msgstr ""
 #: admin/pages/class-page-eeat.php:550
 #: admin/pages/class-page-eeat.php:628
 #: admin/pages/class-page-schema-conflicts.php:617
-#: admin/pages/class-page-schema-detector.php:1261
+#: admin/pages/class-page-schema-detector.php:1270
 msgid "Save failed."
 msgstr ""
 
@@ -7224,7 +7232,7 @@ msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:70
 #: admin/pages/class-page-schema-detector.php:150
-#: admin/pages/class-page-schema-detector.php:543
+#: admin/pages/class-page-schema-detector.php:553
 #: admin/pages/class-page-service-detector.php:89
 msgid "Detection Methods"
 msgstr ""
@@ -7267,7 +7275,7 @@ msgstr ""
 #. translators: %d: number of pages missing this schema type.
 #: admin/pages/class-page-faq-detector.php:116
 #: admin/pages/class-page-schema-detector.php:175
-#: admin/pages/class-page-schema-detector.php:568
+#: admin/pages/class-page-schema-detector.php:578
 #, php-format
 msgid "Generate All (%d missing)"
 msgstr ""
@@ -7279,7 +7287,7 @@ msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:137
 #: admin/pages/class-page-schema-detector.php:200
-#: admin/pages/class-page-schema-detector.php:593
+#: admin/pages/class-page-schema-detector.php:603
 #: admin/pages/class-page-service-detector.php:136
 msgid "Detection Method"
 msgstr ""
@@ -7305,17 +7313,14 @@ msgid "How to Add FAQPage Schema"
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:231
-#: admin/pages/class-page-schema-detector.php:335
 msgid "FAQPage schema tells AI systems and search engines that this page directly answers questions. Here are the easiest ways to add it:"
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:237
-#: admin/pages/class-page-schema-detector.php:338
 msgid "Rank Math: Add the Rank Math FAQ block to your page — it generates FAQPage schema automatically."
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:242
-#: admin/pages/class-page-schema-detector.php:340
 msgid "Yoast SEO: Use the Yoast FAQ block inside the Gutenberg editor — it generates FAQPage schema automatically."
 msgstr ""
 
@@ -7324,40 +7329,39 @@ msgid "Use a plugin like Rank Math or Yoast SEO to add FAQPage schema through th
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:252
-#: admin/pages/class-page-schema-detector.php:346
 msgid "Once added, save the page — TWT AEO Ultimate will re-scan and update the status here."
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:279
-#: admin/pages/class-page-schema-detector.php:370
-#: admin/pages/class-page-schema-detector.php:727
+#: admin/pages/class-page-schema-detector.php:378
+#: admin/pages/class-page-schema-detector.php:737
 msgid "Nothing to generate."
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:291
-#: admin/pages/class-page-schema-detector.php:382
-#: admin/pages/class-page-schema-detector.php:738
-#: admin/pages/class-page-schema-detector.php:1213
+#: admin/pages/class-page-schema-detector.php:390
+#: admin/pages/class-page-schema-detector.php:748
+#: admin/pages/class-page-schema-detector.php:1222
 msgid "saved"
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:292
-#: admin/pages/class-page-schema-detector.php:383
-#: admin/pages/class-page-schema-detector.php:739
+#: admin/pages/class-page-schema-detector.php:391
+#: admin/pages/class-page-schema-detector.php:749
 msgid "skipped"
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:299
-#: admin/pages/class-page-schema-detector.php:390
-#: admin/pages/class-page-schema-detector.php:748
-#: admin/pages/class-page-schema-detector.php:1223
+#: admin/pages/class-page-schema-detector.php:398
+#: admin/pages/class-page-schema-detector.php:758
+#: admin/pages/class-page-schema-detector.php:1232
 msgid "Processing"
 msgstr ""
 
 #: admin/pages/class-page-faq-detector.php:316
 #: admin/pages/class-page-faq-detector.php:347
-#: admin/pages/class-page-schema-detector.php:403
-#: admin/pages/class-page-schema-detector.php:427
+#: admin/pages/class-page-schema-detector.php:411
+#: admin/pages/class-page-schema-detector.php:436
 msgid "Regenerate"
 msgstr ""
 
@@ -7548,7 +7552,7 @@ msgid "Choose an image for this page"
 msgstr ""
 
 #: admin/pages/class-page-image-seo.php:340
-#: admin/pages/class-page-social-graph.php:1044
+#: admin/pages/class-page-social-graph.php:1062
 #: admin/assets/js/local-pack.js:326
 msgid "Use this image"
 msgstr ""
@@ -7915,9 +7919,9 @@ msgid "Business Identity"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:165
-#: admin/pages/class-page-schema-detector.php:697
-#: admin/pages/class-page-schema-detector.php:921
-#: admin/pages/class-page-schema-detector.php:1113
+#: admin/pages/class-page-schema-detector.php:707
+#: admin/pages/class-page-schema-detector.php:931
+#: admin/pages/class-page-schema-detector.php:1122
 #: admin/pages/class-page-service-detector.php:263
 #: admin/pages/class-page-setup-wizard.php:325
 #: admin/pages/class-page-setup-wizard.php:501
@@ -7945,8 +7949,8 @@ msgid "Who buys from you. AI Visibility asks the assistants as each of these peo
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:200
-#: admin/pages/class-page-schema-detector.php:940
-#: admin/pages/class-page-schema-detector.php:1132
+#: admin/pages/class-page-schema-detector.php:950
+#: admin/pages/class-page-schema-detector.php:1141
 msgid "Email"
 msgstr ""
 
@@ -7963,26 +7967,26 @@ msgid "— None —"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:233
-#: admin/pages/class-page-schema-detector.php:944
-#: admin/pages/class-page-schema-detector.php:1140
+#: admin/pages/class-page-schema-detector.php:954
+#: admin/pages/class-page-schema-detector.php:1149
 msgid "Street Address"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:243
-#: admin/pages/class-page-schema-detector.php:951
-#: admin/pages/class-page-schema-detector.php:1147
+#: admin/pages/class-page-schema-detector.php:961
+#: admin/pages/class-page-schema-detector.php:1156
 msgid "State"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:244
-#: admin/pages/class-page-schema-detector.php:952
-#: admin/pages/class-page-schema-detector.php:1148
+#: admin/pages/class-page-schema-detector.php:962
+#: admin/pages/class-page-schema-detector.php:1157
 msgid "ZIP"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:245
-#: admin/pages/class-page-schema-detector.php:953
-#: admin/pages/class-page-schema-detector.php:1149
+#: admin/pages/class-page-schema-detector.php:963
+#: admin/pages/class-page-schema-detector.php:1158
 msgid "Country"
 msgstr ""
 
@@ -8042,7 +8046,7 @@ msgstr ""
 
 #: admin/pages/class-page-local-pack.php:321
 #: admin/pages/class-page-local-pack.php:347
-#: admin/pages/class-page-social-graph.php:700
+#: admin/pages/class-page-social-graph.php:718
 msgid "Select from Media Library"
 msgstr ""
 
@@ -8060,7 +8064,7 @@ msgid "Used as the image property in LocalBusiness schema (e.g. a photo of your 
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:360
-#: admin/pages/class-page-schema-detector.php:693
+#: admin/pages/class-page-schema-detector.php:703
 #: admin/pages/class-page-service-detector.php:259
 msgid "Area Served"
 msgstr ""
@@ -8278,86 +8282,56 @@ msgid "Standalone"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:66
-#: admin/pages/class-page-modules.php:95
 msgid "Available"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:73
-msgid "TWT Content Generator"
+#: includes/class-output-control.php:364
+msgid "AEO Ultimate for WooCommerce"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:74
-msgid "AI-powered content — three models, one workflow"
+msgid "Be the store AI assistants name when shoppers ask what to buy, and let AI agents check out"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:78
-msgid "Generate with Claude, ChatGPT & Perplexity simultaneously"
+msgid "One connected Product schema graph built from live WooCommerce data: displayed prices, stock from variations, shipping zones"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:79
-msgid "Hub & sub-page architecture for topic clusters"
+msgid "Google and Bing Merchant Center parity checks"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:80
-msgid "AEO semantic elements baked into every prompt"
+msgid "See which AI crawlers read your store and whether AI engines cite it"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:81
-msgid "Tone, audience, intent, format & UVP controls"
+msgid "AI agents check out through Google's UCP and the ACP used by ChatGPT"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:82
-msgid "Save drafts directly from the generator — no copy-paste"
+msgid "WooCommerce calculates every total; agents pay through your own Stripe account"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:83
-msgid "Inherits your AEO API keys automatically"
+msgid "HPOS and checkout-blocks compatible, no telemetry, 12 video tutorials"
 msgstr ""
 
 #: admin/pages/class-page-modules.php:87
-#: admin/pages/class-page-modules.php:116
 msgid "Learn More"
 msgstr ""
 
-#: admin/pages/class-page-modules.php:102
-#: admin/pages/class-page-settings.php:366
-msgid "TWT Agency"
+#: admin/pages/class-page-modules.php:90
+msgid "Documentation"
 msgstr ""
 
-#: admin/pages/class-page-modules.php:103
-msgid "Every client site on one dashboard — monitor, alert, fix, and prove your value"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:107
-msgid "Connect unlimited client sites — this plugin reports in automatically"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:108
-msgid "Live Wire activity stream & AI crawler analytics across your whole portfolio"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:109
-msgid "De-index & anomaly alerts in Slack with one-click fixes pushed back to the site"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:110
-msgid "AI remediation plans — approve once and they apply on the client site"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:111
-msgid "White-label monthly reports, shareable links & a branded client portal"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:112
-msgid "Before/after schema-impact reports that prove ROI to clients"
-msgstr ""
-
-#: admin/pages/class-page-modules.php:175
+#: admin/pages/class-page-modules.php:149
 msgid "PRO"
 msgstr ""
 
 #. translators: %s: native WP section name
-#: admin/pages/class-page-modules.php:199
+#: admin/pages/class-page-modules.php:173
 #, php-format
 msgid "Settings appear under: %s"
 msgstr ""
@@ -10577,335 +10551,359 @@ msgstr ""
 msgid "Remove FAQ schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:342
-msgid "Schema & Structured Data for WP & AMP: Open the post editor, go to the Schema tab in the sidebar, add a FAQPage schema type, and enter your questions and answers manually."
+#: admin/pages/class-page-schema-detector.php:335
+msgid "FAQPage schema tells AI systems and search engines that this page directly answers questions."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:344
-msgid "Use a plugin like Rank Math, Yoast SEO, or Schema & Structured Data for WP & AMP to add FAQPage schema, or add the JSON-LD manually in your theme."
+#: admin/pages/class-page-schema-detector.php:337
+msgid "Click \"Add FAQ Schema\" on a page above, or \"Generate All\" to do every page at once. AEO Ultimate builds the schema from the questions and answers already on the page: free, no AI calls."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:443
+#: admin/pages/class-page-schema-detector.php:339
+msgid "Already using the Rank Math FAQ block on a page? It writes its own FAQPage schema, so leave that page to Rank Math and use the Conflicts tab to keep one version."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:341
+msgid "Already using the Yoast FAQ block on a page? It writes its own FAQPage schema, so leave that page to Yoast and use the Conflicts tab to keep one version."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:343
+msgid "Already added a FAQPage schema type in Schema & Structured Data for WP & AMP? Leave that page to it and use the Conflicts tab to keep one version."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:345
+msgid "When you edit a page later, schema AEO Ultimate generated is updated to match. Schema you edited by hand is flagged here instead, so your edits are never overwritten."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:453
 msgid "This FAQ schema was edited by hand. Updating it from the page replaces your edits. Continue?"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:451
+#: admin/pages/class-page-schema-detector.php:461
 msgid "Q&A updated from the page"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:466
+#: admin/pages/class-page-schema-detector.php:476
 msgid "Remove the FAQ schema from this page? Only FAQ schema saved by AEO Ultimate is removed."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:473
+#: admin/pages/class-page-schema-detector.php:483
 msgid "FAQ schema removed"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:502
+#: admin/pages/class-page-schema-detector.php:512
 #: admin/pages/class-page-service-detector.php:30
 msgid "Showing Pages + Posts — Show Pages Only"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:503
+#: admin/pages/class-page-schema-detector.php:513
 #: admin/pages/class-page-service-detector.php:31
 msgid "Show Blog Posts Too"
 msgstr ""
 
 #. translators: %1$d: count of pages/posts. %2$s: 'pages' or 'pages/posts'. %3$d: count missing schema.
-#: admin/pages/class-page-schema-detector.php:512
+#: admin/pages/class-page-schema-detector.php:522
 #: admin/pages/class-page-service-detector.php:51
 #, php-format
 msgid "%1$d %2$s with service content — %3$d missing Service schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:514
+#: admin/pages/class-page-schema-detector.php:524
 #: admin/pages/class-page-service-detector.php:53
 msgid "pages/posts"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:514
+#: admin/pages/class-page-schema-detector.php:524
 #: admin/pages/class-page-service-detector.php:53
 msgid "pages"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:526
-#: admin/pages/class-page-schema-detector.php:560
+#: admin/pages/class-page-schema-detector.php:536
+#: admin/pages/class-page-schema-detector.php:570
 #: admin/pages/class-page-service-detector.php:71
 #: admin/pages/class-page-service-detector.php:120
 msgid "Pages with Service Content"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:531
+#: admin/pages/class-page-schema-detector.php:541
 #: admin/pages/class-page-service-detector.php:76
 msgid "Missing Service Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:545
+#: admin/pages/class-page-schema-detector.php:555
 #: admin/pages/class-page-service-detector.php:92
 msgid "This detector identifies service-oriented content using four strategies, in order:"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:547
+#: admin/pages/class-page-schema-detector.php:557
 #: admin/pages/class-page-service-detector.php:97
 msgid "Page intent classifier — pages classified as Service Page or Product-Service Page"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:548
+#: admin/pages/class-page-schema-detector.php:558
 #: admin/pages/class-page-service-detector.php:101
 msgid "URL slug — contains service, repair, install, maintenance, consulting"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:549
+#: admin/pages/class-page-schema-detector.php:559
 #: admin/pages/class-page-service-detector.php:105
 msgid "Content keywords — service-related terms in headings and first 300 words (3+ required)"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:550
+#: admin/pages/class-page-schema-detector.php:560
 #: admin/pages/class-page-service-detector.php:109
 msgid "WooCommerce products — only products whose title, slug, or content contains service keywords (not all products)"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:559
+#: admin/pages/class-page-schema-detector.php:569
 msgid "Pages & Posts with Service Content"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:578
+#: admin/pages/class-page-schema-detector.php:588
 msgid "Generate All auto-fills each page's Service schema from its own title and content plus your business info — free and instant, no AI calls, nothing is billed. You can open any page's \"Edit Schema\" afterwards to refine the wording."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:584
+#: admin/pages/class-page-schema-detector.php:594
 #: admin/pages/class-page-service-detector.php:127
 msgid "No pages with service content were detected. Pages with service-related slugs, keywords, or intent classification will appear here."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:594
+#: admin/pages/class-page-schema-detector.php:604
 #: admin/pages/class-page-service-detector.php:137
 msgid "Keyword Hits"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:595
+#: admin/pages/class-page-schema-detector.php:605
 #: admin/pages/class-page-service-detector.php:138
 msgid "Service Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:619
-#: admin/pages/class-page-schema-detector.php:1008
+#: admin/pages/class-page-schema-detector.php:629
+#: admin/pages/class-page-schema-detector.php:1018
 #: admin/pages/class-page-service-detector.php:166
 msgid "TWT Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:639
+#: admin/pages/class-page-schema-detector.php:649
 #: admin/pages/class-page-service-detector.php:193
 msgid "Add Service schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:653
+#: admin/pages/class-page-schema-detector.php:663
 #: admin/pages/class-page-service-detector.php:214
 #: admin/pages/class-page-woocommerce-detector.php:665
 msgid "Edit Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:653
+#: admin/pages/class-page-schema-detector.php:663
 #: admin/pages/class-page-service-detector.php:214
 #: admin/pages/class-page-woocommerce-detector.php:666
 msgid "Generate Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:673
-#: admin/pages/class-page-schema-detector.php:805
+#: admin/pages/class-page-schema-detector.php:683
+#: admin/pages/class-page-schema-detector.php:815
 #: admin/pages/class-page-service-detector.php:239
 #: admin/pages/class-page-service-detector.php:336
 msgid "Generate Service Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:675
+#: admin/pages/class-page-schema-detector.php:685
 #: admin/pages/class-page-service-detector.php:241
 msgid "Fill in the fields below. The schema will be output as JSON-LD on the frontend and will not conflict with your SEO plugin."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:681
+#: admin/pages/class-page-schema-detector.php:691
 #: admin/pages/class-page-service-detector.php:247
 msgid "Service Name"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:682
+#: admin/pages/class-page-schema-detector.php:692
 #: admin/pages/class-page-service-detector.php:248
 msgid "e.g. CNC Spindle Repair"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:686
+#: admin/pages/class-page-schema-detector.php:696
 #: admin/pages/class-page-service-detector.php:252
 msgid "Describe what this service offers..."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:689
+#: admin/pages/class-page-schema-detector.php:699
 #: admin/pages/class-page-service-detector.php:255
 msgid "Service Type"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:690
+#: admin/pages/class-page-schema-detector.php:700
 #: admin/pages/class-page-service-detector.php:256
 msgid "e.g. Repair, Installation, Consulting"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:694
+#: admin/pages/class-page-schema-detector.php:704
 #: admin/pages/class-page-service-detector.php:260
 msgid "e.g. Florida, United States"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:701
+#: admin/pages/class-page-schema-detector.php:711
 #: admin/pages/class-page-service-detector.php:267
 #: admin/pages/class-page-setup-wizard.php:338
 #: admin/pages/class-page-setup-wizard.php:538
 msgid "Phone Number"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:702
-#: admin/pages/class-page-schema-detector.php:937
+#: admin/pages/class-page-schema-detector.php:712
+#: admin/pages/class-page-schema-detector.php:947
 #: admin/pages/class-page-service-detector.php:268
 msgid "e.g. +1-813-555-0100"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:740
-#: admin/pages/class-page-schema-detector.php:1215
+#: admin/pages/class-page-schema-detector.php:750
+#: admin/pages/class-page-schema-detector.php:1224
 msgid "reloading…"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:775
-#: admin/pages/class-page-schema-detector.php:1277
+#: admin/pages/class-page-schema-detector.php:785
+#: admin/pages/class-page-schema-detector.php:1286
 #: admin/pages/class-page-service-detector.php:290
 msgid "Save Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:811
+#: admin/pages/class-page-schema-detector.php:821
 #: admin/pages/class-page-service-detector.php:346
 msgid "Service Name is required."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:819
-#: admin/pages/class-page-schema-detector.php:1347
+#: admin/pages/class-page-schema-detector.php:829
+#: admin/pages/class-page-schema-detector.php:1356
 #: admin/pages/class-page-service-detector.php:362
 msgid "Schema saved. It will now appear on the frontend."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:822
-#: admin/pages/class-page-schema-detector.php:1350
+#: admin/pages/class-page-schema-detector.php:832
+#: admin/pages/class-page-schema-detector.php:1359
 #: admin/pages/class-page-service-detector.php:368
 msgid "Save failed. Please try again."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:828
+#: admin/pages/class-page-schema-detector.php:838
 #: admin/pages/class-page-service-detector.php:375
 msgid "Remove the TWT-generated Service schema from this page?"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:896
+#: admin/pages/class-page-schema-detector.php:906
 msgid "Your Business Info"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:899
+#: admin/pages/class-page-schema-detector.php:909
 msgid "Fill this in once. Use \"Create from this info\" on any contact page below to add complete Organization, PostalAddress, and ContactPoint schema instantly — no editor needed. Saving also updates your central Local Pack business profile."
 msgstr ""
 
 #. translators: %d: number of contact pages needing schema work.
-#: admin/pages/class-page-schema-detector.php:907
+#: admin/pages/class-page-schema-detector.php:917
 #, php-format
 msgid "Create for All (%d need attention)"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:915
+#: admin/pages/class-page-schema-detector.php:925
 msgid "Applies the business info above to every contact page that still needs attention — free and instant, no AI calls, nothing is billed."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:925
-#: admin/pages/class-page-schema-detector.php:1117
+#: admin/pages/class-page-schema-detector.php:935
+#: admin/pages/class-page-schema-detector.php:1126
 msgid "Entity Type"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:929
-#: admin/pages/class-page-schema-detector.php:1121
+#: admin/pages/class-page-schema-detector.php:939
+#: admin/pages/class-page-schema-detector.php:1130
 msgid "LocalBusiness"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:930
-#: admin/pages/class-page-schema-detector.php:1122
+#: admin/pages/class-page-schema-detector.php:940
+#: admin/pages/class-page-schema-detector.php:1131
 msgid "Corporation"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:931
-#: admin/pages/class-page-schema-detector.php:1123
+#: admin/pages/class-page-schema-detector.php:941
+#: admin/pages/class-page-schema-detector.php:1132
 msgid "ProfessionalService"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:948
-#: admin/pages/class-page-schema-detector.php:1144
+#: admin/pages/class-page-schema-detector.php:958
+#: admin/pages/class-page-schema-detector.php:1153
 msgid "City / State / ZIP / Country"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1057
+#: admin/pages/class-page-schema-detector.php:1067
 msgid "Recreate from info"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1057
+#: admin/pages/class-page-schema-detector.php:1067
 msgid "Create from this info"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1063
+#: admin/pages/class-page-schema-detector.php:1073
 msgid "Edit in modal"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1093
-msgid "Schema & Structured Data for WP & AMP: Open your contact page, go to the Schema tab in the post editor sidebar, add an Organization or LocalBusiness schema type, and fill in your address, phone, and email fields."
+#: admin/pages/class-page-schema-detector.php:1098
+msgid "Fill in Your Business Info above, then click \"Create from this info\" on a contact page, or \"Create for All\". AEO Ultimate adds Organization, PostalAddress, and ContactPoint schema right away: free, no AI calls, no editor needed."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1095
-msgid "Use Schema & Structured Data for WP & AMP, Rank Math, or Yoast SEO to add Organization, PostalAddress, and ContactPoint schema to your contact page."
+#: admin/pages/class-page-schema-detector.php:1100
+msgid "Prefer to keep this in Rank Math? Fill in Rank Math → Titles & Meta → Local SEO instead, and use the Conflicts tab so only one version is output."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1105
-#: admin/pages/class-page-schema-detector.php:1325
+#: admin/pages/class-page-schema-detector.php:1102
+msgid "Prefer to keep this in Yoast SEO? Fill in Yoast → Company Info instead, and use the Conflicts tab so only one version is output."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:1104
+msgid "Prefer to keep this in Schema & Structured Data for WP & AMP? Add an Organization or LocalBusiness schema type from the Schema tab in the post editor instead, and use the Conflicts tab so only one version is output."
+msgstr ""
+
+#: admin/pages/class-page-schema-detector.php:1114
+#: admin/pages/class-page-schema-detector.php:1334
 msgid "Edit Contact Schema"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1107
+#: admin/pages/class-page-schema-detector.php:1116
 msgid "These fields are pre-filled from your business info. Saving writes Organization, PostalAddress, and ContactPoint schema to this page and updates your Local Pack profile."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1136
+#: admin/pages/class-page-schema-detector.php:1145
 msgid "Contact Type"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1137
+#: admin/pages/class-page-schema-detector.php:1146
 msgid "e.g. customer service, sales, support"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1192
-#: admin/pages/class-page-schema-detector.php:1249
+#: admin/pages/class-page-schema-detector.php:1201
+#: admin/pages/class-page-schema-detector.php:1258
 msgid "Business Name is required (top panel)."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1202
+#: admin/pages/class-page-schema-detector.php:1211
 msgid "Nothing to create."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1214
+#: admin/pages/class-page-schema-detector.php:1223
 #: admin/pages/class-page-woocommerce-detector.php:1480
 msgid "failed"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1257
+#: admin/pages/class-page-schema-detector.php:1266
 msgid "✓ Schema added — reloading…"
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1265
+#: admin/pages/class-page-schema-detector.php:1274
 msgid "✗ Request failed."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1331
+#: admin/pages/class-page-schema-detector.php:1340
 msgid "Business Name is required."
 msgstr ""
 
-#: admin/pages/class-page-schema-detector.php:1356
+#: admin/pages/class-page-schema-detector.php:1365
 msgid "Remove the TWT-generated contact schema from this page?"
 msgstr ""
 
@@ -11147,6 +11145,10 @@ msgstr ""
 
 #: admin/pages/class-page-settings.php:358
 msgid "Niche & local"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:366
+msgid "TWT Agency"
 msgstr ""
 
 #. translators: %s: URL to learn more about TWT Agency.
@@ -12446,506 +12448,518 @@ msgstr ""
 msgid "Save settings"
 msgstr ""
 
+#. translators: 1: pages checked, 2: human time diff since the census, 3: pages added since.
+#: admin/pages/class-page-social-graph.php:100
+#, php-format
+msgid "Site-wide census: %1$d pages checked %2$s ago. %3$d page has been added since and is not counted here — run Rescan All to include it."
+msgid_plural "Site-wide census: %1$d pages checked %2$s ago. %3$d pages have been added since and are not counted here — run Rescan All to include them."
+msgstr[0] ""
+msgstr[1] ""
+
 #. translators: 1: pages checked, 2: human time diff since the census.
-#: admin/pages/class-page-social-graph.php:96
+#: admin/pages/class-page-social-graph.php:113
 #, php-format
 msgid "Site-wide census: all %1$d pages checked %2$s ago. Rescan All re-checks every page."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:106
+#: admin/pages/class-page-social-graph.php:124
 msgid "These cards cover only the newest block so far — run Rescan All to check every page on the site."
 msgstr ""
 
 #. translators: %1$d: pages scanned. %2$d: total published pages. %3$d: pages needing attention.
-#: admin/pages/class-page-social-graph.php:135
+#: admin/pages/class-page-social-graph.php:153
 #, php-format
 msgid "%1$d of %2$d pages scanned (most recent first) — %3$d of those need attention"
 msgstr ""
 
 #. translators: %1$d: total pages scanned. %2$d: pages needing attention.
-#: admin/pages/class-page-social-graph.php:143
+#: admin/pages/class-page-social-graph.php:161
 #, php-format
 msgid "%1$d pages scanned — %2$d need attention"
 msgstr ""
 
 #. translators: %1$d: total pages checked site-wide. %2$d: pages needing attention.
-#: admin/pages/class-page-social-graph.php:161
+#: admin/pages/class-page-social-graph.php:179
 #, php-format
 msgid "Site-wide rescan complete — all %1$d pages checked, %2$d need attention."
 msgstr ""
 
 #. translators: %1$d: total pages scanned. %2$d: pages needing attention.
-#: admin/pages/class-page-social-graph.php:168
+#: admin/pages/class-page-social-graph.php:186
 #, php-format
 msgid "Rescan complete — %1$d pages scanned, %2$d need attention."
 msgstr ""
 
 #. translators: %1$s: SEO plugin managing OG/Twitter output. %2$s: same plugin name.
-#: admin/pages/class-page-social-graph.php:184
+#: admin/pages/class-page-social-graph.php:202
 #, php-format
 msgid "%1$s is handling Open Graph and Twitter Card output. Data you save here is stored and visible in this dashboard. TWT AEO will not output duplicate meta tags while %2$s is active."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:199
+#: admin/pages/class-page-social-graph.php:217
 msgid "Fill missing social descriptions"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:200
+#: admin/pages/class-page-social-graph.php:218
 msgid "reuse the meta descriptions you already have (free and instant), or ask AI to write punchier, share-friendly copy for posts that are missing an og:description."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:204
+#: admin/pages/class-page-social-graph.php:222
 msgid "Use existing meta descriptions"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:207
+#: admin/pages/class-page-social-graph.php:225
 msgid "or"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:209
+#: admin/pages/class-page-social-graph.php:227
 msgid "AI"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:219
+#: admin/pages/class-page-social-graph.php:237
 msgid "Generate social-friendly with AI"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:229
+#: admin/pages/class-page-social-graph.php:247
 msgid "The AI option makes one billed API call per post and runs in the background — you can leave this page once it starts, and stop it at any time. You will be asked to confirm the count first."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:239
+#: admin/pages/class-page-social-graph.php:257
 msgid "X / Twitter @site handle"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:253
+#: admin/pages/class-page-social-graph.php:271
 msgid "Outputs as twitter:site on every post. Used by X to attribute shares to your brand account."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:263
+#: admin/pages/class-page-social-graph.php:281
 msgid "LinkedIn company page URL"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:278
+#: admin/pages/class-page-social-graph.php:296
 msgid "LinkedIn reads your Open Graph tags automatically. This URL is added to your Organisation schema sameAs and synced with Company Profile."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:287
+#: admin/pages/class-page-social-graph.php:305
 msgid "Rescan All"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:298
+#: admin/pages/class-page-social-graph.php:316
 msgid "Pages Scanned (site-wide)"
 msgstr ""
 
 #. translators: %d: total published pages on the site.
-#: admin/pages/class-page-social-graph.php:302
+#: admin/pages/class-page-social-graph.php:320
 #, php-format
 msgid "Pages Scanned (of %d)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:306
+#: admin/pages/class-page-social-graph.php:324
 msgid "Pages Scanned"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:315
+#: admin/pages/class-page-social-graph.php:333
 msgid "Full OG Coverage"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:321
+#: admin/pages/class-page-social-graph.php:339
 msgid "Missing Title/Desc"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:327
+#: admin/pages/class-page-social-graph.php:345
 msgid "Missing OG Image"
 msgstr ""
 
 #. translators: shown when an SEO plugin outputs Twitter Cards instead of this plugin.
-#: admin/pages/class-page-social-graph.php:337
+#: admin/pages/class-page-social-graph.php:355
 #, php-format
 msgid "Twitter Cards (via %s)"
 msgstr ""
 
 #. translators: %d: pages with an explicitly chosen card type.
-#: admin/pages/class-page-social-graph.php:341
+#: admin/pages/class-page-social-graph.php:359
 #, php-format
 msgid "Twitter Cards Live (%d customised)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:345
+#: admin/pages/class-page-social-graph.php:363
 msgid "Twitter Cards Live"
 msgstr ""
 
 #. translators: %1$d: first item on page. %2$d: last item on page. %3$d: total items.
-#: admin/pages/class-page-social-graph.php:403
+#: admin/pages/class-page-social-graph.php:421
 #: admin/pages/class-page-woocommerce-detector.php:272
 #, php-format
 msgid "%1$d–%2$d of %3$d"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:413
+#: admin/pages/class-page-social-graph.php:431
 msgid "Page Coverage"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:417
+#: admin/pages/class-page-social-graph.php:435
 msgid "Search pages and products"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:419
+#: admin/pages/class-page-social-graph.php:437
 msgid "Search by title or SKU…"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:424
+#: admin/pages/class-page-social-graph.php:437
+msgid "Search by title…"
+msgstr ""
+
+#: admin/pages/class-page-social-graph.php:442
 #: admin/pages/class-page-woocommerce-detector.php:533
 msgid "Clear"
 msgstr ""
 
 #. translators: %1$d: matching items. %2$s: the search term.
-#: admin/pages/class-page-social-graph.php:435
+#: admin/pages/class-page-social-graph.php:453
 #, php-format
 msgid "%1$d item matches “%2$s” — searched across every page, post and product."
 msgid_plural "%1$d items match “%2$s” — searched across every page, post and product."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-social-graph.php:446
+#: admin/pages/class-page-social-graph.php:464
 msgid "Nothing matches that search. It looked at every page, post and product title, content and SKU."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:447
+#: admin/pages/class-page-social-graph.php:465
 msgid "No published pages or posts found."
 msgstr ""
 
 #. translators: %d: number of pages.
-#: admin/pages/class-page-social-graph.php:465
+#: admin/pages/class-page-social-graph.php:483
 #, php-format
 msgid "%d page on this screen has a description that stops mid-sentence, marked \"Cut off\" below. Search results and AI answers show it that way. Edit it, or regenerate it: new AI descriptions now end at a full sentence."
 msgid_plural "%d pages on this screen have a description that stops mid-sentence, marked \"Cut off\" below. Search results and AI answers show them that way. Edit them, or regenerate them: new AI descriptions now end at a full sentence."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-social-graph.php:476
+#: admin/pages/class-page-social-graph.php:494
 msgid "Image"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:479
-#: admin/pages/class-page-social-graph.php:810
+#: admin/pages/class-page-social-graph.php:497
+#: admin/pages/class-page-social-graph.php:828
 msgid "og:type"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:480
+#: admin/pages/class-page-social-graph.php:498
 msgid "Twitter Card"
 msgstr ""
 
 #. translators: %s: which descriptions, e.g. "og:description, meta description".
-#: admin/pages/class-page-social-graph.php:564
+#: admin/pages/class-page-social-graph.php:582
 #, php-format
 msgid "Stops mid-sentence: %s"
 msgstr ""
 
 #. translators: %s: which descriptions, e.g. "og:description, meta description".
-#: admin/pages/class-page-social-graph.php:565
+#: admin/pages/class-page-social-graph.php:583
 msgid "Cut off"
 msgstr ""
 
 #. translators: %s: SEO plugin name.
-#: admin/pages/class-page-social-graph.php:582
+#: admin/pages/class-page-social-graph.php:600
 #, php-format
 msgid "via %s"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:590
+#: admin/pages/class-page-social-graph.php:608
 msgid "Applied automatically — edit the page to override."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:591
+#: admin/pages/class-page-social-graph.php:609
 msgid "large image · default"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:591
+#: admin/pages/class-page-social-graph.php:609
 msgid "summary · default"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:645
+#: admin/pages/class-page-social-graph.php:663
 msgid "What Social Graph Controls"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:650
+#: admin/pages/class-page-social-graph.php:668
 msgid "og:image — thumbnail shown when shared (1200×630px)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:651
+#: admin/pages/class-page-social-graph.php:669
 msgid "og:title — headline, keep under 60 characters"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:652
+#: admin/pages/class-page-social-graph.php:670
 msgid "og:description — shown below title, 120–160 characters"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:653
+#: admin/pages/class-page-social-graph.php:671
 msgid "og:type — website, article, or product"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:659
+#: admin/pages/class-page-social-graph.php:677
 msgid "twitter:card — summary or summary_large_image layout"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:660
+#: admin/pages/class-page-social-graph.php:678
 msgid "twitter:creator — @handle of the post author, pulled from Author Entity schema"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:661
+#: admin/pages/class-page-social-graph.php:679
 msgid "twitter:site — your brand @handle, set globally above"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:662
+#: admin/pages/class-page-social-graph.php:680
 msgid "Title, description, image — inherited from Open Graph (X falls back automatically)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:677
+#: admin/pages/class-page-social-graph.php:695
 msgid "Edit Social Graph"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:688
+#: admin/pages/class-page-social-graph.php:706
 msgid "Social Image"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:690
+#: admin/pages/class-page-social-graph.php:708
 msgid "Click to select image"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:694
+#: admin/pages/class-page-social-graph.php:712
 msgid "Click to select"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:714
+#: admin/pages/class-page-social-graph.php:732
 msgid "AI image style"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:728
+#: admin/pages/class-page-social-graph.php:746
 msgid "Base it on:"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:730
+#: admin/pages/class-page-social-graph.php:748
 msgid "Post title"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:736
+#: admin/pages/class-page-social-graph.php:754
 msgid "Brand name"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:740
+#: admin/pages/class-page-social-graph.php:758
 msgid "Generates a 1.91:1 landscape image with OpenAI, adds it to your Media Library, and sets it as the social image above. One billed API call — image generation costs more than text and can take 10–30 seconds. \"Description\" uses the social description, falling back to the meta description."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:745
+#: admin/pages/class-page-social-graph.php:763
 msgid "Shared by OG and Twitter. Recommended: 1200×630px. Falls back to featured image."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:750
+#: admin/pages/class-page-social-graph.php:768
 msgid "Image Label (og:image:alt)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:751
+#: admin/pages/class-page-social-graph.php:769
 msgid "Describe what the image shows…"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:752
+#: admin/pages/class-page-social-graph.php:770
 msgid "Auto-filled from the image's alt text or media title when it's descriptive (generic camera names like IMG_4302 are skipped). Selecting a new image refreshes this."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:766
+#: admin/pages/class-page-social-graph.php:784
 msgid "Page title"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:767
+#: admin/pages/class-page-social-graph.php:785
 msgid "Description will appear here…"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:778
+#: admin/pages/class-page-social-graph.php:796
 msgid "Auto-filled from page title"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:779
+#: admin/pages/class-page-social-graph.php:797
 msgid "Used by og:title. X falls back to this automatically. Keep under 60 characters."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:788
+#: admin/pages/class-page-social-graph.php:806
 msgid "Write a compelling description for social shares…"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:791
+#: admin/pages/class-page-social-graph.php:809
 msgid "Use meta description"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:800
+#: admin/pages/class-page-social-graph.php:818
 msgid "Used by og:description. X inherits this. Recommended: 120–160 characters."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:807
+#: admin/pages/class-page-social-graph.php:825
 msgid "Open Graph"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:812
+#: admin/pages/class-page-social-graph.php:830
 msgid "website — standard page"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:813
+#: admin/pages/class-page-social-graph.php:831
 msgid "article — blog post or news"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:814
+#: admin/pages/class-page-social-graph.php:832
 msgid "product — WooCommerce or shop item"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:816
+#: admin/pages/class-page-social-graph.php:834
 msgid "Auto-selected by post type. Posts → article, Products → product, Pages → website."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:829
+#: admin/pages/class-page-social-graph.php:847
 msgid "Company Page"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:832
+#: admin/pages/class-page-social-graph.php:850
 msgid "LinkedIn reads your og:title, og:description, and og:image set above — no extra tags needed. This URL is your global setting used for Organisation schema."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:841
+#: admin/pages/class-page-social-graph.php:859
 msgid "Twitter / X Card"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:845
+#: admin/pages/class-page-social-graph.php:863
 msgid "twitter:card"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:847
+#: admin/pages/class-page-social-graph.php:865
 msgid "summary_large_image — full-width image card (recommended)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:848
+#: admin/pages/class-page-social-graph.php:866
 msgid "summary — small square thumbnail card"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:850
+#: admin/pages/class-page-social-graph.php:868
 msgid "Controls how the link preview looks when shared on X. summary_large_image gets more clicks."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:855
+#: admin/pages/class-page-social-graph.php:873
 msgid "twitter:creator"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:858
+#: admin/pages/class-page-social-graph.php:876
 msgid "Fill from author"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:862
+#: admin/pages/class-page-social-graph.php:880
 msgid "Author's X @handle. Attributes the post to them when shared."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:957
+#: admin/pages/class-page-social-graph.php:975
 msgid "Not set."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:957
+#: admin/pages/class-page-social-graph.php:975
 msgid "Add your LinkedIn company URL ↑"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:965
+#: admin/pages/class-page-social-graph.php:983
 msgid "Author's X @handle. Click \"Fill from author\" to use their handle from Author Entity schema."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:970
+#: admin/pages/class-page-social-graph.php:988
 msgid "Author's X @handle. Attributes the post to them when shared. Add a Twitter handle via Author Entity to auto-fill."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1043
+#: admin/pages/class-page-social-graph.php:1061
 msgid "Select Social Image"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1098
-#: admin/pages/class-page-social-graph.php:1194
-#: admin/pages/class-page-social-graph.php:1228
+#: admin/pages/class-page-social-graph.php:1116
+#: admin/pages/class-page-social-graph.php:1212
+#: admin/pages/class-page-social-graph.php:1246
 msgid "Saved!"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1116
+#: admin/pages/class-page-social-graph.php:1134
 msgid "auto"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1162
+#: admin/pages/class-page-social-graph.php:1180
 msgid "Error saving."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1260
+#: admin/pages/class-page-social-graph.php:1278
 msgid "Done — review and Save."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1275
+#: admin/pages/class-page-social-graph.php:1293
 msgid "Generate a social image with OpenAI? This makes one billed API call and can take up to 30 seconds."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1278
+#: admin/pages/class-page-social-graph.php:1296
 msgid "Generating image… this can take up to 30s."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1295
+#: admin/pages/class-page-social-graph.php:1313
 msgid "Image added — review and Save."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1299
+#: admin/pages/class-page-social-graph.php:1317
 msgid "Also set this image as the post's featured image?"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1307
+#: admin/pages/class-page-social-graph.php:1325
 msgid "Image added and set as featured — review and Save."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1309
+#: admin/pages/class-page-social-graph.php:1327
 msgid "Could not set featured image."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1318
+#: admin/pages/class-page-social-graph.php:1336
 msgid "Request failed or timed out."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1348
+#: admin/pages/class-page-social-graph.php:1366
 msgid "Filling from existing meta…"
 msgstr ""
 
 #. translators: %d: number of posts filled.
-#: admin/pages/class-page-social-graph.php:1352
+#: admin/pages/class-page-social-graph.php:1370
 #, php-format
 msgid "Filled: %d"
 msgstr ""
 
 #. translators: %d: number of posts skipped because they had no meta description.
-#: admin/pages/class-page-social-graph.php:1353
+#: admin/pages/class-page-social-graph.php:1371
 #, php-format
 msgid "skipped (no meta): %d"
 msgstr ""
 
 #. translators: %d: number of posts skipped because they had no meta description.
-#: admin/pages/class-page-social-graph.php:1354
+#: admin/pages/class-page-social-graph.php:1372
 msgid "Reloading…"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1413
+#: admin/pages/class-page-social-graph.php:1431
 msgid "created"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1414
+#: admin/pages/class-page-social-graph.php:1432
 msgid "skipped (not enough content to summarise)"
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1415
+#: admin/pages/class-page-social-graph.php:1433
 msgid "Reload to see them."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1439
+#: admin/pages/class-page-social-graph.php:1457
 msgid "Generate social descriptions for every page, post and product missing one? This makes one billed API call per item and runs in the background."
 msgstr ""
 
-#: admin/pages/class-page-social-graph.php:1449
+#: admin/pages/class-page-social-graph.php:1467
 msgid "Nothing to generate — every page, post and product already has a social description."
 msgstr ""
 
@@ -16354,10 +16368,6 @@ msgstr ""
 
 #: includes/class-output-control.php:145
 msgid "Recording which AI crawlers requested pages on this site."
-msgstr ""
-
-#: includes/class-output-control.php:364
-msgid "AEO Ultimate for WooCommerce"
 msgstr ""
 
 #: includes/class-output-control.php:461

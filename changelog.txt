@@ -1,6 +1,17 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.30.6 =
+
+* **New: the Modules page's Pro Plugins section features AEO Ultimate for WooCommerce** (`admin/pages/class-page-modules.php`). One card replaces the TWT Content Generator and TWT Agency cards, with Learn More (tampawebtech.com/aeo-ultimate-for-woocommerce/) and Documentation (aeoultimate.com/docs/woocommerce/) buttons.
+* **Fixed: Contact Detector flagged ordinary pages as contact pages (`TWTAEO_Contact_Detector::scan()`).** A page counted when its text held any two of "contact", "phone", "email", "address", "location", "office", "map"… as substrings ("map" matched "sitemap"), so every detailed guide qualified and was told it needed Organization, PostalAddress and ContactPoint schema (28 of 55 pages on aeoultimate.com). Now a contact title or slug counts as before; the page-intent and content strategies also need a contact form block or shortcode (WPForms, Contact Form 7, Gravity Forms, Fluent Forms, Formidable, Ninja Forms, Jetpack) or a real phone number or email address in the content, on a page of 600 words or fewer, and keywords match whole words only (`count_contact_details()`, `has_contact_form()`). On aeoultimate.com: 28 → 1 (the Contact Us page).
+* **Changed: Schema Detector's "How to add FAQPage schema" and "How to fix contact page schema" boxes lead with this plugin's own buttons** (Add FAQ Schema / Generate All; Create from this info / Create for All) instead of telling people to use Rank Math, Yoast SEO or Schema & Structured Data for WP & AMP. The other plugin's route is still mentioned when it is active, with a pointer to the Conflicts tab so only one version is output.
+* **Fixed: after Add FAQ Schema or Generate All, the row kept showing "Missing" and "Add FAQPage schema" until a reload.** The row now switches to Present and Good as soon as the save succeeds.
+* **Fixed: Social Graph said "all N pages checked" from a stale census.** When pages have been published since the last Rescan All, the caption says how many are not counted and points to Rescan All.
+* **Changed: Social Graph's search box says "Search by title" unless WooCommerce is active** (it said "title or SKU" on every site).
+* **Improved: AI Visibility "By brand" explains why its cited % differs from the headline** (brand-owned links only, per brand check, vs any company-owned link per answered check).
+* **Improved: AI Visibility follow-up rows show "Different question per engine"; the hover/click hint appears once in the legend** instead of on every follow-up row, where it wrapped to five lines.
+
 = 2.30.5 =
 
 * **New: three read tools for the Claude connector and WordPress Abilities: `get_google_analytics`, `get_search_performance`, `get_bing_webmaster` (`TWTAEO_Abilities`).** They return the same reports as Command Center's Analytics, Search Console and Bing tabs through the existing connection and its one-hour cache (`TWTAEO_Page_Command_Center::fetch_*`, now public): GA4 totals, top pages with their signal and the AI Assistant channel by source; Search Console totals and top 15 queries; Bing clicks, impressions, top 25 queries, SEO recommendations by severity and crawl status. Page paths resolve to this site's own pages or are summed as "other"; search queries are capped at 100 characters and labelled as data typed by searchers. Each tool says what to connect when the source is not set up. The abilities' read-only rule now names these as the only outside calls. Server instructions and `what_you_can_do_next` cover the three tools.

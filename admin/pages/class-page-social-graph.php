@@ -91,12 +91,30 @@ class TWTAEO_Page_Social_Graph {
 			$card_miss_img  = (int) $ct['missing_image'];
 			$tw_configured  = (int) $ct['tw_explicit'];
 			$tw_live        = $tw_managed_elsewhere ? null : $card_scanned;
-			$card_caption   = sprintf(
-				/* translators: 1: pages checked, 2: human time diff since the census. */
-				__( 'Site-wide census: all %1$d pages checked %2$s ago. Rescan All re-checks every page.', 'twt-aeo-ultimate' ),
-				$card_scanned,
-				human_time_diff( $census['completed_at'] )
-			);
+			// The census is a snapshot: pages published since it ran are not in
+			// these cards, so say so rather than calling it "all" pages.
+			$card_new = max( 0, (int) TWTAEO_OG_Detector::total_items() - $card_scanned );
+			if ( $card_new > 0 ) {
+				$card_caption = sprintf(
+					/* translators: 1: pages checked, 2: human time diff since the census, 3: pages added since. */
+					_n(
+						'Site-wide census: %1$d pages checked %2$s ago. %3$d page has been added since and is not counted here — run Rescan All to include it.',
+						'Site-wide census: %1$d pages checked %2$s ago. %3$d pages have been added since and are not counted here — run Rescan All to include them.',
+						$card_new,
+						'twt-aeo-ultimate'
+					),
+					$card_scanned,
+					human_time_diff( $census['completed_at'] ),
+					$card_new
+				);
+			} else {
+				$card_caption = sprintf(
+					/* translators: 1: pages checked, 2: human time diff since the census. */
+					__( 'Site-wide census: all %1$d pages checked %2$s ago. Rescan All re-checks every page.', 'twt-aeo-ultimate' ),
+					$card_scanned,
+					human_time_diff( $census['completed_at'] )
+				);
+			}
 		} else {
 			$card_scanned  = (int) $summary['scanned'];
 			$card_complete = (int) $summary['complete'];
@@ -416,7 +434,7 @@ class TWTAEO_Page_Social_Graph {
 						<input type="hidden" name="page" value="twt-aeo-social-graph">
 						<label class="screen-reader-text" for="twt-aeo-sg-search"><?php esc_html_e( 'Search pages and products', 'twt-aeo-ultimate' ); ?></label>
 						<input type="search" id="twt-aeo-sg-search" name="s" value="<?php echo esc_attr( $s_term ); ?>"
-							placeholder="<?php esc_attr_e( 'Search by title or SKU…', 'twt-aeo-ultimate' ); ?>"
+							placeholder="<?php echo class_exists( 'WooCommerce' ) ? esc_attr__( 'Search by title or SKU…', 'twt-aeo-ultimate' ) : esc_attr__( 'Search by title…', 'twt-aeo-ultimate' ); ?>"
 							class="regular-text" autocomplete="off">
 						<button type="submit" class="button"><?php esc_html_e( 'Search', 'twt-aeo-ultimate' ); ?></button>
 						<?php if ( '' !== $s_term ) : ?>

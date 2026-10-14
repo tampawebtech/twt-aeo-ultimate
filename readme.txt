@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.5
+Stable tag: 2.30.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -200,6 +200,14 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.30.6 =
+* New: the Modules page's Pro Plugins section now features AEO Ultimate for WooCommerce, with links to its product page and its documentation.
+* Fixed: the Contact Detector no longer flags ordinary pages as contact pages. A page now counts when its title or slug says contact, or when a short page carries a contact form or a real phone number or email address.
+* Changed: the Schema Detector's FAQ and contact help boxes lead with this plugin's own buttons. Another plugin's route is still mentioned when that plugin is active.
+* Fixed: after Add FAQ Schema or Generate All, the row shows Present straight away instead of after a reload.
+* Fixed: Social Graph now says when pages published since the last Rescan All are not counted yet.
+* Improved: clearer wording in Social Graph's search box and in AI Visibility's brand and follow-up rows.
 
 = 2.30.5 =
 * New: the Claude connector can read your Google Analytics, Google Search Console and Bing Webmaster Tools reports once they are connected in Command Center: traffic and top pages, visits from AI assistants, search queries, Bing's SEO recommendations and crawl status. Claude no longer has to open those sites to answer.
