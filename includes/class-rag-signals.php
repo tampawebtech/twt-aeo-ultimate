@@ -37,6 +37,16 @@ final class TWTAEO_RAG_Signals {
 	/** Most provider rows matched per view — keeps the page fast on big sites. */
 	const MAX_ROWS = 150;
 
+	/** A passage's heading this close to the question (shared-word share) is headed by it. */
+	const HEADING_MATCH = 0.6;
+
+	/**
+	 * Words of conversational questions that say nothing about the subject
+	 * ("What do customers SAY about X?", "Is X any GOOD?"). Beside a brand
+	 * name they are not evidence that a passage answers.
+	 */
+	const GENERIC_TERMS = array( 'say', 'says', 'said', 'think', 'tell', 'know', 'feel', 'like', 'good', 'great', 'bad', 'worth', 'really', 'actually', 'anyone', 'someone', 'people', 'any', 'other', 'thing', 'things' );
+
 	/*
 	 * Which searches a document can answer, and which words must match.
 	 *
@@ -76,7 +86,9 @@ final class TWTAEO_RAG_Signals {
 		if ( preg_match( '/\b(?:site|inurl|intitle):/', $q ) ) {
 			return 'brand';
 		}
-		$question = (bool) preg_match( self::HOW_WORDS, $q );
+		// A question mark is a question too: "Who makes X?" asks about X, it
+		// does not search for X by name.
+		$question = (bool) preg_match( self::HOW_WORDS, $q ) || '?' === substr( $q, -1 );
 		if ( preg_match( self::HIRE_WORDS, $q ) || ( ! $question && preg_match( self::HIRE_WORDS_WEAK, $q ) ) ) {
 			return 'hire';
 		}
@@ -1212,7 +1224,12 @@ final class TWTAEO_RAG_Signals {
 		$hits       = array_values(
 			array_filter(
 				$hits,
-				static function ( $h ) use ( $subject, $ids, $must ) {
+				static function ( $h ) use ( $query, $subject, $ids, $must ) {
+					// A passage headed by the question answers it, whatever words
+					// its answer uses ("Who makes X?" → "X is made by…").
+					if ( ! $ids && self::heading_similarity( $query, $h['heading_path'] ) >= self::HEADING_MATCH && ! self::is_contact_block( $h['content'] ) ) {
+						return true;
+					}
 					foreach ( $must as $term ) {
 						if ( TWTAEO_Content_Index::terms_share( $h, array( $term ) ) < 1 ) {
 							return false;
@@ -1235,6 +1252,44 @@ final class TWTAEO_RAG_Signals {
 					return self::passage_answers( $h, $subject );
 				}
 			)
+		);
+
+		// "How do I contact AEO Ultimate?" on AEO Ultimate's own site: every
+		// passage names the brand, so the brand is no evidence. What is left
+		// decides: no other word, and only a passage headed by the question
+		// itself answers it; one other word ("contact"), and it must be in the
+		// passage's heading, not merely somewhere in it ("Contact Detector");
+		// more, and enough of them must be in the passage.
+		$own = array_values( array_diff( $subject, self::brand_terms(), self::GENERIC_TERMS ) );
+		foreach ( $hits as $n => $h ) {
+			$hits[ $n ]['heading_match'] = self::heading_similarity( $query, $h['heading_path'] );
+		}
+		if ( ! $ids && count( $own ) < count( $subject ) ) {
+			$hits = array_values(
+				array_filter(
+					$hits,
+					static function ( $h ) use ( $own ) {
+						if ( $h['heading_match'] >= self::HEADING_MATCH ) {
+							return true;
+						}
+						if ( 0 === count( $own ) ) {
+							return false;
+						}
+						if ( 1 === count( $own ) ) {
+							return false !== strpos( strtolower( self::last_heading( $h['heading_path'] ) ), $own[0] );
+						}
+						return TWTAEO_Content_Index::terms_share( $h, $own ) >= self::required_share( count( $own ) );
+					}
+				)
+			);
+		}
+		// The passage whose heading is closest to the question comes first;
+		// headings within a step (0.2) of each other keep the search order.
+		usort(
+			$hits,
+			static function ( $a, $b ) {
+				return ( self::heading_rank( $b ) <=> self::heading_rank( $a ) ) ?: ( $b['score'] <=> $a['score'] );
+			}
 		);
 
 		// The same passage twice (the same document uploaded twice, or a page
@@ -1290,7 +1345,7 @@ final class TWTAEO_RAG_Signals {
 			usort(
 				$kept,
 				static function ( $a, $b ) {
-					return ( $b['year_match'] <=> $a['year_match'] ) ?: ( $b['score'] <=> $a['score'] );
+					return ( $b['year_match'] <=> $a['year_match'] ) ?: ( ( self::heading_rank( $b ) <=> self::heading_rank( $a ) ) ?: ( $b['score'] <=> $a['score'] ) );
 				}
 			);
 			$hits = $kept;
@@ -1519,6 +1574,68 @@ final class TWTAEO_RAG_Signals {
 		$cache[ $topic ] = $found;
 
 		return $found;
+	}
+
+	/**
+	 * The business's own name as search terms: the site name, the Local Pack
+	 * business name and the domain name ("aeo", "ultimat", "aeoultimate").
+	 *
+	 * @return string[]
+	 */
+	private static function brand_terms() {
+		static $terms = null;
+		if ( null === $terms ) {
+			$lp    = class_exists( 'TWTAEO_Local_Pack' ) ? (array) TWTAEO_Local_Pack::get_settings() : array();
+			$terms = array_merge(
+				TWTAEO_Content_Index::query_terms( (string) get_bloginfo( 'name' ) ),
+				TWTAEO_Content_Index::query_terms( isset( $lp['business_name'] ) ? (string) $lp['business_name'] : '' ),
+				TWTAEO_Content_Index::query_terms( self::domain_name() )
+			);
+			$terms = array_values( array_unique( $terms ) );
+		}
+
+		return $terms;
+	}
+
+	/** Heading closeness in steps of 0.2, for ordering passages. */
+	private static function heading_rank( array $hit ) {
+		return (int) round( $hit['heading_match'] * 5 );
+	}
+
+	/** The deepest heading of a passage's heading trail: "Page 1 › What is X?" → "What is X?". */
+	private static function last_heading( $path ) {
+		$parts = preg_split( '/\s*›\s*/u', (string) $path );
+
+		return (string) end( $parts );
+	}
+
+	/**
+	 * How closely a passage's own heading matches the question: the share of
+	 * words the two have in common (question words included), 0–1. "What is
+	 * AEO Ultimate about?" against "What is AEO Ultimate?" is 0.8; against
+	 * "Which platforms does AEO Ultimate support?" it is 0.25.
+	 */
+	private static function heading_similarity( $query, $path ) {
+		$words = static function ( $text ) {
+			return array_unique( preg_split( '/[^\p{L}\p{N}]+/u', strtolower( (string) $text ), -1, PREG_SPLIT_NO_EMPTY ) );
+		};
+		$heading = strtolower( self::last_heading( $path ) );
+		$q       = $words( $query );
+		$h       = $words( $heading );
+		if ( ! $q || ! $h ) {
+			return 0.0;
+		}
+		// Shared question words and the brand are not enough: "How do I
+		// contact X?" is not headed by "How do I install X?". Every word of
+		// the question's subject beyond the brand must be in the heading.
+		$subject = array_diff( self::subject_terms( $query ), self::brand_terms(), self::GENERIC_TERMS );
+		foreach ( $subject as $term ) {
+			if ( false === strpos( $heading, $term ) ) {
+				return 0.0;
+			}
+		}
+
+		return count( array_intersect( $q, $h ) ) / count( array_unique( array_merge( $q, $h ) ) );
 	}
 
 	/** Whether text names the business: its site name (without LLC, Inc…) or its Local Pack name. */

@@ -201,6 +201,16 @@ class TWTAEO_Page_Chunk_View {
 	/** The picker: a published page, or any URL. */
 	private static function render_form() {
 		$posts = TWTAEO_Chunk_View::candidate_posts();
+		// Pages that share a title (one "FAQ" per docs section) are told apart
+		// by their parent: "FAQ (AEO Ultimate for WordPress)".
+		$title_count = array_count_values( wp_list_pluck( $posts, 'post_title' ) );
+		$label       = static function ( $post ) use ( $title_count ) {
+			$title = $post->post_title ? $post->post_title : '#' . $post->ID;
+			if ( $post->post_title && $title_count[ $post->post_title ] > 1 && $post->post_parent ) {
+				$title .= ' (' . get_the_title( $post->post_parent ) . ')';
+			}
+			return $title;
+		};
 		?>
 		<?php // The result prints below the host panel and this form — land on it. ?>
 		<form method="post" action="#twtaeo-cv-result" style="margin:16px 0;">
@@ -216,7 +226,7 @@ class TWTAEO_Page_Chunk_View {
 							<option value="0"><?php esc_html_e( '— Select a page —', 'twt-aeo-ultimate' ); ?></option>
 							<?php foreach ( $posts as $post ) : ?>
 								<option value="<?php echo esc_attr( $post->ID ); ?>">
-									<?php echo esc_html( $post->post_title ? $post->post_title : '#' . $post->ID ); ?>
+									<?php echo esc_html( $label( $post ) ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>

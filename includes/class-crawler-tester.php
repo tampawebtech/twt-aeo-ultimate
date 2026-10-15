@@ -75,7 +75,10 @@ class TWTAEO_Crawler_Tester {
 			'sslverify'  => false,
 			'user-agent' => $bot_user_agent,
 			'headers'    => array(
-				'Accept' => 'text/html,application/xhtml+xml',
+				'Accept'            => 'text/html,application/xhtml+xml',
+				// The audit impersonates crawlers; AI Crawler Watch must not log
+				// it as a real visit (same marker as Bot View's self-audits).
+				'X-TWTAEO-Bot-View' => '1',
 			),
 		);
 

@@ -176,8 +176,14 @@ class TWTAEO_Page_RAG_Engine {
 				$counts['doc']['sources'] > 0,
 				__( 'Documents', 'twt-aeo-ultimate' ),
 				$counts['doc']['sources'] > 0
-					/* translators: 1: documents, 2: passages. */
-					? sprintf( __( '%1$s documents, %2$s passages.', 'twt-aeo-ultimate' ), number_format_i18n( $counts['doc']['sources'] ), number_format_i18n( $counts['doc']['passages'] ) )
+					? sprintf(
+						/* translators: 1: "1 document" / "3 documents", 2: "10 passages". */
+						__( '%1$s, %2$s.', 'twt-aeo-ultimate' ),
+						/* translators: %s: number of documents. */
+						sprintf( _n( '%s document', '%s documents', $counts['doc']['sources'], 'twt-aeo-ultimate' ), number_format_i18n( $counts['doc']['sources'] ) ),
+						/* translators: %s: number of passages. */
+						sprintf( _n( '%s passage', '%s passages', $counts['doc']['passages'], 'twt-aeo-ultimate' ), number_format_i18n( $counts['doc']['passages'] ) )
+					)
 					: __( 'Upload the documents your business works from — spec sheets, manuals, FAQs.', 'twt-aeo-ultimate' ),
 				self::url( 'documents' ),
 				$counts['doc']['sources'] > 0 ? __( 'Manage', 'twt-aeo-ultimate' ) : __( 'Upload documents', 'twt-aeo-ultimate' )
@@ -263,6 +269,30 @@ class TWTAEO_Page_RAG_Engine {
 			number_format_i18n( (int) $run['total'] ),
 			isset( $why[ $run['status'] ] ) ? $why[ $run['status'] ] : $why['running']
 		);
+	}
+
+	/**
+	 * A cited link without the tracking engines and app stores add to it:
+	 * utm_* and the other click-tracking parameters go, real ones (?p=12) stay.
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	public static function without_tracking( $url ) {
+		$query = wp_parse_url( $url, PHP_URL_QUERY );
+		if ( ! $query ) {
+			return $url;
+		}
+		parse_str( $query, $params );
+		$kept = array();
+		foreach ( $params as $key => $value ) {
+			if ( ! preg_match( '/^(?:utm_|surface_)|^(?:appIndex|referralSectionName|ref|fbclid|gclid|msclkid|srsltid)$/i', $key ) ) {
+				$kept[ $key ] = $value;
+			}
+		}
+		$base = strtok( $url, '?' );
+
+		return $kept ? $base . '?' . http_build_query( $kept ) : $base;
 	}
 
 	private static function status_row( $ok, $label, $detail, $url, $action ) {
@@ -904,7 +934,13 @@ class TWTAEO_Page_RAG_Engine {
 			<?php if ( $our_urls ) : ?>
 				<p class="description" style="margin:0 0 8px;">
 					<?php esc_html_e( 'Where engines did cite you:', 'twt-aeo-ultimate' ); ?>
-					<?php foreach ( array_slice( $our_urls, 0, 3 ) as $u ) : ?>
+					<?php
+					// Engines add tracking to the links they cite (utm_source=openai,
+					// app-store surface ids); show and open the page itself.
+					$clean = array_values( array_unique( array_map( array( __CLASS__, 'without_tracking' ), $our_urls ) ) );
+					foreach ( array_slice( $clean, 0, 3 ) as $n => $u ) :
+						echo $n ? ' · ' : '';
+						?>
 						<a href="<?php echo esc_url( $u ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $u ); ?></a>
 					<?php endforeach; ?>
 				</p>

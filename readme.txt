@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.6
+Stable tag: 2.30.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,10 @@ Get cited by ChatGPT, Gemini, Perplexity and Google AI Overviews: connected sche
 **Built for SEO professionals.** Everything is free: no license, no paid tier, no feature locked away. AI features run on your own API keys (Anthropic, OpenAI, Google, Perplexity, xAI or Mistral), so you pay the provider directly and choose the model. The work is bulk and semi-automated: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, generate product schema for a whole catalogue, and let the plugin suggest the missing E-E-A-T details and apply them for you. AI-powered bulk actions show the number of billed calls and ask before running, so there are no surprise bills. Access & Roles lets an SEO manager or a client's marketing team use the tools without being a full administrator.
 
 Fully modular: 29 features, each switched on or off on its own, so your site runs only what it needs.
+
+= Video tutorials =
+
+Short walkthroughs, one screen at a time, each with a written guide: E-E-A-T, Local Pack, AI Visibility, Social Graph, Schema Detector, AI Ready, the RAG Engine and Command Center. Screens that have one show a "?" beside their title that plays it right there (nothing loads from YouTube until you press Play). Watch them all at [aeoultimate.com/docs/wordpress/tutorials](https://aeoultimate.com/docs/wordpress/tutorials/), or read the full [AEO Ultimate for WordPress documentation](https://aeoultimate.com/docs/wordpress/).
 
 = RAG Engine =
 
@@ -179,6 +183,7 @@ Only the ones you configure, and only when you trigger them:
 * **EIN Presswire**: press-release distribution. [Terms](https://www.einpresswire.com/legal/terms) | [Privacy](https://www.einpresswire.com/legal/privacy)
 * **EasyPRwire**: press-release distribution. [Terms](https://easyprwire.com/terms-and-condition) | [Privacy](https://easyprwire.com/privacy-policy)
 * **Claude connector** (off by default): answers the Claude app you connect; optionally relayed through Tampa Web Technologies' hosted connector at mcp.aeoultimate.app for Claude on the web and mobile. [Terms](https://www.anthropic.com/legal/consumer-terms) | [Privacy](https://www.anthropic.com/legal/privacy)
+* **YouTube**: tutorial videos, only after you press Play in a screen's "?" panel (youtube-nocookie.com). [Terms](https://www.youtube.com/t/terms) | [Privacy](https://policies.google.com/privacy)
 * **Tampa Web Technologies** (opt-in only): token-usage telemetry, the optional Pro Dashboard connection and the hosted Claude connector. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/)
 
 Each request sends only the data needed for that action, using your own API key. No site-visitor personal data is ever transmitted. The plugin also displays outbound links to industry directories and documentation sites; no data is sent to those. The complete inventory (every service that receives data, what it receives, and its terms and privacy policy, plus every linked site) ships in external-services.txt inside the plugin folder.
@@ -200,6 +205,17 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.30.7 =
+* New: video tutorials inside the plugin. A "?" beside the title of E-E-A-T, Local Pack, AI Visibility, Social Graph, Schema Detector, AI Ready, RAG Engine and Command Center opens that screen's walkthrough, with a link to its written guide. Nothing is loaded from YouTube until you press Play.
+* Changed: AI Ready's content signals now recommend allowing AI input, which is an assistant reading your page to answer a question and citing you. Sites that never saved AI Ready switch to it; a saved "Do not use as input" is kept, with a note on what it means.
+* Improved: llms.txt opens with your main pages (the home page and your header menu, in menu order) before your most recent posts and pages, so the pages that say what you do are always listed.
+* Improved: PDF documents in the RAG Engine are split into section-sized passages under their own headings, including headings written as questions, instead of one passage per page.
+* Improved: the RAG Engine puts the passage headed by the question first, and no longer offers passages that only share the business's name with a question.
+* Fixed: Command Center's Bing tab showed "SEO Recommendations unavailable (HTTP 404)". It now lists the crawl issues Bing reports, each with a plain fix.
+* Fixed: running the Crawlability Audit added fake GPTBot, ClaudeBot, PerplexityBot and Applebot visits to AI Crawler Watch.
+* Fixed: Search Console's top queries were listed alphabetically when none had clicks; they are now ordered by clicks, then impressions.
+* Fixed: smaller wording issues: "1 document" in the RAG Engine, pages with the same title told apart in Chunk View, and cited links shown without tracking parameters.
 
 = 2.30.6 =
 * New: the Modules page's Pro Plugins section now features AEO Ultimate for WooCommerce, with links to its product page and its documentation.
@@ -412,6 +428,9 @@ Each request sends only the data needed for that action, using your own API key.
 The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.7 =
+Video tutorials on eight screens, an llms.txt that leads with your main pages, AI input recommended in content signals, sharper RAG Engine passages, and Command Center fixes for Bing and Search Console.
 
 = 2.30.5 =
 Google Business links now save, the Claude connector can read Google Analytics, Search Console and Bing reports, and Local Pack keeps working next to plugins that replace WordPress's wp object.

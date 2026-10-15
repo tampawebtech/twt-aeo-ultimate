@@ -68,7 +68,8 @@ class TWTAEO_AI_Ready {
 			'agent_skills_index'      => 1,
 			'content_signal_ai_train' => 'no',
 			'content_signal_search'   => 'yes',
-			'content_signal_ai_input' => 'no',
+			// ai-input covers AI answers grounded in this page (RAG): the citations AEO is for.
+			'content_signal_ai_input' => 'yes',
 			'robots_bot_rules'        => 0,
 			'semantic_breadcrumbs'    => 1,
 			'vary_header'             => 1,
@@ -1115,17 +1116,40 @@ class TWTAEO_AI_Ready {
 				$excluded_ids[] = (int) wc_get_page_id( $wc_page );
 			}
 		}
+		$listable = static function ( $p ) use ( $excluded_ids ) {
+			return $p instanceof WP_Post
+				&& 'publish' === $p->post_status
+				&& '' === $p->post_password
+				&& is_post_type_viewable( $p->post_type )
+				&& ! in_array( (int) $p->ID, $excluded_ids, true )
+				&& ! TWTAEO_Index_Heuristics::is_noindexed( $p->ID );
+		};
+
+		// The pages that say what the site is come first: the home page and the
+		// main menu, in menu order. The llms.txt proposal is a curated list, and
+		// newest-first alone pushes them out once a site has 20 newer posts.
+		$key_posts = array();
+		foreach ( self::llms_key_page_ids() as $id ) {
+			$p = get_post( $id );
+			if ( $listable( $p ) ) {
+				$key_posts[ $p->ID ] = $p;
+			}
+			if ( count( $key_posts ) >= 20 ) {
+				break;
+			}
+		}
+
 		$candidates = get_posts( array(
 			'post_type'      => array( 'post', 'page' ),
 			'post_status'    => 'publish',
 			'has_password'   => false,
-			'posts_per_page' => 40,
+			'posts_per_page' => 40 + count( $key_posts ),
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		) );
 		$posts = array();
 		foreach ( $candidates as $p ) {
-			if ( in_array( (int) $p->ID, $excluded_ids, true ) || TWTAEO_Index_Heuristics::is_noindexed( $p->ID ) ) {
+			if ( isset( $key_posts[ $p->ID ] ) || ! $listable( $p ) ) {
 				continue;
 			}
 			$posts[] = $p;
@@ -1143,9 +1167,16 @@ class TWTAEO_AI_Ready {
 			return $md_links ? self::markdown_url( $p ) : get_permalink( $p );
 		};
 
-		if ( ! empty( $posts ) ) {
-			$output .= "## Pages\n\n";
-			foreach ( $posts as $p ) {
+		// With no home page or menu to go on, the list stays one "Pages" section.
+		$sections = $key_posts
+			? array( 'Main pages' => array_values( $key_posts ), 'Recent pages' => $posts )
+			: array( 'Pages' => $posts );
+		foreach ( $sections as $heading => $list ) {
+			if ( empty( $list ) ) {
+				continue;
+			}
+			$output .= '## ' . $heading . "\n\n";
+			foreach ( $list as $p ) {
 				$title   = html_entity_decode( get_the_title( $p ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 				$excerpt = self::clean_llms_excerpt( $p, $title );
 				$output .= '- [' . $title . '](' . $page_link( $p ) . ')';
@@ -1154,7 +1185,9 @@ class TWTAEO_AI_Ready {
 				}
 				$output .= "\n";
 			}
+			$output .= "\n";
 		}
+		$output = rtrim( $output, "\n" ) . "\n";
 
 		// WooCommerce: point AI shopping agents at the shop and product categories,
 		// and declare that the store publishes structured product data.
@@ -1221,6 +1254,92 @@ class TWTAEO_AI_Ready {
 		}
 		$n = preg_match_all( '/./us', substr( $s, 0, $byte ) );
 		return false === $n ? $byte : $n;
+	}
+
+	/**
+	 * Post ids for llms.txt's "Main pages": the static front page, then the
+	 * header menu in menu order (classic menu locations, or the block theme's
+	 * Navigation block). Menu links to custom URLs are resolved to their posts.
+	 *
+	 * @return int[]
+	 */
+	private static function llms_key_page_ids() {
+		$ids = array();
+		if ( 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) ) {
+			$ids[] = (int) get_option( 'page_on_front' );
+		}
+
+		$from_url = static function ( $url ) {
+			$url = (string) $url;
+			if ( '' === $url || '#' === $url[0] ) {
+				return 0;
+			}
+			if ( '/' === $url[0] && ( ! isset( $url[1] ) || '/' !== $url[1] ) ) {
+				$url = home_url( $url );
+			}
+			return (int) url_to_postid( $url );
+		};
+
+		// Classic themes: every menu assigned to a theme location.
+		foreach ( (array) get_nav_menu_locations() as $menu_id ) {
+			foreach ( (array) wp_get_nav_menu_items( $menu_id ) as $item ) {
+				if ( is_object( $item ) ) {
+					$ids[] = 'post_type' === $item->type ? (int) $item->object_id : $from_url( $item->url );
+				}
+			}
+		}
+
+		// Block themes: the Navigation blocks in the header template part. A
+		// Navigation block without a ref shows the newest wp_navigation post.
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			$refs   = array();
+			$header = get_block_template( get_stylesheet() . '//header', 'wp_template_part' );
+			$find   = static function ( $blocks ) use ( &$find, &$refs ) {
+				foreach ( $blocks as $b ) {
+					if ( 'core/navigation' === $b['blockName'] ) {
+						$refs[] = isset( $b['attrs']['ref'] ) ? (int) $b['attrs']['ref'] : 0;
+					}
+					if ( ! empty( $b['innerBlocks'] ) ) {
+						$find( $b['innerBlocks'] );
+					}
+				}
+			};
+			if ( $header && ! empty( $header->content ) ) {
+				$find( parse_blocks( $header->content ) );
+			}
+			if ( in_array( 0, $refs, true ) ) {
+				$newest = get_posts( array(
+					'post_type'      => 'wp_navigation',
+					'post_status'    => 'publish',
+					'posts_per_page' => 1,
+					'orderby'        => 'date',
+					'order'          => 'DESC',
+					'fields'         => 'ids',
+				) );
+				$refs   = array_merge( array_diff( $refs, array( 0 ) ), $newest );
+			}
+			$links = static function ( $blocks ) use ( &$links, $from_url ) {
+				$out = array();
+				foreach ( $blocks as $b ) {
+					if ( in_array( $b['blockName'], array( 'core/navigation-link', 'core/navigation-submenu' ), true ) ) {
+						$a     = $b['attrs'];
+						$out[] = ( isset( $a['kind'] ) && 'post-type' === $a['kind'] && ! empty( $a['id'] ) ) ? (int) $a['id'] : $from_url( $a['url'] ?? '' );
+					}
+					if ( ! empty( $b['innerBlocks'] ) ) {
+						$out = array_merge( $out, $links( $b['innerBlocks'] ) );
+					}
+				}
+				return $out;
+			};
+			foreach ( array_unique( $refs ) as $ref ) {
+				$nav = get_post( $ref );
+				if ( $nav && 'wp_navigation' === $nav->post_type && 'publish' === $nav->post_status ) {
+					$ids = array_merge( $ids, $links( parse_blocks( $nav->post_content ) ) );
+				}
+			}
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'intval', $ids ) ) ) );
 	}
 
 	private static function clean_llms_excerpt( WP_Post $p, $title = '' ) {

@@ -34,7 +34,7 @@ class TWTAEO_Bing_Webmaster {
 		) );
 		delete_transient( 'twtaeo_bing_stats_v2' );
 		delete_transient( 'twtaeo_bing_crawl' );
-		delete_transient( 'twtaeo_bing_suggestions' );
+		delete_transient( 'twtaeo_bing_crawl_issues' );
 	}
 
 	public static function is_connected() {
@@ -46,7 +46,7 @@ class TWTAEO_Bing_Webmaster {
 		delete_option( self::OPTION_CREDS );
 		delete_transient( 'twtaeo_bing_stats_v2' );
 		delete_transient( 'twtaeo_bing_crawl' );
-		delete_transient( 'twtaeo_bing_suggestions' );
+		delete_transient( 'twtaeo_bing_crawl_issues' );
 	}
 
 	// ── API Requests ─────────────────────────────────────────────────────────
@@ -172,20 +172,21 @@ class TWTAEO_Bing_Webmaster {
 	}
 
 	/**
-	 * Get SEO suggestions for the configured site.
-	 *
-	 * Returns per-page SEO issues with Bing severity levels:
-	 *   1 = Critical, 2 = Warning, 3 = Notice.
+	 * Get the pages Bing reports crawl issues on (GetCrawlIssues): each item
+	 * has Url, HttpCode, InLinks and Issues, a set of flags (see
+	 * TWTAEO_Page_Command_Center::fetch_bing_recommendations()). The Webmaster
+	 * API has no SEO-suggestions method; the SEO Reports in Bing's own
+	 * dashboard are not exposed through it.
 	 *
 	 * @return array|WP_Error
 	 */
-	public static function get_seo_suggestions() {
+	public static function get_crawl_issues() {
 		$creds = self::get_credentials();
 
 		if ( empty( $creds['site_url'] ) ) {
 			return new WP_Error( 'no_site', 'No site URL configured.' );
 		}
 
-		return self::request( 'GetSEOSuggestions', array( 'siteUrl' => $creds['site_url'] ) );
+		return self::request( 'GetCrawlIssues', array( 'siteUrl' => $creds['site_url'] ) );
 	}
 }

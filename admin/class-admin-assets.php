@@ -68,6 +68,9 @@ class TWTAEO_Admin_Assets {
 			),
 		) );
 
+		// "?" video help beside the title of screens that have a tutorial.
+		TWTAEO_Video_Help::enqueue();
+
 		// Setup Wizard assets — only on the wizard page.
 		if ( strpos( $hook, 'twt-aeo-setup-wizard' ) !== false ) {
 			wp_enqueue_style(

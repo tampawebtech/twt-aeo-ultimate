@@ -90,6 +90,10 @@ Changes (when you allow them) are always previewed first and applied only after 
 
 The **RAG Engine law check** loads the official-source page its search names (usually a government or code-publisher site) once, only to confirm the link works before showing it. Nothing is sent but the request for that page.
 
+### YouTube — tutorial videos (only when you press Play)
+
+Screens that have a tutorial (E-E-A-T, Local Pack, AI Visibility, Social Graph, Schema Detector, AI Ready, RAG Engine, Command Center) show a "?" beside their title. Pressing it opens a panel; nothing is requested from YouTube until you then press **Play**, which loads that tutorial in a player from `www.youtube-nocookie.com` (YouTube's privacy-enhanced mode). From then on YouTube receives what any embedded player sends: your IP address, browser details and the video being watched. No site data is sent. Closing the panel removes the player. Terms: [YouTube Terms](https://www.youtube.com/t/terms) · Privacy: [Google Privacy Policy](https://policies.google.com/privacy)
+
 ---
 
 ## 2. Sites that are only linked

@@ -1642,3 +1642,101 @@
 	background: #dbeafe;
 	color: #1d4ed8;
 }
+
+/* ── Video help ("?" beside the screen title; TWTAEO_Video_Help) ── */
+.twt-aeo-video-help-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	margin-left: 10px;
+	padding: 0;
+	vertical-align: middle;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	/* Amber on purpose: it has to be found on the dark page headers and on
+	   the plain white ones alike. Dark text keeps it readable (contrast > 7:1). */
+	background: #f5b70a;
+	color: #1d2327;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, .15), 0 1px 3px rgba(0, 0, 0, .25);
+	font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	cursor: pointer;
+	transition: transform .15s ease, background-color .15s ease;
+}
+.twt-aeo-video-help-btn:hover,
+.twt-aeo-video-help-btn:focus-visible {
+	background: #ffcb2e;
+	transform: scale(1.12);
+	outline: 2px solid #1d2327;
+	outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+	.twt-aeo-video-help-btn { transition: none; }
+	.twt-aeo-video-help-btn:hover,
+	.twt-aeo-video-help-btn:focus-visible { transform: none; }
+}
+.twt-aeo-video-help {
+	width: min(720px, calc(100vw - 32px));
+	max-height: calc(100vh - 64px);
+	padding: 0 24px 16px;
+	border: 0;
+	border-radius: 8px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+}
+.twt-aeo-video-help::backdrop {
+	background: rgba(0, 0, 0, .5);
+}
+.twt-aeo-video-help__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	position: sticky;
+	top: 0;
+	padding: 16px 0 8px;
+	background: #fff;
+}
+.twt-aeo-video-help__head h2 {
+	margin: 0;
+	font-size: 18px;
+}
+.twt-aeo-video-help__close {
+	border: 0;
+	background: none;
+	font-size: 26px;
+	line-height: 1;
+	color: #50575e;
+	cursor: pointer;
+}
+.twt-aeo-video-help__item {
+	padding: 12px 0;
+	border-top: 1px solid #f0f0f1;
+}
+.twt-aeo-video-help__item h3 {
+	margin: 0 0 4px;
+	font-size: 15px;
+}
+.twt-aeo-video-help__item p {
+	margin: 0 0 10px;
+	color: #50575e;
+}
+.twt-aeo-video-help__frame {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 16 / 9;
+	margin: 0 0 8px;
+	border-radius: 6px;
+	background: #1d2327;
+}
+.twt-aeo-video-help__frame iframe {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 6px;
+}
+.twt-aeo-video-help__privacy {
+	margin: 8px 0 0;
+	color: #787c82;
+	font-size: 12px;
+}

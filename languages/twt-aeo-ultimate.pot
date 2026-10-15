@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.30.6\n"
+"Project-Id-Version: TWT AEO Ultimate 2.30.7\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-14T20:33:50+00:00\n"
+"POT-Creation-Date: 2026-10-15T03:54:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -50,12 +50,12 @@ msgstr ""
 msgid "Hide Preview"
 msgstr ""
 
-#: admin/class-admin-assets.php:90
+#: admin/class-admin-assets.php:93
 msgid "Running…"
 msgstr ""
 
-#: admin/class-admin-assets.php:91
-#: admin/class-admin-assets.php:324
+#: admin/class-admin-assets.php:94
+#: admin/class-admin-assets.php:327
 #: admin/pages/class-page-faq-detector.php:290
 #: admin/pages/class-page-image-seo.php:240
 #: admin/pages/class-page-schema-detector.php:389
@@ -65,128 +65,128 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: admin/class-admin-assets.php:92
+#: admin/class-admin-assets.php:95
 msgid "Error"
 msgstr ""
 
-#: admin/class-admin-assets.php:93
+#: admin/class-admin-assets.php:96
 msgid "Retry"
 msgstr ""
 
-#: admin/class-admin-assets.php:94
+#: admin/class-admin-assets.php:97
 msgid "Running in background"
 msgstr ""
 
-#: admin/class-admin-assets.php:95
+#: admin/class-admin-assets.php:98
 msgid "Skipped — handled by another plugin"
 msgstr ""
 
-#: admin/class-admin-assets.php:160
+#: admin/class-admin-assets.php:163
 msgid "Reading documents and indexing pages… you can keep working; this page will refresh when it is done."
 msgstr ""
 
-#: admin/class-admin-assets.php:161
+#: admin/class-admin-assets.php:164
 msgid "Done. Refreshing…"
 msgstr ""
 
-#: admin/class-admin-assets.php:162
+#: admin/class-admin-assets.php:165
 msgid "Processing stopped responding. Reload the page to try again."
 msgstr ""
 
 #. translators: 1: posts done, 2: posts total.
-#: admin/class-admin-assets.php:164
+#: admin/class-admin-assets.php:167
 #: admin/pages/class-page-documents.php:438
 #, php-format
 msgid "Indexing… %1$s of %2$s published pages and posts."
 msgstr ""
 
-#: admin/class-admin-assets.php:165
+#: admin/class-admin-assets.php:168
 msgid "Delete this document and all of its passages?"
 msgstr ""
 
 #. translators: 1: file name, 2: file size, 3: limit.
-#: admin/class-admin-assets.php:167
+#: admin/class-admin-assets.php:170
 #, php-format
 msgid "\"%1$s\" is %2$s. This server can read documents up to %3$s in one go."
 msgstr ""
 
 #. translators: 1: file name, 2: percent.
-#: admin/class-admin-assets.php:169
+#: admin/class-admin-assets.php:172
 #, php-format
 msgid "Uploading \"%1$s\" — %2$s"
 msgstr ""
 
 #. translators: 1: file name, 2: size already on the server.
-#: admin/class-admin-assets.php:171
+#: admin/class-admin-assets.php:174
 #, php-format
 msgid "Resuming \"%1$s\" from %2$s already on the server…"
 msgstr ""
 
 #. translators: %s: seconds.
-#: admin/class-admin-assets.php:173
+#: admin/class-admin-assets.php:176
 #, php-format
 msgid "Connection lost — retrying in %s seconds. You can leave this page open; the upload continues where it stopped. If you close it, choose the same file again later to resume."
 msgstr ""
 
-#: admin/class-admin-assets.php:174
+#: admin/class-admin-assets.php:177
 msgid "Upload complete. Reading the document now…"
 msgstr ""
 
-#: admin/class-admin-assets.php:175
+#: admin/class-admin-assets.php:178
 msgid "Don’t close this page or navigate away until the upload finishes. Closing it stops the upload."
 msgstr ""
 
 #. translators: 1: total size, 2: limit.
-#: admin/class-admin-assets.php:177
+#: admin/class-admin-assets.php:180
 #, php-format
 msgid "Together these files are %1$s, more than your server accepts in one upload (%2$s). Upload them a few at a time."
 msgstr ""
 
-#: admin/class-admin-assets.php:179
+#: admin/class-admin-assets.php:182
 msgid "Copied"
 msgstr ""
 
-#: admin/class-admin-assets.php:180
+#: admin/class-admin-assets.php:183
 msgid "Select the text and copy it manually"
 msgstr ""
 
-#: admin/class-admin-assets.php:209
+#: admin/class-admin-assets.php:212
 msgid "out of stock"
 msgstr ""
 
-#: admin/class-admin-assets.php:210
+#: admin/class-admin-assets.php:213
 msgid "Could not draft a collection for that query. Try again, or build one by hand."
 msgstr ""
 
 #. translators: %d: minimum number of products.
-#: admin/class-admin-assets.php:213
+#: admin/class-admin-assets.php:216
 #, php-format
 msgid "Pick at least %d products. A shorter list is a pair, not a collection."
 msgstr ""
 
-#: admin/class-admin-assets.php:291
+#: admin/class-admin-assets.php:294
 msgid "Starting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:292
+#: admin/class-admin-assets.php:295
 msgid "Stopping after this check…"
 msgstr ""
 
-#: admin/class-admin-assets.php:293
+#: admin/class-admin-assets.php:296
 msgid "Stopped."
 msgstr ""
 
-#: admin/class-admin-assets.php:294
+#: admin/class-admin-assets.php:297
 msgid "Run complete — loading results…"
 msgstr ""
 
-#: admin/class-admin-assets.php:295
+#: admin/class-admin-assets.php:298
 msgid "last:"
 msgstr ""
 
-#: admin/class-admin-assets.php:296
-#: admin/class-admin-assets.php:356
-#: admin/pages/class-page-command-center.php:2876
+#: admin/class-admin-assets.php:299
+#: admin/class-admin-assets.php:359
+#: admin/pages/class-page-command-center.php:2874
 #: admin/pages/class-page-faq-detector.php:338
 #: admin/pages/class-page-image-seo.php:345
 #: admin/pages/class-page-not-indexed.php:414
@@ -198,119 +198,119 @@ msgstr ""
 msgid "Saving…"
 msgstr ""
 
-#: admin/class-admin-assets.php:297
+#: admin/class-admin-assets.php:300
 msgid "Building the list — reads your catalogue, spends nothing…"
 msgstr ""
 
-#: admin/class-admin-assets.php:298
+#: admin/class-admin-assets.php:301
 msgid "Loading…"
 msgstr ""
 
-#: admin/class-admin-assets.php:299
+#: admin/class-admin-assets.php:302
 #: admin/assets/js/ai-ready.js:103
 msgid "Removing…"
 msgstr ""
 
-#: admin/class-admin-assets.php:300
+#: admin/class-admin-assets.php:303
 msgid "Network hiccup — retrying…"
 msgstr ""
 
-#: admin/class-admin-assets.php:301
+#: admin/class-admin-assets.php:304
 msgid "The background worker is on it — waiting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:302
+#: admin/class-admin-assets.php:305
 msgid "Every other check is done. Waiting for background answers:"
 msgstr ""
 
-#: admin/class-admin-assets.php:303
+#: admin/class-admin-assets.php:306
 msgid "still out. Safe to close this page — the run finishes on its own."
 msgstr ""
 
-#: admin/class-admin-assets.php:304
+#: admin/class-admin-assets.php:307
 msgid "answering in the background"
 msgstr ""
 
-#: admin/class-admin-assets.php:305
+#: admin/class-admin-assets.php:308
 msgid "first questions"
 msgstr ""
 
-#: admin/class-admin-assets.php:306
+#: admin/class-admin-assets.php:309
 msgid "follow-up turns so far"
 msgstr ""
 
-#: admin/class-admin-assets.php:307
+#: admin/class-admin-assets.php:310
 msgid "Any state or region"
 msgstr ""
 
-#: admin/class-admin-assets.php:308
+#: admin/class-admin-assets.php:311
 msgid "Asking your AI provider to rephrase the post questions…"
 msgstr ""
 
 #. translators: %1$s: number of questions rephrased.
-#: admin/class-admin-assets.php:310
+#: admin/class-admin-assets.php:313
 #, php-format
 msgid "%1$s questions rephrased — saved with source “ai”."
 msgstr ""
 
-#: admin/class-admin-assets.php:311
+#: admin/class-admin-assets.php:314
 msgid "Too many network failures in a row — the run is saved; resume it any time."
 msgstr ""
 
-#: admin/class-admin-assets.php:312
-#: admin/class-admin-assets.php:363
+#: admin/class-admin-assets.php:315
+#: admin/class-admin-assets.php:366
 msgid "Something went wrong."
 msgstr ""
 
-#: admin/class-admin-assets.php:313
+#: admin/class-admin-assets.php:316
 msgid "day"
 msgstr ""
 
-#: admin/class-admin-assets.php:314
+#: admin/class-admin-assets.php:317
 #: admin/pages/class-page-promotions.php:751
 msgid "days"
 msgstr ""
 
 #. translators: %d: number of days this run needs at the current daily cap.
-#: admin/class-admin-assets.php:315
+#: admin/class-admin-assets.php:318
 #: admin/pages/class-page-ai-visibility.php:924
 msgid "— (cap is 0)"
 msgstr ""
 
-#: admin/class-admin-assets.php:316
+#: admin/class-admin-assets.php:319
 #: admin/pages/class-page-ai-visibility.php:922
 msgid "fits in"
 msgstr ""
 
 #. translators: 1: enabled question count, 2: total question count.
-#: admin/class-admin-assets.php:318
+#: admin/class-admin-assets.php:321
 #, php-format
 msgid "%1$s of %2$s questions enabled."
 msgstr ""
 
-#: admin/class-admin-assets.php:319
+#: admin/class-admin-assets.php:322
 msgid "Not saved — these would not match anything:"
 msgstr ""
 
-#: admin/class-admin-assets.php:320
+#: admin/class-admin-assets.php:323
 msgid "Buyer personas were suggested from your site — pick one under “Ask as” for your next run."
 msgstr ""
 
-#: admin/class-admin-assets.php:321
+#: admin/class-admin-assets.php:324
 msgid "Adding it and re-scoring your runs…"
 msgstr ""
 
-#: admin/class-admin-assets.php:322
+#: admin/class-admin-assets.php:325
 msgid "Counted as you."
 msgstr ""
 
-#: admin/class-admin-assets.php:323
+#: admin/class-admin-assets.php:326
 msgid "Not you — we will not ask again."
 msgstr ""
 
-#: admin/class-admin-assets.php:325
+#: admin/class-admin-assets.php:328
 #: admin/pages/class-page-ai-visibility.php:1109
-#: admin/pages/class-page-command-center.php:1678
+#: admin/pages/class-page-command-center.php:1680
 #: admin/pages/class-page-contact-detector.php:183
 #: admin/pages/class-page-dashboard.php:584
 #: admin/pages/class-page-eeat.php:322
@@ -330,45 +330,45 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: admin/class-admin-assets.php:326
+#: admin/class-admin-assets.php:329
 msgid "Changed — click “Save question set” to keep it."
 msgstr ""
 
-#: admin/class-admin-assets.php:357
+#: admin/class-admin-assets.php:360
 msgid "Reading your main pages and asking your AI provider…"
 msgstr ""
 
-#: admin/class-admin-assets.php:358
+#: admin/class-admin-assets.php:361
 #: admin/pages/class-page-ai-visibility.php:718
 msgid "suggested from your site"
 msgstr ""
 
-#: admin/class-admin-assets.php:359
+#: admin/class-admin-assets.php:362
 #: admin/pages/class-page-ai-visibility.php:717
 msgid "Click to edit"
 msgstr ""
 
 #. translators: %s: persona label.
-#: admin/class-admin-assets.php:361
+#: admin/class-admin-assets.php:364
 #: admin/pages/class-page-ai-visibility.php:720
 #, php-format
 msgid "Remove %s"
 msgstr ""
 
-#: admin/class-admin-assets.php:362
+#: admin/class-admin-assets.php:365
 msgid "That’s the maximum — remove one to add another."
 msgstr ""
 
-#: admin/class-admin-assets.php:387
+#: admin/class-admin-assets.php:390
 #: admin/class-hub-metabox.php:138
 #: admin/class-hub-metabox.php:149
 #: admin/pages/class-page-ai-ready.php:85
 #: admin/pages/class-page-ai-ready.php:92
-#: admin/pages/class-page-ai-ready.php:1142
-#: admin/pages/class-page-ai-ready.php:1147
+#: admin/pages/class-page-ai-ready.php:1146
+#: admin/pages/class-page-ai-ready.php:1151
 #: admin/pages/class-page-claude.php:391
-#: admin/pages/class-page-command-center.php:890
-#: admin/pages/class-page-command-center.php:950
+#: admin/pages/class-page-command-center.php:892
+#: admin/pages/class-page-command-center.php:952
 #: admin/pages/class-page-index-now.php:160
 #: admin/assets/js/ai-ready.js:46
 #: admin/assets/js/ai-ready.js:56
@@ -376,7 +376,7 @@ msgstr ""
 msgid "Copy"
 msgstr ""
 
-#: admin/class-admin-assets.php:388
+#: admin/class-admin-assets.php:391
 #: admin/class-hub-metabox.php:53
 #: admin/pages/class-page-claude.php:391
 #: admin/pages/class-page-diagnostics.php:75
@@ -386,20 +386,20 @@ msgstr ""
 msgid "Copied!"
 msgstr ""
 
-#: admin/class-admin-assets.php:389
-#: admin/pages/class-page-command-center.php:994
-#: admin/pages/class-page-command-center.php:1241
+#: admin/class-admin-assets.php:392
+#: admin/pages/class-page-command-center.php:996
+#: admin/pages/class-page-command-center.php:1243
 #: admin/pages/class-page-local-pack.php:422
 #: admin/pages/class-page-woocommerce-detector.php:1685
 #: admin/pages/class-page-woocommerce-detector.php:2134
 msgid "Disconnect"
 msgstr ""
 
-#: admin/class-admin-assets.php:390
+#: admin/class-admin-assets.php:393
 msgid "Disconnecting…"
 msgstr ""
 
-#: admin/class-admin-assets.php:391
+#: admin/class-admin-assets.php:394
 msgid "Disconnect {service}? Your stored credentials will be removed."
 msgstr ""
 
@@ -457,6 +457,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:142
 #: admin/class-admin-menu.php:143
+#: admin/class-video-help.php:74
 #: admin/pages/class-page-ai-visibility.php:2682
 #: admin/pages/class-page-command-center.php:66
 #: admin/pages/class-page-setup-wizard.php:870
@@ -465,18 +466,21 @@ msgstr ""
 
 #: admin/class-admin-menu.php:153
 #: admin/class-admin-menu.php:154
+#: admin/class-video-help.php:44
 #: includes/class-owner-actions.php:616
 msgid "AI Visibility"
 msgstr ""
 
 #: admin/class-admin-menu.php:165
 #: admin/class-admin-menu.php:166
+#: admin/class-video-help.php:50
 #: admin/pages/class-page-social-graph.php:141
 msgid "Social Graph"
 msgstr ""
 
 #: admin/class-admin-menu.php:177
 #: admin/class-admin-menu.php:178
+#: admin/class-video-help.php:56
 #: admin/pages/class-page-dashboard-v2.php:44
 #: admin/pages/class-page-schema-detector.php:47
 msgid "Schema Detector"
@@ -490,6 +494,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:198
 #: admin/class-admin-menu.php:199
+#: admin/class-video-help.php:32
 #: admin/pages/class-page-eeat.php:69
 #: admin/pages/class-page-eeat.php:99
 msgid "E-E-A-T"
@@ -520,6 +525,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:256
 #: admin/class-admin-menu.php:257
+#: admin/class-video-help.php:38
 #: admin/pages/class-page-local-pack.php:118
 #: admin/pages/class-page-setup-wizard.php:691
 msgid "Local Pack"
@@ -565,14 +571,15 @@ msgstr ""
 
 #: admin/class-admin-menu.php:336
 #: admin/class-admin-menu.php:337
-#: admin/pages/class-page-command-center.php:2414
-#: admin/pages/class-page-command-center.php:2503
+#: admin/pages/class-page-command-center.php:2412
+#: admin/pages/class-page-command-center.php:2501
 #: admin/pages/class-page-dashboard-v2.php:66
 msgid "Not Indexed"
 msgstr ""
 
 #: admin/class-admin-menu.php:346
 #: admin/class-admin-menu.php:347
+#: admin/class-video-help.php:62
 #: admin/pages/class-page-ai-ready.php:48
 #: admin/pages/class-page-schema-conflicts.php:203
 #: includes/class-owner-actions.php:1312
@@ -588,6 +595,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:371
 #: admin/class-admin-menu.php:372
+#: admin/class-video-help.php:68
 #: admin/pages/class-page-rag-engine.php:108
 msgid "RAG Engine"
 msgstr ""
@@ -650,7 +658,7 @@ msgid "AEO Status"
 msgstr ""
 
 #: admin/class-metabox.php:86
-#: admin/pages/class-page-command-center.php:2902
+#: admin/pages/class-page-command-center.php:2900
 #: admin/pages/class-page-not-indexed.php:350
 #: admin/pages/class-page-social-graph.php:1273
 #: includes/class-ai-description.php:132
@@ -667,8 +675,8 @@ msgid "Could not add schema."
 msgstr ""
 
 #: admin/class-metabox.php:89
-#: admin/pages/class-page-command-center.php:1649
-#: admin/pages/class-page-command-center.php:1687
+#: admin/pages/class-page-command-center.php:1651
+#: admin/pages/class-page-command-center.php:1689
 #: admin/pages/class-page-schema-conflicts.php:621
 #: admin/pages/class-page-schema-conflicts.php:655
 #: admin/pages/class-page-social-graph.php:1184
@@ -735,7 +743,7 @@ msgid "Missing"
 msgstr ""
 
 #: admin/class-metabox.php:194
-#: admin/pages/class-page-command-center.php:875
+#: admin/pages/class-page-command-center.php:877
 #: admin/pages/class-page-local-pack.php:603
 #: admin/pages/class-page-reviews.php:722
 #: admin/pages/class-page-setup-wizard.php:109
@@ -909,7 +917,7 @@ msgstr ""
 #: admin/pages/class-page-image-seo.php:159
 #: admin/pages/class-page-not-indexed.php:187
 #: admin/pages/class-page-not-indexed.php:275
-#: admin/pages/class-page-rag-engine.php:871
+#: admin/pages/class-page-rag-engine.php:901
 #: admin/pages/class-page-schema-detector.php:289
 #: admin/pages/class-page-schema-detector.php:655
 #: admin/pages/class-page-schema-detector.php:1059
@@ -924,7 +932,8 @@ msgid "PR Bridge — Review & Edit"
 msgstr ""
 
 #: admin/class-pr-metabox.php:226
-#: admin/pages/class-page-command-center.php:2619
+#: admin/class-video-help.php:151
+#: admin/pages/class-page-command-center.php:2617
 #: admin/pages/class-page-not-indexed.php:207
 #: admin/pages/class-page-smart-collections.php:858
 msgid "Close"
@@ -953,6 +962,68 @@ msgstr ""
 #: admin/class-pr-metabox.php:264
 #: admin/assets/js/pr-bridge.js:114
 msgid "Save as Press Release"
+msgstr ""
+
+#: admin/class-video-help.php:33
+msgid "The experience, expertise and trust signals search engines and AI assistants look for, and how to raise your score."
+msgstr ""
+
+#: admin/class-video-help.php:39
+msgid "LocalBusiness schema and the local directories that help \"near me\" answers name your business."
+msgstr ""
+
+#: admin/class-video-help.php:45
+msgid "Whether ChatGPT, Gemini, Perplexity and the other engines cite your site when asked your questions."
+msgstr ""
+
+#: admin/class-video-help.php:51
+msgid "Open Graph tags and share images, so every page looks right when it is shared or previewed."
+msgstr ""
+
+#: admin/class-video-help.php:57
+msgid "Finding the pages that need FAQ, Service or contact schema, and adding it in one click."
+msgstr ""
+
+#: admin/class-video-help.php:63
+msgid "Markdown versions of your pages, llms.txt, and content signals that let AI assistants cite you."
+msgstr ""
+
+#: admin/class-video-help.php:69
+msgid "Your site the way AI retrieval sees it, and the answers your documents hold that your pages are missing."
+msgstr ""
+
+#: admin/class-video-help.php:75
+msgid "Google Analytics, Search Console and Bing in one place, with AI crawler access, page speed and index status."
+msgstr ""
+
+#: admin/class-video-help.php:146
+msgid "Video help for this screen"
+msgstr ""
+
+#: admin/class-video-help.php:147
+msgid "Tutorial for this screen"
+msgid_plural "Tutorials for this screen"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/class-video-help.php:148
+msgid "Play video"
+msgstr ""
+
+#: admin/class-video-help.php:149
+msgid "Read the guide"
+msgstr ""
+
+#: admin/class-video-help.php:150
+msgid "Open on YouTube"
+msgstr ""
+
+#: admin/class-video-help.php:152
+msgid "The video plays from YouTube (youtube-nocookie.com). Nothing is loaded from YouTube until you press Play."
+msgstr ""
+
+#: admin/class-video-help.php:153
+msgid "(opens in a new tab)"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:16
@@ -998,18 +1069,18 @@ msgid "OAuth client created — save these credentials now. The secret will not 
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:78
-#: admin/pages/class-page-ai-ready.php:1197
+#: admin/pages/class-page-ai-ready.php:1201
 msgid "Client Name"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:82
-#: admin/pages/class-page-ai-ready.php:1162
-#: admin/pages/class-page-command-center.php:961
+#: admin/pages/class-page-ai-ready.php:1166
+#: admin/pages/class-page-command-center.php:963
 msgid "Client ID"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:89
-#: admin/pages/class-page-command-center.php:969
+#: admin/pages/class-page-command-center.php:971
 msgid "Client Secret"
 msgstr ""
 
@@ -1182,7 +1253,7 @@ msgstr ""
 #: admin/pages/class-page-ai-ready.php:354
 #: admin/pages/class-page-ai-ready.php:393
 #: admin/pages/class-page-ai-ready.php:476
-#: admin/pages/class-page-ai-ready.php:793
+#: admin/pages/class-page-ai-ready.php:797
 msgid "Why this matters"
 msgstr ""
 
@@ -1227,7 +1298,7 @@ msgid "Discoverability Score"
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:391
-msgid "Generates a dynamic machine-readable \"cheat sheet\" for AI models at /llms.txt. It includes your site name, tagline, and a structured list of your most recent pages with links and excerpts — giving AI tools an instant overview of your site without crawling every page."
+msgid "Generates a dynamic machine-readable \"cheat sheet\" for AI models at /llms.txt. It includes your site name, tagline, and a structured list of your pages with links and excerpts: your home page and main menu first, then your most recent posts and pages — giving AI tools an instant overview of your site without crawling every page."
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:395
@@ -1305,336 +1376,344 @@ msgid "There is a critical difference between Training and Search. \"AI Training
 msgstr ""
 
 #: admin/pages/class-page-ai-ready.php:479
+msgid "\"AI Input\" is the answer itself: an assistant reads your page to answer a question and quotes or cites it. Saying no asks assistants to leave your content out of their answers, which works against answer engine optimization."
+msgstr ""
+
+#: admin/pages/class-page-ai-ready.php:480
 msgid "Content-Signal lets you say yes to one and no to the other. Most SEOs are not aware these are separate permissions. Cloudflare's Signals Score measures whether your preferences are machine-readable and correctly declared."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:487
+#: admin/pages/class-page-ai-ready.php:488
 msgid "Always Active"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:492
+#: admin/pages/class-page-ai-ready.php:493
 msgid "AI Training"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:493
+#: admin/pages/class-page-ai-ready.php:494
 msgid "May AI providers use this content to train their models?"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:506
+#: admin/pages/class-page-ai-ready.php:507
 msgid "AI Search Indexing"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:507
+#: admin/pages/class-page-ai-ready.php:508
 msgid "May AI search engines index and cite this content?"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:520
+#: admin/pages/class-page-ai-ready.php:521
 msgid "AI Input / RAG"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:521
-msgid "May AI systems use this content as input context for retrieval-augmented generation?"
+#: admin/pages/class-page-ai-ready.php:522
+msgid "May AI assistants read this content to answer a question, and quote or cite it (retrieval-augmented generation)?"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:541
+#: admin/pages/class-page-ai-ready.php:532
+msgid "AI assistants are asked not to use this content in their answers, so they may not quote or cite it. Choose Allow as input if you want to be cited."
+msgstr ""
+
+#: admin/pages/class-page-ai-ready.php:545
 msgid "Output directive:"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:551
+#: admin/pages/class-page-ai-ready.php:555
 msgid "Sitemap detected — will be added to robots.txt:"
 msgstr ""
 
 #. translators: URL
-#: admin/pages/class-page-ai-ready.php:558
+#: admin/pages/class-page-ai-ready.php:562
 #, php-format
 msgid "No sitemap detected — a fallback will be served at %s and referenced from robots.txt."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:567
+#: admin/pages/class-page-ai-ready.php:571
 msgid "Also write per-bot Allow/Disallow rules to robots.txt"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:570
+#: admin/pages/class-page-ai-ready.php:574
 msgid "Adds explicit User-agent entries for known AI crawlers (GPTBot, ClaudeBot, etc.) matching your signal choices above."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:571
+#: admin/pages/class-page-ai-ready.php:575
 msgid "Leave off if Yoast, Rank Math, or another SEO plugin already manages AI bot access — duplicate rules cause conflicts."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:586
+#: admin/pages/class-page-ai-ready.php:590
 msgid "robots.txt is served dynamically — fully tracked."
 msgstr ""
 
 #. translators: SEO plugin name(s)
-#: admin/pages/class-page-ai-ready.php:592
+#: admin/pages/class-page-ai-ready.php:596
 #, php-format
 msgid "WordPress builds robots.txt on each request, so this plugin's AI directives and Content-Signal are applied automatically alongside %s, and AI-crawler hits are logged. No action needed."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:597
+#: admin/pages/class-page-ai-ready.php:601
 msgid "WordPress builds robots.txt on each request, so this plugin's AI directives and Content-Signal are applied automatically and AI-crawler hits are logged. No action needed."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:604
+#: admin/pages/class-page-ai-ready.php:608
 msgid "Physical robots.txt detected — served as a static file."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:605
+#: admin/pages/class-page-ai-ready.php:609
 msgid "A robots.txt file on disk is served directly by the web server. That freezes its content and prevents AI-crawler hits from being tracked."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:607
+#: admin/pages/class-page-ai-ready.php:611
 msgid "Recommended: remove it."
 msgstr ""
 
 #. translators: SEO plugin name(s)
-#: admin/pages/class-page-ai-ready.php:612
+#: admin/pages/class-page-ai-ready.php:616
 #, php-format
 msgid "WordPress will then serve robots.txt dynamically and %s will keep managing its rules through WordPress — no content is lost, and hits become trackable."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:617
+#: admin/pages/class-page-ai-ready.php:621
 msgid "WordPress and this plugin will then serve a clean dynamic robots.txt with AI directives and Content-Signal, and hits become trackable."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:620
+#: admin/pages/class-page-ai-ready.php:624
 msgid "Prefer to keep the file? Use Inject instead to write Content-Signal into it — but hits to a static file stay untracked."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:627
+#: admin/pages/class-page-ai-ready.php:631
 msgid "Physical robots.txt detected — not writable."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:628
+#: admin/pages/class-page-ai-ready.php:632
 msgid "A robots.txt file on disk is served directly by the web server, and the web server does not have permission to delete it."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:630
+#: admin/pages/class-page-ai-ready.php:634
 msgid "Recommended:"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:631
+#: admin/pages/class-page-ai-ready.php:635
 msgid "Delete robots.txt manually via FTP or your host file manager so it is served dynamically (best for tracking), or click Inject to at least write Content-Signal into the existing file."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:636
+#: admin/pages/class-page-ai-ready.php:640
 msgid "Can’t delete it either? Add this to robots.txt by hand"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:638
+#: admin/pages/class-page-ai-ready.php:642
 msgid "Open robots.txt in your host file manager and append the lines below. If a \"User-agent: *\" or \"Sitemap:\" line already exists, merge into it rather than duplicating it:"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:651
+#: admin/pages/class-page-ai-ready.php:655
 #: admin/assets/js/ai-ready.js:97
 msgid "Remove physical robots.txt (serve dynamically)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:656
+#: admin/pages/class-page-ai-ready.php:660
 #: admin/assets/js/ai-ready.js:75
 #: admin/assets/js/ai-ready.js:84
 #: admin/assets/js/ai-ready.js:88
 msgid "Inject into robots.txt"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:660
+#: admin/pages/class-page-ai-ready.php:664
 msgid "Open Yoast File Editor"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:665
+#: admin/pages/class-page-ai-ready.php:669
 msgid "Open Rank Math Settings"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:678
+#: admin/pages/class-page-ai-ready.php:682
 msgid "Semantic Breadcrumbs"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:679
+#: admin/pages/class-page-ai-ready.php:683
 msgid "Injects a BreadcrumbList JSON-LD block into every non-homepage page. This gives AI agents an explicit map of where the current page sits within your site hierarchy — improving machine traversal, navigation inference, and citation accuracy."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:681
+#: admin/pages/class-page-ai-ready.php:685
 msgid "Toggle Semantic Breadcrumbs"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:694
+#: admin/pages/class-page-ai-ready.php:698
 msgid "Link Headers (RFC 8288)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:695
-#: admin/pages/class-page-ai-ready.php:789
-#: admin/pages/class-page-ai-ready.php:1024
+#: admin/pages/class-page-ai-ready.php:699
+#: admin/pages/class-page-ai-ready.php:793
+#: admin/pages/class-page-ai-ready.php:1028
 msgid "Always On"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:697
+#: admin/pages/class-page-ai-ready.php:701
 msgid "Adds RFC 8288 Link response headers pointing AI agents to your site's discovery resources (sitemap, llms.txt, API catalog, and more). Agents that cannot crawl your entire site use these headers to orient themselves instantly from any page, including your homepage."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:715
+#: admin/pages/class-page-ai-ready.php:719
 msgid "Currently sending:"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:728
+#: admin/pages/class-page-ai-ready.php:732
 msgid "Vary: Accept Header"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:729
+#: admin/pages/class-page-ai-ready.php:733
 msgid "Instructs CDNs (Cloudflare, WP Rocket, etc.) to cache separate versions of each page based on the Accept header. Without this, a CDN might serve a human a cached Markdown page, or serve an AI a cached HTML page. Enable this whenever Markdown Negotiation is active."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:731
+#: admin/pages/class-page-ai-ready.php:735
 msgid "Toggle Vary Header"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:746
+#: admin/pages/class-page-ai-ready.php:750
 msgid "Advanced Agent Interaction"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:747
+#: admin/pages/class-page-ai-ready.php:751
 msgid "Toggle Required"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:749
+#: admin/pages/class-page-ai-ready.php:753
 msgid "These features allow AI agents to query your site programmatically. They are off by default. Enable them only when you want AI tools to be able to search or interact with your content via API."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:754
+#: admin/pages/class-page-ai-ready.php:758
 msgid "Security Notice — Read Before Enabling"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:755
+#: admin/pages/class-page-ai-ready.php:759
 msgid "High-level capabilities such as MCP and OAuth allow AI agents to interact with your site — not just read it. Enable IP Whitelisting under Security & Rate Limiting before turning on any interactive features. Never grant an AI agent admin-level or write permissions."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:765
+#: admin/pages/class-page-ai-ready.php:769
 msgid "Agent Search API"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:766
+#: admin/pages/class-page-ai-ready.php:770
 msgid "Creates a dedicated REST endpoint that AI agents can use to search your site content. Restricted to GET requests only. Returns post title, excerpt, and permalink — no private data is ever exposed. Rate limiting applies automatically."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:774
+#: admin/pages/class-page-ai-ready.php:778
 msgid "Toggle Agent Search API"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:787
+#: admin/pages/class-page-ai-ready.php:791
 msgid "API Catalog (RFC 9727)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:788
+#: admin/pages/class-page-ai-ready.php:792
 msgid "Capabilities Score"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:791
+#: admin/pages/class-page-ai-ready.php:795
 msgid "Publishes a machine-readable directory of available site APIs at the RFC 9727 standard endpoint. The WordPress REST API is always listed. Enable the toggle to also include AEO-specific endpoints (Agent Search, MCP) in the catalog."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:795
+#: admin/pages/class-page-ai-ready.php:799
 msgid "Most websites are passive — agents can read them, but cannot interact with them. An API Catalog standardizes your site's functional endpoints (Search, Contact, Services) into a format agents can use to perform actions, not just read text."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:796
+#: admin/pages/class-page-ai-ready.php:800
 msgid "Cloudflare's Capabilities Score measures how well your site can be acted upon by an AI agent. A site with a published API catalog signals to agents that it is a first-class participant in the agentic web — not just a document to be scraped."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:806
-#: admin/pages/class-page-ai-ready.php:1106
+#: admin/pages/class-page-ai-ready.php:810
+#: admin/pages/class-page-ai-ready.php:1110
 msgid "Physical file written and ready."
 msgstr ""
 
 #. translators: %s: file permissions string (e.g. '0755').
-#: admin/pages/class-page-ai-ready.php:811
+#: admin/pages/class-page-ai-ready.php:815
 #, php-format
 msgid "File permissions are %s — set to 644 in cPanel for web server access."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:818
+#: admin/pages/class-page-ai-ready.php:822
 msgid "Physical file not yet written — save settings to generate it, or the dynamic handler will respond."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:822
+#: admin/pages/class-page-ai-ready.php:826
 msgid "Include AEO endpoints in catalog"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:834
+#: admin/pages/class-page-ai-ready.php:838
 msgid "MCP Integration (WebMCP)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:835
+#: admin/pages/class-page-ai-ready.php:839
 msgid "Exposes a Model Context Protocol (MCP) tool manifest endpoint. This allows advanced AI agents (like Claude) to discover and use your site's tools as if they were built-in browser functions. The manifest describes available tools, their parameters, and how to call them."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:848
+#: admin/pages/class-page-ai-ready.php:852
 msgid "MCP Server Card written and ready."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:853
+#: admin/pages/class-page-ai-ready.php:857
 msgid "Server card not yet written — save settings to generate it."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:858
+#: admin/pages/class-page-ai-ready.php:862
 msgid "Toggle MCP Integration"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:873
+#: admin/pages/class-page-ai-ready.php:877
 msgid "Security & Rate Limiting"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:874
+#: admin/pages/class-page-ai-ready.php:878
 msgid "Security Sensitive"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:876
+#: admin/pages/class-page-ai-ready.php:880
 msgid "These settings protect your agent-facing endpoints from abuse. Rate limiting and IP validation are recommended whenever any Advanced feature is enabled."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:884
+#: admin/pages/class-page-ai-ready.php:888
 msgid "Rate Limiting"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:885
+#: admin/pages/class-page-ai-ready.php:889
 msgid "Prevents \"agent crawl storms\" — situations where automated bots hammer your REST endpoints and exhaust server resources. Uses WordPress transients to track and throttle requests per IP per hour. Once the limit is reached, the endpoint returns a 429 Too Many Requests response."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:887
+#: admin/pages/class-page-ai-ready.php:891
 msgid "Toggle Rate Limiting"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:895
+#: admin/pages/class-page-ai-ready.php:899
 msgid "Global maximum requests per IP per hour:"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:923
+#: admin/pages/class-page-ai-ready.php:927
 msgid "Per-Bot Controls"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:924
+#: admin/pages/class-page-ai-ready.php:928
 msgid "Block specific crawlers outright or cap their rate below the global limit. \"Block\" writes Disallow to robots.txt and returns 403 on any request. A per-bot limit overrides the global cap for that crawler only."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:934
-#: admin/pages/class-page-command-center.php:1323
-#: admin/pages/class-page-command-center.php:3110
-#: admin/pages/class-page-command-center.php:3208
+#: admin/pages/class-page-ai-ready.php:938
+#: admin/pages/class-page-command-center.php:1325
+#: admin/pages/class-page-command-center.php:3108
+#: admin/pages/class-page-command-center.php:3206
 #: admin/assets/js/crawler-dataviews.js:49
 msgid "Bot"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:935
+#: admin/pages/class-page-ai-ready.php:939
 #: admin/pages/class-page-ai-visibility.php:551
 #: admin/pages/class-page-ai-visibility.php:845
-#: admin/pages/class-page-command-center.php:3111
-#: admin/pages/class-page-command-center.php:3209
+#: admin/pages/class-page-command-center.php:3109
+#: admin/pages/class-page-command-center.php:3207
 #: includes/class-visibility.php:534
 #: admin/assets/js/crawler-dataviews.js:76
 msgid "Company"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:936
-#: admin/pages/class-page-command-center.php:1325
+#: admin/pages/class-page-ai-ready.php:940
+#: admin/pages/class-page-command-center.php:1327
 #: admin/pages/class-page-contact-detector.php:116
 #: admin/pages/class-page-documents.php:379
 #: admin/pages/class-page-faq-detector.php:140
@@ -1653,134 +1732,134 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:937
+#: admin/pages/class-page-ai-ready.php:941
 msgid "Rate limit / hr"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:959
+#: admin/pages/class-page-ai-ready.php:963
 #: includes/class-roles.php:159
 msgid "Allow"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:960
+#: admin/pages/class-page-ai-ready.php:964
 msgid "Block"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:973
+#: admin/pages/class-page-ai-ready.php:977
 msgid "(blank = global)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:986
+#: admin/pages/class-page-ai-ready.php:990
 msgid "IP Whitelist"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:987
+#: admin/pages/class-page-ai-ready.php:991
 msgid "Restricts access to AEO agent endpoints to a known list of IP addresses. Useful for locking down your APIs to specific AI provider IP ranges (OpenAI, Anthropic, Google publish these) or your own testing infrastructure. All other IPs receive a 403 Forbidden response."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:989
+#: admin/pages/class-page-ai-ready.php:993
 msgid "Toggle IP Whitelist"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:997
+#: admin/pages/class-page-ai-ready.php:1001
 msgid "Allowed IPs (one per line):"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1007
+#: admin/pages/class-page-ai-ready.php:1011
 msgid "User-Agent Verification"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1008
+#: admin/pages/class-page-ai-ready.php:1012
 msgid "Cross-references the User-Agent string of incoming requests against a list of known legitimate AI bots (ClaudeBot, GPTBot, Googlebot, PerplexityBot, etc.). Requests from unknown agents receive a 403 response. Note: User-Agent spoofing is trivial — use IP Whitelist for stronger protection."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1010
+#: admin/pages/class-page-ai-ready.php:1014
 msgid "Toggle User-Agent Verification"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1023
+#: admin/pages/class-page-ai-ready.php:1027
 msgid "Web Bot Auth (JWKS Directory)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1026
+#: admin/pages/class-page-ai-ready.php:1030
 msgid "Publishes this site's public signing key at /.well-known/http-message-signatures-directory as a JWKS (JSON Web Key Set). Receiving sites can use this key to verify that requests originated here — a requirement for Web Bot Auth compliance and agent-to-agent trust."
 msgstr ""
 
 #. translators: key ID
-#: admin/pages/class-page-ai-ready.php:1039
+#: admin/pages/class-page-ai-ready.php:1043
 #, php-format
 msgid "EC P-256 signing key active. Key ID: %s"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1047
+#: admin/pages/class-page-ai-ready.php:1051
 msgid "OpenSSL PHP extension not available — key generation skipped. Contact your host to enable the openssl extension."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1058
+#: admin/pages/class-page-ai-ready.php:1062
 msgid "Identity Verification — Path Diagnostic"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1059
+#: admin/pages/class-page-ai-ready.php:1063
 msgid "Test whether the /.well-known/http-message-signatures-directory path is publicly reachable. If you're getting 403 or 404 errors, this tool detects your server type and gives targeted fix instructions."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1063
+#: admin/pages/class-page-ai-ready.php:1067
 msgid "Run Path Diagnostic"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1069
+#: admin/pages/class-page-ai-ready.php:1073
 msgid "Running diagnostic…"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1078
+#: admin/pages/class-page-ai-ready.php:1082
 #: admin/assets/js/ai-ready.js:245
 #: admin/assets/js/ai-ready.js:265
 msgid "Apply Apache Fix"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1094
+#: admin/pages/class-page-ai-ready.php:1098
 msgid "OAuth / OIDC Discovery Metadata"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1096
+#: admin/pages/class-page-ai-ready.php:1100
 msgid "Publishes OAuth 2.0 Authorization Server Metadata (RFC 8414) at /.well-known/oauth-authorization-server so AI agents can discover how to authenticate before calling protected APIs. Use the Built-in server for a zero-config client credentials flow, or point to your own OAuth provider."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1111
+#: admin/pages/class-page-ai-ready.php:1115
 msgid "File not yet written — save settings to generate it."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1116
+#: admin/pages/class-page-ai-ready.php:1120
 msgid "Toggle OAuth Discovery"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1129
+#: admin/pages/class-page-ai-ready.php:1133
 msgid "Built-in OAuth server (recommended)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1133
+#: admin/pages/class-page-ai-ready.php:1137
 msgid "External OAuth provider"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1140
-#: admin/pages/class-page-ai-ready.php:1236
+#: admin/pages/class-page-ai-ready.php:1144
+#: admin/pages/class-page-ai-ready.php:1240
 msgid "Token Endpoint"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1145
-#: admin/pages/class-page-ai-ready.php:1242
+#: admin/pages/class-page-ai-ready.php:1149
+#: admin/pages/class-page-ai-ready.php:1246
 msgid "JWKS URI"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1150
+#: admin/pages/class-page-ai-ready.php:1154
 msgid "Grant Type"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1156
+#: admin/pages/class-page-ai-ready.php:1160
 msgid "OAuth Clients"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1161
+#: admin/pages/class-page-ai-ready.php:1165
 #: admin/pages/class-page-ai-visibility.php:627
 #: admin/pages/class-page-author-box.php:147
 #: admin/pages/class-page-author.php:170
@@ -1788,121 +1867,121 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1163
-#: admin/pages/class-page-ai-ready.php:1201
-#: admin/pages/class-page-ai-ready.php:1254
+#: admin/pages/class-page-ai-ready.php:1167
+#: admin/pages/class-page-ai-ready.php:1205
+#: admin/pages/class-page-ai-ready.php:1258
 msgid "Scopes"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1164
+#: admin/pages/class-page-ai-ready.php:1168
 msgid "Created"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1179
+#: admin/pages/class-page-ai-ready.php:1183
 msgid "Revoke this client? All its tokens will stop working immediately."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1180
+#: admin/pages/class-page-ai-ready.php:1184
 msgid "Revoke"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1188
+#: admin/pages/class-page-ai-ready.php:1192
 msgid "No clients yet. Create one below."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1194
+#: admin/pages/class-page-ai-ready.php:1198
 msgid "Add New Client"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1198
+#: admin/pages/class-page-ai-ready.php:1202
 msgid "e.g. My AI Agent"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1203
+#: admin/pages/class-page-ai-ready.php:1207
 msgid "read"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1206
+#: admin/pages/class-page-ai-ready.php:1210
 msgid "search"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1211
+#: admin/pages/class-page-ai-ready.php:1215
 msgid "Create Client"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1214
+#: admin/pages/class-page-ai-ready.php:1218
 msgid "The client secret is shown once immediately after creation — copy it right away."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1222
+#: admin/pages/class-page-ai-ready.php:1226
 msgid "Issuer URL"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1225
+#: admin/pages/class-page-ai-ready.php:1229
 msgid "The issuer identifier. Defaults to your site URL if left blank."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1229
+#: admin/pages/class-page-ai-ready.php:1233
 msgid "Authorization Endpoint"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1232
+#: admin/pages/class-page-ai-ready.php:1236
 msgid "Where agents redirect users to obtain authorization codes. Leave blank for client_credentials-only flows."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1248
+#: admin/pages/class-page-ai-ready.php:1252
 msgid "Grant Types"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1266
+#: admin/pages/class-page-ai-ready.php:1270
 msgid "Also publish OpenID Connect Discovery"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1268
+#: admin/pages/class-page-ai-ready.php:1272
 msgid "Writes a second physical file for OIDC Discovery 1.0. Required for OpenID Connect flows."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1273
+#: admin/pages/class-page-ai-ready.php:1277
 msgid "UserInfo Endpoint"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1283
+#: admin/pages/class-page-ai-ready.php:1287
 msgid "openid-configuration file written."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1283
+#: admin/pages/class-page-ai-ready.php:1287
 msgid "openid-configuration file not yet written — save to generate."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1296
+#: admin/pages/class-page-ai-ready.php:1300
 msgid "Security Warning"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1297
+#: admin/pages/class-page-ai-ready.php:1301
 msgid "This feature enables AI agents to request access to private or gated content on your site via OAuth/OIDC. Read carefully before enabling."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1301
+#: admin/pages/class-page-ai-ready.php:1305
 msgid "Protected Resource Metadata (RFC 9728 / OIDC)"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1302
+#: admin/pages/class-page-ai-ready.php:1306
 msgid "For sites with private areas (WooCommerce, Membership plugins), this publishes OAuth metadata at /.well-known/oauth-protected-resource describing how AI agents should request access securely. The plugin only exposes read-only scope metadata. The OAuth flow itself must be configured separately by an expert."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1303
+#: admin/pages/class-page-ai-ready.php:1307
 msgid "Recommendation: Leave off unless you have a specific OAuth/OIDC integration configured and understand the implications. Never grant admin or write permissions to an AI agent."
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1311
+#: admin/pages/class-page-ai-ready.php:1315
 msgid "Toggle Protected Resource Metadata"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1322
+#: admin/pages/class-page-ai-ready.php:1326
 msgid "Save AI Ready Settings"
 msgstr ""
 
-#: admin/pages/class-page-ai-ready.php:1351
+#: admin/pages/class-page-ai-ready.php:1355
 msgid "Please enter a client name."
 msgstr ""
 
@@ -3647,13 +3726,13 @@ msgid "Info"
 msgstr ""
 
 #: admin/pages/class-page-bot-view.php:52
-#: admin/pages/class-page-command-center.php:828
+#: admin/pages/class-page-command-center.php:830
 msgid "Warning"
 msgstr ""
 
 #: admin/pages/class-page-bot-view.php:53
 #: admin/pages/class-page-bot-view.php:203
-#: admin/pages/class-page-command-center.php:827
+#: admin/pages/class-page-command-center.php:829
 msgid "Critical"
 msgstr ""
 
@@ -3716,12 +3795,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: admin/pages/class-page-bot-view.php:202
-#: admin/pages/class-page-chunk-view.php:392
+#: admin/pages/class-page-chunk-view.php:402
 #: admin/pages/class-page-command-center.php:368
 #: admin/pages/class-page-command-center.php:760
-#: admin/pages/class-page-command-center.php:1475
-#: admin/pages/class-page-command-center.php:2462
-#: admin/pages/class-page-command-center.php:3210
+#: admin/pages/class-page-command-center.php:1477
+#: admin/pages/class-page-command-center.php:2460
+#: admin/pages/class-page-command-center.php:3208
 #: admin/pages/class-page-contact-detector.php:111
 #: admin/pages/class-page-dashboard.php:411
 #: admin/pages/class-page-faq-detector.php:136
@@ -3807,7 +3886,7 @@ msgstr ""
 
 #: admin/pages/class-page-chunk-view.php:92
 #: admin/pages/class-page-rag-engine.php:102
-#: admin/pages/class-page-rag-engine.php:235
+#: admin/pages/class-page-rag-engine.php:241
 msgid "Chunk View"
 msgstr ""
 
@@ -3843,154 +3922,154 @@ msgstr ""
 msgid "Re-measure this host"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:212
+#: admin/pages/class-page-chunk-view.php:222
 msgid "Page on this site"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:216
+#: admin/pages/class-page-chunk-view.php:226
 msgid "— Select a page —"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:227
+#: admin/pages/class-page-chunk-view.php:237
 msgid "Or any URL"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:233
+#: admin/pages/class-page-chunk-view.php:243
 msgid "Works on competitor pages too — useful for seeing why their passages get cited."
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:241
+#: admin/pages/class-page-chunk-view.php:251
 msgid "Show me the chunks"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:258
+#: admin/pages/class-page-chunk-view.php:268
 msgid "Result"
 msgstr ""
 
 #. translators: %s: human-readable time difference.
-#: admin/pages/class-page-chunk-view.php:268
+#: admin/pages/class-page-chunk-view.php:278
 #, php-format
 msgid "analysed %s ago"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:279
-#: admin/pages/class-page-chunk-view.php:393
+#: admin/pages/class-page-chunk-view.php:289
+#: admin/pages/class-page-chunk-view.php:403
 msgid "Chunks"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:280
+#: admin/pages/class-page-chunk-view.php:290
 msgid "Readable text"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:281
-#: admin/pages/class-page-chunk-view.php:394
+#: admin/pages/class-page-chunk-view.php:291
+#: admin/pages/class-page-chunk-view.php:404
 msgid "Self-sufficiency"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:282
-#: admin/pages/class-page-command-center.php:1480
+#: admin/pages/class-page-chunk-view.php:292
+#: admin/pages/class-page-command-center.php:1482
 msgid "Verdict"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:288
+#: admin/pages/class-page-chunk-view.php:298
 msgid "Most common problems on this page:"
 msgstr ""
 
 #. translators: 1: issue description, 2: number of chunks affected.
-#: admin/pages/class-page-chunk-view.php:296
+#: admin/pages/class-page-chunk-view.php:306
 #, php-format
 msgid "%1$s — %2$d chunks"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:306
+#: admin/pages/class-page-chunk-view.php:316
 msgid "How this page is cut up"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:314
+#: admin/pages/class-page-chunk-view.php:324
 msgid "The passages for this analysis were not saved. Analyse the page again to see them."
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:316
+#: admin/pages/class-page-chunk-view.php:326
 msgid "Analyse again"
 msgstr ""
 
 #. translators: %d: chunk number.
-#: admin/pages/class-page-chunk-view.php:330
+#: admin/pages/class-page-chunk-view.php:340
 #, php-format
 msgid "Chunk %d"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:344
+#: admin/pages/class-page-chunk-view.php:354
 msgid "no heading"
 msgstr ""
 
 #. translators: %d: estimated token count.
-#: admin/pages/class-page-chunk-view.php:349
+#: admin/pages/class-page-chunk-view.php:359
 #, php-format
 msgid "~%d tokens"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:366
+#: admin/pages/class-page-chunk-view.php:376
 msgid "Carried over from the previous chunk so a fact spanning the boundary is not lost."
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:387
+#: admin/pages/class-page-chunk-view.php:397
 msgid "Recently analysed"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:395
+#: admin/pages/class-page-chunk-view.php:405
 msgid "Analysed"
 msgstr ""
 
 #. translators: %s: human-readable time difference.
 #. translators: %s: time ago, e.g. "5 mins".
-#: admin/pages/class-page-chunk-view.php:417
+#: admin/pages/class-page-chunk-view.php:427
 #: admin/pages/class-page-claude.php:298
 #, php-format
 msgid "%s ago"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:425
+#: admin/pages/class-page-chunk-view.php:435
 msgid "View chunks"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:436
+#: admin/pages/class-page-chunk-view.php:446
 msgid "Clear saved analyses"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:472
+#: admin/pages/class-page-chunk-view.php:482
 msgid "Opens with a pronoun that has no antecedent"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:473
+#: admin/pages/class-page-chunk-view.php:483
 msgid "Refers to content outside the chunk"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:474
+#: admin/pages/class-page-chunk-view.php:484
 msgid "Sits under no heading"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:475
+#: admin/pages/class-page-chunk-view.php:485
 msgid "Too thin to answer a query alone"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:476
+#: admin/pages/class-page-chunk-view.php:486
 msgid "Covers too many ideas to match any strongly"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:477
+#: admin/pages/class-page-chunk-view.php:487
 msgid "Not prose — links, buttons or image captions"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:478
+#: admin/pages/class-page-chunk-view.php:488
 msgid "Link-heavy relative to explanatory text"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:479
+#: admin/pages/class-page-chunk-view.php:489
 msgid "Figures with no named subject"
 msgstr ""
 
-#: admin/pages/class-page-chunk-view.php:480
+#: admin/pages/class-page-chunk-view.php:490
 msgid "Empty chunk"
 msgstr ""
 
@@ -4249,7 +4328,7 @@ msgid "Page Speed"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:133
-#: admin/pages/class-page-command-center.php:2463
+#: admin/pages/class-page-command-center.php:2461
 msgid "Index Status"
 msgstr ""
 
@@ -4265,8 +4344,8 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:175
 #: admin/pages/class-page-command-center.php:222
 #: admin/pages/class-page-command-center.php:273
-#: admin/pages/class-page-command-center.php:859
-#: admin/pages/class-page-command-center.php:1196
+#: admin/pages/class-page-command-center.php:861
+#: admin/pages/class-page-command-center.php:1198
 #: admin/pages/class-page-settings.php:426
 #: admin/pages/class-page-woocommerce-detector.php:1681
 #: admin/pages/class-page-woocommerce-detector.php:2130
@@ -4283,7 +4362,7 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:354
 #: admin/pages/class-page-command-center.php:369
 #: admin/pages/class-page-command-center.php:437
-#: admin/pages/class-page-command-center.php:1476
+#: admin/pages/class-page-command-center.php:1478
 msgid "Sessions"
 msgstr ""
 
@@ -4313,8 +4392,8 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:201
 #: admin/pages/class-page-command-center.php:252
-#: admin/pages/class-page-command-center.php:1461
-#: admin/pages/class-page-command-center.php:2249
+#: admin/pages/class-page-command-center.php:1463
+#: admin/pages/class-page-command-center.php:2247
 msgid "Configure"
 msgstr ""
 
@@ -4324,7 +4403,7 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:208
 #: admin/pages/class-page-command-center.php:259
-#: admin/pages/class-page-rag-engine.php:205
+#: admin/pages/class-page-rag-engine.php:211
 msgid "Connect Google"
 msgstr ""
 
@@ -4370,7 +4449,7 @@ msgid "Connect Bing Webmaster Tools to monitor your Bing search performance."
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:297
-#: admin/pages/class-page-rag-engine.php:214
+#: admin/pages/class-page-rag-engine.php:220
 msgid "Connect Bing"
 msgstr ""
 
@@ -4466,7 +4545,7 @@ msgid "Source: GA4’s native “AI Assistant” channel (ChatGPT, Gemini, DeepS
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:474
-#: admin/pages/class-page-rag-engine.php:197
+#: admin/pages/class-page-rag-engine.php:203
 msgid "Google Search Console"
 msgstr ""
 
@@ -4488,7 +4567,7 @@ msgid "Total Clicks"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:517
-#: admin/pages/class-page-command-center.php:1122
+#: admin/pages/class-page-command-center.php:1124
 msgid "URL Inspection"
 msgstr ""
 
@@ -4547,7 +4626,7 @@ msgid "Overall:"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:590
-#: admin/pages/class-page-command-center.php:1568
+#: admin/pages/class-page-command-center.php:1570
 msgid "cached"
 msgstr ""
 
@@ -4592,7 +4671,7 @@ msgid "Open full report in Search Console ↗"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:610
-#: admin/pages/class-page-command-center.php:1422
+#: admin/pages/class-page-command-center.php:1424
 #: admin/pages/class-page-eeat.php:524
 #: admin/pages/class-page-knowledge-graph.php:561
 #: admin/pages/class-page-schema-conflicts.php:417
@@ -4635,9 +4714,9 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:668
 #: admin/pages/class-page-command-center.php:676
-#: admin/pages/class-page-command-center.php:1194
-#: admin/pages/class-page-rag-engine.php:209
-#: admin/pages/class-page-rag-engine.php:334
+#: admin/pages/class-page-command-center.php:1196
+#: admin/pages/class-page-rag-engine.php:215
+#: admin/pages/class-page-rag-engine.php:364
 msgid "Bing Webmaster Tools"
 msgstr ""
 
@@ -4670,7 +4749,7 @@ msgid "Open AI Performance in Bing ↗"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:752
-msgid "SEO Recommendations"
+msgid "Crawl issues Bing reports"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:758
@@ -4691,10 +4770,14 @@ msgid "Edit Page"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:798
-msgid "SEO Recommendations unavailable:"
+msgid "Crawl issues unavailable:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:811
+#: admin/pages/class-page-command-center.php:802
+msgid "Bing reports no crawl issues on your pages: no errors, no blocked pages and no redirects to fix."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:813
 #: admin/pages/class-page-index-now.php:348
 #: admin/pages/class-page-setup-wizard.php:406
 #: admin/pages/class-page-setup-wizard.php:687
@@ -4702,524 +4785,596 @@ msgstr ""
 msgid "IndexNow"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:814
+#: admin/pages/class-page-command-center.php:816
 msgid "Instantly notify Bing, Yandex, and other IndexNow-compatible engines when your content is published or updated — no waiting for the next crawl."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:829
+#: admin/pages/class-page-command-center.php:831
 msgid "Notice"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:857
+#: admin/pages/class-page-command-center.php:859
 msgid "Google Analytics &amp; Search Console"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:874
+#: admin/pages/class-page-command-center.php:876
 msgid "Service Account"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:877
+#: admin/pages/class-page-command-center.php:879
 #: admin/pages/class-page-schema-conflicts.php:334
 msgid "Active"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:883
+#: admin/pages/class-page-command-center.php:885
 msgid "Google access is authenticated with this service account — no sign-in, no consent screens, tokens never expire."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:886
+#: admin/pages/class-page-command-center.php:888
 msgid "Make sure this email is added as a user (copy it):"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:895
+#: admin/pages/class-page-command-center.php:897
 msgid "Search Console → Settings → Users and permissions → Add user → permission: Full"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:896
+#: admin/pages/class-page-command-center.php:898
 msgid "GA4 → Admin → Property access management → Add user → role: Viewer"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:899
+#: admin/pages/class-page-command-center.php:901
 msgid "Key is defined in wp-config (TWTAEO_GOOGLE_SA_KEY) and cannot be changed here."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:901
+#: admin/pages/class-page-command-center.php:903
 msgid "Remove the service-account key from this site?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:904
+#: admin/pages/class-page-command-center.php:906
 msgid "Remove key"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:909
+#: admin/pages/class-page-command-center.php:911
 msgid "Skip the OAuth setup below entirely: paste your agency's service-account JSON key once, then add its email address as a user on this site's Search Console property (Full) and GA4 property (Viewer). No Google Cloud setup per site, no consent screens, and the connection never expires."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:912
+#: admin/pages/class-page-command-center.php:914
 msgid "A wp-config key is defined but could not be parsed — check TWTAEO_GOOGLE_SA_KEY."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:918
+#: admin/pages/class-page-command-center.php:920
 msgid "Save Service Account Key"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:925
+#: admin/pages/class-page-command-center.php:927
 msgid "— or connect with OAuth below (requires a Google Cloud app with this site's redirect URI authorized) —"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:933
+#: admin/pages/class-page-command-center.php:935
 msgid "Google Cloud API Credentials"
 msgstr ""
 
 #. translators: %s: link to Google Cloud Console
-#: admin/pages/class-page-command-center.php:939
+#: admin/pages/class-page-command-center.php:941
 #, php-format
 msgid "Create OAuth 2.0 credentials in your %s. Choose \"Web application\" type and add the Redirect URI below to your authorized redirect URIs."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:946
+#: admin/pages/class-page-command-center.php:948
 msgid "Authorized Redirect URI (copy this exactly):"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:977
+#: admin/pages/class-page-command-center.php:979
 msgid "Save Google Credentials"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:985
-#: admin/pages/class-page-command-center.php:1001
+#: admin/pages/class-page-command-center.php:987
+#: admin/pages/class-page-command-center.php:1003
 msgid "Connect Google Account"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:990
+#: admin/pages/class-page-command-center.php:992
 msgid "Google account connected."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:998
+#: admin/pages/class-page-command-center.php:1000
 msgid "Click below to authorize access to Google Analytics and Search Console."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1004
+#: admin/pages/class-page-command-center.php:1006
 msgid "Save your Client ID and Client Secret above first."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1012
+#: admin/pages/class-page-command-center.php:1014
 msgid "Configure Properties"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1021
+#: admin/pages/class-page-command-center.php:1023
 msgid "GA4 Property ID"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1027
+#: admin/pages/class-page-command-center.php:1029
 msgid "Find in GA4: Admin → Property Settings → Property ID (numeric)."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1031
+#: admin/pages/class-page-command-center.php:1033
 msgid "Search Console Site URL"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1042
+#: admin/pages/class-page-command-center.php:1044
 msgid "— Choose a property —"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1048
+#: admin/pages/class-page-command-center.php:1050
 msgid "These are the Search Console properties the connected Google account can use. Choose the one for this site — a domain property covers every version of it (www, non-www, http, https)."
 msgstr ""
 
 #. translators: 1: saved address, 2: matching property.
-#: admin/pages/class-page-command-center.php:1055
+#: admin/pages/class-page-command-center.php:1057
 #, php-format
 msgid "Saved address %1$s is not a property on this account; %2$s is selected instead. Click Save to use it."
 msgstr ""
 
 #. translators: %s: saved address.
-#: admin/pages/class-page-command-center.php:1057
+#: admin/pages/class-page-command-center.php:1059
 #, php-format
 msgid "Saved address %s is not a property on this account, which is why Google refuses it. Choose one of these and click Save."
 msgstr ""
 
 #. translators: %s: Google's error message.
-#: admin/pages/class-page-command-center.php:1072
+#: admin/pages/class-page-command-center.php:1074
 #, php-format
 msgid "Could not load your Search Console properties from Google: %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1077
+#: admin/pages/class-page-command-center.php:1079
 #: includes/Integrations/class-google-oauth.php:263
 msgid "The Google account connected here has no Search Console properties, so Google refuses every address. Connect the Google account that owns this site in Search Console, or add this account as a user there (Search Console → Settings → Users and permissions)."
 msgstr ""
 
 #. translators: 1: this site's home URL, 2: this site's sc-domain: property name.
-#: admin/pages/class-page-command-center.php:1085
+#: admin/pages/class-page-command-center.php:1087
 #, php-format
 msgid "Must match the property in Search Console. URL-prefix property: the exact URL, e.g. %1$s. Domain property (DNS-verified): use %2$s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1096
+#: admin/pages/class-page-command-center.php:1098
 msgid "Save Configuration"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1107
+#: admin/pages/class-page-command-center.php:1109
 msgid "Additional Google APIs"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1109
+#: admin/pages/class-page-command-center.php:1111
 msgid "API key saved"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1115
+#: admin/pages/class-page-command-center.php:1117
 msgid "These power URL Inspection, brand/entity verification, and PageSpeed audits. Because you have already connected Analytics &amp; Search Console, setup is minimal — everything below lives in the same Google Cloud project you used earlier."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1123
+#: admin/pages/class-page-command-center.php:1125
 msgid "No setup needed"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1126
+#: admin/pages/class-page-command-center.php:1128
 msgid "There is nothing to enable in Google Cloud — URL Inspection is part of the Search Console API you already connected. It just needs a higher permission level than basic stats:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1129
+#: admin/pages/class-page-command-center.php:1131
 msgid "Open Search Console → Settings → Users and permissions."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1130
+#: admin/pages/class-page-command-center.php:1132
 msgid "Find the account (or service-account email) you connected this plugin with."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1131
+#: admin/pages/class-page-command-center.php:1133
 msgid "Make sure its permission is Owner or Full — not Restricted. If it is Restricted, raise it to Full."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1139
+#: admin/pages/class-page-command-center.php:1141
 msgid "Knowledge Graph &amp; PageSpeed API Key"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1142
+#: admin/pages/class-page-command-center.php:1144
 msgid "These two APIs read public Google data, so they use a single free API key — no OAuth, and no billing card required (PageSpeed allows 25,000 checks/day free). Create the key once in the same project:"
 msgstr ""
 
 #. translators: %s: link to Google Cloud API Library
-#: admin/pages/class-page-command-center.php:1149
+#: admin/pages/class-page-command-center.php:1151
 #, php-format
 msgid "In %s, search \"Knowledge Graph Search API\" and click Enable, then do the same for \"PageSpeed Insights API\"."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1150
+#: admin/pages/class-page-command-center.php:1152
 msgid "APIs &amp; Services → Library"
 msgstr ""
 
 #. translators: %s: link to Google Cloud Credentials page
-#: admin/pages/class-page-command-center.php:1158
+#: admin/pages/class-page-command-center.php:1160
 #, php-format
 msgid "Go to %s → Create Credentials → API key, then copy the key."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1159
+#: admin/pages/class-page-command-center.php:1161
 msgid "APIs &amp; Services → Credentials"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1163
+#: admin/pages/class-page-command-center.php:1165
 msgid "Recommended: edit the key → Restrict key → allow only Knowledge Graph Search API and PageSpeed Insights API."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1164
+#: admin/pages/class-page-command-center.php:1166
 msgid "Paste the key below and save."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1173
+#: admin/pages/class-page-command-center.php:1175
 msgid "Google API Key"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1179
+#: admin/pages/class-page-command-center.php:1181
 msgid "Leave empty and save to remove the key."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1183
+#: admin/pages/class-page-command-center.php:1185
 msgid "Save API Key"
 msgstr ""
 
 #. translators: %s: link to Bing Webmaster portal
-#: admin/pages/class-page-command-center.php:1205
+#: admin/pages/class-page-command-center.php:1207
 #, php-format
 msgid "Get your API key from the %s. Go to Settings → API Access → Generate API Key."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1217
+#: admin/pages/class-page-command-center.php:1219
 #: admin/pages/class-page-index-now.php:151
 #: admin/pages/class-page-settings.php:404
 msgid "API Key"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1225
+#: admin/pages/class-page-command-center.php:1227
 msgid "Site URL"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1230
+#: admin/pages/class-page-command-center.php:1232
 msgid "The exact URL of your verified site in Bing Webmaster Tools."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1236
+#: admin/pages/class-page-command-center.php:1238
 msgid "Save Bing Settings"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1252
+#: admin/pages/class-page-command-center.php:1254
 msgid "Crawl Stats — Host Status Error:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1264
+#: admin/pages/class-page-command-center.php:1266
 msgid "Crawl Stats — Host Status Warning:"
 msgstr ""
 
 #. translators: %s: host status value from Bing
-#: admin/pages/class-page-command-center.php:1269
+#: admin/pages/class-page-command-center.php:1271
 #, php-format
 msgid "Bing reports your host status as \"%s\"."
 msgstr ""
 
 #. translators: %d: number of crawl errors
-#: admin/pages/class-page-command-center.php:1278
+#: admin/pages/class-page-command-center.php:1280
 #, php-format
 msgid "%d crawl error detected."
 msgid_plural "%d crawl errors detected."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-command-center.php:1301
+#: admin/pages/class-page-command-center.php:1303
 msgid "AI Crawler Visibility Audit"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1304
+#: admin/pages/class-page-command-center.php:1306
 msgid "Simulates a homepage request for each major AI crawler by spoofing its User-Agent header. A Firewall Block or Rate Limit here means that bot cannot index your site — even if robots.txt allows it."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1310
+#: admin/pages/class-page-command-center.php:1312
 msgid "Run Crawlability Audit"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1314
+#: admin/pages/class-page-command-center.php:1316
 msgid "Testing…"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1324
+#: admin/pages/class-page-command-center.php:1326
 msgid "HTTP"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1326
+#: admin/pages/class-page-command-center.php:1328
 msgid "Transport"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1327
+#: admin/pages/class-page-command-center.php:1329
 msgid "Recommendation / Error Detail"
 msgstr ""
 
 #. translators: %s: home URL
-#: admin/pages/class-page-command-center.php:1337
+#: admin/pages/class-page-command-center.php:1339
 #, php-format
 msgid "Tests run against: %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1341
+#: admin/pages/class-page-command-center.php:1343
 msgid "— Results reflect server-side access control only, not robots.txt directives."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1376
+#: admin/pages/class-page-command-center.php:1378
 msgid "Audit failed. Check server logs."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1388
+#: admin/pages/class-page-command-center.php:1390
 #: admin/assets/js/ai-ready.js:83
 #: admin/assets/js/ai-ready.js:115
 msgid "Error:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1392
+#: admin/pages/class-page-command-center.php:1394
 msgid "UA Shuffle: neutral Chrome returned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1392
+#: admin/pages/class-page-command-center.php:1394
 msgid "blocking is User-Agent specific."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1398
+#: admin/pages/class-page-command-center.php:1400
 msgid "No action needed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1417
+#: admin/pages/class-page-command-center.php:1419
 msgid "Last tested:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1454
+#: admin/pages/class-page-command-center.php:1456
 msgid "Traffic Leak Scan"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1456
+#: admin/pages/class-page-command-center.php:1458
 msgid "Finds your highest-traffic pages that also bounce hard, then audits each one's mobile speed — surfacing pages that may be losing visitors to slow loads. Uses GA4 (last 28 days) + PageSpeed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1460
+#: admin/pages/class-page-command-center.php:1462
 msgid "Connect Google Analytics and set your GA4 Property ID in Settings to run this scan."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1465
+#: admin/pages/class-page-command-center.php:1467
 msgid "Min sessions (28d)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1469
+#: admin/pages/class-page-command-center.php:1471
 msgid "Scan for traffic leaks"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1477
+#: admin/pages/class-page-command-center.php:1479
 msgid "Bounce"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1478
-#: admin/pages/class-page-command-center.php:1512
+#: admin/pages/class-page-command-center.php:1480
+#: admin/pages/class-page-command-center.php:1514
 msgid "Mobile"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1479
+#: admin/pages/class-page-command-center.php:1481
 msgid "LCP"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1488
+#: admin/pages/class-page-command-center.php:1490
 msgid "Page Speed (PageSpeed Insights)"
 msgstr ""
 
 #. translators: %s: link to the Settings tab
-#: admin/pages/class-page-command-center.php:1495
+#: admin/pages/class-page-command-center.php:1497
 #, php-format
 msgid "Running without a Google API key (lower daily quota). Add one under %s for the full 25,000/day limit."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1496
+#: admin/pages/class-page-command-center.php:1498
 msgid "Settings → Additional Google APIs"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1503
+#: admin/pages/class-page-command-center.php:1505
 msgid "Check a page's mobile or desktop performance — the Lighthouse score plus the Core Web Vitals that affect both ranking and how cleanly AI crawlers render the page. Results are cached for 6 hours."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1513
+#: admin/pages/class-page-command-center.php:1515
 msgid "Desktop"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1516
+#: admin/pages/class-page-command-center.php:1518
 msgid "Analyze"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1520
+#: admin/pages/class-page-command-center.php:1522
 msgid "Running Lighthouse… up to a minute."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1527
+#: admin/pages/class-page-command-center.php:1529
 msgid "Code Health"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1529
+#: admin/pages/class-page-command-center.php:1531
 msgid "Scans your published pages for performance anti-patterns that page-builders and AI-pasted code often introduce — inline scripts, external scripts in content, base64 images, and iframes. On-server only; nothing is changed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1533
+#: admin/pages/class-page-command-center.php:1535
 msgid "Scan content for performance issues"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1558
+#: admin/pages/class-page-command-center.php:1560
 msgid "Analysis failed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1568
+#: admin/pages/class-page-command-center.php:1570
 msgid "Performance score"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1568
+#: admin/pages/class-page-command-center.php:1570
 msgid "Lab data — simulated mobile load"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1571
+#: admin/pages/class-page-command-center.php:1573
 msgid "Speed Index"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1581
+#: admin/pages/class-page-command-center.php:1583
 msgid "Real-world field data (CrUX):"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1587
+#: admin/pages/class-page-command-center.php:1589
 msgid "Request failed or timed out. PageSpeed can take up to a minute — try again."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1627
+#: admin/pages/class-page-command-center.php:1629
 msgid "Showing your last scan."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1634
+#: admin/pages/class-page-command-center.php:1636
 msgid "Finding candidates…"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1639
+#: admin/pages/class-page-command-center.php:1641
 msgid "No high-traffic, high-bounce pages found."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1642
+#: admin/pages/class-page-command-center.php:1644
 msgid "Done — pages audited:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1643
+#: admin/pages/class-page-command-center.php:1645
 msgid "Auditing"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1672
+#: admin/pages/class-page-command-center.php:1674
 #: admin/pages/class-page-dashboard.php:255
 msgid "Scanned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1672
+#: admin/pages/class-page-command-center.php:1674
 msgid "pages —"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1672
+#: admin/pages/class-page-command-center.php:1674
 msgid "with issues."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1673
+#: admin/pages/class-page-command-center.php:1675
 msgid "No performance anti-patterns found."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1677
+#: admin/pages/class-page-command-center.php:1679
 msgid "(untitled)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1803
+#: admin/pages/class-page-command-center.php:1805
 msgid "Converting"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1811
+#: admin/pages/class-page-command-center.php:1813
 msgid "Likely bots"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1819
-#: admin/pages/class-page-command-center.php:2388
+#: admin/pages/class-page-command-center.php:1821
+#: admin/pages/class-page-command-center.php:2386
 msgid "Needs work"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:1825
+#: admin/pages/class-page-command-center.php:1827
 msgid "Healthy"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2005
+#: admin/pages/class-page-command-center.php:2017
 msgid "(query not provided)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2207
+#: admin/pages/class-page-command-center.php:2135
+msgid "Bing found malware on this page"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2135
+msgid "Scan the site with your security plugin or host, clean it, then ask Bing to check it again in Bing Webmaster Tools."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2136
+msgid "Server error"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2136
+msgid "Open the page to check it loads. If errors keep happening, ask your host to look at the server logs."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2137
+msgid "Page not found or not allowed"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2137
+msgid "Restore the page, or redirect it to the closest live page. Smart 404 can create the redirect."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2138
+msgid "An important page is blocked by robots.txt"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2138
+msgid "Remove the Disallow rule that covers this page from robots.txt."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2139
+msgid "Bing could not look up your domain"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2139
+msgid "Check your DNS records with your domain registrar or host."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2140
+msgid "The page took too long to respond"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2140
+msgid "Check the page speed on the Page Speed tab, and ask your host about slow responses."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2141
+msgid "Blocked by robots.txt"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2141
+msgid "If this page should appear in Bing and Copilot, remove the Disallow rule that covers it."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2142
+msgid "Temporary redirect (302)"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2142
+msgid "If the move is permanent, change it to a 301 redirect."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2143
+msgid "Permanent redirect (301)"
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2143
+msgid "Link to the final address directly, and keep the old address out of your sitemap."
+msgstr ""
+
+#: admin/pages/class-page-command-center.php:2205
 msgid "Google hasn't crawled this indexed page in over 130 days. Pages this stale are much more likely to be dropped from the index."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2208
+#: admin/pages/class-page-command-center.php:2206
 msgid "Getting close to the ~130-day mark where uncrawled pages start dropping from Google's index."
 msgstr ""
 
 #. translators: %d: number of days.
-#: admin/pages/class-page-command-center.php:2213
+#: admin/pages/class-page-command-center.php:2211
 #: admin/pages/class-page-not-indexed.php:252
 #, php-format
 msgid "%d day ago"
@@ -5227,221 +5382,221 @@ msgid_plural "%d days ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-command-center.php:2240
+#: admin/pages/class-page-command-center.php:2238
 msgid "Index Status requires a Google Search Console connection. Connect Google in the Settings tab first."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2241
+#: admin/pages/class-page-command-center.php:2239
 #: admin/pages/class-page-command-center.php:3458
 #: admin/pages/class-page-pr-bridge.php:76
 msgid "Go to Settings"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2248
+#: admin/pages/class-page-command-center.php:2246
 msgid "Enter your GSC Site URL in Settings → Google Configuration to enable Index Status scans."
 msgstr ""
 
 #. translators: 1: range start, 2: range end, 3: total needing work.
-#: admin/pages/class-page-command-center.php:2369
+#: admin/pages/class-page-command-center.php:2367
 #, php-format
 msgid "Showing %1$d–%2$d of %3$d pages that need work."
 msgstr ""
 
 #. translators: 1: range start, 2: range end, 3: total scanned.
-#: admin/pages/class-page-command-center.php:2377
+#: admin/pages/class-page-command-center.php:2375
 #, php-format
 msgid "Showing %1$d–%2$d of %3$d scanned pages."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2392
+#: admin/pages/class-page-command-center.php:2390
 msgid "All scanned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2402
+#: admin/pages/class-page-command-center.php:2400
 #: admin/pages/class-page-dashboard.php:250
 msgid "Total Pages"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2406
+#: admin/pages/class-page-command-center.php:2404
 msgid "Need Work"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2410
-#: admin/pages/class-page-command-center.php:2507
+#: admin/pages/class-page-command-center.php:2408
+#: admin/pages/class-page-command-center.php:2505
 msgid "Indexed"
 msgstr ""
 
 #. translators: %d: number of days.
-#: admin/pages/class-page-command-center.php:2419
+#: admin/pages/class-page-command-center.php:2417
 #, php-format
 msgid "Indexed pages Google hasn't crawled in %d+ days. Pages left uncrawled for about 130 days are much more likely to drop out of the index."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2421
+#: admin/pages/class-page-command-center.php:2419
 msgid "Crawl Going Stale"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2425
+#: admin/pages/class-page-command-center.php:2423
 msgid "Re-scan All"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2425
+#: admin/pages/class-page-command-center.php:2423
 msgid "Run Index Scan"
 msgstr ""
 
 #. translators: %d: number of de-indexed pages to send to TWT Agency.
-#: admin/pages/class-page-command-center.php:2431
+#: admin/pages/class-page-command-center.php:2429
 #, php-format
 msgid "Send %d De-indexed to TWT Agency"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2436
+#: admin/pages/class-page-command-center.php:2434
 msgid "Clear Results"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2452
+#: admin/pages/class-page-command-center.php:2450
 msgid "Why isn't a page indexed?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2453
+#: admin/pages/class-page-command-center.php:2451
 msgid "A meta description alone won't get a page indexed — it only affects the snippet Google shows. The most common reasons a page stays out of the index are: a \"noindex\" setting, a canonical URL pointing to a different page, the page missing from your XML sitemap, thin or duplicate content, or no internal links pointing to it. Fix the red Critical items first, then the Warnings."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2454
+#: admin/pages/class-page-command-center.php:2452
 msgid "Watch the crawl age too."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2455
+#: admin/pages/class-page-command-center.php:2453
 msgid "An indexed page Google hasn't crawled in about 130 days is much more likely to be dropped, and after about 190 days Google tends to forget the URL entirely. Infrequent crawling usually means Google sees the page as low priority — link to it from your stronger pages, keep it in your sitemap with an accurate last-modified date, and give it a genuine update (or merge it into a stronger page)."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2464
+#: admin/pages/class-page-command-center.php:2462
 msgid "Last Crawl"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2465
+#: admin/pages/class-page-command-center.php:2463
 msgid "Issues & Fixes"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2473
+#: admin/pages/class-page-command-center.php:2471
 msgid "No pages scanned yet. Click “Run Index Scan” to check your pages against Google."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2475
+#: admin/pages/class-page-command-center.php:2473
 msgid "🎉 No pages need work — every scanned page is indexed and issue-free."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2477
+#: admin/pages/class-page-command-center.php:2475
 msgid "No scanned pages to show."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2500
+#: admin/pages/class-page-command-center.php:2498
 #: admin/pages/class-page-dashboard.php:574
 #: admin/pages/class-page-not-indexed.php:166
 msgid "Not scanned"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2527
+#: admin/pages/class-page-command-center.php:2525
 msgid "Add links to this page from your stronger pages, make sure it is in your XML sitemap with an accurate last-modified date, and give it a genuine content update — or merge it into a stronger page."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2528
+#: admin/pages/class-page-command-center.php:2526
 msgid "Google stopped crawling"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2528
+#: admin/pages/class-page-command-center.php:2526
 msgid "Crawl going stale"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2536
-#: admin/pages/class-page-command-center.php:2742
+#: admin/pages/class-page-command-center.php:2534
+#: admin/pages/class-page-command-center.php:2740
 msgid "No issues"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2558
-#: admin/pages/class-page-command-center.php:2759
+#: admin/pages/class-page-command-center.php:2556
+#: admin/pages/class-page-command-center.php:2757
 #: admin/pages/class-page-not-indexed.php:159
 #: admin/pages/class-page-woocommerce-detector.php:616
 msgid "Fix →"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2565
-#: admin/pages/class-page-command-center.php:2764
+#: admin/pages/class-page-command-center.php:2563
+#: admin/pages/class-page-command-center.php:2762
 #: admin/pages/class-page-documents.php:558
-#: admin/pages/class-page-rag-engine.php:612
-#: admin/pages/class-page-rag-engine.php:732
-#: admin/pages/class-page-rag-engine.php:873
+#: admin/pages/class-page-rag-engine.php:642
+#: admin/pages/class-page-rag-engine.php:762
+#: admin/pages/class-page-rag-engine.php:903
 msgid "Edit page"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2598
+#: admin/pages/class-page-command-center.php:2596
 #: admin/pages/class-page-social-graph.php:390
 #: admin/pages/class-page-woocommerce-detector.php:243
 #: includes/class-scan-pager.php:58
 msgid "Prev"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2609
+#: admin/pages/class-page-command-center.php:2607
 #: admin/pages/class-page-social-graph.php:416
 #: admin/pages/class-page-woocommerce-detector.php:267
 #: includes/class-scan-pager.php:82
 msgid "Next"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2627
+#: admin/pages/class-page-command-center.php:2625
 msgid "Scanning inspects every published page via the Google Search Console URL Inspection API (one request per page; 2,000/day quota), then shows the pages that need work. Google has no bulk index-status export, so each page must be inspected individually. Results are stored until you re-scan. A daily background check also re-inspects up to 100 pages, oldest-checked first, so crawl ages across the whole site stay current without a manual scan."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2650
+#: admin/pages/class-page-command-center.php:2648
 #: admin/pages/class-page-dashboard.php:132
 #: admin/pages/class-page-social-graph.php:1396
 msgid "Scanning…"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2659
+#: admin/pages/class-page-command-center.php:2657
 msgid "Scan complete. Reload to see updated totals."
 msgstr ""
 
 #. translators: %d: number of days.
-#: admin/pages/class-page-command-center.php:2720
+#: admin/pages/class-page-command-center.php:2718
 #, php-format
 msgid "%d days ago"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2772
+#: admin/pages/class-page-command-center.php:2770
 msgid "Clear all scan results?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2783
+#: admin/pages/class-page-command-center.php:2781
 msgid "Sending…"
 msgstr ""
 
 #. translators: %d: number of URLs submitted.
-#: admin/pages/class-page-command-center.php:2791
+#: admin/pages/class-page-command-center.php:2789
 #, php-format
 msgid "URLs sent: %d ✓"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2822
+#: admin/pages/class-page-command-center.php:2820
 #: admin/pages/class-page-not-indexed.php:334
 msgid "Fixed ✓"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-command-center.php:2829
+#: admin/pages/class-page-command-center.php:2827
 #, php-format
 msgid "Fix: Open Graph — %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2835
+#: admin/pages/class-page-command-center.php:2833
 msgid "OG Title"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2837
+#: admin/pages/class-page-command-center.php:2835
 msgid "OG Description"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2839
+#: admin/pages/class-page-command-center.php:2837
 #: admin/pages/class-page-not-indexed.php:389
 #: admin/pages/class-page-social-graph.php:741
 #: admin/pages/class-page-social-graph.php:813
@@ -5451,15 +5606,15 @@ msgstr ""
 msgid "Generate with AI"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2840
+#: admin/pages/class-page-command-center.php:2838
 msgid "OG Image"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2843
+#: admin/pages/class-page-command-center.php:2841
 msgid "Generate image with AI"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2846
+#: admin/pages/class-page-command-center.php:2844
 #: admin/pages/class-page-eeat.php:565
 #: admin/pages/class-page-schema-conflicts.php:214
 #: admin/pages/class-page-social-graph.php:267
@@ -5469,11 +5624,11 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2863
+#: admin/pages/class-page-command-center.php:2861
 msgid "Generating… (~20s)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2884
+#: admin/pages/class-page-command-center.php:2882
 #: admin/pages/class-page-not-indexed.php:421
 #: admin/pages/class-page-not-indexed.php:452
 #: includes/class-ai-description.php:133
@@ -5481,210 +5636,210 @@ msgid "Saved ✓"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-command-center.php:2893
+#: admin/pages/class-page-command-center.php:2891
 #: admin/pages/class-page-not-indexed.php:341
 #, php-format
 msgid "Fix: FAQ schema — %s"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2895
+#: admin/pages/class-page-command-center.php:2893
 #: admin/pages/class-page-not-indexed.php:343
 msgid "Generate FAQPage schema from the Q&A-style content already on this page. This adds structured data — it does not change your content."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2897
+#: admin/pages/class-page-command-center.php:2895
 #: admin/pages/class-page-not-indexed.php:345
 msgid "Generate FAQ schema"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2907
+#: admin/pages/class-page-command-center.php:2905
 #: admin/pages/class-page-not-indexed.php:355
 msgid "Q&A pairs added ✓"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2983
+#: admin/pages/class-page-command-center.php:2981
 msgid "Total Crawls (30 days)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2987
+#: admin/pages/class-page-command-center.php:2985
 msgid "Unique Bots"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2993
+#: admin/pages/class-page-command-center.php:2991
 msgid "Last AI Crawl"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3025
+#: admin/pages/class-page-command-center.php:3023
 msgid "AI Discovery File Hits"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3027
+#: admin/pages/class-page-command-center.php:3025
 msgid "30-day window"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3029
+#: admin/pages/class-page-command-center.php:3027
 msgid "How many AI crawlers fetched your machine-readable discovery files. A rising count means bots are actively using your structured signals."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3052
+#: admin/pages/class-page-command-center.php:3050
 msgid "bot crawls"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3062
+#: admin/pages/class-page-command-center.php:3060
 msgid "A physical robots.txt on disk is served by the web server without running PHP, so crawler hits to it cannot be counted."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3062
+#: admin/pages/class-page-command-center.php:3060
 msgid "Static file — not tracked"
 msgstr ""
 
 #. translators: %s: human-readable time ago
-#: admin/pages/class-page-command-center.php:3066
+#: admin/pages/class-page-command-center.php:3064
 #, php-format
 msgid "Last: %s ago"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3070
+#: admin/pages/class-page-command-center.php:3068
 msgid "Not yet recorded"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3086
+#: admin/pages/class-page-command-center.php:3084
 msgid "Note: hits are only recorded when WordPress handles the request in PHP. A physical robots.txt on disk, or a full-page cache in front of WordPress (a host page cache such as Nexcess NxAccel, or a CDN like Cloudflare), serves these files without invoking PHP — so those hits are not captured and the counts may understate real crawler activity. The plugin sends no-cache headers on llms.txt and llms-full.txt to reduce this, though some host caches ignore them."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3096
+#: admin/pages/class-page-command-center.php:3094
 msgid "Bot Breakdown"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3100
+#: admin/pages/class-page-command-center.php:3098
 msgid "Block or rate-limit specific crawlers"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3101
+#: admin/pages/class-page-command-center.php:3099
 msgid "Manage bot controls"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3105
+#: admin/pages/class-page-command-center.php:3103
 msgid "No AI crawls recorded yet."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3112
+#: admin/pages/class-page-command-center.php:3110
 msgid "Visits"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3113
+#: admin/pages/class-page-command-center.php:3111
 msgid "Last Seen"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3136
+#: admin/pages/class-page-command-center.php:3134
 msgid "Google does not publish a dedicated AI bot. The Google bots tracked here (Googlebot, GoogleOther, Google-Agent, Google-InspectionTool, Google-NotebookLM) are standard Google crawlers whose purpose is inferred from their documented behavior — not from an official AI-specific declaration by Google."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3143
+#: admin/pages/class-page-command-center.php:3141
 msgid "Most Crawled Pages"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3146
+#: admin/pages/class-page-command-center.php:3144
 msgid "No pages recorded yet."
 msgstr ""
 
 #. translators: %s: number of crawls (formatted integer).
-#: admin/pages/class-page-command-center.php:3159
+#: admin/pages/class-page-command-center.php:3157
 #, php-format
 msgid "%s crawl"
 msgid_plural "%s crawls"
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-command-center.php:3175
+#: admin/pages/class-page-command-center.php:3173
 msgid "Live Feed — Last 48 Hours"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3177
+#: admin/pages/class-page-command-center.php:3175
 msgid "Live Feed — Last 50 Crawls (30 Days)"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3182
+#: admin/pages/class-page-command-center.php:3180
 msgid "Clear all crawler log entries?"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3186
+#: admin/pages/class-page-command-center.php:3184
 #: admin/pages/class-page-index-now.php:285
 msgid "Clear Log"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3195
+#: admin/pages/class-page-command-center.php:3193
 msgid "No AI crawlers detected yet. Logs will appear here as AI bots visit your site."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3196
+#: admin/pages/class-page-command-center.php:3194
 msgid "Monitoring: OpenAI GPTBot, ClaudeBot, Google-Extended, PerplexityBot, and 20+ more."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3207
+#: admin/pages/class-page-command-center.php:3205
 #: admin/pages/class-page-diagnostics.php:101
 #: admin/pages/class-page-index-now.php:296
 #: admin/assets/js/crawler-dataviews.js:39
 msgid "Time"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3233
+#: admin/pages/class-page-command-center.php:3231
 #: admin/assets/js/crawler-dataviews.js:107
 msgid "Markdown"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3248
+#: admin/pages/class-page-command-center.php:3246
 msgid "What AI Crawler Watch monitors:"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3249
+#: admin/pages/class-page-command-center.php:3247
 msgid "OpenAI GPTBot &amp; ChatGPT-User · Anthropic ClaudeBot · Google-Extended · PerplexityBot · Meta FacebookBot · Apple Applebot-Extended · ByteDance Bytespider · Amazon Amazonbot · Diffbot · Cohere · Common Crawl CCBot · You.com YouBot · and more."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3250
+#: admin/pages/class-page-command-center.php:3248
 msgid "Logs are stored locally for 30 days."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3299
+#: admin/pages/class-page-command-center.php:3297
 msgid "Google credentials saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3315
+#: admin/pages/class-page-command-center.php:3313
 msgid "Google configuration saved."
 msgstr ""
 
 #. translators: %s: service account email address.
-#: admin/pages/class-page-command-center.php:3332
+#: admin/pages/class-page-command-center.php:3330
 #, php-format
 msgid "Service account saved. Now add %s as a Full user in Search Console and a Viewer in GA4."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3344
+#: admin/pages/class-page-command-center.php:3342
 msgid "Service account key removed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3354
+#: admin/pages/class-page-command-center.php:3352
 msgid "Google API key saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3355
+#: admin/pages/class-page-command-center.php:3353
 msgid "Google API key removed."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3367
+#: admin/pages/class-page-command-center.php:3365
 msgid "Bing settings saved."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3375
+#: admin/pages/class-page-command-center.php:3373
 msgid "Crawler log cleared."
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:3391
+#: admin/pages/class-page-command-center.php:3389
 msgid "Google account connected successfully."
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:3421
-#: admin/pages/class-page-rag-engine.php:1017
+#: admin/pages/class-page-rag-engine.php:1053
 msgid "Refresh data"
 msgstr ""
 
@@ -6683,8 +6838,8 @@ msgid "OK"
 msgstr ""
 
 #: admin/pages/class-page-documents.php:275
-#: admin/pages/class-page-rag-engine.php:183
-#: admin/pages/class-page-rag-engine.php:994
+#: admin/pages/class-page-rag-engine.php:189
+#: admin/pages/class-page-rag-engine.php:1030
 msgid "Upload documents"
 msgstr ""
 
@@ -6755,7 +6910,7 @@ msgid "Your documents"
 msgstr ""
 
 #: admin/pages/class-page-documents.php:368
-#: admin/pages/class-page-rag-engine.php:991
+#: admin/pages/class-page-rag-engine.php:1027
 msgid "No documents yet."
 msgstr ""
 
@@ -6806,8 +6961,8 @@ msgid "Your pages have not been indexed yet. Index them so searches can compare 
 msgstr ""
 
 #: admin/pages/class-page-documents.php:462
-#: admin/pages/class-page-rag-engine.php:193
-#: admin/pages/class-page-rag-engine.php:1003
+#: admin/pages/class-page-rag-engine.php:199
+#: admin/pages/class-page-rag-engine.php:1039
 msgid "Index my pages"
 msgstr ""
 
@@ -8023,7 +8178,7 @@ msgid "Each row maps one or more days to an open/close time. Add multiple rows f
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:291
-#: admin/pages/class-page-rag-engine.php:320
+#: admin/pages/class-page-rag-engine.php:350
 msgid "to"
 msgstr ""
 
@@ -9282,17 +9437,17 @@ msgstr ""
 
 #: admin/pages/class-page-rag-engine.php:101
 #: admin/pages/class-page-rag-engine.php:177
-#: admin/pages/class-page-rag-engine.php:234
+#: admin/pages/class-page-rag-engine.php:240
 msgid "Documents"
 msgstr ""
 
 #: admin/pages/class-page-rag-engine.php:103
-#: admin/pages/class-page-rag-engine.php:236
+#: admin/pages/class-page-rag-engine.php:242
 msgid "Search Placement"
 msgstr ""
 
 #: admin/pages/class-page-rag-engine.php:104
-#: admin/pages/class-page-rag-engine.php:237
+#: admin/pages/class-page-rag-engine.php:243
 msgid "AI Citations"
 msgstr ""
 
@@ -9324,299 +9479,315 @@ msgstr ""
 msgid "Setup"
 msgstr ""
 
-#. translators: 1: documents, 2: passages.
-#: admin/pages/class-page-rag-engine.php:180
+#. translators: 1: "1 document" / "3 documents", 2: "10 passages".
+#: admin/pages/class-page-rag-engine.php:181
 #, php-format
-msgid "%1$s documents, %2$s passages."
+msgid "%1$s, %2$s."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:181
+#. translators: %s: number of documents.
+#: admin/pages/class-page-rag-engine.php:183
+#, php-format
+msgid "%s document"
+msgid_plural "%s documents"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: number of passages.
+#: admin/pages/class-page-rag-engine.php:185
+#, php-format
+msgid "%s passage"
+msgid_plural "%s passages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/pages/class-page-rag-engine.php:187
 msgid "Upload the documents your business works from — spec sheets, manuals, FAQs."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:183
+#: admin/pages/class-page-rag-engine.php:189
 msgid "Manage"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:187
+#: admin/pages/class-page-rag-engine.php:193
 msgid "Your pages"
 msgstr ""
 
 #. translators: %s: number of pages.
-#: admin/pages/class-page-rag-engine.php:190
+#: admin/pages/class-page-rag-engine.php:196
 #, php-format
 msgid "%s pages and posts indexed; updates are picked up automatically."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:191
+#: admin/pages/class-page-rag-engine.php:197
 msgid "Index your published pages so they can be compared with your documents."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:193
+#: admin/pages/class-page-rag-engine.php:199
 msgid "Re-index pages"
 msgstr ""
 
 #. translators: %s: Search Console property.
-#: admin/pages/class-page-rag-engine.php:200
+#: admin/pages/class-page-rag-engine.php:206
 #, php-format
 msgid "Connected (%s). Feeds Search Placement."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:202
+#: admin/pages/class-page-rag-engine.php:208
 msgid "Google is connected, but no Search Console property is selected."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:203
+#: admin/pages/class-page-rag-engine.php:209
 msgid "Not connected. Search Placement needs it to show the Google searches you nearly rank for."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:211
+#: admin/pages/class-page-rag-engine.php:217
 msgid "Connected. Feeds Search Placement."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:212
+#: admin/pages/class-page-rag-engine.php:218
 msgid "Not connected. Search Placement needs it to show the Bing searches you nearly rank for."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:218
+#: admin/pages/class-page-rag-engine.php:224
 msgid "AI citation check"
 msgstr ""
 
 #. translators: %s: time since the run.
-#: admin/pages/class-page-rag-engine.php:221
+#: admin/pages/class-page-rag-engine.php:227
 #, php-format
 msgid "Last run %s ago. Feeds AI Citations — the RAG Engine reads these results and never re-runs them. A new run shows up there by itself as soon as it has answers; nothing needs rebuilding."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:223
+#: admin/pages/class-page-rag-engine.php:229
 msgid "No AI Visibility run yet. Run one to see which AI answers leave you out."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:224
+#: admin/pages/class-page-rag-engine.php:230
 msgid "The AI Visibility module is switched off. Turn it on under Modules, then run a check."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:226
+#: admin/pages/class-page-rag-engine.php:232
 msgid "Run a citation check"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:226
-#: admin/pages/class-page-rag-engine.php:413
+#: admin/pages/class-page-rag-engine.php:232
+#: admin/pages/class-page-rag-engine.php:443
 msgid "Open Modules"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:232
+#: admin/pages/class-page-rag-engine.php:238
 msgid "Where to go"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:234
+#: admin/pages/class-page-rag-engine.php:240
 msgid "upload files, index your pages, and search both side by side."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:235
+#: admin/pages/class-page-rag-engine.php:241
 msgid "see how any page is cut into passages and which ones don't make sense on their own."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:236
+#: admin/pages/class-page-rag-engine.php:242
 msgid "Google and Bing searches where you rank just off the top (positions 4–15 by default), with the document passages that answer what the ranking page does not."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:237
+#: admin/pages/class-page-rag-engine.php:243
 msgid "questions from your last AI Visibility run where an engine left you out or cited someone else, with the document passages that answer them."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:240
+#: admin/pages/class-page-rag-engine.php:246
 msgid "Nothing on this screen changes your pages. Every suggestion comes with a Copy button and an Edit page link — paste the text wherever your theme or page builder allows."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:254
+#: admin/pages/class-page-rag-engine.php:260
 msgid "it paused at the daily spending limit; resume it on the AI Visibility screen"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:255
+#: admin/pages/class-page-rag-engine.php:261
 msgid "it has not finished; open the AI Visibility screen to continue it"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:256
+#: admin/pages/class-page-rag-engine.php:262
 msgid "it was stopped before the end"
 msgstr ""
 
 #. translators: 1: checks done, 2: checks planned, 3: reason.
-#: admin/pages/class-page-rag-engine.php:261
+#: admin/pages/class-page-rag-engine.php:267
 #, php-format
 msgid "Partial run: %1$s of %2$s checks — %3$s."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:295
+#: admin/pages/class-page-rag-engine.php:325
 msgid "Searches where Google or Bing already ranks you just off the top. With ads and AI Overviews above the results, page one effectively ends around position 3 — so these are the searches where one better answer on the right page can move you up. Each one below is a search your documents answer and the ranking page does not."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:301
+#: admin/pages/class-page-rag-engine.php:331
 msgid "Search Placement needs Google Search Console or Bing Webmaster Tools."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:302
+#: admin/pages/class-page-rag-engine.php:332
 msgid "Neither is connected yet, so there is no ranking data to compare with your documents. Connect one (or both) and come back."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:304
+#: admin/pages/class-page-rag-engine.php:334
 msgid "Connect Google or Bing"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:317
+#: admin/pages/class-page-rag-engine.php:347
 msgid "Positions"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:323
+#: admin/pages/class-page-rag-engine.php:353
 msgid "Apply"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:331
+#: admin/pages/class-page-rag-engine.php:361
 msgid "Google Search Console (last 28 days)"
 msgstr ""
 
 #. translators: 1: data sources, 2: number of searches.
-#: admin/pages/class-page-rag-engine.php:339
+#: admin/pages/class-page-rag-engine.php:369
 #, php-format
 msgid "Data: %1$s. %2$s searches rank in this range."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:345
+#: admin/pages/class-page-rag-engine.php:375
 msgid "Connect Google Search Console to add Google searches."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:347
+#: admin/pages/class-page-rag-engine.php:377
 msgid "Connect Bing Webmaster Tools to add Bing searches."
 msgstr ""
 
 #. translators: %s: number of searches.
-#: admin/pages/class-page-rag-engine.php:358
+#: admin/pages/class-page-rag-engine.php:388
 #, php-format
 msgid "%s search is left out because the person searching is looking for a business to hire — it says \"services\", \"near me\" or \"buy\", names a town or state, asks for a repair without asking a question, or is your business's own name. Your documents cannot answer that; your service pages, reviews and local listings can."
 msgid_plural "%s searches are left out because the people searching are looking for a business to hire — they say \"services\", \"near me\" or \"buy\", name a town or state, ask for a repair without asking a question, or are your business's own name. Your documents cannot answer those; your service pages, reviews and local listings can."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-rag-engine.php:376
+#: admin/pages/class-page-rag-engine.php:406
 msgid "No opportunities found in this range."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:377
+#: admin/pages/class-page-rag-engine.php:407
 msgid "Either your documents don't cover the searches you rank for here, or the ranking pages already answer them. Try a wider position range, or upload more documents."
 msgstr ""
 
 #. translators: 1: search engine, 2: position, 3: impressions, 4: clicks.
-#: admin/pages/class-page-rag-engine.php:387
+#: admin/pages/class-page-rag-engine.php:417
 #, php-format
 msgid "%1$s position %2$s · %3$s impressions · %4$s clicks"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:403
+#: admin/pages/class-page-rag-engine.php:433
 msgid "Questions from your most recent AI Visibility run where at least one AI engine answered without citing your site — it named you without a link, left you out, or cited someone else — and your documents contain the answer. This tab reads the results you already have; it never runs new checks."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:408
+#: admin/pages/class-page-rag-engine.php:438
 msgid "No AI citation check has been run yet."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:410
+#: admin/pages/class-page-rag-engine.php:440
 msgid "Run an AI Visibility check first. It asks ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, DeepSeek and Muse the questions your customers ask and records who they cite; this tab then shows which of those answers your documents could win."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:411
+#: admin/pages/class-page-rag-engine.php:441
 msgid "The AI Visibility module is switched off. Turn it on under Modules, run a check, and this tab will show which AI answers your documents could win."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:413
+#: admin/pages/class-page-rag-engine.php:443
 msgid "Go to AI Visibility"
 msgstr ""
 
 #. translators: 1: time since run, 2: questions asked.
-#: admin/pages/class-page-rag-engine.php:428
+#: admin/pages/class-page-rag-engine.php:458
 #, php-format
 msgid "From the AI Visibility run %1$s ago: %2$s questions."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:435
+#: admin/pages/class-page-rag-engine.php:465
 msgid "Open AI Visibility"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:441
+#: admin/pages/class-page-rag-engine.php:471
 msgid "No opportunities found."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:442
+#: admin/pages/class-page-rag-engine.php:472
 msgid "Either every engine cited you, or your documents don't cover the questions where you were left out. Upload more documents, or run a new AI Visibility check after updating your pages."
 msgstr ""
 
 #. translators: %s: engine names.
-#: admin/pages/class-page-rag-engine.php:452
+#: admin/pages/class-page-rag-engine.php:482
 #, php-format
 msgid "Left out by %s"
 msgstr ""
 
 #. translators: %s: engine names.
-#: admin/pages/class-page-rag-engine.php:456
+#: admin/pages/class-page-rag-engine.php:486
 #, php-format
 msgid "named without a link by %s"
 msgstr ""
 
 #. translators: %s: engine names.
-#: admin/pages/class-page-rag-engine.php:460
+#: admin/pages/class-page-rag-engine.php:490
 #, php-format
 msgid "cited by %s"
 msgstr ""
 
 #. translators: %s: domains.
-#: admin/pages/class-page-rag-engine.php:464
+#: admin/pages/class-page-rag-engine.php:494
 #, php-format
 msgid "engines cited %s instead"
 msgstr ""
 
 #. translators: %s: engine names.
-#: admin/pages/class-page-rag-engine.php:468
+#: admin/pages/class-page-rag-engine.php:498
 #, php-format
 msgid "%s gave no sources"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:489
+#: admin/pages/class-page-rag-engine.php:519
 msgid "cited you"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:490
+#: admin/pages/class-page-rag-engine.php:520
 msgid "named you without a link"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:491
+#: admin/pages/class-page-rag-engine.php:521
 msgid "left you out"
 msgstr ""
 
 #. translators: %s: what each engine did when the follow-up was asked, e.g. "Gemini named you without a link".
-#: admin/pages/class-page-rag-engine.php:500
+#: admin/pages/class-page-rag-engine.php:530
 #, php-format
 msgid "When asked: %s"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:534
+#: admin/pages/class-page-rag-engine.php:564
 msgid "Next questions"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:536
+#: admin/pages/class-page-rag-engine.php:566
 msgid "With each answer, the AI engines also predict what the buyer is likely to ask next. These are those follow-up questions, checked against your pages and your documents. They are each engine's prediction — not questions real people typed — so treat them as a map of where the conversation goes after the first answer."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:541
+#: admin/pages/class-page-rag-engine.php:571
 msgid "The latest AI Visibility run recorded no follow-up questions. Runs from before follow-ups were added have none — run a new check to see them here."
 msgstr ""
 
 #. translators: 1: follow-ups predicted, 2: distinct questions, 3: already answered, 4: looking for a business.
-#: admin/pages/class-page-rag-engine.php:551
+#: admin/pages/class-page-rag-engine.php:581
 #, php-format
 msgid "%1$s follow-ups predicted, %2$s different questions: %3$s already answered on your pages, %4$s looking for a business to hire (your service pages, reviews and local listings answer those, not documents)."
 msgstr ""
 
 #. translators: %s: number of questions.
-#: admin/pages/class-page-rag-engine.php:560
+#: admin/pages/class-page-rag-engine.php:590
 #, php-format
 msgid "%s asks about your business itself."
 msgid_plural "%s ask about your business itself."
@@ -9624,117 +9795,117 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: persona the run was asked as.
-#: admin/pages/class-page-rag-engine.php:564
+#: admin/pages/class-page-rag-engine.php:594
 #, php-format
 msgid "The run was asked as %s."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:574
+#: admin/pages/class-page-rag-engine.php:604
 msgid "Your documents answer these"
 msgstr ""
 
 #. translators: 1: engine names, 2: the question it followed.
-#: admin/pages/class-page-rag-engine.php:579
+#: admin/pages/class-page-rag-engine.php:609
 #, php-format
 msgid "Predicted by %1$s · after “%2$s”"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:589
+#: admin/pages/class-page-rag-engine.php:619
 msgid "Nothing answers these yet"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:591
+#: admin/pages/class-page-rag-engine.php:621
 msgid "Neither your pages nor your documents cover these. They are the next thing your buyers are expected to ask — content that answers them gives the engines something of yours to cite at the next step of the conversation."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:596
+#: admin/pages/class-page-rag-engine.php:626
 msgid "Next question"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:597
+#: admin/pages/class-page-rag-engine.php:627
 msgid "Predicted by"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:598
+#: admin/pages/class-page-rag-engine.php:628
 msgid "After"
 msgstr ""
 
 #. translators: %s: page title.
-#: admin/pages/class-page-rag-engine.php:609
+#: admin/pages/class-page-rag-engine.php:639
 #, php-format
 msgid "Partly answered on “%s”."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:626
+#: admin/pages/class-page-rag-engine.php:656
 msgid "Every predicted follow-up is either answered on your pages or looking for a business to hire."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:641
+#: admin/pages/class-page-rag-engine.php:671
 msgid "Turnaround and lead time"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:642
+#: admin/pages/class-page-rag-engine.php:672
 msgid "Warranty"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:643
+#: admin/pages/class-page-rag-engine.php:673
 msgid "Rush, emergency and on-site service"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:644
+#: admin/pages/class-page-rag-engine.php:674
 msgid "Shipping, pickup and drop-off"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:645
+#: admin/pages/class-page-rag-engine.php:675
 msgid "Returns and cancellations"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:646
+#: admin/pages/class-page-rag-engine.php:676
 msgid "Reviews, trust and references"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:647
+#: admin/pages/class-page-rag-engine.php:677
 msgid "Pricing"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:648
+#: admin/pages/class-page-rag-engine.php:678
 msgid "What you work on"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:649
+#: admin/pages/class-page-rag-engine.php:679
 msgid "Quotes and contact"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:650
+#: admin/pages/class-page-rag-engine.php:680
 msgid "Other questions about you"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:659
+#: admin/pages/class-page-rag-engine.php:689
 msgid "Questions about your business"
 msgstr ""
 
 #. translators: %s: number of questions.
-#: admin/pages/class-page-rag-engine.php:665
+#: admin/pages/class-page-rag-engine.php:695
 #, php-format
 msgid "%s predicted follow-up asks about your business itself. No document answers these; your own pages do. A clear page (or FAQ) on the topics buyers ask about most gives every engine something of yours to cite at this step."
 msgid_plural "%s predicted follow-ups ask about your business itself. No document answers these; your own pages do. A clear page (or FAQ) on the topics buyers ask about most gives every engine something of yours to cite at this step."
 msgstr[0] ""
 msgstr[1] ""
 
-#: admin/pages/class-page-rag-engine.php:679
+#: admin/pages/class-page-rag-engine.php:709
 msgid "Topic"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:680
+#: admin/pages/class-page-rag-engine.php:710
 msgid "What buyers are expected to ask"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:681
+#: admin/pages/class-page-rag-engine.php:711
 msgid "Closest page you have"
 msgstr ""
 
 #. translators: 1: number of questions, 2: engine names.
-#: admin/pages/class-page-rag-engine.php:707
+#: admin/pages/class-page-rag-engine.php:737
 #, php-format
 msgid "%1$s question · %2$s"
 msgid_plural "%1$s questions · %2$s"
@@ -9742,160 +9913,160 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: number of further questions.
-#: admin/pages/class-page-rag-engine.php:722
+#: admin/pages/class-page-rag-engine.php:752
 #, php-format
 msgid "and %s more like these"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:729
+#: admin/pages/class-page-rag-engine.php:759
 msgid "your page for this topic: check it answers these"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:735
+#: admin/pages/class-page-rag-engine.php:765
 msgid "No page for this topic yet. A page (or an FAQ section) that answers these gives the engines something of yours to cite here."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:754
+#: admin/pages/class-page-rag-engine.php:784
 msgid "does not answer it"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:755
+#: admin/pages/class-page-rag-engine.php:785
 msgid "only partly answers it"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:756
+#: admin/pages/class-page-rag-engine.php:786
 msgid "already answers it"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:757
+#: admin/pages/class-page-rag-engine.php:787
 msgid "not matched to a page"
 msgstr ""
 
 #. translators: %s: document title.
-#: admin/pages/class-page-rag-engine.php:795
+#: admin/pages/class-page-rag-engine.php:825
 #, php-format
 msgid "People are searching for this document, and you have it: \"%s\". Publish it — a page with a short summary of what it covers and the PDF attached — so the search has something to land on. Link to it from the page below:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:800
+#: admin/pages/class-page-rag-engine.php:830
 msgid "Bing does not report which page ranks. These are your likeliest pages, most likely first — Bing favours pages with the search words in their web address:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:801
+#: admin/pages/class-page-rag-engine.php:831
 msgid "Bing does not report which page ranks. Your likeliest page:"
 msgstr ""
 
 #. translators: 1: page Google ranks, 2: more specific page.
-#: admin/pages/class-page-rag-engine.php:805
+#: admin/pages/class-page-rag-engine.php:835
 #, php-format
 msgid "Google ranks \"%1$s\" for this search, but \"%2$s\" is the page for this exact model. Add the answer to the model page and make sure \"%1$s\" links to it:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:810
+#: admin/pages/class-page-rag-engine.php:840
 msgid "The page Google ranks for this search:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:826
+#: admin/pages/class-page-rag-engine.php:856
 msgid "in the Trash"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:827
+#: admin/pages/class-page-rag-engine.php:857
 msgid "back to a draft"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:828
+#: admin/pages/class-page-rag-engine.php:858
 msgid "waiting for review"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:829
+#: admin/pages/class-page-rag-engine.php:859
 msgid "set to private"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:835
+#: admin/pages/class-page-rag-engine.php:865
 msgid "Restore from Trash"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:835
+#: admin/pages/class-page-rag-engine.php:865
 msgid "Open it to publish"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:838
+#: admin/pages/class-page-rag-engine.php:868
 msgid "You used to have a page for this."
 msgstr ""
 
 #. translators: 1: page title, 2: where it is now, e.g. "in the Trash".
-#: admin/pages/class-page-rag-engine.php:843
+#: admin/pages/class-page-rag-engine.php:873
 #, php-format
 msgid "\"%1$s\" is %2$s, and the search still ranks. Putting the page back at its old address is the quickest way to keep that ranking; a new page starts from nothing. If it was removed on purpose, redirect its old address to the closest page instead."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:844
+#: admin/pages/class-page-rag-engine.php:874
 msgid "(no title)"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:879
+#: admin/pages/class-page-rag-engine.php:909
 msgid "Ranking URL (not a page on this site):"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:881
+#: admin/pages/class-page-rag-engine.php:911
 msgid "No page on your site matches this yet — add the answer where it fits best, or give it a page of its own."
 msgstr ""
 
 #. translators: %s: model or part number(s).
-#: admin/pages/class-page-rag-engine.php:890
+#: admin/pages/class-page-rag-engine.php:920
 #, php-format
 msgid "No page on your site is named for %s. If it matters to your business, a page of its own — linked from the most relevant page above — will usually outrank a mention inside a broader page."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:900
+#: admin/pages/class-page-rag-engine.php:930
 msgid "Your domain name spells out this search. Bing gives that a lot of weight, so your home page may be the one ranking — consider adding the answer there too."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:906
+#: admin/pages/class-page-rag-engine.php:936
 msgid "Where engines did cite you:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:942
+#: admin/pages/class-page-rag-engine.php:978
 msgid "Legal question."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:945
+#: admin/pages/class-page-rag-engine.php:981
 msgid "Your documents have the law as written but no explanation of it. Publish the text word for word, with its citation."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:947
+#: admin/pages/class-page-rag-engine.php:983
 msgid "Law and code text is shown word for word with its citation. Any explanation comes from a document you uploaded, and is credited to it."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:949
+#: admin/pages/class-page-rag-engine.php:985
 msgid "The answer below comes from a document you uploaded, and is credited to it. Upload the law or code itself to publish its exact wording beside it."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:957
+#: admin/pages/class-page-rag-engine.php:993
 msgid "What the document covers (a start for the summary):"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:957
+#: admin/pages/class-page-rag-engine.php:993
 msgid "Your documents answer it — copy, then paste into the page:"
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:972
+#: admin/pages/class-page-rag-engine.php:1008
 msgid "Tip: passages marked \"Explain from this document\" are a source, not finished copy. When many sellers publish the same manufacturer text, the page that answers the question in its own words — with your own experience added — usually ranks better than a straight copy. Passages marked \"Quote exactly\" (laws, codes, safety data, contracts) are the opposite: publish them word for word with their citation."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:992
+#: admin/pages/class-page-rag-engine.php:1028
 msgid "Opportunities come from matching your documents against the searches and questions below. Upload some first."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:1000
+#: admin/pages/class-page-rag-engine.php:1036
 msgid "Your pages aren't indexed yet."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:1001
+#: admin/pages/class-page-rag-engine.php:1037
 msgid "To tell whether a page already answers a search, the RAG Engine needs your pages indexed."
 msgstr ""
 
-#: admin/pages/class-page-rag-engine.php:1018
+#: admin/pages/class-page-rag-engine.php:1054
 msgid "Ranking data is cached for 12 hours."
 msgstr ""
 
@@ -13753,7 +13924,7 @@ msgid "Get Bing Webmaster Tools data"
 msgstr ""
 
 #: includes/class-abilities.php:234
-msgid "The site's Bing Webmaster Tools data from Command Center: search clicks, impressions and average position over the last six months, the top Bing search queries, Bing's SEO recommendations per page by severity, and crawl status (crawl errors, pages blocked by robots.txt). Bing results also feed Copilot and other AI answers. Needs a Bing Webmaster API key in Command Center."
+msgid "The site's Bing Webmaster Tools data from Command Center: search clicks, impressions and average position over the last six months, the top Bing search queries, the pages Bing reports crawl issues on (errors, robots.txt blocks, redirects) by severity, and crawl status (crawl errors, pages blocked by robots.txt). Bing results also feed Copilot and other AI answers. Needs a Bing Webmaster API key in Command Center."
 msgstr ""
 
 #: includes/class-abilities.php:239
@@ -14040,7 +14211,7 @@ msgid "Bing Webmaster Tools is not connected. Add the Bing Webmaster API key und
 msgstr ""
 
 #: includes/class-abilities.php:1458
-msgid "Top queries are the 25 Bing showed the site for most often. Recommendations are Bing's own SEO findings, most severe first. Bing's index also feeds Copilot and other AI answers."
+msgid "Top queries are the 25 Bing showed the site for most often. Recommendations are the crawl issues Bing reports on the site's pages, most severe first. Bing's index also feeds Copilot and other AI answers."
 msgstr ""
 
 #: includes/class-abilities.php:1502
@@ -15614,7 +15785,7 @@ msgid "This file is empty."
 msgstr ""
 
 #. translators: %d: page number.
-#: includes/class-doc-extractor.php:286
+#: includes/class-doc-extractor.php:287
 #, php-format
 msgid "Page %d"
 msgstr ""
@@ -17359,41 +17530,41 @@ msgid "Sent."
 msgstr ""
 
 #. translators: %s: error message.
-#: includes/class-rag-signals.php:284
+#: includes/class-rag-signals.php:296
 #, php-format
 msgid "Google Search Console: %s"
 msgstr ""
 
 #. translators: %s: error message.
-#: includes/class-rag-signals.php:295
+#: includes/class-rag-signals.php:307
 #, php-format
 msgid "Bing Webmaster Tools: %s"
 msgstr ""
 
-#: includes/class-rag-signals.php:332
-#: includes/class-rag-signals.php:397
+#: includes/class-rag-signals.php:344
+#: includes/class-rag-signals.php:409
 msgid "Google ranks this page"
 msgstr ""
 
-#: includes/class-rag-signals.php:806
+#: includes/class-rag-signals.php:818
 msgid "the page the original question was about"
 msgstr ""
 
 #. translators: %s: model or part number as searched.
-#: includes/class-rag-signals.php:1110
+#: includes/class-rag-signals.php:1122
 #, php-format
 msgid "named for %s"
 msgstr ""
 
-#: includes/class-rag-signals.php:1113
+#: includes/class-rag-signals.php:1125
 msgid "search words in its web address"
 msgstr ""
 
-#: includes/class-rag-signals.php:1116
+#: includes/class-rag-signals.php:1128
 msgid "search words in its title"
 msgstr ""
 
-#: includes/class-rag-signals.php:1119
+#: includes/class-rag-signals.php:1131
 msgid "mentions the search words"
 msgstr ""
 

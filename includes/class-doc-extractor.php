@@ -281,35 +281,158 @@ final class TWTAEO_Doc_Extractor {
 	 */
 	private static function pages_to_markdown( array $texts ) {
 		$is_heading = self::section_heading_test( $texts );
+		$full       = self::full_line_length( $texts );
 		$page_label = static function ( $i ) {
 			/* translators: %d: page number. */
 			return sprintf( __( 'Page %d', 'twt-aeo-ultimate' ), $i + 1 );
 		};
+		// Question headings sit one level below the page heading.
+		$q_level  = $is_heading ? '#### ' : '### ';
+		$question = ''; // The question whose answer may run onto the next page.
 
 		$out = array();
 		foreach ( $texts as $i => $text ) {
 			if ( '' === $text ) {
 				continue;
 			}
-			if ( ! $is_heading ) {
-				$out[] = '## ' . $page_label( $i ) . "\n\n" . $text;
-				continue;
-			}
 
-			$block = array( '### ' . $page_label( $i ) );
-			foreach ( explode( "\n", $text ) as $line ) {
-				if ( $is_heading( $line ) ) {
-					$block[] = '## ' . trim( $line );
+			$block = array( ( $is_heading ? '### ' : '## ' ) . $page_label( $i ) );
+			$first = true;
+			foreach ( self::paragraphs( $text, $full ) as $para ) {
+				if ( $is_heading && $is_heading( $para ) ) {
+					$block[] = '## ' . $para;
 					// Keep the page under the new section too.
 					$block[] = '### ' . $page_label( $i );
-					continue;
+					$question = '';
+				} elseif ( self::is_question_heading( $para ) ) {
+					$block[]  = $q_level . $para;
+					$question = $para;
+				} else {
+					// An answer that carries over from the previous page keeps
+					// its question, so the passage still says what it answers.
+					if ( $first && '' !== $question ) {
+						$block[] = $q_level . $question;
+					}
+					$block[] = $para;
 				}
-				$block[] = $line;
+				$first = false;
 			}
 			$out[] = implode( "\n\n", $block );
 		}
 
 		return implode( "\n\n", $out );
+	}
+
+	/**
+	 * Rebuild a PDF page's paragraphs. PDF text arrives one printed line at a
+	 * time with no blank lines, so a whole page would otherwise be one passage.
+	 * A line that ends a sentence and stops well short of the full line width
+	 * ends its paragraph; list items, rebuilt table rows and question lines
+	 * stand on their own. Wrapped lines are joined with a space.
+	 *
+	 * @param string $text Page text.
+	 * @param int    $full Typical length of a full printed line in this document.
+	 * @return string[]
+	 */
+	private static function paragraphs( $text, $full ) {
+		$paras   = array();
+		$current = array();
+		$flush   = static function () use ( &$paras, &$current ) {
+			if ( $current ) {
+				$paras[] = implode( ' ', $current );
+				$current = array();
+			}
+		};
+
+		foreach ( explode( "\n", $text ) as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				$flush();
+				continue;
+			}
+			// Rebuilt table rows stay one per line, as a block of their own.
+			if ( 0 === strpos( $line, '|' ) ) {
+				if ( $current && 0 !== strpos( $current[0], '|' ) ) {
+					$flush();
+				}
+				$paras[] = $line;
+				continue;
+			}
+			// A list item starts a new paragraph. So does a question line, unless
+			// the line before it wraps on into it (a full-width line that does
+			// not end a sentence); a short title or table row above it does not.
+			$question_line = self::is_question_heading( $line );
+			if ( $question_line && $current ) {
+				$prev          = end( $current );
+				$question_line = self::ends_sentence( $prev ) || mb_strlen( $prev ) < $full * 0.8;
+			}
+			if ( $question_line || preg_match( '/^(?:[•▪●◦\-–*]\s+|\d{1,2}[.)]\s+)/u', $line ) ) {
+				$flush();
+			}
+			$current[] = $line;
+			if ( $question_line && 1 === count( $current ) ) {
+				$flush();
+				continue;
+			}
+			if ( self::ends_sentence( $line ) && mb_strlen( $line ) < $full * 0.8 ) {
+				$flush();
+			}
+		}
+		$flush();
+
+		return $paras;
+	}
+
+	/**
+	 * Typical length of a full printed line: the 80th percentile of the longer
+	 * lines. A short line that ends a sentence is then the end of a paragraph.
+	 *
+	 * @param string[] $texts
+	 * @return int
+	 */
+	private static function full_line_length( array $texts ) {
+		$lengths = array();
+		foreach ( $texts as $text ) {
+			foreach ( explode( "\n", $text ) as $line ) {
+				$len = mb_strlen( trim( $line ) );
+				if ( $len >= 30 && 0 !== strpos( ltrim( $line ), '|' ) ) {
+					$lengths[] = $len;
+				}
+			}
+		}
+		if ( count( $lengths ) < 5 ) {
+			return 90;
+		}
+		sort( $lengths );
+
+		return (int) $lengths[ (int) floor( ( count( $lengths ) - 1 ) * 0.8 ) ];
+	}
+
+	/** The line ends a sentence: . ! ? or : with an optional closing quote or bracket. */
+	private static function ends_sentence( $line ) {
+		return (bool) preg_match( '/[.!?:]["\'”’)\]]?$/u', trim( (string) $line ) );
+	}
+
+	/**
+	 * A line that is a question asked as a heading ("How do I fix 404 errors in
+	 * WordPress?"): short, ends with a question mark, starts with a capital and
+	 * is mostly words.
+	 */
+	private static function is_question_heading( $line ) {
+		$line = trim( (string) $line );
+		$len  = mb_strlen( $line );
+		if ( $len < 8 || $len > 110 || '?' !== mb_substr( $line, -1 ) ) {
+			return false;
+		}
+		if ( ! preg_match( '/^\p{Lu}/u', $line ) || str_word_count( $line ) > 18 ) {
+			return false;
+		}
+		// A sentence inside a paragraph has more than one clause before its "?".
+		if ( preg_match( '/[.!;]\s/u', $line ) ) {
+			return false;
+		}
+
+		return self::mostly_words( $line );
 	}
 
 	/**

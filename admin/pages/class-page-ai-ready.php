@@ -388,7 +388,7 @@ class TWTAEO_Page_AI_Ready {
 										<?php esc_html_e( 'llms.txt Generator', 'twt-aeo-ultimate' ); ?>
 										<span class="twt-aeo-air-benchmark twt-aeo-air-benchmark--purple"><?php esc_html_e( 'Discoverability Score', 'twt-aeo-ultimate' ); ?></span>
 									</h3>
-									<p class="twt-aeo-air-feature-card__desc"><?php esc_html_e( 'Generates a dynamic machine-readable "cheat sheet" for AI models at /llms.txt. It includes your site name, tagline, and a structured list of your most recent pages with links and excerpts — giving AI tools an instant overview of your site without crawling every page.', 'twt-aeo-ultimate' ); ?></p>
+									<p class="twt-aeo-air-feature-card__desc"><?php esc_html_e( 'Generates a dynamic machine-readable "cheat sheet" for AI models at /llms.txt. It includes your site name, tagline, and a structured list of your pages with links and excerpts: your home page and main menu first, then your most recent posts and pages — giving AI tools an instant overview of your site without crawling every page.', 'twt-aeo-ultimate' ); ?></p>
 									<details class="twt-aeo-air-why">
 										<summary><?php esc_html_e( 'Why this matters', 'twt-aeo-ultimate' ); ?></summary>
 										<div class="twt-aeo-air-why__body">
@@ -476,6 +476,7 @@ class TWTAEO_Page_AI_Ready {
 										<summary><?php esc_html_e( 'Why this matters', 'twt-aeo-ultimate' ); ?></summary>
 										<div class="twt-aeo-air-why__body">
 											<p><?php esc_html_e( 'There is a critical difference between Training and Search. "AI Training" means an AI company uses your content to build their model — a permanent use of your IP. "AI Search" means an agent reads your content to answer a user\'s question — a transient use that drives traffic back to you.', 'twt-aeo-ultimate' ); ?></p>
+											<p><?php esc_html_e( '"AI Input" is the answer itself: an assistant reads your page to answer a question and quotes or cites it. Saying no asks assistants to leave your content out of their answers, which works against answer engine optimization.', 'twt-aeo-ultimate' ); ?></p>
 											<p><?php esc_html_e( 'Content-Signal lets you say yes to one and no to the other. Most SEOs are not aware these are separate permissions. Cloudflare\'s Signals Score measures whether your preferences are machine-readable and correctly declared.', 'twt-aeo-ultimate' ); ?></p>
 										</div>
 									</details>
@@ -518,15 +519,18 @@ class TWTAEO_Page_AI_Ready {
 								<div class="twt-aeo-air-signal-row">
 									<div class="twt-aeo-air-signal-row__label">
 										<strong><?php esc_html_e( 'AI Input / RAG', 'twt-aeo-ultimate' ); ?></strong>
-										<span><?php esc_html_e( 'May AI systems use this content as input context for retrieval-augmented generation?', 'twt-aeo-ultimate' ); ?></span>
+										<span><?php esc_html_e( 'May AI assistants read this content to answer a question, and quote or cite it (retrieval-augmented generation)?', 'twt-aeo-ultimate' ); ?></span>
 									</div>
 									<div class="twt-aeo-air-signal-row__options">
-										<?php foreach ( array( 'no' => 'Do not use as input (recommended)', 'yes' => 'Allow as input', 'unspecified' => 'No preference' ) as $val => $label ) : ?>
+										<?php foreach ( array( 'yes' => 'Allow as input (recommended)', 'no' => 'Do not use as input', 'unspecified' => 'No preference' ) as $val => $label ) : ?>
 										<label class="twt-aeo-air-signal-option">
 											<input type="radio" name="twtaeo_air[content_signal_ai_input]" value="<?php echo esc_attr( $val ); ?>" <?php checked( $s['content_signal_ai_input'], $val ); ?> />
 											<span><?php echo esc_html( $label ); ?></span>
 										</label>
 										<?php endforeach; ?>
+										<?php if ( 'no' === $s['content_signal_ai_input'] ) : ?>
+										<p class="twt-aeo-air-signal-row__note"><?php esc_html_e( 'AI assistants are asked not to use this content in their answers, so they may not quote or cite it. Choose Allow as input if you want to be cited.', 'twt-aeo-ultimate' ); ?></p>
+										<?php endif; ?>
 									</div>
 								</div>
 							</div>

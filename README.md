@@ -18,6 +18,10 @@ AEO Ultimate makes a WordPress site readable, trustworthy and citable for AI ans
 * **Semi-automated**: the plugin detects what each page is, adds schema only where it is missing, and suggests the missing E-E-A-T details for you to apply. AI-powered bulk actions show the number of billed calls and ask first.
 * **Modular**: 29 modules, each switched on or off on its own.
 
+## Video tutorials
+
+Short walkthroughs, one screen at a time, each with a written guide: E-E-A-T, Local Pack, AI Visibility, Social Graph, Schema Detector, AI Ready, the RAG Engine and Command Center. Since 2.30.7, screens that have one show a "?" beside their title that plays it in place (nothing loads from YouTube until you press Play). Watch them at [aeoultimate.com/docs/wordpress/tutorials](https://aeoultimate.com/docs/wordpress/tutorials/), or read the full [AEO Ultimate for WordPress documentation](https://aeoultimate.com/docs/wordpress/).
+
 ## What's in it
 
 ### RAG Engine (new in 2.25)

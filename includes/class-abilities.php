@@ -231,7 +231,7 @@ final class TWTAEO_Abilities {
 			),
 			'get-bing-webmaster'        => array(
 				'label'        => __( 'Get Bing Webmaster Tools data', 'twt-aeo-ultimate' ),
-				'description'  => __( 'The site\'s Bing Webmaster Tools data from Command Center: search clicks, impressions and average position over the last six months, the top Bing search queries, Bing\'s SEO recommendations per page by severity, and crawl status (crawl errors, pages blocked by robots.txt). Bing results also feed Copilot and other AI answers. Needs a Bing Webmaster API key in Command Center.', 'twt-aeo-ultimate' ),
+				'description'  => __( 'The site\'s Bing Webmaster Tools data from Command Center: search clicks, impressions and average position over the last six months, the top Bing search queries, the pages Bing reports crawl issues on (errors, robots.txt blocks, redirects) by severity, and crawl status (crawl errors, pages blocked by robots.txt). Bing results also feed Copilot and other AI answers. Needs a Bing Webmaster API key in Command Center.', 'twt-aeo-ultimate' ),
 				'input_schema' => $empty_input,
 				'execute'      => array( __CLASS__, 'bing_webmaster' ),
 			),
@@ -1455,7 +1455,7 @@ final class TWTAEO_Abilities {
 		}
 
 		$out['notes'] = array(
-			__( 'Top queries are the 25 Bing showed the site for most often. Recommendations are Bing\'s own SEO findings, most severe first. Bing\'s index also feeds Copilot and other AI answers.', 'twt-aeo-ultimate' ),
+			__( 'Top queries are the 25 Bing showed the site for most often. Recommendations are the crawl issues Bing reports on the site\'s pages, most severe first. Bing\'s index also feeds Copilot and other AI answers.', 'twt-aeo-ultimate' ),
 			self::queries_note(),
 		);
 		return $out;

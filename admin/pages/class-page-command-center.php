@@ -745,11 +745,11 @@ class TWTAEO_Page_Command_Center {
 			</div>
 		</section>
 
-		<?php // ── SEO Recommendations ── ?>
+		<?php // ── Crawl issues Bing reports ── ?>
 		<?php if ( ! is_wp_error( $recommendations ) && ! empty( $recommendations ) ) : ?>
 		<section class="twt-aeo-cc__data-section">
 			<h3 class="twt-aeo-cc__section-title">
-				<?php esc_html_e( 'SEO Recommendations', 'twt-aeo-ultimate' ); ?>
+				<?php esc_html_e( 'Crawl issues Bing reports', 'twt-aeo-ultimate' ); ?>
 				<span class="twt-aeo-cc__rec-count"><?php echo count( $recommendations ); ?></span>
 			</h3>
 			<table class="twt-aeo-cc__table widefat striped twt-aeo-cc__rec-table">
@@ -795,9 +795,11 @@ class TWTAEO_Page_Command_Center {
 		</section>
 		<?php elseif ( is_wp_error( $recommendations ) ) : ?>
 			<div class="notice notice-warning inline" style="margin:16px 0 0;">
-				<p><strong><?php esc_html_e( 'SEO Recommendations unavailable:', 'twt-aeo-ultimate' ); ?></strong>
+				<p><strong><?php esc_html_e( 'Crawl issues unavailable:', 'twt-aeo-ultimate' ); ?></strong>
 				<?php echo esc_html( $recommendations->get_error_message() ); ?></p>
 			</div>
+		<?php else : ?>
+			<p class="description" style="margin:16px 0 0;">&#10003; <?php esc_html_e( 'Bing reports no crawl issues on your pages: no errors, no blocked pages and no redirects to fix.', 'twt-aeo-ultimate' ); ?></p>
 		<?php endif; ?>
 		<?php
 		} // end else (connected)
@@ -1942,7 +1944,10 @@ class TWTAEO_Page_Command_Center {
 			'startDate'  => gmdate( 'Y-m-d', strtotime( '-30 days' ) ),
 			'endDate'    => gmdate( 'Y-m-d', strtotime( '-2 days' ) ),
 			'dimensions' => array( 'query' ),
-			'rowLimit'   => 15,
+			// Google orders by clicks only; on a young site most queries have
+			// none and the ties come back alphabetical. Fetch more, then order
+			// by clicks and impressions so the searches that matter come first.
+			'rowLimit'   => 250,
 		) );
 
 		if ( is_wp_error( $result ) ) {
@@ -1959,6 +1964,13 @@ class TWTAEO_Page_Command_Center {
 				'position'    => $row['position']   ?? 0,
 			);
 		}
+		usort(
+			$queries,
+			static function ( $a, $b ) {
+				return ( $b['clicks'] <=> $a['clicks'] ) ?: ( $b['impressions'] <=> $a['impressions'] );
+			}
+		);
+		$queries = array_slice( $queries, 0, 15 );
 
 		set_transient( $cache_key, $queries, HOUR_IN_SECONDS );
 		return $queries;
@@ -2057,68 +2069,79 @@ class TWTAEO_Page_Command_Center {
 	}
 
 	/**
-	 * Fetch and normalise Bing SEO recommendations, sorted by severity.
+	 * Fetch the pages Bing reports crawl issues on, one item per issue, most
+	 * severe first. (The Webmaster API has no SEO-suggestions method; the
+	 * GetSEOSuggestions call this used to make returned 404 on every site.)
 	 *
-	 * Each item: [ 'url', 'title', 'suggestion', 'severity' (1-3) ]
+	 * Each item: [ 'url', 'title', 'suggestion', 'severity' (1 critical, 2 warning, 3 notice) ]
 	 *
 	 * @return array|WP_Error
 	 */
 	public static function fetch_bing_recommendations() {
-		$cache_key = 'twtaeo_bing_suggestions';
+		$cache_key = 'twtaeo_bing_crawl_issues';
 		$cached    = get_transient( $cache_key );
 
 		if ( $cached !== false ) {
 			return $cached;
 		}
 
-		$result = TWTAEO_Bing_Webmaster::get_seo_suggestions();
+		$result = TWTAEO_Bing_Webmaster::get_crawl_issues();
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 
-		// Bing may return the list directly under 'd' or nested under 'd.results'.
 		$pages = $result['d']['results'] ?? $result['d'] ?? array();
-
 		if ( empty( $pages ) || ! is_array( $pages ) ) {
 			set_transient( $cache_key, array(), HOUR_IN_SECONDS );
 			return array();
 		}
 
+		$kinds = self::bing_crawl_issue_kinds();
 		$items = array();
-
 		foreach ( $pages as $page ) {
-			$url = $page['PageUrl'] ?? '';
-			if ( empty( $url ) ) {
+			$url = (string) ( $page['Url'] ?? $page['PageUrl'] ?? '' );
+			if ( '' === $url ) {
 				continue;
 			}
-
-			// Bing uses 'PageSuggestions' or 'SuggestionsList' depending on API version.
-			$suggestions = $page['PageSuggestions'] ?? $page['SuggestionsList'] ?? array();
-
-			foreach ( $suggestions as $s ) {
-				$text     = $s['Text'] ?? $s['Description'] ?? '';
-				$severity = (int) ( $s['Severity'] ?? $s['Type'] ?? 3 );
-
-				// Bing severity: 1=Critical, 2=Warning, 3=Notice. Clamp to valid range.
-				$severity = max( 1, min( 3, $severity ) );
-
+			$flags = $page['Issues'] ?? 0;
+			foreach ( $kinds as $bit => $kind ) {
+				// Issues arrives as a number (bit flags) or as the flag names.
+				$has = is_numeric( $flags ) ? ( (int) $flags & $bit ) : ( false !== stripos( (string) $flags, $kind['name'] ) );
+				if ( ! $has ) {
+					continue;
+				}
+				$code    = ! empty( $page['HttpCode'] ) && in_array( $kind['name'], array( 'Code4xx', 'Code5xx' ), true ) ? ' (HTTP ' . (int) $page['HttpCode'] . ')' : '';
 				$items[] = array(
 					'url'        => $url,
-					'title'      => self::bing_suggestion_title( $text ),
-					'suggestion' => self::bing_suggestion_fix( $text ),
-					'severity'   => $severity,
+					'title'      => $kind['title'] . $code,
+					'suggestion' => $kind['fix'],
+					'severity'   => $kind['severity'],
 				);
 			}
 		}
 
-		// Sort: Critical first, then Warning, then Notice.
 		usort( $items, function( $a, $b ) {
 			return $a['severity'] <=> $b['severity'];
 		} );
 
 		set_transient( $cache_key, $items, HOUR_IN_SECONDS );
 		return $items;
+	}
+
+	/** Bing's CrawlIssues flags: bit => name, severity, plain title and fix. */
+	private static function bing_crawl_issue_kinds() {
+		return array(
+			32  => array( 'name' => 'ContainsMalware', 'severity' => 1, 'title' => __( 'Bing found malware on this page', 'twt-aeo-ultimate' ), 'fix' => __( 'Scan the site with your security plugin or host, clean it, then ask Bing to check it again in Bing Webmaster Tools.', 'twt-aeo-ultimate' ) ),
+			8   => array( 'name' => 'Code5xx', 'severity' => 1, 'title' => __( 'Server error', 'twt-aeo-ultimate' ), 'fix' => __( 'Open the page to check it loads. If errors keep happening, ask your host to look at the server logs.', 'twt-aeo-ultimate' ) ),
+			4   => array( 'name' => 'Code4xx', 'severity' => 1, 'title' => __( 'Page not found or not allowed', 'twt-aeo-ultimate' ), 'fix' => __( 'Restore the page, or redirect it to the closest live page. Smart 404 can create the redirect.', 'twt-aeo-ultimate' ) ),
+			64  => array( 'name' => 'ImportantUrlBlockedByRobotsTxt', 'severity' => 1, 'title' => __( 'An important page is blocked by robots.txt', 'twt-aeo-ultimate' ), 'fix' => __( 'Remove the Disallow rule that covers this page from robots.txt.', 'twt-aeo-ultimate' ) ),
+			128 => array( 'name' => 'DnsErrors', 'severity' => 1, 'title' => __( 'Bing could not look up your domain', 'twt-aeo-ultimate' ), 'fix' => __( 'Check your DNS records with your domain registrar or host.', 'twt-aeo-ultimate' ) ),
+			256 => array( 'name' => 'TimeOutErrors', 'severity' => 2, 'title' => __( 'The page took too long to respond', 'twt-aeo-ultimate' ), 'fix' => __( 'Check the page speed on the Page Speed tab, and ask your host about slow responses.', 'twt-aeo-ultimate' ) ),
+			16  => array( 'name' => 'BlockedByRobotsTxt', 'severity' => 2, 'title' => __( 'Blocked by robots.txt', 'twt-aeo-ultimate' ), 'fix' => __( 'If this page should appear in Bing and Copilot, remove the Disallow rule that covers it.', 'twt-aeo-ultimate' ) ),
+			2   => array( 'name' => 'Code302', 'severity' => 2, 'title' => __( 'Temporary redirect (302)', 'twt-aeo-ultimate' ), 'fix' => __( 'If the move is permanent, change it to a 301 redirect.', 'twt-aeo-ultimate' ) ),
+			1   => array( 'name' => 'Code301', 'severity' => 3, 'title' => __( 'Permanent redirect (301)', 'twt-aeo-ultimate' ), 'fix' => __( 'Link to the final address directly, and keep the old address out of your sitemap.', 'twt-aeo-ultimate' ) ),
+		);
 	}
 
 	/**
@@ -2153,31 +2176,6 @@ class TWTAEO_Page_Command_Center {
 
 		set_transient( $cache_key, $status, HOUR_IN_SECONDS );
 		return $status;
-	}
-
-	/**
-	 * Extract a short human-readable title from Bing's suggestion text.
-	 * Returns the first sentence or up to 80 characters.
-	 */
-	private static function bing_suggestion_title( string $text ): string {
-		$text = trim( $text );
-		$pos  = strpos( $text, '. ' );
-		if ( $pos !== false && $pos <= 80 ) {
-			return substr( $text, 0, $pos + 1 );
-		}
-		return strlen( $text ) > 80 ? substr( $text, 0, 77 ) . '…' : $text;
-	}
-
-	/**
-	 * Extract the fix suggestion from Bing's suggestion text (everything after the first sentence).
-	 */
-	private static function bing_suggestion_fix( string $text ): string {
-		$text = trim( $text );
-		$pos  = strpos( $text, '. ' );
-		if ( $pos !== false && $pos <= 80 ) {
-			return trim( substr( $text, $pos + 2 ) );
-		}
-		return '';
 	}
 
 	/**
@@ -3404,6 +3402,8 @@ class TWTAEO_Page_Command_Center {
 		delete_transient( 'twtaeo_gsc_totals' );
 		delete_transient( 'twtaeo_gsc_top_queries' );
 		delete_transient( 'twtaeo_bing_stats_v2' );
+		delete_transient( 'twtaeo_bing_crawl_issues' );
+		delete_transient( 'twtaeo_bing_crawl_status' );
 	}
 
 	private static function set_notice( $type, $message ) {

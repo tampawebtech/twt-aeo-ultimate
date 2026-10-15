@@ -305,6 +305,13 @@
 	flex-shrink: 0;
 }
 
+.twt-aeo-air-signal-row__note {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 12px;
+	color: #b45309;
+}
+
 /* ── Danger banner ── */
 .twt-aeo-air-danger-banner {
 	display: flex;
