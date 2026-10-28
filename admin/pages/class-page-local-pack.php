@@ -132,6 +132,7 @@ class TWTAEO_Page_Local_Pack {
 					'nap'     => array( 'label' => 'NAP Audit',        'icon' => 'dashicons-phone' ),
 					'output'  => array( 'label' => 'Output Settings',  'icon' => 'dashicons-admin-settings' ),
 					'entity'  => array( 'label' => 'Entity Validation','icon' => 'dashicons-shield' ),
+					'copykit' => array( 'label' => __( 'Listing Copy Kit', 'twt-aeo-ultimate' ), 'icon' => 'dashicons-clipboard' ),
 				);
 				foreach ( $tabs as $slug => $tab ) :
 					$url = add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'tab' => $slug ), admin_url( 'admin.php' ) );
@@ -655,6 +656,11 @@ class TWTAEO_Page_Local_Pack {
 
 					<?php endif; ?>
 
+				<?php /* ── TAB: Listing Copy Kit ── */ ?>
+				<?php elseif ( 'copykit' === $active_tab ) : ?>
+
+					<?php self::render_copy_kit( $settings, $subtypes ); ?>
+
 				<?php endif; ?>
 
 				<!-- Save button (not shown on NAP tab — NAP checks don't need form save, but API keys do) -->
@@ -691,6 +697,117 @@ class TWTAEO_Page_Local_Pack {
 		<?php
 		$js = ob_get_clean();
 		wp_add_inline_script( 'twt-aeo-admin', $js );
+	}
+
+	/**
+	 * Listing Copy Kit tab: the details directory sign-up forms ask for, each
+	 * with its own Copy button, so every listing carries the same name,
+	 * address, phone and description.
+	 *
+	 * @param array $settings Local Pack settings.
+	 * @param array $subtypes Business type labels.
+	 */
+	private static function render_copy_kit( array $settings, array $subtypes ) {
+		$type       = $settings['business_type'] ?? 'LocalBusiness';
+		$type_label = 'LocalBusiness' === $type ? '' : (string) ( $subtypes[ $type ] ?? '' );
+		$kit        = TWTAEO_Listing_Copy_Kit::build(
+			$settings,
+			class_exists( 'TWTAEO_Company_Profile' ) ? TWTAEO_Company_Profile::get() : array(),
+			$type_label,
+			__( 'Service area', 'twt-aeo-ultimate' )
+		);
+		$labels     = array(
+			'name'     => __( 'Business name', 'twt-aeo-ultimate' ),
+			'category' => __( 'Category', 'twt-aeo-ultimate' ),
+			'phone'    => __( 'Phone', 'twt-aeo-ultimate' ),
+			'website'  => __( 'Website', 'twt-aeo-ultimate' ),
+			'email'    => __( 'Email', 'twt-aeo-ultimate' ),
+			'address'  => __( 'Full address', 'twt-aeo-ultimate' ),
+			'street'   => __( 'Street address', 'twt-aeo-ultimate' ),
+			'city'     => __( 'City', 'twt-aeo-ultimate' ),
+			'state'    => __( 'State / region', 'twt-aeo-ultimate' ),
+			'zip'      => __( 'ZIP / postal code', 'twt-aeo-ultimate' ),
+			'area'     => __( 'Service area', 'twt-aeo-ultimate' ),
+			'hours'    => __( 'Hours', 'twt-aeo-ultimate' ),
+			'short'    => __( 'Short description', 'twt-aeo-ultimate' ),
+			'long'     => __( 'Full description', 'twt-aeo-ultimate' ),
+			'profiles' => __( 'Social profiles', 'twt-aeo-ultimate' ),
+		);
+		$hints      = array(
+			'category' => __( 'Pick the closest category the directory offers; their lists rarely match word for word.', 'twt-aeo-ultimate' ),
+			'website'  => __( 'Pick the directory you are filling in and the link is tagged, so visits from it show under its name in your analytics. If a form rejects the tagged link, use the plain one.', 'twt-aeo-ultimate' ),
+			'short'    => __( 'Your description cut to fit the forms with tight limits. Read it through before pasting.', 'twt-aeo-ultimate' ),
+			'long'     => __( 'Paste this where a form allows a longer “About” or “Description”. Mention your main services and the towns you serve in your own words — that is what assistants repeat about you.', 'twt-aeo-ultimate' ),
+		);
+		$profile_url = add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'tab' => 'profile' ), admin_url( 'admin.php' ) );
+		$dirs        = class_exists( 'TWTAEO_Visibility_Directories' ) ? TWTAEO_Visibility_Directories::registry() : array();
+		?>
+		<div class="twt-aeo-card" style="max-width:860px;padding:24px;margin-top:20px;">
+			<h2 style="margin-top:0;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#666;"><?php esc_html_e( 'Listing Copy Kit', 'twt-aeo-ultimate' ); ?></h2>
+			<p style="margin-top:0;color:#3c434a;">
+				<?php esc_html_e( 'Everything a directory sign-up form usually asks for, ready to copy. Use the same details on every directory: assistants trust a business more when its name, address and phone match everywhere they look.', 'twt-aeo-ultimate' ); ?>
+			</p>
+			<p class="description">
+				<?php
+				printf(
+					/* translators: %s: link to the Business Profile tab. */
+					wp_kses( __( 'Built from your <a href="%s">Business Profile</a>, with the Company profile filling any gaps. Change the details there and this kit follows.', 'twt-aeo-ultimate' ), array( 'a' => array( 'href' => array() ) ) ),
+					esc_url( $profile_url )
+				);
+				?>
+			</p>
+			<?php if ( empty( $kit['name'] ) || ( empty( $kit['phone'] ) && empty( $kit['address'] ) ) ) : ?>
+				<div class="notice notice-warning inline"><p><?php esc_html_e( 'Your business name, phone or address is missing. Fill in the Business Profile tab first — directories need all three.', 'twt-aeo-ultimate' ); ?></p></div>
+			<?php endif; ?>
+			<p style="margin:16px 0 0;">
+				<button type="button" class="button button-primary twt-aeo-kit-copy-all"><?php esc_html_e( 'Copy everything', 'twt-aeo-ultimate' ); ?></button>
+				<span class="twt-aeo-kit-status" aria-live="polite" style="margin-left:8px;color:#1d6b21;"></span>
+			</p>
+		</div>
+
+		<div class="twt-aeo-card twt-aeo-kit" style="max-width:860px;padding:8px 24px;margin-top:16px;">
+			<?php
+			$first = true;
+			foreach ( $labels as $key => $label ) :
+				if ( ! isset( $kit[ $key ] ) ) {
+					continue;
+				}
+				$border = $first ? '0' : '1px solid #e3e5e7';
+				$first  = false;
+				$value = (string) $kit[ $key ];
+				$chars = function_exists( 'mb_strlen' ) ? mb_strlen( $value, 'UTF-8' ) : strlen( $value );
+				$multi = false !== strpos( $value, "\n" ) || strlen( $value ) > 90;
+				$id    = 'twt-aeo-kit-' . $key;
+				?>
+				<div class="twt-aeo-kit__row" style="padding:14px 0;border-top:<?php echo esc_attr( $border ); ?>;">
+					<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+						<label for="<?php echo esc_attr( $id ); ?>" style="font-weight:600;"><?php echo esc_html( $label ); ?></label>
+						<?php if ( 'short' === $key ) : ?>
+							<?php /* translators: %d: number of characters. */ ?>
+							<span class="description"><?php echo esc_html( sprintf( _n( '%d character', '%d characters', $chars, 'twt-aeo-ultimate' ), $chars ) ); ?></span>
+						<?php endif; ?>
+						<?php if ( 'website' === $key && ! empty( $dirs ) ) : ?>
+							<select class="twt-aeo-kit-utm" data-base="<?php echo esc_attr( $value ); ?>" data-target="<?php echo esc_attr( $id ); ?>" aria-label="<?php esc_attr_e( 'Directory you are filling in', 'twt-aeo-ultimate' ); ?>">
+								<option value=""><?php esc_html_e( 'Plain link', 'twt-aeo-ultimate' ); ?></option>
+								<?php foreach ( $dirs as $dir_id => $dir ) : ?>
+									<option value="<?php echo esc_attr( TWTAEO_Listing_Copy_Kit::tracked_url( $value, $dir_id ) ); ?>"><?php echo esc_html( $dir['name'] ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						<?php endif; ?>
+						<button type="button" class="button button-small twt-aeo-kit-copy" data-target="<?php echo esc_attr( $id ); ?>" style="margin-left:auto;"><?php esc_html_e( 'Copy', 'twt-aeo-ultimate' ); ?></button>
+					</div>
+					<?php if ( $multi ) : ?>
+						<textarea id="<?php echo esc_attr( $id ); ?>" class="large-text twt-aeo-kit__value" data-label="<?php echo esc_attr( $label ); ?>" rows="<?php echo esc_attr( 'long' === $key ? 8 : min( 7, substr_count( $value, "\n" ) + 2 ) ); ?>" readonly><?php echo esc_textarea( $value ); ?></textarea>
+					<?php else : ?>
+						<input type="text" id="<?php echo esc_attr( $id ); ?>" class="large-text twt-aeo-kit__value" data-label="<?php echo esc_attr( $label ); ?>" value="<?php echo esc_attr( $value ); ?>" readonly>
+					<?php endif; ?>
+					<?php if ( isset( $hints[ $key ] ) ) : ?>
+						<p class="description" style="margin:6px 0 0;"><?php echo esc_html( $hints[ $key ] ); ?></p>
+					<?php endif; ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+		<?php
 	}
 
 	/**
@@ -782,9 +899,9 @@ class TWTAEO_Page_Local_Pack {
 				'why'  => 'Yelp is a primary data source for Apple Maps and Siri. When users ask voice assistants for local recommendations, Yelp listings and reviews are the dominant data source returned.',
 			),
 			array(
-				'name' => 'Apple Maps Connect',
-				'url'  => 'https://mapsconnect.apple.com/',
-				'why'  => 'Apple Maps powers Siri and Spotlight search on all Apple devices. Claiming your listing here ensures AI assistants on iPhones and Macs can surface your business in local queries.',
+				'name' => 'Apple Business Connect',
+				'url'  => 'https://businessconnect.apple.com/',
+				'why'  => 'Apple Maps powers Siri and Spotlight search on all Apple devices. Claiming your place card in Apple Business Connect (which replaced Maps Connect) lets AI assistants on iPhones and Macs surface your business in local queries.',
 			),
 			array(
 				'name' => 'Better Business Bureau',

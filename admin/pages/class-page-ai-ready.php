@@ -886,7 +886,7 @@ class TWTAEO_Page_AI_Ready {
 							<div class="twt-aeo-air-feature-card__header">
 								<div class="twt-aeo-air-feature-card__info">
 									<h3 class="twt-aeo-air-feature-card__title"><?php esc_html_e( 'Rate Limiting', 'twt-aeo-ultimate' ); ?></h3>
-									<p class="twt-aeo-air-feature-card__desc"><?php esc_html_e( 'Prevents "agent crawl storms" — situations where automated bots hammer your REST endpoints and exhaust server resources. Uses WordPress transients to track and throttle requests per IP per hour. Once the limit is reached, the endpoint returns a 429 Too Many Requests response.', 'twt-aeo-ultimate' ); ?></p>
+									<p class="twt-aeo-air-feature-card__desc"><?php esc_html_e( 'Prevents "agent crawl storms" — situations where automated bots hammer your agent REST endpoints and exhaust server resources. Uses WordPress transients to track and throttle requests per IP per hour. Once the limit is reached, the endpoint returns a 429 Too Many Requests response. Ordinary pages are never limited by this cap, so search engines and AI crawlers can read your site; to slow one crawler on your pages, give it its own limit below.', 'twt-aeo-ultimate' ); ?></p>
 								</div>
 								<label class="twt-aeo-toggle" title="<?php esc_attr_e( 'Toggle Rate Limiting', 'twt-aeo-ultimate' ); ?>">
 									<input type="checkbox" class="twt-aeo-toggle__input" name="twtaeo_air[rate_limit_enabled]" value="1" id="twt-air-rate-limit" <?php checked( ! empty( $s['rate_limit_enabled'] ) ); ?> />
@@ -896,7 +896,7 @@ class TWTAEO_Page_AI_Ready {
 							</div>
 							<div class="twt-aeo-air-feature-card__sub twt-aeo-air-dependent" data-depends="twt-air-rate-limit" <?php echo empty( $s['rate_limit_enabled'] ) ? 'style="display:none;"' : ''; ?>>
 								<label class="twt-aeo-air-number-row">
-									<span><?php esc_html_e( 'Global maximum requests per IP per hour:', 'twt-aeo-ultimate' ); ?></span>
+									<span><?php esc_html_e( 'Agent endpoint maximum requests per IP per hour:', 'twt-aeo-ultimate' ); ?></span>
 									<input type="number" name="twtaeo_air[rate_limit_max]" value="<?php echo esc_attr( $s['rate_limit_max'] ); ?>" min="1" max="10000" class="small-text" />
 								</label>
 							</div>
@@ -925,7 +925,7 @@ class TWTAEO_Page_AI_Ready {
 							?>
 							<div style="margin-top:20px;border-top:1px solid #e0e0e0;padding-top:16px;">
 								<p style="margin:0 0 4px;font-weight:600;font-size:13px;"><?php esc_html_e( 'Per-Bot Controls', 'twt-aeo-ultimate' ); ?></p>
-								<p class="description" style="margin:0 0 12px;"><?php esc_html_e( 'Block specific crawlers outright or cap their rate below the global limit. "Block" writes Disallow to robots.txt and returns 403 on any request. A per-bot limit overrides the global cap for that crawler only.', 'twt-aeo-ultimate' ); ?></p>
+								<p class="description" style="margin:0 0 12px;"><?php esc_html_e( 'Block specific crawlers outright or cap their rate. "Block" writes Disallow to robots.txt and returns 403 on any request. A per-bot limit caps requests from that crawler per IP per hour, on pages and agent endpoints, while Rate Limiting is on. Leave it blank for no limit on pages; search and answer crawlers (Googlebot, OAI-SearchBot, ChatGPT-User, Claude-User, PerplexityBot) are best left unlimited.', 'twt-aeo-ultimate' ); ?></p>
 								<table class="wp-list-table widefat fixed striped" style="table-layout:fixed;">
 									<colgroup>
 										<col style="width:34%;">
@@ -971,10 +971,10 @@ class TWTAEO_Page_AI_Ready {
 													value="<?php echo esc_attr( $bot_rl ); ?>"
 													min="1" max="10000"
 													class="small-text"
-													placeholder="<?php echo esc_attr( $s['rate_limit_max'] ); ?>"
+													placeholder="&mdash;"
 													style="width:60px;font-size:12px;"
 												>
-												<span style="font-size:11px;color:#888;margin-left:4px;"><?php esc_html_e( '(blank = global)', 'twt-aeo-ultimate' ); ?></span>
+												<span style="font-size:11px;color:#888;margin-left:4px;"><?php esc_html_e( '(blank = no page limit)', 'twt-aeo-ultimate' ); ?></span>
 											</td>
 										</tr>
 									<?php endforeach; ?>

@@ -24,6 +24,90 @@ class TWTAEO_OG_Writer {
 	public static function register_hooks() {
 		// Priority 1 — before SEO plugins (which typically run at 10).
 		add_action( 'wp_head', array( __CLASS__, 'output_meta' ), 1 );
+
+		// output_meta() steps aside for Yoast and Rank Math, which then write their
+		// own tags from the page. These hand them what was chosen here, so
+		// installing either doesn't silently replace a hand-picked share title,
+		// description or image.
+		add_filter( 'wpseo_opengraph_title', array( __CLASS__, 'fill_yoast_title' ) );
+		add_filter( 'wpseo_opengraph_desc', array( __CLASS__, 'fill_yoast_description' ) );
+		add_filter( 'wpseo_add_opengraph_images', array( __CLASS__, 'fill_yoast_image' ) );
+		add_filter( 'rank_math/opengraph/facebook/og_title', array( __CLASS__, 'fill_rank_math_title' ) );
+		add_filter( 'rank_math/opengraph/facebook/og_description', array( __CLASS__, 'fill_rank_math_description' ) );
+		add_action( 'rank_math/opengraph/facebook/add_images', array( __CLASS__, 'fill_rank_math_image' ) );
+	}
+
+	/** @param string $title Rank Math's og:title. */
+	public static function fill_rank_math_title( $title ) {
+		$ours = self::ours_unless_theirs( self::META_TITLE, array( 'rank_math_facebook_title' ) );
+		return '' !== $ours ? $ours : $title;
+	}
+
+	/** @param string $desc Rank Math's og:description. */
+	public static function fill_rank_math_description( $desc ) {
+		$ours = self::ours_unless_theirs( self::META_DESC, array( 'rank_math_facebook_description' ) );
+		return '' !== $ours ? $ours : $desc;
+	}
+
+	/**
+	 * Rank Math, like Yoast, runs this before adding its own images.
+	 *
+	 * @param object $images Rank Math's OpenGraph Image object.
+	 */
+	public static function fill_rank_math_image( $images ) {
+		$ours = self::ours_unless_theirs( self::META_IMAGE, array( 'rank_math_facebook_image', 'rank_math_facebook_image_id' ) );
+		if ( '' !== $ours && is_object( $images ) && method_exists( $images, 'add_image_by_url' ) ) {
+			$images->add_image_by_url( $ours );
+		}
+	}
+
+	/**
+	 * Our saved value for the current page, unless the merchant also set one in
+	 * the SEO plugin itself — what they typed there wins.
+	 *
+	 * @param string   $ours_key  Our postmeta key.
+	 * @param string[] $their_keys The SEO plugin's postmeta keys for the same field.
+	 * @return string Empty when there is nothing of ours to hand over.
+	 */
+	private static function ours_unless_theirs( $ours_key, array $their_keys ) {
+		if ( ! is_singular() ) {
+			return '';
+		}
+		$post_id = get_queried_object_id();
+		foreach ( $their_keys as $key ) {
+			if ( '' !== (string) get_post_meta( $post_id, $key, true ) ) {
+				return '';
+			}
+		}
+		return (string) get_post_meta( $post_id, $ours_key, true );
+	}
+
+	/** @param string $title Yoast's og:title. */
+	public static function fill_yoast_title( $title ) {
+		$ours = self::ours_unless_theirs( self::META_TITLE, array( '_yoast_wpseo_opengraph-title' ) );
+		return '' !== $ours ? $ours : $title;
+	}
+
+	/** @param string $desc Yoast's og:description. */
+	public static function fill_yoast_description( $desc ) {
+		$ours = self::ours_unless_theirs( self::META_DESC, array( '_yoast_wpseo_opengraph-description' ) );
+		return '' !== $ours ? $ours : $desc;
+	}
+
+	/**
+	 * Yoast runs this before adding its own images, so ours goes first. Yoast
+	 * still appends the featured or first content image after it; sharing sites
+	 * use the first og:image.
+	 *
+	 * @param object $images Yoast's Images container.
+	 * @return object
+	 */
+	public static function fill_yoast_image( $images ) {
+		$ours = self::ours_unless_theirs( self::META_IMAGE, array( '_yoast_wpseo_opengraph-image', '_yoast_wpseo_opengraph-image-id' ) );
+		if ( '' !== $ours && is_object( $images ) && method_exists( $images, 'add_image_by_url' ) ) {
+			$images->add_image_by_url( $ours );
+		}
+		return $images;
 	}
 
 	/**
@@ -31,7 +115,7 @@ class TWTAEO_OG_Writer {
 	 * Skipped if Rank Math or Yoast is active — they manage OG themselves.
 	 */
 	public static function output_meta() {
-		if ( defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' ) ) {
+		if ( TWTAEO_SEO_Compatibility::rank_math_writes_head() || defined( 'WPSEO_VERSION' ) ) {
 			return;
 		}
 
@@ -266,6 +350,6 @@ class TWTAEO_OG_Writer {
 	 * @return bool
 	 */
 	public static function seo_plugin_active() {
-		return defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' ) || defined( 'AIOSEO_VERSION' );
+		return TWTAEO_SEO_Compatibility::rank_math_writes_head() || defined( 'WPSEO_VERSION' ) || defined( 'AIOSEO_VERSION' );
 	}
 }

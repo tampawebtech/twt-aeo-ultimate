@@ -62,7 +62,7 @@ JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Produc
 
 ### AI crawlers and discovery
 
-`llms.txt` and `llms-full.txt`, Markdown versions of every page at `/page.md` (with content negotiation and discovery links), Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 20+ AI crawlers. Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
+`llms.txt` and `llms-full.txt`, Markdown versions of every page at `/page.md` (with content negotiation and discovery links), Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 30+ AI crawlers. Ordinary pages are only rate-limited for a crawler you give its own limit, so Googlebot and the AI search crawlers are never throttled by default (since 2.30.9). Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
 
 ### Use with Claude (new in 2.30)
 

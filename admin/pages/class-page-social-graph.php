@@ -197,9 +197,15 @@ class TWTAEO_Page_Social_Graph {
 			<div class="twt-aeo-og-notice">
 				<span class="dashicons dashicons-info-outline"></span>
 				<?php
+				// Yoast and Rank Math are handed our saved values (TWTAEO_OG_Writer's
+				// fill_* filters); the others only get the tags stepped aside for.
+				$hands_over = in_array( $site_source, array( 'Yoast SEO', 'Rank Math' ), true );
 				printf(
-					// translators: %1$s: SEO plugin managing OG/Twitter output. %2$s: same plugin name.
-					esc_html__( '%1$s is handling Open Graph and Twitter Card output. Data you save here is stored and visible in this dashboard. TWT AEO will not output duplicate meta tags while %2$s is active.', 'twt-aeo-ultimate' ),
+					$hands_over
+						// translators: %1$s: SEO plugin managing OG/Twitter output. %2$s: same plugin name.
+						? esc_html__( '%1$s is handling Open Graph and Twitter Card output. The title, description and image you save here are handed to %2$s for any page where nothing is set in %2$s, so a page never gets two sets of tags.', 'twt-aeo-ultimate' )
+						// translators: %1$s: SEO plugin managing OG/Twitter output. %2$s: same plugin name.
+						: esc_html__( '%1$s is handling Open Graph and Twitter Card output. Data you save here is stored and visible in this dashboard. TWT AEO will not output duplicate meta tags while %2$s is active.', 'twt-aeo-ultimate' ),
 					esc_html( $site_source ),
 					esc_html( $site_source )
 				);

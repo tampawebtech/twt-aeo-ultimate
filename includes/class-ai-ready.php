@@ -1533,12 +1533,13 @@ class TWTAEO_AI_Ready {
 			exit;
 		}
 
-		// Per-bot rate limiting for regular page requests.
-		if ( ! empty( $s['rate_limit_enabled'] ) ) {
-			$global_max = max( 1, (int) $s['rate_limit_max'] );
-			$bot_rl     = ( isset( $bot_rule['rate_limit'] ) && $bot_rule['rate_limit'] !== '' )
-				? max( 1, (int) $bot_rule['rate_limit'] )
-				: $global_max;
+		// Per-bot rate limiting for regular page requests — only for a bot the owner
+		// gave its own limit. ⚠️ Never fall back to the global cap here: it is on by
+		// default (60/hour) and every known bot, Googlebot and the AI search crawlers
+		// included, would get a 429 after 60 pages per IP. The global cap guards the
+		// agent REST endpoints only (rest_permission_check).
+		if ( ! empty( $s['rate_limit_enabled'] ) && isset( $bot_rule['rate_limit'] ) && $bot_rule['rate_limit'] !== '' ) {
+			$bot_rl = max( 1, (int) $bot_rule['rate_limit'] );
 
 			$ip     = self::get_client_ip();
 			$rl_key = 'twtaeo_rl_bot_' . sanitize_key( $bot_key ) . '_' . md5( $ip ) . '_' . gmdate( 'YmdH' );

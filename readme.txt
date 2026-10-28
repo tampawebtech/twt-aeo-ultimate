@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.7
+Stable tag: 2.30.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -206,6 +206,20 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.30.9 =
+* Fixed: with AI Ready's Rate Limiting on (the default), Googlebot and the AI crawlers (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot and the rest) were turned away with "429 Too Many Requests" after 60 pages an hour from one address, which can slow Google's crawling and keep AI crawlers from reading your site. Ordinary pages are now limited only for a crawler you give its own per-bot limit; the global cap applies to the agent endpoints, as the screen says. Blocking a crawler works as before.
+* Improved: AI Ready's Rate Limiting and Per-Bot Controls text says what each limit covers, and the per-bot boxes no longer show the global number as if it were set.
+
+= 2.30.8 =
+* Fixed: installing Yoast SEO or Rank Math removed the meta descriptions saved in AEO Ultimate. AEO Ultimate steps aside for them, but they had none of their own (Yoast) or used an automatic excerpt (Rank Math). Pages with no description typed in the SEO plugin now get the one saved here, through the SEO plugin's own tag, so there is still exactly one.
+* Fixed: with Yoast SEO or Rank Math active, the share title, description and image chosen in Social Graph were replaced by the SEO plugin's automatic ones. They are now handed to the SEO plugin for any page where nothing is set in it.
+* Fixed: AEO Ultimate stepped aside as soon as Rank Math was installed, but Rank Math writes no tags until its setup wizard is finished or skipped, so pages had no description or share tags at all in between.
+* New: Schema Detector's Conflicts tab lists everything AEO Ultimate writes, which other plugin writes the same thing, and a switch for each, so every output can be given one owner.
+* New: AI Visibility results list the directories and review sites the engines cited or named (Yelp, Angi, BBB, Google Business Profile and more), with sign-up links, and mark the ones you already have a profile on.
+* New: Listing Copy Kit tab on Local Pack: your name, address, phone, hours, descriptions and profiles ready to copy into directory sign-up forms, plus website links tagged for the directory you are filling in.
+* Changed: Local Pack's Apple listing link now points to Apple Business Connect, which replaced Apple Maps Connect.
+* Improved: the meta description is no longer shown as a conflict when an SEO plugin is active, because AEO Ultimate does not write a second tag; the Social Graph notice now says what is handed over.
+
 = 2.30.7 =
 * New: video tutorials inside the plugin. A "?" beside the title of E-E-A-T, Local Pack, AI Visibility, Social Graph, Schema Detector, AI Ready, RAG Engine and Command Center opens that screen's walkthrough, with a link to its written guide. Nothing is loaded from YouTube until you press Play.
 * Changed: AI Ready's content signals now recommend allowing AI input, which is an assistant reading your page to answer a question and citing you. Sites that never saved AI Ready switch to it; a saved "Do not use as input" is kept, with a note on what it means.
@@ -356,78 +370,15 @@ Each request sends only the data needed for that action, using your own API key.
 * New: multilingual schema for WPML and Polylang: each translation declares its language and links to the others.
 * New: a contextual authority statement, drafted with AI, that explains an author's credentials in plain words.
 
-= 2.19.0 =
-* Critical: Google Merchant Center sync moved to Google's Merchant API before the old Content API shut down.
-* New: author certifications are machine-recognizable credentials, with a category, the awarding body and its Wikipedia or Wikidata link.
-* New: AI Visibility turns every question where you were left out into a brief of what to publish.
-* New: AI Visibility checks its citations against real referral visits, and tracks each brand over time.
-* Fixed: pushing a promotion to Merchant Center caused a fatal error.
-
-= 2.18.0 =
-* New: brand citation tracking. Each brand you track is asked about by name, and a brand can be a whole website, not only social profiles.
-* New: the press-release features work on WordPress 7.0 without an API key of your own.
-* Improved: Search Console top queries no longer fill up with rank-tracker noise.
-* Fixed: /okf/ and /llms.txt could fail on hosts without PHP's mbstring extension.
-
-= 2.17.0 =
-* New: AI Visibility, the citation engine. Asks AI engines the questions your customers ask and records whether you were cited, named or left out.
-* New: Grok (xAI) and Le Chat (Mistral) join ChatGPT, Gemini, Claude and Perplexity.
-* New: an Open Knowledge Format (OKF) bundle at /okf/.
-* New: runs continue in the background without the tab open, and awkward questions can be polished with AI.
-
-= 2.16.0 =
-* New: the AEO Score, a 0 to 100 citability grade that shows where every point is lost.
-* New: one-click "Auto-Fill Missing Schema" on the Dashboard, and "Generate with AI" for schema descriptions.
-* New: Review and HowTo forms in the schema editor.
-* Fixed: Search Console domain properties could not be connected.
-
-= 2.15.0 =
-* Fixed: every scanning screen stopped at the 200 most recent items. Scans now cover the whole site.
-* New: catalogue-wide search and pagers on the big tables, and the FAQ detector scans products.
-* Changed: replacing WooCommerce's own Product schema now needs the store owner's consent.
-* Improved: one consistent image fallback for social cards, and products with gallery images are no longer reported as missing an image.
-
-= 2.14.0 =
-* New: the full commerce schema suite from AEO Ultimate for WooCommerce: Product and ProductGroup graphs, Smart Collections and Promotions.
-* New: the Setup Wizard's Autopilot now does real work, running every setup step that needs no AI in the background.
-* Fixed: "Generate Schema for All" and "Scan All Pages" stopped after 200 items.
-* Compatibility: verified with WordPress 7.1 and WooCommerce 11.
-
-= 2.13.0 =
-* New: bulk actions on every screen that had a per-row button, so a whole site can be brought to full coverage in one pass. AI-powered ones show the billed call count and ask first.
-* New: a switch for every output that could collide with another plugin, on the Schema Conflict Detector page.
-* Fixed: the text served to AI crawlers (llms.txt, llms-full.txt, Markdown pages and Agent Skills documents) was HTML-encoded, so characters such as `>` and `&` reached crawlers as `&gt;` and `&amp;`, breaking the llms.txt format.
-* Fixed: the WordPress 7.0 AI Client connection.
-
-= 2.12.1 =
-* Fixed: hosts without PHP's libsodium extension could hit a critical error when saving keys.
-* Fixed: the Not Indexed page could fail on scan results from older versions.
-* Improved: WooCommerce cart, checkout and account pages are no longer reported as not indexed, and fixable issues get a Fix button.
-
-= 2.12.0 =
-* Fixed: the Author Entity (E-E-A-T) page could fail to load on some sites.
-
-= 2.11.0 =
-* New: a unified Knowledge Graph. Every schema block on a page is woven into one connected @graph, with duplicate Organization output consolidated.
-* New: the Knowledge Graph page, to define entities, relationships and per-page about and mentions, grounded in Wikipedia and Wikidata.
-
-= 2.10.0 =
-* New: Smart 404 Rescue (off by default). Heals broken internal links, ignores hacker probes, and recovers pages Google still ranks you for with suggested 301 redirects, without a bloated 404 log.
-* New: Access & Roles. Let an Editor or an SEO Manager role use the tools without being a full administrator.
-
-= 2.9.1 =
-* New: Product schema includes Google's merchant-listing fields: price valid-until dates and sale periods.
-* New: an AI resolver maps each product to its exact Google Product Category.
-* New: Merchant Center sync flags products whose category disagrees with the feed.
-
-= 2.9.0 =
-* First release on WordPress.org.
-* Removed: the built-in content generator (now the separate TWT Content Generator plugin) and dormant bulk image generation code.
-* Improved: every outside service the plugin can contact is listed with its terms and privacy links.
-
-The complete, detailed changelog for every release ships in the changelog.txt file bundled with the plugin.
+Older releases (2.9.0 to 2.19.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.30.9 =
+Stops the default rate limit from turning away Googlebot and AI crawlers after 60 pages an hour. Recommended for every site.
+
+= 2.30.8 =
+Fixes lost meta descriptions and share tags after installing Yoast SEO or Rank Math, adds a Conflicts tab table for giving each output one owner, the directories the AI engines used, and a Listing Copy Kit.
 
 = 2.30.7 =
 Video tutorials on eight screens, an llms.txt that leads with your main pages, AI input recommended in content signals, sharper RAG Engine passages, and Command Center fixes for Bing and Search Console.

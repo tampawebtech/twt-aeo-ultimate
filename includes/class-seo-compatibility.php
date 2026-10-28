@@ -163,6 +163,29 @@ class TWTAEO_SEO_Compatibility {
 	}
 
 	/**
+	 * Whether Rank Math is actually publishing head tags on this request.
+	 *
+	 * ⚠️ Installed is not enough. Until its setup wizard is finished or skipped,
+	 * Rank Math loads no front end at all, so stepping aside for it on the
+	 * constant alone left pages with no description and no share tags.
+	 *
+	 * Asks Rank Math's own registration check, which works in the admin too
+	 * (rank_math()->frontend is only built on the front end), and falls back to
+	 * that front end on versions without the check.
+	 *
+	 * @return bool
+	 */
+	public static function rank_math_writes_head() {
+		if ( ! defined( 'RANK_MATH_VERSION' ) ) {
+			return false;
+		}
+		if ( is_callable( array( '\RankMath\Helper', 'is_invalid_registration' ) ) ) {
+			return ! \RankMath\Helper::is_invalid_registration();
+		}
+		return function_exists( 'rank_math' ) && isset( rank_math()->frontend );
+	}
+
+	/**
 	 * Whether SASWP (Schema & Structured Data for WP) publishes a given schema
 	 * @type on a specific post via its per-post custom markup field.
 	 *

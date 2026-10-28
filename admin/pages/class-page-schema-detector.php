@@ -96,6 +96,10 @@ class TWTAEO_Page_Schema_Detector {
 			} elseif ( $active_tab === 'contact' && $contact_active ) {
 				self::render_contact();
 			} elseif ( $active_tab === 'conflicts' ) {
+				// Who else writes each output, with a switch for each. Built for the
+				// standalone conflicts page, which is no longer on the menu, so this
+				// tab is the only place a merchant can see and resolve it.
+				TWTAEO_Page_Schema_Conflicts::render_output_control();
 				TWTAEO_Page_Schema_Conflicts::render_tab_content();
 			}
 			?>

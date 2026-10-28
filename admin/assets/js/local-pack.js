@@ -490,4 +490,60 @@
 		autofillNotice.style.display = 'block';
 	}
 
+	// ── Listing Copy Kit ──────────────────────────────────────────────────
+
+	var kitStatus = document.querySelector( '.twt-aeo-kit-status' );
+
+	function kitCopy( text, done ) {
+		function fallback() {
+			var ta = document.createElement( 'textarea' );
+			ta.value = text;
+			ta.setAttribute( 'readonly', '' );
+			ta.style.position = 'fixed';
+			ta.style.opacity  = '0';
+			document.body.appendChild( ta );
+			ta.select();
+			try { document.execCommand( 'copy' ); } catch ( e ) {}
+			document.body.removeChild( ta );
+			done();
+		}
+		if ( navigator.clipboard && navigator.clipboard.writeText ) {
+			navigator.clipboard.writeText( text ).then( done, fallback );
+		} else {
+			fallback();
+		}
+	}
+
+	document.querySelectorAll( '.twt-aeo-kit-copy' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var field = document.getElementById( btn.getAttribute( 'data-target' ) );
+			if ( ! field ) return;
+			var label = btn.textContent;
+			kitCopy( field.value, function () {
+				btn.textContent = __( 'Copied', 'twt-aeo-ultimate' );
+				setTimeout( function () { btn.textContent = label; }, 1500 );
+			} );
+		} );
+	} );
+
+	document.querySelectorAll( '.twt-aeo-kit-utm' ).forEach( function ( sel ) {
+		sel.addEventListener( 'change', function () {
+			var field = document.getElementById( sel.getAttribute( 'data-target' ) );
+			if ( field ) field.value = sel.value || sel.getAttribute( 'data-base' );
+		} );
+	} );
+
+	var copyAll = document.querySelector( '.twt-aeo-kit-copy-all' );
+	if ( copyAll ) {
+		copyAll.addEventListener( 'click', function () {
+			var parts = [];
+			document.querySelectorAll( '.twt-aeo-kit__value' ).forEach( function ( field ) {
+				parts.push( field.getAttribute( 'data-label' ) + ':\n' + field.value );
+			} );
+			kitCopy( parts.join( '\n\n' ), function () {
+				if ( kitStatus ) kitStatus.textContent = __( 'Copied — paste it into a note to keep beside the sign-up form.', 'twt-aeo-ultimate' );
+			} );
+		} );
+	}
+
 } )();

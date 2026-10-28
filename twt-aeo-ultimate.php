@@ -3,7 +3,7 @@
  * Plugin Name:       TWT AEO Ultimate
  * Plugin URI:        https://tampawebtech.com/twt-aeo-ultimate
  * Description:       Schema markup, structured data & llms.txt for SEO and AI search — FAQ, Product, Local Business & Article JSON-LD, plus E-E-A-T author signals and AI crawler controls.
- * Version:           2.30.7
+ * Version:           2.30.9
  * Author:            Tampa Web Technologies
  * Author URI:        https://tampawebtech.com
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // (`AEOWC_Free_Plugin_Bridge::HANDSHAKE_SINCE`), because a copy without
 // TWTAEO_Commerce_Handoff cannot stand down however the merchant answers. 2.13.0 is
 // the release that added it — do not lower this, and keep the two in step.
-define( 'TWTAEO_VERSION',    '2.30.7' );
+define( 'TWTAEO_VERSION',    '2.30.9' );
 define( 'TWTAEO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TWTAEO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -179,6 +179,7 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/class-owner-actions.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-owner-mcp.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-claude.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-local-pack.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-listing-copy-kit.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-local-pack-nap.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-local-pack.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-og-detector.php';
@@ -211,6 +212,7 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-types.
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-questions.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-verdict.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-brands.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-directories.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-sample.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-http.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/ai-visibility/class-visibility-engines.php';

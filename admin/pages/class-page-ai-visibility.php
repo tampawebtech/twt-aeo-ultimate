@@ -1682,6 +1682,18 @@ final class TWTAEO_Page_AI_Visibility {
 			<?php self::render_about_you( $about_pgs['about'] ); ?>
 		</div>
 
+		<?php
+		if ( ! $is_demo ) {
+			self::render_directories(
+				TWTAEO_Visibility_Directories::used_in(
+					array_merge( $checks, $journey ),
+					$questions,
+					isset( $about_ctx['properties'] ) ? (array) $about_ctx['properties'] : array()
+				)
+			);
+		}
+		?>
+
 		<?php /* Question table */ ?>
 		<div class="twt-aeo-vis__block">
 			<h3><?php esc_html_e( 'Every question, every engine', 'twt-aeo-ultimate' ); ?></h3>
@@ -2645,6 +2657,97 @@ final class TWTAEO_Page_AI_Visibility {
 				<?php /* translators: %d: number of further pages not listed. */ ?>
 				<p class="twt-aeo-vis__muted"><?php echo esc_html( sprintf( _n( 'and %d more page.', 'and %d more pages.', count( $rows ) - count( $shown ), 'twt-aeo-ultimate' ), count( $rows ) - count( $shown ) ) ); ?></p>
 			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Directories and review sites the engines cited or named while answering:
+	 * where they looked for businesses like this one. A link and a plain
+	 * mention lead to the same advice, so both are shown, marked which.
+	 * We cannot see whether the business is listed there — only whether the
+	 * owner registered a profile URL — so the wording never claims either.
+	 *
+	 * @param array $rows From TWTAEO_Visibility_Directories::used_in().
+	 */
+	private static function render_directories( array $rows ) {
+		if ( empty( $rows ) ) {
+			return;
+		}
+		$local_pack = add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'tab' => 'entity' ), admin_url( 'admin.php' ) );
+		$brands     = self::page_url() . '#twt-aeo-vis-brands';
+		$copy_kit   = add_query_arg( array( 'page' => 'twt-aeo-local-pack', 'tab' => 'copykit' ), admin_url( 'admin.php' ) );
+		?>
+		<div class="twt-aeo-vis__block twt-aeo-vis__dirs">
+			<h3><?php esc_html_e( 'Directories the engines used', 'twt-aeo-ultimate' ); ?></h3>
+			<p class="twt-aeo-vis__muted">
+				<?php
+				printf(
+					/* translators: %s: link to the Listing Copy Kit. */
+					wp_kses( __( 'These directories and review sites were cited or named in the answers. The engines looked there for businesses like yours, so a complete profile on each one gives them something to find about you. The <a href="%s">Listing Copy Kit</a> has your name, address, phone and description ready to paste, so every profile matches.', 'twt-aeo-ultimate' ), array( 'a' => array( 'href' => array() ) ) ),
+					esc_url( $copy_kit )
+				);
+				?>
+			</p>
+			<ul class="twt-aeo-vis__dirs-list">
+				<?php foreach ( $rows as $r ) : ?>
+					<li class="<?php echo $r['have_profile'] ? 'has-profile' : ''; ?>">
+						<div class="twt-aeo-vis__dirs-head">
+							<strong><?php echo esc_html( $r['name'] ); ?></strong>
+							<span class="twt-aeo-vis__muted">
+								<?php
+								$engines = implode( ', ', array_map( array( __CLASS__, 'engine_label' ), (array) $r['engines'] ) );
+								if ( $r['cited'] && $r['named'] ) {
+									printf(
+										/* translators: 1: number of answers that linked the directory, 2: number that named it without a link, 3: engine names. */
+										esc_html__( '%1$d linked, %2$d named without a link · %3$s', 'twt-aeo-ultimate' ),
+										(int) $r['cited'],
+										(int) $r['named'],
+										esc_html( $engines )
+									);
+								} elseif ( $r['cited'] ) {
+									printf(
+										/* translators: 1: answers that linked the directory, 2: engine names. */
+										esc_html( _n( 'linked in %1$d answer · %2$s', 'linked in %1$d answers · %2$s', (int) $r['cited'], 'twt-aeo-ultimate' ) ),
+										(int) $r['cited'],
+										esc_html( $engines )
+									);
+								} else {
+									printf(
+										/* translators: 1: answers that named the directory without linking it, 2: engine names. */
+										esc_html( _n( 'named in %1$d answer, no link · %2$s', 'named in %1$d answers, no link · %2$s', (int) $r['named'], 'twt-aeo-ultimate' ) ),
+										(int) $r['named'],
+										esc_html( $engines )
+									);
+								}
+								?>
+							</span>
+							<?php if ( $r['have_profile'] ) : ?>
+								<span class="twt-aeo-vis__dirs-ok"><?php esc_html_e( 'You added your profile here — keep it complete', 'twt-aeo-ultimate' ); ?></span>
+							<?php else : ?>
+								<a class="button button-small" href="<?php echo esc_url( $r['signup'] ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Claim or create a profile', 'twt-aeo-ultimate' ); ?> &#8599;</a>
+							<?php endif; ?>
+						</div>
+						<?php if ( ! empty( $r['examples'] ) ) : ?>
+							<ul class="twt-aeo-vis__dirs-q">
+								<?php foreach ( $r['examples'] as $ex ) : ?>
+									<li><?php echo esc_html( $ex ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+			<p class="twt-aeo-vis__muted">
+				<?php
+				printf(
+					/* translators: 1: link to Local Pack directory list, 2: link to the What counts as you section on this page. */
+					wp_kses( __( 'Already have a profile on one of these? Add its address under <a href="%2$s">What counts as you</a> and it is marked here, and counted as you when an engine cites it. For more directories that suit your type of business, see <a href="%1$s">Local Pack → Entity Validation</a>.', 'twt-aeo-ultimate' ), array( 'a' => array( 'href' => array() ) ) ),
+					esc_url( $local_pack ),
+					esc_url( $brands )
+				);
+				?>
+			</p>
 		</div>
 		<?php
 	}

@@ -440,7 +440,7 @@ class TWTAEO_Output_Control {
 				continue; // Already resolved, by switch or by hand-over.
 			}
 			$others = self::competing_writers( $key );
-			if ( $others ) {
+			if ( $others && 'conflict' === self::status( $key )['state'] ) {
 				$out[ $key ] = $others;
 			}
 		}
@@ -473,6 +473,28 @@ class TWTAEO_Output_Control {
 						implode( ', ', $others )
 					)
 					: __( 'Switched off here, and nothing else is writing it.', 'twt-aeo-ultimate' ),
+				'others'  => $others,
+			);
+		}
+
+		// The description already steps aside for the general SEO plugins by itself
+		// (TWTAEO_AI_Description::output_meta_tag()), so "both are writing this"
+		// would send the merchant to fix a conflict that does not exist.
+		if ( 'meta_description' === $key && $others && TWTAEO_AI_Description::seo_plugin_active() ) {
+			$names = implode( ', ', $others );
+			return array(
+				'state'   => 'stepped_aside',
+				'summary' => defined( 'WPSEO_VERSION' ) || TWTAEO_SEO_Compatibility::rank_math_writes_head()
+					? sprintf(
+						/* translators: %s: comma-separated plugin names (used twice). */
+						__( '%1$s writes the tag. Pages with no description typed in %1$s get the one saved here.', 'twt-aeo-ultimate' ),
+						$names
+					)
+					: sprintf(
+						/* translators: %s: comma-separated plugin names. */
+						__( '%s writes the tag, so this plugin steps aside.', 'twt-aeo-ultimate' ),
+						$names
+					),
 				'others'  => $others,
 			);
 		}

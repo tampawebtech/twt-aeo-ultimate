@@ -1018,7 +1018,7 @@ final class TWTAEO_Abilities {
 			array( 'agent_search_api', __( 'Agent search API', 'twt-aeo-ultimate' ), __( 'A search endpoint AI agents can query for the site\'s content.', 'twt-aeo-ultimate' ) ),
 			array( 'api_catalog', __( 'API catalog', 'twt-aeo-ultimate' ), __( 'A machine-readable list of the site\'s APIs at /.well-known/api-catalog.', 'twt-aeo-ultimate' ) ),
 			array( 'mcp_integration', __( 'Public MCP server', 'twt-aeo-ultimate' ), __( 'Lets visitors\' AI agents search and read published content. Separate from this private connector.', 'twt-aeo-ultimate' ) ),
-			array( 'rate_limit_enabled', __( 'AI bot rate limiting', 'twt-aeo-ultimate' ), __( 'Caps how often each AI bot can request pages per hour.', 'twt-aeo-ultimate' ) ),
+			array( 'rate_limit_enabled', __( 'AI bot rate limiting', 'twt-aeo-ultimate' ), __( 'Caps how often bots can call the agent endpoints per hour, and how often a bot with its own per-bot limit can request pages.', 'twt-aeo-ultimate' ) ),
 			array( 'oauth_discovery', __( 'OAuth discovery', 'twt-aeo-ultimate' ), __( 'Lets AI agents find how to sign in to the site\'s agent APIs.', 'twt-aeo-ultimate' ) ),
 		);
 

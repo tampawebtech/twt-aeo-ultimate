@@ -30,7 +30,7 @@ class TWTAEO_Twitter_Writer {
 	 * Skipped when Rank Math or Yoast is active (they manage Twitter Cards).
 	 */
 	public static function output_meta() {
-		if ( defined( 'RANK_MATH_VERSION' ) || defined( 'WPSEO_VERSION' ) ) {
+		if ( TWTAEO_SEO_Compatibility::rank_math_writes_head() || defined( 'WPSEO_VERSION' ) ) {
 			return;
 		}
 

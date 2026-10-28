@@ -56,6 +56,8 @@ class TWTAEO_AI_Description {
 		add_action( 'save_post', array( __CLASS__, 'save_metabox' ), 10, 1 );
 		add_action( 'save_post', array( __CLASS__, 'maybe_auto_generate' ), 20, 3 );
 		add_action( 'wp_head', array( __CLASS__, 'output_meta_tag' ), 1 );
+		add_filter( 'wpseo_metadesc', array( __CLASS__, 'fill_seo_plugin_description' ) );
+		add_filter( 'rank_math/frontend/description', array( __CLASS__, 'fill_seo_plugin_description' ) );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_metabox' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_editor_assets' ) );
 
@@ -891,9 +893,38 @@ class TWTAEO_AI_Description {
 		echo "\n" . '<meta name="description" content="' . esc_attr( $desc ) . '" />' . "\n";
 	}
 
-	private static function seo_plugin_active() {
+	/**
+	 * Hand our description to Yoast or Rank Math through their own filter, so the
+	 * page still has exactly one tag.
+	 *
+	 * ⚠️ Without this, installing either plugin silently replaced every description
+	 * saved before it was installed: output_meta_tag() steps aside as soon as the
+	 * plugin is active, but save_description() only writes through on the next save.
+	 * Yoast then printed none, and Rank Math printed its automatic excerpt.
+	 *
+	 * Order: a description typed into the SEO plugin for this page, then ours, then
+	 * whatever the SEO plugin would make up from its template.
+	 *
+	 * @param string $desc What the SEO plugin is about to output.
+	 * @return string
+	 */
+	public static function fill_seo_plugin_description( $desc ) {
+		if ( ! is_singular() || ! TWTAEO_Output_Control::should_write( 'meta_description' ) ) {
+			return $desc;
+		}
+		$post_id   = get_queried_object_id();
+		$their_key = 'wpseo_metadesc' === current_filter() ? '_yoast_wpseo_metadesc' : 'rank_math_description';
+		if ( '' !== (string) get_post_meta( $post_id, $their_key, true ) ) {
+			return $desc;
+		}
+		$ours = get_post_meta( $post_id, self::META_KEY, true );
+		return $ours ? (string) $ours : $desc;
+	}
+
+	/** Whether an SEO plugin publishes the description tag, so this one steps aside. */
+	public static function seo_plugin_active() {
 		return defined( 'WPSEO_VERSION' )
-			|| defined( 'RANK_MATH_VERSION' )
+			|| TWTAEO_SEO_Compatibility::rank_math_writes_head()
 			|| defined( 'AIOSEO_VERSION' )
 			|| defined( 'SEOPRESS_VERSION' )
 			|| defined( 'THE_SEO_FRAMEWORK_VERSION' );
