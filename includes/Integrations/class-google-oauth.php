@@ -327,8 +327,16 @@ class TWTAEO_Google_OAuth {
 		if ( class_exists( 'TWTAEO_Google_Service_Account' ) && TWTAEO_Google_Service_Account::is_configured() ) {
 			return true;
 		}
+		if ( self::hub_connected() ) {
+			return true;
+		}
 		$tokens = self::get_tokens();
 		return ! empty( $tokens['refresh_token'] );
+	}
+
+	/** Connected through aeoultimate.app with Search Console or Analytics access. */
+	public static function hub_connected() {
+		return TWTAEO_Google_Hub::has_feature( 'search_console' ) || TWTAEO_Google_Hub::has_feature( 'analytics' );
 	}
 
 	public static function disconnect() {
@@ -477,6 +485,14 @@ class TWTAEO_Google_OAuth {
 			$sa_token = TWTAEO_Google_Service_Account::get_access_token();
 			if ( $sa_token ) {
 				return $sa_token;
+			}
+		}
+
+		// Connect with Google (aeoultimate.app) next; the site's own OAuth app is the fallback.
+		if ( self::hub_connected() ) {
+			$hub_token = TWTAEO_Google_Hub::get_access_token();
+			if ( $hub_token ) {
+				return $hub_token;
 			}
 		}
 

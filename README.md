@@ -64,6 +64,12 @@ JSON-LD for Organization, Article, NewsArticle, Person, FAQPage, Service, Produc
 
 `llms.txt` and `llms-full.txt`, Markdown versions of every page at `/page.md` (with content negotiation and discovery links), Content-Signal headers, agent-discovery endpoints (Agent Skills Index, MCP and WebMCP, OAuth/OIDC discovery, RFC 9727 API catalog), an Open Knowledge Format bundle at `/okf/`, and per-bot blocking and rate limits for 30+ AI crawlers. Ordinary pages are only rate-limited for a crawler you give its own limit, so Googlebot and the AI search crawlers are never throttled by default (since 2.30.9). Bot View shows any page the way a no-JavaScript crawler sees it. llms.txt leaves out noindexed, password-protected and WooCommerce checkout pages.
 
+### Google Reviews (new in 2.32)
+
+See new Google reviews in WordPress and reply from your dashboard, even when Google's own emails go to someone else. A menu badge, Dashboard notices and email alerts to the addresses you choose show what is waiting. Draft with AI writes a reply for you to edit; nothing is posted until you click. Google reviews stay out of your site's schema.
+
+Connect with Google links Search Console, Analytics and Business Profile in one click, with no Google Cloud project. A service account or your own Google Cloud app still works.
+
 ### Use with Claude (new in 2.30)
 
 Ask Claude about your AI citations, AI crawler visits, Google indexing, schema, content gaps and your Google Analytics, Search Console and Bing Webmaster reports, and let it make fixes you approve. Switch the connector on under **Settings → MCPs** (off by default, administrators only): 25 read tools, six ready-made analyses and 14 change tools behind a separate Allow changes switch. Every change is previewed first, applied only after you say yes, logged, and can be reverted. Connect Claude Code or Claude Desktop with the command shown on that tab, or Claude on the web and mobile through an [aeoultimate.app](https://app.aeoultimate.app) account (free for one site). Since 2.30.4 it also works on hosts that strip the Authorization header (common with PHP as CGI on cPanel). Since 2.30.5 Claude can read the Google Analytics, Search Console and Bing reports you have connected in Command Center, so it never needs to open those sites.

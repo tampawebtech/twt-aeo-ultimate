@@ -1847,7 +1847,11 @@ final class TWTAEO_Page_AI_Visibility {
 											</strong>
 											<p class="twt-aeo-vis__excerpt"><?php echo esc_html( ! empty( $c['excerpt'] ) ? (string) $c['excerpt'] : __( '(no answer text recorded)', 'twt-aeo-ultimate' ) ); ?></p>
 											<?php if ( ! empty( $c['mentions'] ) && is_array( $c['mentions'] ) ) : ?>
-												<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Where the answer named you:', 'twt-aeo-ultimate' ); ?></p>
+												<?php if ( 'absent' === $verdict && ! empty( $c['mentions'][0]['not_recognized'] ) ) : ?>
+													<p class="twt-aeo-vis__muted"><?php esc_html_e( 'The answer uses your name only to say it doesn\'t know or list you, so it is not counted as a mention:', 'twt-aeo-ultimate' ); ?></p>
+												<?php else : ?>
+													<p class="twt-aeo-vis__muted"><?php esc_html_e( 'Where the answer named you:', 'twt-aeo-ultimate' ); ?></p>
+												<?php endif; ?>
 												<ul class="twt-aeo-vis__cited">
 													<?php foreach ( array_slice( $c['mentions'], 0, 4 ) as $mention ) :
 														if ( ! is_array( $mention ) || empty( $mention['snippet'] ) ) {

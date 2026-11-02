@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.30.9
+Stable tag: 2.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,11 +101,17 @@ A cached XML sitemap and a Google News sitemap, with IndexNow pinging Bing and o
 
 Google Search Console, Google Analytics 4 and Bing Webmaster Tools in one view, with Google PageSpeed audits (Lighthouse score and Core Web Vitals). AI Crawler Watch shows which AI bots read your site and what they waste requests on, and the plugin counts visits that arrive from ChatGPT, Perplexity, Claude, Gemini and Copilot, with no cookies and no per-visitor data. A traffic-leak scan finds high-traffic pages that lose mobile visitors to slow loads, and a content scan flags inline scripts, base64 images and other page-builder leftovers.
 
+= Lead Attribution =
+
+See which leads AI assistants sent you. Each form entry, email-link click and phone-link tap is tagged Confirmed (the visit came from an AI engine's link), Correlated (an AI assistant read the page just before a direct visit), Self-reported (the visitor named an AI tool in "How did you hear about us?") or Earlier AI visit, with the evidence. Works with Gravity Forms, Contact Form 7, WPForms, Forminator and HubSpot forms, and adds the result to your notification email. Off by default; it keeps the visitor's first and latest visit source in their own browser storage and stores no names, email or IP addresses.
+
 = Use with Claude =
 
 Ask Claude about your AI citations, AI crawler visits, Google indexing, schema, content gaps and your Google Analytics, Search Console and Bing Webmaster reports, and let it make fixes you approve. Switch the connector on under Settings → MCPs (off by default, administrators only) and connect Claude Code or Claude Desktop with one command, or Claude on the web and mobile through an aeoultimate.app account (free for one site; more sites are a paid plan with a 14-day trial). Every change is previewed first, logged, and can be reverted.
 
 = More Tools =
+
+Google Reviews: see new Google reviews in WordPress, get alerts, and reply from your dashboard, with AI drafts you edit before sending. Connect with Google in one click, no Google Cloud project needed.
 
 Customer reviews with AggregateRating and Review schema, a "Last Updated" freshness badge, PR Bridge AI for press releases, and an AI Prompt Rate Limiter to protect your API budget.
 
@@ -178,6 +184,7 @@ Only the ones you configure, and only when you trigger them:
 * **Meta (Muse, Meta Model API)**: AI Visibility checks. [Terms](https://ai.developer.meta.com/legal/terms-of-service) | [Privacy](https://www.facebook.com/privacy/policy/)
 * **DeepSeek**: AI Visibility checks. [Terms](https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html) | [Privacy](https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html)
 * **Google APIs**: Search Console, Analytics, Knowledge Graph, Business Profile, Merchant Center. [Terms](https://policies.google.com/terms) | [Privacy](https://policies.google.com/privacy)
+* **Connect with Google** (only when you click it): Tampa Web Technologies' sign-in service at api.aeoultimate.app keeps the encrypted Google connection and gives this site short-lived access tokens; reports still come straight from Google to your site. Your own Google Cloud app or a service account still works instead. [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://aeoultimate.com/privacy-policy/)
 * **Microsoft / Bing APIs**: Webmaster Tools, Merchant Center, Maps Local Search. [Terms](https://www.microsoft.com/en-us/servicesagreement) | [Privacy](https://www.microsoft.com/en-us/privacy/privacystatement)
 * **IndexNow**: URL submission on publish. [Terms & Privacy](https://www.indexnow.org/terms)
 * **EIN Presswire**: press-release distribution. [Terms](https://www.einpresswire.com/legal/terms) | [Privacy](https://www.einpresswire.com/legal/privacy)
@@ -205,6 +212,18 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.32.0 =
+* New: Google Reviews page. Connect your Google Business Profile to see new reviews in WordPress and reply from there, even when Google's own emails go to someone else. A menu badge and Dashboard notices show what is waiting, and email alerts go to the addresses you choose: every review, 3 stars or lower only, or none.
+* New: Draft with AI writes a reply for you to edit. Nothing is posted until you click Post reply.
+* New: Connect with Google. Connect Search Console, Analytics and Business Profile with one click instead of creating your own Google Cloud project. Your reports still come straight from Google to your site. A service account or your own Google Cloud app still works under Advanced. Google is still reviewing the app, so you may see its "hasn't verified this app" screen; click Advanced to continue.
+* Google reviews stay out of your site's Review and AggregateRating schema, which still comes only from reviews collected on your own site.
+
+= 2.31.0 =
+* New: Lead Attribution module (Modules → Lead Attribution, off by default). Every form entry, email-link click and phone-link tap gets one tier: Confirmed AI (the visit came from ChatGPT, Gemini, Perplexity, Claude, Copilot, Meta AI or another engine's link), Correlated AI (an AI assistant fetched that page shortly before a direct visit landed on it), Self-reported AI (from a "How did you hear about us?" answer) or Earlier AI visit (the visitor's first visit came from an AI engine). Each lead is counted once, with the evidence.
+* New: Lead Attribution reads Gravity Forms, Contact Form 7, WPForms, Forminator and HubSpot form entries when the form accepts them, and adds an "AEO attribution" line to the notification email sent to you (never to the visitor). Other forms are recorded when the visitor submits.
+* Fixed: with most modules on, the TWT AEO menu that opens on hover was taller than the screen and its last items could not be reached. It now fits the window and scrolls.
+* Fixed: AI Visibility counted an answer as naming you when it only said there is no recognized tool or business by your name.
 
 = 2.30.9 =
 * Fixed: with AI Ready's Rate Limiting on (the default), Googlebot and the AI crawlers (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot and the rest) were turned away with "429 Too Many Requests" after 60 pages an hour from one address, which can slow Google's crawling and keep AI crawlers from reading your site. Ordinary pages are now limited only for a crawler you give its own per-bot limit; the global cap applies to the agent endpoints, as the screen says. Blocking a crawler works as before.
@@ -373,6 +392,12 @@ Each request sends only the data needed for that action, using your own API key.
 Older releases (2.9.0 to 2.19.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.32.0 =
+New Google Reviews page: see new reviews in WordPress, get alerts and reply from there. Plus Connect with Google: connect Search Console, Analytics and Business Profile without a Google Cloud project.
+
+= 2.31.0 =
+New Lead Attribution module shows which form leads, email clicks and phone taps AI assistants sent you. Also fixes the hover menu being cut off when most modules are on.
 
 = 2.30.9 =
 Stops the default rate limit from turning away Googlebot and AI crawlers after 60 pages an hour. Recommended for every site.

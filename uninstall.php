@@ -39,6 +39,8 @@ function twtaeo_uninstall_cleanup() {
 		// Google OAuth / Search Console.
 		'twtaeo_google_creds',
 		'twtaeo_google_tokens',
+		'twtaeo_google_hub',
+		'twtaeo_google_hub_flow',
 		'twtaeo_google_config',
 		'twtaeo_google_oauth_state',
 		'twtaeo_google_sa_key',
@@ -91,6 +93,23 @@ function twtaeo_uninstall_cleanup() {
 		delete_option( $twtaeo_option );
 	}
 	wp_clear_scheduled_hook( 'twtaeo_cge_docs_tick' );
+
+	// ── Google Reviews ───────────────────────────────────────────────────────
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+	$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}twtaeo_gbp_reviews" );
+	foreach ( array( 'twtaeo_gbp_db_version', 'twtaeo_gbp_settings', 'twtaeo_gbp_state', 'twtaeo_gbp_counts' ) as $twtaeo_option ) {
+		delete_option( $twtaeo_option );
+	}
+	delete_transient( 'twtaeo_gbp_locations' );
+	wp_clear_scheduled_hook( 'twtaeo_gbp_reviews_sync' );
+
+	// ── Lead Attribution ─────────────────────────────────────────────────────
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+	$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}twtaeo_leads" );
+	foreach ( array( 'twtaeo_leads_db_version', 'twtaeo_lead_agent_hits', 'twtaeo_lead_settings' ) as $twtaeo_option ) {
+		delete_option( $twtaeo_option );
+	}
+	wp_clear_scheduled_hook( 'twtaeo_leads_prune' );
 
 	// Uploaded files still waiting to be read (processed ones are already gone).
 	$twtaeo_uploads = wp_upload_dir( null, false );

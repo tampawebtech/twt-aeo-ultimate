@@ -864,6 +864,60 @@ class TWTAEO_Page_Command_Center {
 
 			<div class="twt-aeo-card">
 
+				<?php /* ── Connect with Google through aeoultimate.app (shown once Google verifies the app) ── */ ?>
+				<?php if ( TWTAEO_Google_Hub::is_enabled() ) : ?>
+					<?php $hub_on = TWTAEO_Google_OAuth::hub_connected(); ?>
+					<div class="twt-aeo-cc__setup-step" style="border:2px solid <?php echo $hub_on ? '#16a34a' : '#2271b1'; ?>;border-radius:8px;padding:16px;margin-bottom:24px;">
+						<h3 class="twt-aeo-cc__step-title" style="margin-top:0;">
+							<?php echo wp_kses( self::icon_google(), self::svg_allowed_tags() ); ?>
+							<?php esc_html_e( 'Connect with Google', 'twt-aeo-ultimate' ); ?>
+							<span class="twt-aeo-badge" style="background:#dbeafe;color:#1e40af;margin-left:6px;"><?php esc_html_e( 'Easiest', 'twt-aeo-ultimate' ); ?></span>
+							<?php if ( $hub_on ) : ?>
+								<span class="twt-aeo-cc__status-badge twt-aeo-cc__status-badge--connected"><?php esc_html_e( 'Connected', 'twt-aeo-ultimate' ); ?></span>
+							<?php endif; ?>
+						</h3>
+						<?php if ( $hub_on ) : ?>
+							<div class="twt-aeo-cc__connected-row">
+								<span class="twt-aeo-cc__connected-label">✓
+									<?php
+									$hub_email = TWTAEO_Google_Hub::get_email();
+									echo esc_html( $hub_email
+										/* translators: %s: Google account email address. */
+										? sprintf( __( 'Connected as %s.', 'twt-aeo-ultimate' ), $hub_email )
+										: __( 'Google account connected.', 'twt-aeo-ultimate' ) );
+									?>
+								</span>
+								<button type="button" class="button button-link-delete twt-aeo-cc__disconnect-btn"
+										data-nonce="<?php echo esc_attr( wp_create_nonce( self::NONCE_DISCONNECT ) ); ?>"
+										data-service="google_hub">
+									<?php esc_html_e( 'Disconnect', 'twt-aeo-ultimate' ); ?>
+								</button>
+							</div>
+							<?php if ( ! TWTAEO_Google_Hub::has_feature( 'search_console' ) || ! TWTAEO_Google_Hub::has_feature( 'analytics' ) ) : ?>
+								<p class="twt-aeo-card__note"><?php esc_html_e( 'Search Console or Analytics access was not granted. Connect again and tick both boxes on Google\'s screen to see both reports.', 'twt-aeo-ultimate' ); ?></p>
+							<?php endif; ?>
+						<?php else : ?>
+							<?php if ( TWTAEO_Google_Hub::needs_reconnect() ) : ?>
+								<p class="twt-aeo-card__note" style="color:#b32d2e;"><?php esc_html_e( 'Google access was removed, so Search Console and Analytics reports have stopped updating. Connect again to resume them.', 'twt-aeo-ultimate' ); ?></p>
+							<?php else : ?>
+								<p class="twt-aeo-card__note"><?php esc_html_e( 'Sign in with Google and allow access. No Google Cloud setup needed. The connection runs through aeoultimate.app, which keeps only the encrypted connection; your reports come straight from Google to this site.', 'twt-aeo-ultimate' ); ?></p>
+							<?php endif; ?>
+							<p class="twt-aeo-card__note twt-aeo-card__note--muted"><?php esc_html_e( 'Google is still reviewing this app, so you may see a "Google hasn\'t verified this app" screen. To continue, click Advanced, then Go to the app.', 'twt-aeo-ultimate' ); ?></p>
+							<form method="post" action="">
+								<?php wp_nonce_field( self::NONCE_SAVE_GOOGLE, '_twtaeo_cc_nonce' ); ?>
+								<input type="hidden" name="twtaeo_cc_action" value="google_hub_connect" />
+								<button type="submit" class="button button-primary twt-aeo-cc__oauth-btn">
+									<?php echo wp_kses( self::icon_google(), self::svg_allowed_tags() ); ?>
+									<?php esc_html_e( 'Connect with Google', 'twt-aeo-ultimate' ); ?>
+								</button>
+							</form>
+						<?php endif; ?>
+					</div>
+					<p class="twt-aeo-card__note twt-aeo-card__note--muted" style="margin:0 0 16px;">
+						<?php esc_html_e( '— Advanced: use a service account or your own Google Cloud app instead —', 'twt-aeo-ultimate' ); ?>
+					</p>
+				<?php endif; ?>
+
 				<?php /* ── Option A — Service Account (recommended, no OAuth) ── */ ?>
 				<?php
 				$sa_configured = TWTAEO_Google_Service_Account::is_configured();
@@ -3273,6 +3327,7 @@ class TWTAEO_Page_Command_Center {
 			'save_google_sa'      => self::NONCE_SAVE_GOOGLE,
 			'remove_google_sa'    => self::NONCE_SAVE_GOOGLE,
 			'save_google_api_key' => self::NONCE_SAVE_GOOGLE,
+			'google_hub_connect'  => self::NONCE_SAVE_GOOGLE,
 			'save_bing_creds'     => self::NONCE_SAVE_BING,
 			'clear_crawler_log'  => self::NONCE_CLEAR_CRAWLERLOG,
 		);
@@ -3353,6 +3408,22 @@ class TWTAEO_Page_Command_Center {
 					: __( 'Google API key removed.', 'twt-aeo-ultimate' )
 				);
 				break;
+
+			case 'google_hub_connect':
+				if ( ! check_admin_referer( self::NONCE_SAVE_GOOGLE, '_twtaeo_cc_nonce' ) || ! TWTAEO_Google_Hub::is_enabled() ) {
+					return;
+				}
+				$go_url = TWTAEO_Google_Hub::start(
+					array( 'search_console', 'analytics' ),
+					add_query_arg( array( 'page' => 'twt-aeo-command-center', 'twtaeo_tab' => 'settings' ), admin_url( 'admin.php' ) )
+				);
+				if ( is_wp_error( $go_url ) ) {
+					/* translators: %s: error message. */
+					self::set_notice( 'error', sprintf( __( 'Could not start connecting Google: %s', 'twt-aeo-ultimate' ), $go_url->get_error_message() ) );
+					break;
+				}
+				wp_redirect( $go_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- aeoultimate.app sign-in page, an external host by design.
+				exit;
 
 			case 'save_bing_creds':
 				if ( ! check_admin_referer( self::NONCE_SAVE_BING, '_twtaeo_cc_nonce' ) ) {

@@ -39,7 +39,7 @@
 		var $btn    = $( this );
 		var service = $btn.data( 'service' );
 		var nonce   = $btn.data( 'nonce' );
-		var label   = service === 'google' ? 'Google' : 'Bing Webmaster Tools';
+		var label   = ( service === 'google' || service === 'google_hub' ) ? 'Google' : 'Bing Webmaster Tools';
 
 		if ( ! confirm( ( twtAeoCC.disconnectConfirm || 'Disconnect {service}?' ).replace( '{service}', label ) ) ) {
 			return;

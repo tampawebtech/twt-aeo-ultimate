@@ -137,6 +137,54 @@ final class TWTAEO_Visibility_Verdict {
 	}
 
 	/**
+	 * Sentences that say the engine does not know or list the name: "no widely
+	 * recognized tool named X", "X is not mentioned among the best", "I couldn't
+	 * find any information about X". English only, like the engines' answers.
+	 */
+	const NOT_RECOGNIZED = '/\b(?:no\s+(?:widely\s+|well[- ]known\s+|publicly\s+)?(?:recogni[sz]ed|known|established|notable)\b|not\s+(?:a\s+)?(?:widely\s+|well[- ]?|publicly\s+|currently\s+|yet\s+)?(?:recogni[sz]ed|known|mentioned|listed|included|featured|found|covered|documented|reviewed|ranked)\b|(?:could|can|did)\s*n[o\'’]?t\s+(?:find|locate|verify|confirm|identify)|unable\s+to\s+(?:find|locate|verify|confirm|identify)|no\s+(?:reliable\s+|specific\s+|public\s+)?(?:information|records?|data|details|mentions?|evidence|results|reviews)\s+(?:about|on|of|for|regarding)\b|(?:don[\'’]t|do\s+not|doesn[\'’]t|does\s+not)\s+have\s+(?:any\s+)?(?:specific\s+|reliable\s+|detailed\s+)?(?:information|data|details|knowledge)\b|not\s+(?:aware|familiar)\b|(?:doesn[\'’]t|does\s+not)\s+(?:appear|seem)\s+to\s+(?:exist|be\s+(?:a\s+)?(?:widely|well|recogni|known|listed|mentioned))|\bunrecogni[sz]ed\b)/iu';
+
+	/**
+	 * True when the answer names us ONLY to say it doesn't know us: every
+	 * sentence that contains one of the phrases also says the name isn't
+	 * recognized, listed or found. One ordinary sentence about us is enough
+	 * for a real mention, so a mixed answer stays named.
+	 *
+	 * @param string   $text    Answer text.
+	 * @param string[] $phrases Names and brand phrases to look for.
+	 * @return bool
+	 */
+	public static function named_only_to_deny( $text, array $phrases ) {
+		$sentences = preg_split( '/(?<=[.!?])\s+|\n+/u', self::to_string( $text ) );
+		if ( ! is_array( $sentences ) ) {
+			return false;
+		}
+		$naming = 0;
+		foreach ( $sentences as $sentence ) {
+			$names_us = false;
+			foreach ( $phrases as $phrase ) {
+				if ( self::mentions_name( $sentence, $phrase ) ) {
+					$names_us = true;
+					break;
+				}
+			}
+			if ( ! $names_us ) {
+				continue;
+			}
+			++$naming;
+			if ( 1 !== preg_match( self::NOT_RECOGNIZED, $sentence, $m, PREG_OFFSET_CAPTURE ) ) {
+				return false;
+			}
+			// "X is not listed on G2, but it is free on WordPress.org" goes on
+			// to say something about us: a turn after the denial keeps it a mention.
+			$after = substr( $sentence, $m[0][1] + strlen( $m[0][0] ) );
+			if ( 1 === preg_match( '/\b(?:but|however|although|though|yet|instead)\b/i', $after ) ) {
+				return false;
+			}
+		}
+		return $naming > 0;
+	}
+
+	/**
 	 * Where the answer said each name: the text surrounding every whole-word
 	 * occurrence (~110 characters each side), whitespace-collapsed. Being
 	 * "named" alone says nothing about HOW — one of five shops in a list, the
@@ -362,6 +410,16 @@ final class TWTAEO_Visibility_Verdict {
 					$named = true;
 					break;
 				}
+			}
+		}
+		// "There is no widely recognized tool named "X"" repeats the name from
+		// the question to say the engine does not know it. That is not a
+		// mention: it stays absent, and the snippets carry the reason so the
+		// drawer can say why the name appears but did not count.
+		if ( $named && self::named_only_to_deny( $text, array_column( $candidates, 'phrase' ) ) ) {
+			$named = false;
+			foreach ( $mentions as $i => $mention ) {
+				$mentions[ $i ]['not_recognized'] = true;
 			}
 		}
 		return array(

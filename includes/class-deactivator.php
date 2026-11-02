@@ -51,5 +51,10 @@ class TWTAEO_Deactivator {
 		if ( class_exists( 'TWTAEO_Visibility' ) ) {
 			TWTAEO_Visibility::clear_schedule();
 		}
+
+		// Stop checking for Google reviews; the reviews and the connection are kept.
+		if ( class_exists( 'TWTAEO_GBP_Reviews' ) ) {
+			TWTAEO_GBP_Reviews::clear_schedule();
+		}
 	}
 }

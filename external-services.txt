@@ -37,7 +37,7 @@ Terms: [Google Terms](https://policies.google.com/terms) · [Google APIs Terms](
 | Analytics (GA4) | `analyticsdata.googleapis.com`, `analyticsadmin.googleapis.com` | Command Center, traffic-leak scan | Property ID and report requests |
 | PageSpeed Insights | `www.googleapis.com/pagespeedonline` | Command Center performance audits | The page URL being audited |
 | Knowledge Graph Search | `kgsearch.googleapis.com` | Local SEO NAP audit, entity lookups | Your business or entity name |
-| Business Profile | `mybusinessaccountmanagement.googleapis.com`, `mybusinessbusinessinformation.googleapis.com` | Local SEO NAP audit | Account and location requests |
+| Business Profile | `mybusinessaccountmanagement.googleapis.com`, `mybusinessbusinessinformation.googleapis.com`, `mybusiness.googleapis.com` | Local SEO NAP audit, Google Reviews page | Account and location requests; requests for your reviews (hourly while connected); a reply's text when you click to post it |
 | Merchant API | `merchantapi.googleapis.com` | Google Merchant Center sync (WooCommerce) | Product IDs, prices, availability, promotions |
 
 ### Microsoft / Bing APIs (your own connected account or key)
@@ -83,6 +83,14 @@ When you turn the connector on, this site answers requests from the Claude app *
 | **Claude on the web and mobile** via the hosted connector (`mcp.aeoultimate.app`, optional) | Tampa Web Technologies relays the request to this site and the answer back to Claude | The same tool answers, passed through. The connection key you paste at app.aeoultimate.app is stored encrypted; tool answers are not stored | [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://tampawebtech.com/plugin-privacy-policies/) |
 
 Changes (when you allow them) are always previewed first and applied only after you confirm, and each one is logged under Settings → MCPs where you can revert it.
+
+### Connect with Google (optional)
+
+Only used when you click **Connect with Google**. A service account or your own Google Cloud app works instead, without this service.
+
+| Service | Endpoint | What is sent and kept | Terms | Privacy |
+|---|---|---|---|---|
+| **Tampa Web Technologies sign-in service** | `api.aeoultimate.app` | Your site's address and the features you chose, to start the sign-in. It keeps your site's Google connection (a refresh token, encrypted), the Google account's email and ID, and which features you allowed, until you disconnect or Google reports access was removed. About once an hour your site asks it for a short-lived access token. Your reports and reviews go straight from Google to your site and do not pass through this service. | [Terms](https://tampawebtech.com/plugin-terms/) | [Privacy](https://aeoultimate.com/privacy-policy/) |
 
 ### Pages you ask the plugin to fetch
 

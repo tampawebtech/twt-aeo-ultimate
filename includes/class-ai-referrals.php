@@ -93,6 +93,16 @@ class TWTAEO_AI_Referrals {
 	}
 
 	/**
+	 * Public face of match_engine() for Lead Attribution.
+	 *
+	 * @param string $value Referrer host or utm_source value.
+	 * @return string Engine label or empty string.
+	 */
+	public static function match( $value ) {
+		return self::match_engine( $value );
+	}
+
+	/**
 	 * Match a referrer/utm value against the engine list.
 	 *
 	 * @param string $value Referrer URL or utm_source value.

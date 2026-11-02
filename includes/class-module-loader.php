@@ -353,6 +353,15 @@ class TWTAEO_Module_Loader {
 				'default'     => true,
 			),
 
+			'lead-attribution' => array(
+				'slug'        => 'lead-attribution',
+				'title'       => 'Lead Attribution',
+				'description' => 'Shows which leads AI assistants sent you. Each Gravity Forms, Contact Form 7, WPForms, Forminator or HubSpot entry (other forms too), email-link click and phone-link tap is tagged Confirmed (came from an AI engine\'s link), Correlated (an AI assistant read the page just before a direct visit), Self-reported ("How did you hear about us?") or Earlier AI visit, with the evidence. Keeps the visitor\'s first and latest visit source in their own browser storage; stores no names, email or IP addresses.',
+				'icon'        => 'dashicons-groups',
+				'phase'       => 'free',
+				'default'     => false,
+			),
+
 		);
 
 		// On first activation, enable default modules.

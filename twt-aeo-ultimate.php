@@ -3,7 +3,7 @@
  * Plugin Name:       TWT AEO Ultimate
  * Plugin URI:        https://tampawebtech.com/twt-aeo-ultimate
  * Description:       Schema markup, structured data & llms.txt for SEO and AI search — FAQ, Product, Local Business & Article JSON-LD, plus E-E-A-T author signals and AI crawler controls.
- * Version:           2.30.9
+ * Version:           2.32.0
  * Author:            Tampa Web Technologies
  * Author URI:        https://tampawebtech.com
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // (`AEOWC_Free_Plugin_Bridge::HANDSHAKE_SINCE`), because a copy without
 // TWTAEO_Commerce_Handoff cannot stand down however the merchant answers. 2.13.0 is
 // the release that added it — do not lower this, and keep the two in step.
-define( 'TWTAEO_VERSION',    '2.30.9' );
+define( 'TWTAEO_VERSION',    '2.32.0' );
 define( 'TWTAEO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TWTAEO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -113,6 +113,9 @@ require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-image-seo.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-hub-cpt.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/class-hub-metabox.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-service-account.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-hub.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-gbp-reviews.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-google-reviews.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-oauth.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-knowledge-graph.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-google-pagespeed.php';
@@ -157,6 +160,8 @@ require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-chunk-view.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-documents.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-rag-engine.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-funnel-audit.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-lead-attribution.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-lead-attribution.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-schema-conflicts.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-pro-transmitter.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-micro-conversion-tracker.php';
@@ -243,6 +248,7 @@ function twtaeo_run() {
 	TWTAEO_Bot_View::init();
 	TWTAEO_AI_Referrals::init();
 	TWTAEO_Funnel_Audit::init();
+	TWTAEO_Lead_Attribution::init();
 	TWTAEO_Connector_Rest::init();
 	TWTAEO_Abilities::register_hooks();
 	TWTAEO_Owner_MCP::init();

@@ -29,6 +29,12 @@ class TWTAEO_Plugin {
 		add_action( 'admin_menu', array( $this->admin_menu, 'register_menus' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_to_wizard' ) );
 		add_action( 'admin_init', array( 'TWTAEO_Page_Command_Center', 'maybe_handle_post' ) );
+		// Connect with Google through aeoultimate.app: the return from sign-in and its notices.
+		TWTAEO_Google_Hub::register_hooks();
+		// Google reviews: hourly sync while a profile is connected, alerts, replies.
+		TWTAEO_GBP_Reviews::register_hooks();
+		add_action( 'admin_init', array( 'TWTAEO_Page_Google_Reviews', 'maybe_handle_post' ) );
+		add_action( 'admin_init', array( 'TWTAEO_GBP_Reviews', 'maybe_create_table' ) );
 		// The output switches on the Schema Conflict Detector page. Nonce and
 		// capability are both checked inside the handler.
 		add_action( 'admin_post_twtaeo_output_control', array( 'TWTAEO_Page_Schema_Conflicts', 'handle_output_control_post' ) );
@@ -709,6 +715,10 @@ class TWTAEO_Plugin {
 		switch ( $service ) {
 			case 'google':
 				TWTAEO_Google_OAuth::disconnect();
+				wp_send_json_success( array( 'redirect' => $redirect ) );
+				break;
+			case 'google_hub':
+				TWTAEO_Google_Hub::disconnect();
 				wp_send_json_success( array( 'redirect' => $redirect ) );
 				break;
 			case 'bing':

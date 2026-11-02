@@ -177,6 +177,9 @@ class TWTAEO_Local_Pack_NAP {
 	}
 
 	public static function is_gbp_connected() {
+		if ( TWTAEO_Google_Hub::has_feature( 'business_profile' ) ) {
+			return true;
+		}
 		$tokens = get_option( self::OPTION_GBP_TOKENS, array() );
 		return ! empty( $tokens['refresh_token'] );
 	}
@@ -186,7 +189,13 @@ class TWTAEO_Local_Pack_NAP {
 		delete_option( self::OPTION_GBP_STATE );
 	}
 
-	private static function get_gbp_access_token() {
+	public static function get_gbp_access_token() {
+		// Connect with Google (aeoultimate.app) first; the site's own OAuth app is the fallback.
+		$hub_token = TWTAEO_Google_Hub::get_access_token( 'business_profile' );
+		if ( $hub_token ) {
+			return $hub_token;
+		}
+
 		$tokens = get_option( self::OPTION_GBP_TOKENS, array() );
 
 		if ( empty( $tokens['access_token'] ) ) {
@@ -229,6 +238,7 @@ class TWTAEO_Local_Pack_NAP {
 
 		if ( isset( $body['error'] ) ) {
 			self::disconnect_gbp();
+			TWTAEO_GBP_Reviews::note_connection_lost();
 			return new WP_Error( $body['error'], $body['error_description'] ?? 'Refresh failed.' );
 		}
 

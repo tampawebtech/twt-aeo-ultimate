@@ -75,6 +75,12 @@ final class TWTAEO_Visibility {
 
 		if ( class_exists( 'TWTAEO_Visibility_Store' ) && is_admin() ) {
 			TWTAEO_Visibility_Store::maybe_create_tables();
+			// 2.31.0 stopped counting "no tool named X is known" as naming X.
+			// Kept runs are judged again once, so old results drop those too.
+			if ( 'not-recognized' !== get_option( 'twtaeo_vis_verdict_rules' ) ) {
+				update_option( 'twtaeo_vis_verdict_rules', 'not-recognized', false );
+				TWTAEO_Visibility_Store::rescore_runs();
+			}
 		}
 
 		$map = array(

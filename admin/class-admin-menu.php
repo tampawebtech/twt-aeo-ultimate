@@ -35,12 +35,33 @@ class TWTAEO_Admin_Menu {
 	 * Hide the Smart Collections / Promotions sidebar entries. They stay real
 	 * registered submenu pages (access + parent detection need that on WP 7);
 	 * only their menu items are suppressed.
+	 *
+	 * Also caps the hover flyout. With most modules on, the TWT AEO submenu is
+	 * taller than a laptop screen; on any other admin screen WordPress shows it
+	 * as a flyout pinned to the window, so the lower items could not be reached.
+	 * Capped at the window height it scrolls inside itself, and WordPress's own
+	 * flyout positioning (common.js adjustSubmenu, which keeps the top 30px
+	 * below the window edge) lifts it fully into view. The open menu on TWT AEO
+	 * screens is part of the page and is left alone.
 	 */
 	public function hide_commerce_tab_menu_items() {
 		echo '<style>
 			#adminmenu li:has( > a[href$="page=twt-aeo-collections"] ),
 			#adminmenu li:has( > a[href$="page=twt-aeo-promotions"] ),
 			#adminmenu li:has( > a[href$="page=twt-aeo-setup-wizard"] ) { display: none; }
+			#adminmenu #toplevel_page_twt-aeo.wp-not-current-submenu .wp-submenu,
+			.folded #adminmenu #toplevel_page_twt-aeo .wp-submenu,
+			.auto-fold #adminmenu #toplevel_page_twt-aeo .wp-submenu {
+				max-height: calc(100vh - 80px);
+				overflow-y: auto;
+				overscroll-behavior: contain;
+			}
+			@media screen and (min-width: 961px) {
+				.auto-fold #adminmenu #toplevel_page_twt-aeo.wp-has-current-submenu .wp-submenu { max-height: none; overflow-y: visible; }
+			}
+			@media screen and (max-width: 782px) {
+				.auto-fold #adminmenu #toplevel_page_twt-aeo .wp-submenu { max-height: none; overflow-y: visible; }
+			}
 		</style>';
 	}
 
@@ -261,6 +282,17 @@ class TWTAEO_Admin_Menu {
 			);
 		}
 
+		// Google Reviews: not a module. It does nothing until a profile is connected.
+		$gbp_waiting = TWTAEO_GBP_Reviews::get_counts()['waiting'];
+		add_submenu_page(
+			'twt-aeo',
+			__( 'Google Reviews', 'twt-aeo-ultimate' ),
+			__( 'Google Reviews', 'twt-aeo-ultimate' ) . ( $gbp_waiting ? ' <span class="awaiting-mod">' . number_format_i18n( $gbp_waiting ) . '</span>' : '' ),
+			'manage_options',
+			'twt-aeo-google-reviews',
+			array( 'TWTAEO_Page_Google_Reviews', 'render' )
+		);
+
 		// Reviews — only when module is active.
 		if ( $this->modules->is_active( 'reviews' ) ) {
 			add_submenu_page(
@@ -385,6 +417,18 @@ class TWTAEO_Admin_Menu {
 				$cap,
 				'twt-aeo-funnel-audit',
 				array( 'TWTAEO_Page_Funnel_Audit', 'render' )
+			);
+		}
+
+		// Lead Attribution — only when module is active.
+		if ( $this->modules->is_active( 'lead-attribution' ) ) {
+			add_submenu_page(
+				'twt-aeo',
+				__( 'Lead Attribution', 'twt-aeo-ultimate' ),
+				__( 'Lead Attribution', 'twt-aeo-ultimate' ),
+				$cap,
+				TWTAEO_Page_Lead_Attribution::SLUG,
+				array( 'TWTAEO_Page_Lead_Attribution', 'render' )
 			);
 		}
 
