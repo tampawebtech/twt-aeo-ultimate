@@ -142,7 +142,7 @@ class TWTAEO_Lead_Attribution {
 
 		// Forminator.
 		add_action( 'forminator_custom_form_submit_before_set_fields', array( __CLASS__, 'forminator_before_set_fields' ), 10, 3 );
-		add_filter( 'forminator_custom_form_mail_admin_message', array( __CLASS__, 'forminator_admin_message' ), 10, 3 );
+		add_filter( 'forminator_custom_form_mail_admin_message', array( __CLASS__, 'forminator_admin_message' ), 10, 6 );
 
 		add_action( self::CRON_HOOK, array( __CLASS__, 'prune' ) );
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
@@ -551,12 +551,21 @@ class TWTAEO_Lead_Attribution {
 	}
 
 	/**
-	 * Admin notifications only — Forminator sends the visitor's copy through a
-	 * separate user-message filter, which is left alone.
+	 * The site owner's copy only. Forminator sends every notification through
+	 * this one filter, confirmations to the visitor included, so the line goes
+	 * only where the notification says it's addressed to the owner.
+	 *
+	 * @param string     $message      Email body.
+	 * @param object     $custom_form  Form model.
+	 * @param array      $data         Submitted data.
+	 * @param object     $entry        Entry model.
+	 * @param object     $mailer       Forminator's mail class.
+	 * @param array|null $notification This notification's settings (Forminator 1.57+).
+	 * @return string
 	 */
-	public static function forminator_admin_message( $message, $custom_form = null, $data = array() ) {
+	public static function forminator_admin_message( $message, $custom_form = null, $data = array(), $entry = null, $mailer = null, $notification = null ) {
 		$settings = self::get_settings();
-		if ( ! $settings['email_line'] ) {
+		if ( ! $settings['email_line'] || ! self::forminator_is_owner_copy( $notification ) ) {
 			return $message;
 		}
 		$form_id = is_object( $custom_form ) && isset( $custom_form->id ) ? (int) $custom_form->id : 0;
@@ -565,6 +574,27 @@ class TWTAEO_Lead_Attribution {
 			return $message;
 		}
 		return (string) $message . '<p>' . esc_html( self::email_line( $attr ) ) . '</p>';
+	}
+
+	/**
+	 * Whether a Forminator notification goes only to fixed addresses. A recipient
+	 * taken from a form field ({email-1}) is someone the visitor named: them, or
+	 * a colleague. Forminator before 1.57 doesn't say which notification this is,
+	 * so there the line stays out: a missing line costs less than a customer
+	 * reading a note about how they were tracked.
+	 *
+	 * @param array|null $notification Notification settings.
+	 * @return bool
+	 */
+	private static function forminator_is_owner_copy( $notification ) {
+		if ( ! is_array( $notification ) || 'save_draft' === ( $notification['type'] ?? '' ) ) {
+			return false;
+		}
+		$to = (string) ( $notification['recipients'] ?? '' );
+		if ( 'routing' === ( $notification['email-recipients'] ?? '' ) ) {
+			$to = implode( ',', array_column( (array) ( $notification['routing'] ?? array() ), 'email' ) );
+		}
+		return '' !== trim( $to ) && ! preg_match( '/\{[^}]+\}/', $to );
 	}
 
 	/**

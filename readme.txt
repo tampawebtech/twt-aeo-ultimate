@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.32.0
+Stable tag: 2.32.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -213,6 +213,9 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.32.1 =
+* Fix: Lead Attribution added its "AEO attribution" note to every Forminator email, including confirmations sent to visitors. The note now goes only to notifications addressed to fixed email addresses, such as the site owner's copy. It needs Forminator 1.57 or later; on older versions the note is left out.
+
 = 2.32.0 =
 * New: Google Reviews page. Connect your Google Business Profile to see new reviews in WordPress and reply from there, even when Google's own emails go to someone else. A menu badge and Dashboard notices show what is waiting, and email alerts go to the addresses you choose: every review, 3 stars or lower only, or none.
 * New: Draft with AI writes a reply for you to edit. Nothing is posted until you click Post reply.
@@ -392,6 +395,9 @@ Each request sends only the data needed for that action, using your own API key.
 Older releases (2.9.0 to 2.19.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.32.1 =
+Fixes Lead Attribution's note appearing in Forminator emails sent to visitors. It now goes only to the site owner's copy.
 
 = 2.32.0 =
 New Google Reviews page: see new reviews in WordPress, get alerts and reply from there. Plus Connect with Google: connect Search Console, Analytics and Business Profile without a Google Cloud project.

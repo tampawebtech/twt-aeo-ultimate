@@ -1,6 +1,10 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.32.1 =
+
+* **Fix: Lead Attribution note in Forminator emails** (`includes/class-lead-attribution.php`). Forminator sends every notification through `forminator_custom_form_mail_admin_message`, so the "AEO attribution" line also reached confirmations to visitors and anyone else named in the form. It now goes only to notifications whose recipients are fixed addresses, read from the `$notification` argument Forminator added in 1.57. Recipients taken from a form field (`{email-1}`), and draft-link emails, don't get it. On Forminator before 1.57 the line is left out. Gravity Forms, Contact Form 7 and WPForms already skipped visitor copies.
+
 = 2.32.0 =
 
 * **New: Google Reviews page** (`includes/class-gbp-reviews.php`, `admin/pages/class-page-google-reviews.php`; submenu `twt-aeo-google-reviews`, not a module). Reads reviews through the Business Profile API (`mybusiness.googleapis.com/v4`) hourly while a profile is connected, into the new table `twtaeo_gbp_reviews`. The first sync of a location sends no alerts, and reviews older than 30 days don't count as waiting. Replies are posted only from the owner's click. Google reviews never feed the Review or AggregateRating schema.
