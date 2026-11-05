@@ -383,6 +383,10 @@ class TWTAEO_Knowledge_Graph {
 		if ( ! empty( $same_as ) ) {
 			$node['sameAs'] = array_values( $same_as );
 		}
+		$licenses = TWTAEO_Company_Profile::license_credentials( $c );
+		if ( ! empty( $licenses ) ) {
+			$node['hasCredential'] = $licenses;
+		}
 		return $node;
 	}
 

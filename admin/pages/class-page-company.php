@@ -209,6 +209,42 @@ class TWTAEO_Page_Company {
 				</table>
 			</div>
 
+			<?php /* ── Licenses ── */ ?>
+			<div class="twt-aeo-card" style="max-width:780px;margin-top:16px;padding:24px;">
+				<h2 style="margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#50575e;"><?php esc_html_e( 'Licenses', 'twt-aeo-ultimate' ); ?></h2>
+				<p class="description" style="margin:0 0 16px;"><?php esc_html_e( 'State or professional licenses the company holds. They are added to your Organization schema on every page, on the same entity your SEO plugin uses, so AI tools can read them. Enter the details exactly as they appear on the licensing board\'s record. It also helps to show the number on your site, such as in the footer or on your About page.', 'twt-aeo-ultimate' ); ?></p>
+				<?php
+				$co_licenses = array_values( (array) $c['licenses'] );
+				$co_rows     = max( 3, count( $co_licenses ) + 1 );
+				for ( $co_i = 0; $co_i < $co_rows; $co_i++ ) :
+					$co_license = $co_licenses[ $co_i ] ?? array();
+					$co_field   = 'twtaeo_company[licenses][' . $co_i . ']';
+					?>
+					<table class="form-table" style="margin:0 0 12px;border-bottom:1px solid #e0e0e0;">
+						<tr>
+							<th><label for="co-lic-name-<?php echo esc_attr( $co_i ); ?>"><?php esc_html_e( 'License name', 'twt-aeo-ultimate' ); ?></label></th>
+							<td><input type="text" id="co-lic-name-<?php echo esc_attr( $co_i ); ?>" name="<?php echo esc_attr( $co_field . '[name]' ); ?>" value="<?php echo esc_attr( $co_license['name'] ?? '' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Certified Air Conditioning Contractor', 'twt-aeo-ultimate' ); ?>" /></td>
+						</tr>
+						<tr>
+							<th><label for="co-lic-number-<?php echo esc_attr( $co_i ); ?>"><?php esc_html_e( 'License number', 'twt-aeo-ultimate' ); ?></label></th>
+							<td><input type="text" id="co-lic-number-<?php echo esc_attr( $co_i ); ?>" name="<?php echo esc_attr( $co_field . '[number]' ); ?>" value="<?php echo esc_attr( $co_license['number'] ?? '' ); ?>" class="regular-text" /></td>
+						</tr>
+						<tr>
+							<th><label for="co-lic-issuer-<?php echo esc_attr( $co_i ); ?>"><?php esc_html_e( 'Issued by', 'twt-aeo-ultimate' ); ?></label></th>
+							<td><input type="text" id="co-lic-issuer-<?php echo esc_attr( $co_i ); ?>" name="<?php echo esc_attr( $co_field . '[issuer]' ); ?>" value="<?php echo esc_attr( $co_license['issuer'] ?? '' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Florida Department of Business and Professional Regulation', 'twt-aeo-ultimate' ); ?>" /></td>
+						</tr>
+						<tr>
+							<th><label for="co-lic-url-<?php echo esc_attr( $co_i ); ?>"><?php esc_html_e( 'Link to the official record', 'twt-aeo-ultimate' ); ?></label></th>
+							<td><input type="url" id="co-lic-url-<?php echo esc_attr( $co_i ); ?>" name="<?php echo esc_attr( $co_field . '[url]' ); ?>" value="<?php echo esc_attr( $co_license['url'] ?? '' ); ?>" class="regular-text" /></td>
+						</tr>
+						<tr>
+							<th><label for="co-lic-expires-<?php echo esc_attr( $co_i ); ?>"><?php esc_html_e( 'Expires', 'twt-aeo-ultimate' ); ?></label></th>
+							<td><input type="date" id="co-lic-expires-<?php echo esc_attr( $co_i ); ?>" name="<?php echo esc_attr( $co_field . '[expires]' ); ?>" value="<?php echo esc_attr( $co_license['expires'] ?? '' ); ?>" /></td>
+						</tr>
+					</table>
+				<?php endfor; ?>
+			</div>
+
 			<?php /* ── Social Profiles ── */ ?>
 			<div class="twt-aeo-card" style="max-width:780px;margin-top:16px;padding:24px;">
 				<h2 style="margin:0 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#50575e;"><?php esc_html_e( 'Social Profiles', 'twt-aeo-ultimate' ); ?></h2>

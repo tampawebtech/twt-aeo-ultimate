@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.32.1
+Stable tag: 2.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -213,6 +213,10 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.33.0 =
+* New: Company licenses. Add state or professional licenses on the Company page, with the number, issuer and a link to the official record. They go in your Organization schema on every page, on the same entity your SEO plugin uses, so AI tools can read them.
+* Fix: on sites where Rank Math is set up as a company, the plugin now leaves the Organization schema to Rank Math instead of publishing a second one.
+
 = 2.32.1 =
 * Fix: Lead Attribution added its "AEO attribution" note to every Forminator email, including confirmations sent to visitors. The note now goes only to notifications addressed to fixed email addresses, such as the site owner's copy. It needs Forminator 1.57 or later; on older versions the note is left out.
 
@@ -369,32 +373,12 @@ Each request sends only the data needed for that action, using your own API key.
 * Fixed: AI Visibility ignored allocation changes once a question list had been saved, and brand questions were never asked.
 * Fixed: the AI Visibility question counts ignored "Per brand" and overcounted categories, posts and products.
 
-= 2.22.0 =
-* New: AI Visibility shows the exact passage where each engine named your company or brands, so you see how you were mentioned, not just that you were.
-* Fixed: stored checks dropped owned-profile citation data, so brand totals undercounted. Re-run a check to refresh them.
-
-= 2.21.0 =
-* New: Bot View. See any page the way no-JavaScript AI crawlers (GPTBot, ClaudeBot, PerplexityBot) see it: what schema is visible, what is locked behind JavaScript, and which hidden script data could become schema.
-* New: every Bot View audit fetches the page twice, as GPTBot and as a normal browser, exposing firewalls that turn AI crawlers away.
-* New: a weekly Bot View scan of your homepage and recently updated content, with every finding linked to its fix.
-* Fixed: AI Crawler Watch no longer counts Bot View's own audits as crawler visits.
-
-= 2.20.1 =
-* New: duplicate meta descriptions are flagged on the Not Indexed screen, with an inline AI fix.
-* Fixed: headings that were not questions could be published as FAQ schema.
-* Fixed: saved custom schema of an unusual type could be invisible and impossible to delete.
-* Fixed: accented letters, dashes and emoji in stored schema could be saved as literal codes.
-* Fixed: Easy Digital Downloads checkout and account pages were reported as not indexed.
-
-= 2.20.0 =
-* New: content provenance. Articles can declare how they were made (human, AI-assisted or AI-generated) using schema.org's digitalSourceType.
-* New: author archives publish ProfilePage schema.
-* New: multilingual schema for WPML and Polylang: each translation declares its language and links to the others.
-* New: a contextual authority statement, drafted with AI, that explains an author's credentials in plain words.
-
-Older releases (2.9.0 to 2.19.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
+Older releases (2.9.0 to 2.22.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.33.0 =
+New Company licenses: tell AI tools your company is licensed, with the number and a link to the official record. Also stops a duplicate Organization schema on Rank Math company sites.
 
 = 2.32.1 =
 Fixes Lead Attribution's note appearing in Forminator emails sent to visitors. It now goes only to the site owner's copy.

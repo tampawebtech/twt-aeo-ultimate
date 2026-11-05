@@ -1,6 +1,11 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.33.0 =
+
+* **New: Company licenses** (`TWTAEO_Company_Profile::license_credentials()`, Licenses card in `admin/pages/class-page-company.php`). Stored in the `licenses` key of `twtaeo_company`; callers that save without that key keep the list. Published as Organization `hasCredential` by the Company Schema Writer and the Knowledge Graph. When an SEO plugin or AEO Ultimate for WooCommerce owns the Organization, a small block at the shared `/#organization` @id adds the licenses to that entity, using the SEO plugin's company name when it gives one.
+* **Fix: Rank Math company detection** in `seo_plugin_owns_org_schema()`. It read `rank_math_general`, an option Rank Math doesn't use, so it never saw company mode and the plugin published a second Organization beside Rank Math's. It now reads `rank-math-options-titles`.
+
 = 2.32.1 =
 
 * **Fix: Lead Attribution note in Forminator emails** (`includes/class-lead-attribution.php`). Forminator sends every notification through `forminator_custom_form_mail_admin_message`, so the "AEO attribution" line also reached confirmations to visitors and anyone else named in the form. It now goes only to notifications whose recipients are fixed addresses, read from the `$notification` argument Forminator added in 1.57. Recipients taken from a form field (`{email-1}`), and draft-link emails, don't get it. On Forminator before 1.57 the line is left out. Gravity Forms, Contact Form 7 and WPForms already skipped visitor copies.

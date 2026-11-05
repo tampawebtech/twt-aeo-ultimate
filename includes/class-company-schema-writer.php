@@ -45,12 +45,13 @@ class TWTAEO_Company_Schema_Writer {
 		// no graph is folding, and the other plugin's own answer is empty in that
 		// state too, so a choice-only check would delete the store's Organization on
 		// exactly the pages where nothing replaces it.
+		$company = TWTAEO_Company_Profile::get();
+
 		if ( TWTAEO_Commerce_Handoff::stands_down( 'schema_identity' )
 			&& TWTAEO_Commerce_Handoff::superseded( home_url( '/#organization' ) ) ) {
+			self::output_licenses_only( $company );
 			return;
 		}
-
-		$company = TWTAEO_Company_Profile::get();
 
 		if ( empty( $company['output_org_schema'] ) ) {
 			return;
@@ -58,6 +59,7 @@ class TWTAEO_Company_Schema_Writer {
 
 		// Defer if the active SEO plugin already handles Organization schema.
 		if ( TWTAEO_Company_Profile::seo_plugin_owns_org_schema() ) {
+			self::output_licenses_only( $company );
 			return;
 		}
 
@@ -98,6 +100,10 @@ class TWTAEO_Company_Schema_Writer {
 		if ( ! empty( $same_as ) ) {
 			$schema['sameAs'] = $same_as;
 		}
+		$licenses = TWTAEO_Company_Profile::license_credentials( $company );
+		if ( ! empty( $licenses ) ) {
+			$schema['hasCredential'] = $licenses;
+		}
 
 		echo "\n<!-- TWT AEO Organization Schema -->\n";
 		echo '<script type="application/ld+json">' . "\n";
@@ -105,6 +111,35 @@ class TWTAEO_Company_Schema_Writer {
 		// HEX_* flags: <, >, &, ' and " are all encoded as \uXXXX, so the value cannot
 		// break out of the script element or carry HTML/JS into the page.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML-inert JSON-LD; see note above.
+		echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
+		echo "\n</script>\n";
+	}
+
+	/**
+	 * When another plugin publishes the Organization, add the company's licenses to
+	 * that same entity. Sharing its @id is what folds this into one Organization for
+	 * search engines, as the Contact Schema Writer does for address and phone.
+	 *
+	 * @param array $company Company profile.
+	 */
+	private static function output_licenses_only( array $company ) {
+		$licenses = TWTAEO_Company_Profile::license_credentials( $company );
+		// The same entity shouldn't carry two names, so the owner of the record wins.
+		$seo  = TWTAEO_Company_Profile::read_from_seo_plugin();
+		$name = ! empty( $seo['name'] ) ? $seo['name'] : $company['name'];
+		if ( empty( $licenses ) || empty( $name ) ) {
+			return;
+		}
+		$schema = array(
+			'@context'      => 'https://schema.org',
+			'@type'         => 'Organization',
+			'@id'           => home_url( '/#organization' ),
+			'name'          => $name,
+			'hasCredential' => $licenses,
+		);
+		echo "\n<!-- TWT AEO Organization Licenses -->\n";
+		echo '<script type="application/ld+json">' . "\n";
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML-inert JSON-LD; see the note in output_schema().
 		echo wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT );
 		echo "\n</script>\n";
 	}

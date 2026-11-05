@@ -35,6 +35,8 @@ class TWTAEO_Company_Profile {
 			'founding_year' => '',
 			'email'         => get_option( 'admin_email', '' ),
 			'phone'         => '',
+			// Company licenses (feeds Organization hasCredential).
+			'licenses'      => array(),
 			// Social profiles (feeds sameAs + article:publisher).
 			'social_facebook'  => '',
 			'social_twitter'   => '',
@@ -77,6 +79,8 @@ class TWTAEO_Company_Profile {
 			'founding_year' => sanitize_text_field( $raw['founding_year'] ?? '' ),
 			'email'         => sanitize_email( $raw['email'] ?? '' ),
 			'phone'         => sanitize_text_field( $raw['phone'] ?? '' ),
+			// Other callers save only the fields they know, so a missing key keeps the list.
+			'licenses'      => isset( $raw['licenses'] ) ? self::sanitize_licenses( $raw['licenses'] ) : self::get()['licenses'],
 			'fb_app_id'     => preg_replace( '/[^0-9]/', '', $raw['fb_app_id'] ?? '' ),
 			// Output toggles.
 			'output_org_schema'        => ! empty( $raw['output_org_schema'] ) ? 1 : 0,
@@ -93,6 +97,67 @@ class TWTAEO_Company_Profile {
 	}
 
 	// ── sameAs builder ────────────────────────────────────────────────────────
+
+	/**
+	 * Clean the license rows from the form. A row needs a name or a number.
+	 *
+	 * @param mixed $rows Rows of name, number, issuer, url, expires.
+	 * @return array
+	 */
+	private static function sanitize_licenses( $rows ) {
+		$out = array();
+		foreach ( (array) $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$license = array(
+				'name'    => sanitize_text_field( $row['name'] ?? '' ),
+				'number'  => sanitize_text_field( $row['number'] ?? '' ),
+				'issuer'  => sanitize_text_field( $row['issuer'] ?? '' ),
+				'url'     => esc_url_raw( $row['url'] ?? '' ),
+				'expires' => preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) ( $row['expires'] ?? '' ) ) ? $row['expires'] : '',
+			);
+			if ( '' !== $license['name'] || '' !== $license['number'] ) {
+				$out[] = $license;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * The company's licenses as schema.org credentials, for Organization hasCredential.
+	 *
+	 * @param array|null $company Company profile; the saved one when null.
+	 * @return array
+	 */
+	public static function license_credentials( ?array $company = null ) {
+		$c   = $company ?? self::get();
+		$out = array();
+		foreach ( (array) ( $c['licenses'] ?? array() ) as $license ) {
+			$credential = array(
+				'@type'              => 'EducationalOccupationalCredential',
+				'name'               => ! empty( $license['name'] ) ? $license['name'] : 'Professional License',
+				'credentialCategory' => 'Professional License',
+			);
+			if ( ! empty( $license['issuer'] ) ) {
+				$credential['recognizedBy'] = array(
+					'@type' => 'Organization',
+					'name'  => $license['issuer'],
+				);
+			}
+			if ( ! empty( $license['number'] ) ) {
+				$credential['identifier'] = $license['number'];
+			}
+			if ( ! empty( $license['url'] ) ) {
+				$credential['url'] = $license['url'];
+			}
+			if ( ! empty( $license['expires'] ) ) {
+				$credential['expires'] = $license['expires'];
+			}
+			$out[] = $credential;
+		}
+		return $out;
+	}
 
 	public static function get_same_as( ?array $company = null ) {
 		$c    = $company ?? self::get();
@@ -229,8 +294,9 @@ class TWTAEO_Company_Profile {
 		}
 
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
-			$general = get_option( 'rank_math_general', array() );
-			return ( $general['knowledgegraph_type'] ?? '' ) === 'company';
+			// Rank Math's own option name for its Titles & Meta settings.
+			$titles = get_option( 'rank-math-options-titles', array() );
+			return ( $titles['knowledgegraph_type'] ?? '' ) === 'company';
 		}
 
 		return false;
