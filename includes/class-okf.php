@@ -697,6 +697,27 @@ final class TWTAEO_OKF {
 	}
 
 	/**
+	 * May this post's content be served to anyone at all?
+	 *
+	 * A password-protected post keeps post_status "publish", so every query here
+	 * has to say so on its own — the bundle is served to the public, and a post
+	 * password has to gate it exactly as it gates the HTML page.
+	 *
+	 * This reads the stored password rather than asking post_password_required(),
+	 * which honours the visitor's password cookie: a visitor who holds the
+	 * password would otherwise render the protected body straight into the
+	 * shared transient cache, where everyone else would then be served it. The
+	 * same reason llms.txt checks the raw field.
+	 *
+	 * @param int|WP_Post|null $post
+	 * @return bool
+	 */
+	private static function is_readable_by_anyone( $post ) {
+		$post = get_post( $post );
+		return $post instanceof WP_Post && '' === (string) $post->post_password;
+	}
+
+	/**
 	 * Plain text from stored HTML: shortcodes gone, tags gone, entities decoded,
 	 * whitespace collapsed. For `description` fields and short notes.
 	 *
@@ -835,6 +856,11 @@ final class TWTAEO_OKF {
 			if ( ! is_object( $product ) || ! method_exists( $product, 'get_slug' ) ) {
 				continue;
 			}
+			// WC_Product_Query has no has_password argument, so the password-
+			// protected ones are dropped here instead.
+			if ( ! self::is_readable_by_anyone( $product->get_id() ) ) {
+				continue;
+			}
 			$note  = self::plain( $product->get_short_description() );
 			if ( '' === $note ) {
 				$cats = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'names' ) );
@@ -900,6 +926,7 @@ final class TWTAEO_OKF {
 		$posts = get_posts( array(
 			'post_type'              => 'post',
 			'post_status'            => 'publish',
+			'has_password'           => false,
 			'posts_per_page'         => $limit,
 			'orderby'                => 'modified',
 			'order'                  => 'DESC',
@@ -929,6 +956,11 @@ final class TWTAEO_OKF {
 	 * @return string
 	 */
 	private static function post_excerpt( $p ) {
+		// Belt and braces: callers already filter these out, but this is the one
+		// place that reaches into post_content, so it refuses on its own too.
+		if ( ! self::is_readable_by_anyone( $p ) ) {
+			return '';
+		}
 		$text = $p->post_excerpt ? $p->post_excerpt : $p->post_content;
 		return self::plain( $text );
 	}
@@ -945,7 +977,7 @@ final class TWTAEO_OKF {
 
 		foreach ( $types as $slug => $label ) {
 			$post = self::find_policy_page( $slug );
-			if ( $post instanceof WP_Post && '' !== self::policy_text( strip_shortcodes( $post->post_content ) ) ) {
+			if ( $post instanceof WP_Post && self::is_readable_by_anyone( $post ) && '' !== self::policy_text( strip_shortcodes( $post->post_content ) ) ) {
 				$found[ $slug ] = array(
 					'slug'  => $slug,
 					'label' => $label,
@@ -1103,6 +1135,7 @@ final class TWTAEO_OKF {
 			'name'           => $slug,
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
+			'has_password'   => false,
 			'posts_per_page' => 1,
 			'no_found_rows'  => true,
 		) );
@@ -1252,7 +1285,7 @@ final class TWTAEO_OKF {
 		) );
 		$list = array();
 		foreach ( (array) $products as $p ) {
-			if ( is_object( $p ) && method_exists( $p, 'get_slug' ) ) {
+			if ( is_object( $p ) && method_exists( $p, 'get_slug' ) && self::is_readable_by_anyone( $p->get_id() ) ) {
 				$list[] = array(
 					'title' => self::decode( $p->get_name() ),
 					'slug'  => $p->get_slug(),
@@ -1278,6 +1311,7 @@ final class TWTAEO_OKF {
 			'name'           => $slug,
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
+			'has_password'   => false,
 			'posts_per_page' => 1,
 			'no_found_rows'  => true,
 		) );
@@ -1319,7 +1353,7 @@ final class TWTAEO_OKF {
 			return null;
 		}
 		$post = self::find_policy_page( $slug );
-		if ( ! $post instanceof WP_Post ) {
+		if ( ! $post instanceof WP_Post || ! self::is_readable_by_anyone( $post ) ) {
 			return null;
 		}
 		$body = self::policy_text( strip_shortcodes( $post->post_content ) );

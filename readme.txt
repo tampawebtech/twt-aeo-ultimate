@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.33.0
+Stable tag: 2.33.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -213,6 +213,11 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.33.1 =
+* Security fix: password-protected posts could be read by anyone through the AI knowledge bundle (/okf/) and llms-full.txt. A post password hides the normal page, but those two files were built from a query that checked only whether a post was published, so the full text went out to anyone who asked for it — including AI crawlers. Password-protected posts are now left out of both, as llms.txt and the Markdown twins already did. They are also left out of the XML sitemap, which no longer lists their URLs.
+* The /okf/ and llms-full.txt caches are cleared when you update, so a copy saved before the fix is not served afterwards.
+* Reported privately by kta1kri (https://github.com/kta1kri). Thank you.
+
 = 2.33.0 =
 * New: Company licenses. Add state or professional licenses on the Company page, with the number, issuer and a link to the official record. They go in your Organization schema on every page, on the same entity your SEO plugin uses, so AI tools can read them.
 * Fix: on sites where Rank Math is set up as a company, the plugin now leaves the Organization schema to Rank Math instead of publishing a second one.
@@ -376,6 +381,9 @@ Each request sends only the data needed for that action, using your own API key.
 Older releases (2.9.0 to 2.22.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.33.1 =
+Security fix: password-protected posts could be read by anyone through the /okf/ knowledge bundle and llms-full.txt. Please update now if you use post passwords.
 
 = 2.33.0 =
 New Company licenses: tell AI tools your company is licensed, with the number and a link to the official record. Also stops a duplicate Organization schema on Rank Math company sites.

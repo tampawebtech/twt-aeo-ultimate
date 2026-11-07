@@ -1,6 +1,13 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.33.1 =
+
+* **Security fix: password-protected posts were served in full through the knowledge bundle and llms-full.txt** (`includes/class-okf.php`, `includes/class-sitemap-generator.php`). A post password leaves `post_status` as `publish`, so queries filtering on status alone still matched those posts, and `/okf/posts/<slug>.md` returned the whole body through `the_content` with no password gate. `/okf/index.md` listed them with an excerpt, and llms-full.txt carried the full text. Fixed in every affected path — OKF `render_post`, `list_posts`, `post_excerpt`, `render_product`, `render_collection`, `render_policy`, `find_policies`, and the sitemap module's `generate_llms()` — matching what `/llms.txt`, the Markdown twins, the abilities and the doc library already did. Password-protected posts are also dropped from the XML sitemap, which WordPress core's own sitemaps exclude them from too.
+* The check reads `post_password` directly rather than calling `post_password_required()`, which honours the visitor's password cookie: a visitor who holds the password would otherwise have rendered the protected body into the shared transient cache, where every later visitor would have been served it.
+* **The /okf/ and llms-full.txt caches are flushed on the version-change hook**, so a site already holding a cached copy of a protected post stops serving it on the first request after the update instead of waiting out the 12-hour TTL.
+* Reported privately by kta1kri (https://github.com/kta1kri), who found it in 2.32.0/2.33.0; the route was added in 2.17.0. If you keep content behind a post password and had the AI Ready knowledge bundle or the Sitemap Generator's llms-full.txt switched on, treat that content as having been publicly readable and check your AI crawler log for hits on those paths.
+
 = 2.33.0 =
 
 * **New: Company licenses** (`TWTAEO_Company_Profile::license_credentials()`, Licenses card in `admin/pages/class-page-company.php`). Stored in the `licenses` key of `twtaeo_company`; callers that save without that key keep the list. Published as Organization `hasCredential` by the Company Schema Writer and the Knowledge Graph. When an SEO plugin or AEO Ultimate for WooCommerce owns the Organization, a small block at the shared `/#organization` @id adds the licenses to that entity, using the SEO plugin's company name when it gives one.

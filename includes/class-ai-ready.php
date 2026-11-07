@@ -249,6 +249,17 @@ class TWTAEO_AI_Ready {
 			if ( file_exists( $bad_htaccess ) ) {
 				wp_delete_file( $bad_htaccess );
 			}
+
+			// Drop the generated-output caches on every update. Before 2.33.1 the
+			// OKF bundle and llms-full.txt could cache the body of a
+			// password-protected post; those copies have a 12-hour TTL and would
+			// otherwise keep being served after the fix landed.
+			if ( class_exists( 'TWTAEO_OKF' ) ) {
+				TWTAEO_OKF::flush_cache();
+			}
+			if ( class_exists( 'TWTAEO_Sitemap_Generator' ) ) {
+				TWTAEO_Sitemap_Generator::flush_cache();
+			}
 		}
 
 		// One-time flush: fires at shutdown on the very first request after activation

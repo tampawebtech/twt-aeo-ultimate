@@ -199,6 +199,9 @@ class TWTAEO_Sitemap_Generator {
 			$query_args = array(
 				'post_type'              => $post_type,
 				'post_status'            => 'publish',
+				// WordPress's own sitemaps leave password-protected posts out;
+				// there is nothing for a crawler to index behind the password.
+				'has_password'           => false,
 				'posts_per_page'         => -1,
 				'fields'                 => 'ids',
 				'no_found_rows'          => true,
@@ -460,6 +463,10 @@ class TWTAEO_Sitemap_Generator {
 			$args = array(
 				'post_type'              => $post_type,
 				'post_status'            => 'publish',
+				// A password-protected post is still "publish". llms-full.txt
+				// carries the whole body, so these have to be left out here —
+				// the same rule /llms.txt and the Markdown twins follow.
+				'has_password'           => false,
 				'posts_per_page'         => -1,
 				'no_found_rows'          => true,
 				'update_post_term_cache' => false,
@@ -752,6 +759,7 @@ class TWTAEO_Sitemap_Generator {
 			$args = array(
 				'post_type'      => $post_type,
 				'post_status'    => 'publish',
+				'has_password'   => false,
 				'posts_per_page' => -1,
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
