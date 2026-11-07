@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.33.1
+Stable tag: 2.33.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -213,6 +213,10 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.33.2 =
+* Security fix: the MCP endpoint's get_page_content tool returned any post it could resolve from a URL, without checking whether that post was public. Draft, private and password-protected posts were all served in full, and because a post can be addressed as ?p=<id>, they could be found by walking through ID numbers. The tool now serves only published, non-password-protected content, and answers for anything else exactly as it does for a URL that matches nothing. Found during a review of the whole plugin after the 2.33.1 report.
+* This only affected sites that had switched the MCP integration on under Settings - MCPs. It is off by default.
+
 = 2.33.1 =
 * Security fix: password-protected posts could be read by anyone through the AI knowledge bundle (/okf/) and llms-full.txt. A post password hides the normal page, but those two files were built from a query that checked only whether a post was published, so the full text went out to anyone who asked for it — including AI crawlers. Password-protected posts are now left out of both, as llms.txt and the Markdown twins already did. They are also left out of the XML sitemap, which no longer lists their URLs.
 * The /okf/ and llms-full.txt caches are cleared when you update, so a copy saved before the fix is not served afterwards.
@@ -381,6 +385,9 @@ Each request sends only the data needed for that action, using your own API key.
 Older releases (2.9.0 to 2.22.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
 
 == Upgrade Notice ==
+
+= 2.33.2 =
+Security fix for the MCP endpoint, which could return draft, private and password-protected posts. Update now if you turned the MCP integration on.
 
 = 2.33.1 =
 Security fix: password-protected posts could be read by anyone through the /okf/ knowledge bundle and llms-full.txt. Please update now if you use post passwords.

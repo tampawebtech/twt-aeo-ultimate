@@ -1,6 +1,13 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.33.2 =
+
+* **Security fix: the MCP endpoint served non-public posts** (`mcp_call_get_page_content()` in `includes/class-ai-ready.php`). The tool resolved its `url` argument with `url_to_postid()` and then rendered `post_content` through `the_content` with no check on the result: no post-status check and no password check. Drafts, private posts and password-protected posts were all returned in full to an unauthenticated caller, and since WordPress resolves `?p=<id>`, every non-public post on a site could be reached by walking ID numbers. The handler now calls a new `is_publicly_readable()` helper — published, no post password, not an attachment, and a viewable post type — and returns the same "no published content found" response for anything else, so the endpoint does not confirm whether a hidden post exists.
+* `rest_search()` and the MCP `search` tool now pass `has_password => false` explicitly. WordPress already keeps protected posts out of search results, so this changes nothing today; it is there so the exclusion survives a future edit to those queries.
+* Only sites with the MCP integration enabled (Settings - MCPs, off by default) were affected. The `/search` and `/mcp` routes are deliberately reachable without credentials once enabled, so that AI clients can use them; that is unchanged.
+* Found by auditing the rest of the plugin for the bug class in the 2.33.1 report, rather than from an outside report. The same audit checked all 108 AJAX handlers for capability and nonce coverage, the REST permission gates, `$wpdb` statements for injection, output escaping, file and network calls, and secret storage, and found nothing else.
+
 = 2.33.1 =
 
 * **Security fix: password-protected posts were served in full through the knowledge bundle and llms-full.txt** (`includes/class-okf.php`, `includes/class-sitemap-generator.php`). A post password leaves `post_status` as `publish`, so queries filtering on status alone still matched those posts, and `/okf/posts/<slug>.md` returned the whole body through `the_content` with no password gate. `/okf/index.md` listed them with an excerpt, and llms-full.txt carried the full text. Fixed in every affected path — OKF `render_post`, `list_posts`, `post_excerpt`, `render_product`, `render_collection`, `render_policy`, `find_policies`, and the sitemap module's `generate_llms()` — matching what `/llms.txt`, the Markdown twins, the abilities and the doc library already did. Password-protected posts are also dropped from the XML sitemap, which WordPress core's own sitemaps exclude them from too.

@@ -104,6 +104,27 @@ class TWTAEO_AI_Ready {
 		return wp_parse_args( get_option( self::OPTION_KEY, array() ), self::defaults() );
 	}
 
+	/**
+	 * May this post's content be served to an anonymous machine caller?
+	 *
+	 * Drafts and private posts are not public, and a password-protected post
+	 * keeps post_status "publish", so the status check alone is not enough. The
+	 * stored password is read directly rather than calling
+	 * post_password_required(), which honours a visitor's password cookie — an
+	 * API response must not depend on who happens to be asking.
+	 *
+	 * @param int|WP_Post|null $post
+	 * @return bool
+	 */
+	private static function is_publicly_readable( $post ) {
+		$post = get_post( $post );
+		return $post instanceof WP_Post
+			&& 'publish' === $post->post_status
+			&& '' === (string) $post->post_password
+			&& 'attachment' !== $post->post_type
+			&& is_post_type_viewable( $post->post_type );
+	}
+
 	// ── Known bot registry ────────────────────────────────────────────────────
 
 	public static function get_known_bots() {
@@ -1655,6 +1676,7 @@ class TWTAEO_AI_Ready {
 		$posts = get_posts( array(
 			'post_type'      => array( 'post', 'page' ),
 			'post_status'    => 'publish',
+			'has_password'   => false,
 			'posts_per_page' => 10,
 			's'              => $request->get_param( 'q' ),
 		) );
@@ -1845,6 +1867,7 @@ class TWTAEO_AI_Ready {
 		$posts = get_posts( array(
 			'post_type'      => array( 'post', 'page' ),
 			'post_status'    => 'publish',
+			'has_password'   => false,
 			'posts_per_page' => 10,
 			's'              => $q,
 		) );
@@ -1885,7 +1908,16 @@ class TWTAEO_AI_Ready {
 			return self::mcp_tool_error( $id, 'No published content found at: ' . $url );
 		}
 
-		$post    = get_post( $post_id );
+		$post = get_post( $post_id );
+
+		// url_to_postid() resolves drafts, private posts and password-protected
+		// posts just as readily as public ones, and ?p=<id> makes them
+		// enumerable, so the post has to be re-checked before anything is
+		// returned. Same answer either way: nothing is here for you.
+		if ( ! self::is_publicly_readable( $post ) ) {
+			return self::mcp_tool_error( $id, 'No published content found at: ' . $url );
+		}
+
 		// Core the_content filter, applied via a variable hook name (core's, not ours).
 		$core_filter = 'the_content';
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Core hook, not ours to prefix.
