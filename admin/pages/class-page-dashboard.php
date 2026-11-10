@@ -139,7 +139,7 @@ class TWTAEO_Page_Dashboard {
 			$ai_providers = TWTAEO_AI_Description::available_providers();
 			$ai_enabled   = TWTAEO_AI_Description::is_enabled();
 			$ai_provider  = TWTAEO_AI_Description::get_provider();
-			$ai_labels    = array( 'claude' => 'Claude', 'openai' => 'OpenAI (ChatGPT)', 'gemini' => 'Gemini' );
+			$ai_labels    = array( 'claude' => 'Claude', 'openai' => 'OpenAI (ChatGPT)', 'perplexity' => 'Perplexity', 'gemini' => 'Gemini', 'openrouter' => 'OpenRouter' );
 			$ai_job       = TWTAEO_AI_Description::job_payload();
 			?>
 			<section class="twt-aeo-section">

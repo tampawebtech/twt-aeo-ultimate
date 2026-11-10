@@ -26,7 +26,7 @@ class TWTAEO_AI_Description {
 
 	/** Settings keys within the twtaeo_settings option. */
 	const SETTING_ENABLED  = 'ai_desc_enabled';   // Auto-generate on save.
-	const SETTING_PROVIDER = 'ai_desc_provider';  // claude | openai | gemini.
+	const SETTING_PROVIDER = 'ai_desc_provider';  // One of PROVIDERS, or unset for automatic.
 
 	const MAX_LENGTH = 160;
 
@@ -1028,9 +1028,12 @@ class TWTAEO_AI_Description {
 			return self::job_payload();
 		}
 
+		// Every provider, not just the first three: forcing anything else to
+		// claude made a bulk run on a Perplexity- or OpenRouter-only site fail
+		// on every page for want of a Claude key.
 		$provider = $provider ?: self::get_provider();
-		if ( ! in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ) {
-			$provider = 'claude';
+		if ( ! in_array( $provider, self::PROVIDERS, true ) ) {
+			$provider = self::get_provider();
 		}
 		$mode = ( 'og' === $mode ) ? 'og' : 'meta';
 

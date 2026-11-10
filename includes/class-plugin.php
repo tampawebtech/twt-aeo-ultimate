@@ -2966,11 +2966,18 @@ class TWTAEO_Plugin {
 		$settings = get_option( 'twtaeo_settings', array() );
 		$settings[ TWTAEO_AI_Description::SETTING_ENABLED ] = ! empty( $_POST['enabled'] ) ? 1 : 0;
 
-		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : 'claude';
-		if ( ! in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ) {
-			$provider = 'claude';
+		// Accept every provider the picker can list. This used to allow only
+		// claude, openai and gemini and rewrite anything else to claude, so on a
+		// site whose key was Perplexity or OpenRouter, touching the auto-generate
+		// toggle saved claude as the owner's choice and every AI action then
+		// failed asking for a Claude key. An unknown value clears the choice
+		// instead, which lets get_provider() pick one that has a key.
+		$provider = isset( $_POST['provider'] ) ? sanitize_key( wp_unslash( $_POST['provider'] ) ) : '';
+		if ( in_array( $provider, TWTAEO_AI_Description::PROVIDERS, true ) ) {
+			$settings[ TWTAEO_AI_Description::SETTING_PROVIDER ] = $provider;
+		} else {
+			unset( $settings[ TWTAEO_AI_Description::SETTING_PROVIDER ] );
 		}
-		$settings[ TWTAEO_AI_Description::SETTING_PROVIDER ] = $provider;
 
 		update_option( 'twtaeo_settings', $settings );
 		wp_send_json_success();

@@ -288,7 +288,7 @@ final class TWTAEO_Visibility_Personas {
 	 */
 	private static function provider() {
 		$preferred = TWTAEO_AI_Client::enrich_provider();
-		foreach ( array_unique( array( $preferred, 'claude', 'openai', 'gemini' ) ) as $p ) {
+		foreach ( array_unique( array( $preferred, 'claude', 'openai', 'gemini', 'openrouter' ) ) as $p ) {
 			if ( '' !== TWTAEO_Key_Resolver::get( $p ) ) {
 				return $p;
 			}

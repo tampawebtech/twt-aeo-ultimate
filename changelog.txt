@@ -1,6 +1,12 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.35.1 =
+
+* **Fixed: the dashboard provider picker and the bulk job rewrote OpenRouter and Perplexity to Claude.** `ajax_ai_desc_settings()` and `TWTAEO_AI_Description::start_job()` each held a hard-coded `claude, openai, gemini` allow-list and substituted `claude` for anything else. The picker lists every provider in `available_providers()`, and `get_provider()` honours a saved choice whatever state its key is in, so on a site keyed only for OpenRouter or Perplexity one touch of the auto-generate toggle saved `claude` and broke every AI action, and every bulk run failed on each page. Both now check `TWTAEO_AI_Description::PROVIDERS`; an unknown value clears the saved choice (settings handler) or falls back to `get_provider()` (job) instead of naming Claude. The picker gains Perplexity and OpenRouter labels.
+* **AI Enrichment:** the Attribute extraction select gains OpenRouter (its save handler has accepted it since 2.35.0), and its Inherit label shows what `get_provider()` resolves to instead of the raw `ai_desc_provider` setting defaulting to Claude.
+* The persona generator's fallback provider list includes OpenRouter.
+
 = 2.35.0 =
 
 * **New: OpenRouter as a fifth provider** (`includes/Integrations/class-openrouter-auth.php`, `call_openrouter()` in `includes/class-ai-client.php`). It sits last in `TWTAEO_AI_Description::PROVIDERS`, so a direct vendor key still wins where both exist while an OpenRouter-only site selects it automatically. Model ids are OpenRouter's own `vendor/model`, so there is no mapping table to rot. Its chat API is OpenAI-shaped, so the caller shares `openai_style_messages()` with the OpenAI path but deliberately not the reasoning-model branch. Key storage goes through `TWTAEO_Key_Resolver` (`api_openrouter`, constant `TWTAEO_OPENROUTER_KEY`) and is encrypted at rest like the others.

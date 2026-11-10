@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.35.0
+Stable tag: 2.35.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -214,6 +214,11 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.35.1 =
+* Fixed: on a site whose only AI key was OpenRouter or Perplexity, switching "Auto-generate on save" on or off saved Claude as the AI provider, and every AI action then failed asking for a Claude key. The AI provider menu now saves whichever provider you pick.
+* Fixed: "Generate all missing" ran with Claude on those sites and failed on every page. Bulk runs now use the provider you chose, or the one that holds a key.
+* OpenRouter can now be chosen for product attribute extraction under Settings, AI Enrichment, and that menu's Inherit option names the provider it will really use.
+
 = 2.35.0 =
 * New: OpenRouter. One key, one bill, and your pick of models from Anthropic, OpenAI, Google, DeepSeek, Meta, Mistral, xAI and Perplexity. Paste the key into Settings, or press "Connect with OpenRouter", approve it there, and the key is filled in for you.
 * Settings lists a short set of OpenRouter models with roughly what each one costs to write 100 titles or descriptions, from about a fifth of a cent, and says which ones can read images. Any other model OpenRouter carries can still be typed in by ID.
@@ -386,6 +391,9 @@ Each request sends only the data needed for that action, using your own API key.
 * Changed: AI Visibility stops asking an engine for the rest of a run once it rejects its API key.
 
 == Upgrade Notice ==
+
+= 2.35.1 =
+Fixes AI features failing on sites whose only key is OpenRouter or Perplexity, and lets you choose OpenRouter in the AI provider menu. Update if you use OpenRouter.
 
 = 2.35.0 =
 New: OpenRouter. One key and one bill for models from Anthropic, OpenAI, Google, DeepSeek, Meta, Mistral, xAI and Perplexity, including free options. Connect it in one click or paste a key.

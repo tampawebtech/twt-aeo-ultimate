@@ -226,7 +226,12 @@ class TWTAEO_Page_Settings {
 				<?php
 				$enrich_provider    = $settings['ai_enrich_provider'] ?? '';
 				$retrieval_provider = $settings['ai_retrieval_provider'] ?? 'gemini';
-				$inherited          = $settings['ai_desc_provider'] ?? 'claude';
+				// The provider an unset choice actually resolves to, not the raw
+				// setting: on a site with no choice saved that used to read
+				// "Claude" whatever key the site held.
+				$provider_names     = array( 'claude' => 'Claude', 'openai' => 'OpenAI', 'perplexity' => 'Perplexity', 'gemini' => 'Gemini', 'openrouter' => 'OpenRouter' );
+				$inherited_slug     = TWTAEO_AI_Description::get_provider();
+				$inherited          = $provider_names[ $inherited_slug ] ?? ucfirst( $inherited_slug );
 				?>
 				<section class="twt-aeo-section">
 					<h2 class="twt-aeo-section__title"><?php esc_html_e( 'AI Enrichment', 'twt-aeo-ultimate' ); ?></h2>
@@ -244,11 +249,12 @@ class TWTAEO_Page_Settings {
 										<option value="" <?php selected( $enrich_provider, '' ); ?>>
 											<?php
 											/* translators: %s: inherited provider name. */
-											echo esc_html( sprintf( __( 'Inherit meta-description provider (%s)', 'twt-aeo-ultimate' ), ucfirst( $inherited ) ) ); ?>
+											echo esc_html( sprintf( __( 'Inherit meta-description provider (%s)', 'twt-aeo-ultimate' ), $inherited ) ); ?>
 										</option>
 										<option value="claude" <?php selected( $enrich_provider, 'claude' ); ?>>Claude</option>
 										<option value="openai" <?php selected( $enrich_provider, 'openai' ); ?>>OpenAI</option>
 										<option value="gemini" <?php selected( $enrich_provider, 'gemini' ); ?>>Gemini</option>
+										<option value="openrouter" <?php selected( $enrich_provider, 'openrouter' ); ?>>OpenRouter</option>
 									</select>
 									<p class="description"><?php esc_html_e( 'Parses product text into structured attributes (color, material, dimensions, specs).', 'twt-aeo-ultimate' ); ?></p>
 								</td>

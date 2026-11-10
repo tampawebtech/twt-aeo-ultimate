@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.35.0\n"
+"Project-Id-Version: TWT AEO Ultimate 2.35.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-10T00:41:06+00:00\n"
+"POT-Creation-Date: 2026-11-10T00:55:38+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -4792,7 +4792,7 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:861
 #: admin/pages/class-page-command-center.php:876
 #: admin/pages/class-page-command-center.php:1252
-#: admin/pages/class-page-settings.php:459
+#: admin/pages/class-page-settings.php:465
 #: admin/pages/class-page-woocommerce-detector.php:1681
 #: admin/pages/class-page-woocommerce-detector.php:2130
 msgid "Connected"
@@ -5514,7 +5514,7 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:1273
 #: admin/pages/class-page-index-now.php:151
-#: admin/pages/class-page-settings.php:437
+#: admin/pages/class-page-settings.php:443
 msgid "API Key"
 msgstr ""
 
@@ -8076,7 +8076,7 @@ msgstr ""
 #: admin/pages/class-page-index-now.php:124
 #: admin/pages/class-page-lead-attribution.php:33
 #: admin/pages/class-page-local-pack.php:122
-#: admin/pages/class-page-settings.php:577
+#: admin/pages/class-page-settings.php:583
 #: admin/pages/class-page-smart-collections.php:277
 msgid "Settings saved."
 msgstr ""
@@ -8419,7 +8419,7 @@ msgstr ""
 #: admin/pages/class-page-local-pack.php:669
 #: admin/pages/class-page-news.php:215
 #: admin/pages/class-page-reviews.php:446
-#: admin/pages/class-page-settings.php:497
+#: admin/pages/class-page-settings.php:503
 #: admin/pages/class-page-sitemap.php:326
 #: admin/pages/class-page-woocommerce-detector.php:1734
 #: admin/pages/class-page-woocommerce-detector.php:2192
@@ -11954,12 +11954,12 @@ msgid "Used by the plugin's AI features — meta descriptions, PR Bridge, WooCom
 msgstr ""
 
 #: admin/pages/class-page-settings.php:115
-#: admin/pages/class-page-settings.php:443
+#: admin/pages/class-page-settings.php:449
 msgid "— protected via server constant —"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:134
-#: admin/pages/class-page-settings.php:281
+#: admin/pages/class-page-settings.php:287
 #: admin/pages/class-page-setup-wizard.php:768
 msgid "Claude (Anthropic)"
 msgstr ""
@@ -11969,7 +11969,7 @@ msgid "Descriptions & PR"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:142
-#: admin/pages/class-page-settings.php:282
+#: admin/pages/class-page-settings.php:288
 #: admin/pages/class-page-setup-wizard.php:777
 msgid "OpenAI (ChatGPT)"
 msgstr ""
@@ -11979,7 +11979,7 @@ msgid "Descriptions & images"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:150
-#: admin/pages/class-page-settings.php:283
+#: admin/pages/class-page-settings.php:289
 msgid "Gemini (Google)"
 msgstr ""
 
@@ -11988,7 +11988,7 @@ msgid "Summaries & meta"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:158
-#: admin/pages/class-page-settings.php:263
+#: admin/pages/class-page-settings.php:269
 msgid "Perplexity"
 msgstr ""
 
@@ -11997,7 +11997,7 @@ msgid "Brand & gap research"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:166
-#: admin/pages/class-page-settings.php:284
+#: admin/pages/class-page-settings.php:290
 msgid "OpenRouter"
 msgstr ""
 
@@ -12044,212 +12044,212 @@ msgstr ""
 msgid "Muse (Meta AI)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:232
+#: admin/pages/class-page-settings.php:237
 msgid "AI Enrichment"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:235
+#: admin/pages/class-page-settings.php:240
 msgid "Which providers power on-demand product enrichment (extract attributes from descriptions, resolve brand authority links). Uses the API keys above."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:240
+#: admin/pages/class-page-settings.php:245
 msgid "Attribute extraction"
 msgstr ""
 
 #. translators: %s: inherited provider name.
-#: admin/pages/class-page-settings.php:247
+#: admin/pages/class-page-settings.php:252
 #, php-format
 msgid "Inherit meta-description provider (%s)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:253
+#: admin/pages/class-page-settings.php:259
 msgid "Parses product text into structured attributes (color, material, dimensions, specs)."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:258
+#: admin/pages/class-page-settings.php:264
 msgid "Live retrieval"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:262
+#: admin/pages/class-page-settings.php:268
 msgid "Gemini (Google Search grounding)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:265
+#: admin/pages/class-page-settings.php:271
 msgid "Used for web-grounded lookups such as brand sameAs authority links."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:273
+#: admin/pages/class-page-settings.php:279
 msgid "AI Models"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:276
+#: admin/pages/class-page-settings.php:282
 msgid "Which model each provider uses for meta descriptions, enrichment and extraction. Stronger models write better but cost more per request. AI Visibility checks are not affected — they always use each app's own default model, so results match what your customers see."
 msgstr ""
 
 #. translators: %s: model ID.
-#: admin/pages/class-page-settings.php:304
+#: admin/pages/class-page-settings.php:310
 #, php-format
 msgid "%s (your current model)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:311
+#: admin/pages/class-page-settings.php:317
 msgid "The free options cost nothing but OpenRouter rate limits them per account, so they suit one item at a time, a title or a description. A bulk run across many pages will hit the limit part way through. Everything else here is billed by OpenRouter at the rate that model charges."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:315
+#: admin/pages/class-page-settings.php:321
 msgid "Or enter any model ID (for models released after this plugin version):"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:326
+#: admin/pages/class-page-settings.php:332
 msgid "Usage Telemetry"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:329
+#: admin/pages/class-page-settings.php:335
 msgid "Help us publish real-world AI cost estimates by sharing anonymous token counts from your content generations. This data is aggregated across all plugin users — no content, titles, URLs, or site information is ever collected."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:334
+#: admin/pages/class-page-settings.php:340
 msgid "Share token usage"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:342
+#: admin/pages/class-page-settings.php:348
 msgid "Opt in to anonymous token telemetry"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:348
+#: admin/pages/class-page-settings.php:354
 msgid "What we collect"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:350
+#: admin/pages/class-page-settings.php:356
 msgid "Provider (Claude / OpenAI / Perplexity)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:351
+#: admin/pages/class-page-settings.php:357
 msgid "Model name"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:352
+#: admin/pages/class-page-settings.php:358
 msgid "Input and output token counts"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:353
+#: admin/pages/class-page-settings.php:359
 msgid "Cache hit / miss token counts (Claude)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:354
+#: admin/pages/class-page-settings.php:360
 msgid "Plugin version"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:358
+#: admin/pages/class-page-settings.php:364
 msgid "What we never collect"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:360
+#: admin/pages/class-page-settings.php:366
 msgid "Page titles or content"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:361
+#: admin/pages/class-page-settings.php:367
 msgid "Site URL or name"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:362
+#: admin/pages/class-page-settings.php:368
 msgid "API keys"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:363
+#: admin/pages/class-page-settings.php:369
 msgid "User or account information"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:371
+#: admin/pages/class-page-settings.php:377
 msgid "Wire Service API Keys"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:374
+#: admin/pages/class-page-settings.php:380
 msgid "Used by PR Bridge AI to distribute press releases. Add a key for each wire service you have an account with."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:381
+#: admin/pages/class-page-settings.php:387
 msgid "EIN Presswire"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:383
+#: admin/pages/class-page-settings.php:389
 msgid "EIN Presswire Bearer token"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:383
+#: admin/pages/class-page-settings.php:389
 msgid "SMBs & agencies"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:389
+#: admin/pages/class-page-settings.php:395
 msgid "EasyPRWire"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:391
+#: admin/pages/class-page-settings.php:397
 msgid "EasyPRWire API key"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:391
+#: admin/pages/class-page-settings.php:397
 msgid "Niche & local"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:399
+#: admin/pages/class-page-settings.php:405
 msgid "TWT Agency"
 msgstr ""
 
 #. translators: %s: URL to learn more about TWT Agency.
-#: admin/pages/class-page-settings.php:406
+#: admin/pages/class-page-settings.php:412
 #, php-format
 msgid "Connect this site to <strong>TWT Agency</strong> so your SEO professional can monitor changes and generate monthly reports. Your professional will provide the Dashboard URL and API Key. <a href=\"%s\" target=\"_blank\">Learn more.</a>"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:416
+#: admin/pages/class-page-settings.php:422
 msgid "Enable Connection"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:424
+#: admin/pages/class-page-settings.php:430
 msgid "Send data to TWT Agency"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:428
+#: admin/pages/class-page-settings.php:434
 msgid "Dashboard URL"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:451
+#: admin/pages/class-page-settings.php:457
 msgid "Provided by your SEO professional"
 msgstr ""
 
 #. translators: %s: date and time of last sync.
-#: admin/pages/class-page-settings.php:462
+#: admin/pages/class-page-settings.php:468
 #, php-format
 msgid "Last sync: %s"
 msgstr ""
 
 #. translators: %s: date and time of last sync.
-#: admin/pages/class-page-settings.php:462
+#: admin/pages/class-page-settings.php:468
 msgid "Never"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:468
+#: admin/pages/class-page-settings.php:474
 msgid "Don't have a TWT Agency account yet?"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:469
+#: admin/pages/class-page-settings.php:475
 msgid "Learn more about TWT Agency &rarr;"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:477
+#: admin/pages/class-page-settings.php:483
 msgid "Agency Security: Protecting Client API Keys"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:480
+#: admin/pages/class-page-settings.php:486
 msgid "Keys entered in the form above are stored in the WordPress database. Anyone with database access (hosting panel, phpMyAdmin, staging sync, DB backup) can read them. For agency-managed client sites, define keys as PHP constants or server environment variables instead — they are never written to the database, never logged, and take priority over any database value."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:482
+#: admin/pages/class-page-settings.php:488
 msgid "Add to wp-config.php (above \"That's all, stop editing\"):"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:492
+#: admin/pages/class-page-settings.php:498
 msgid "Alternatively, set the same names as server environment variables (LSAPI_CHILDREN, Nginx fastcgi_param, or Docker ENV). On WordPress 7.0 you can instead leave the Claude and OpenAI fields blank and connect those providers at Settings → Connectors; the plugin then generates through the WordPress AI Client without ever handling the key."
 msgstr ""
 
@@ -15642,33 +15642,33 @@ msgstr ""
 msgid "Could not add the image to the media library."
 msgstr ""
 
-#: includes/class-ai-description.php:1200
+#: includes/class-ai-description.php:1203
 msgid "AI social descriptions"
 msgstr ""
 
-#: includes/class-ai-description.php:1201
+#: includes/class-ai-description.php:1204
 msgid "AI meta descriptions"
 msgstr ""
 
 #. translators: 1: feature label, 2: number created, 3: error message.
-#: includes/class-ai-description.php:1206
+#: includes/class-ai-description.php:1209
 #, php-format
 msgid "%1$s stopped after creating %2$d — %3$s"
 msgstr ""
 
 #. translators: 1: feature label, 2: number created, 3: number skipped.
-#: includes/class-ai-description.php:1217
+#: includes/class-ai-description.php:1220
 #, php-format
 msgid "%1$s finished — %2$d created, %3$d skipped (not enough content to summarise)."
 msgstr ""
 
 #. translators: 1: feature label, 2: number of descriptions created.
-#: includes/class-ai-description.php:1225
+#: includes/class-ai-description.php:1228
 #, php-format
 msgid "%1$s finished — %2$d created."
 msgstr ""
 
-#: includes/class-ai-description.php:1240
+#: includes/class-ai-description.php:1243
 #: includes/class-background-scan.php:204
 msgid "Dismiss"
 msgstr ""
@@ -18345,17 +18345,17 @@ msgstr ""
 msgid "Could not set the featured image."
 msgstr ""
 
-#: includes/class-plugin.php:3248
+#: includes/class-plugin.php:3255
 msgid "This is not a WooCommerce product."
 msgstr ""
 
-#: includes/class-plugin.php:3251
+#: includes/class-plugin.php:3258
 #: includes/class-smart-collections.php:413
 #: includes/class-smart-collections.php:1345
 msgid "WooCommerce is not active."
 msgstr ""
 
-#: includes/class-plugin.php:3259
+#: includes/class-plugin.php:3266
 msgid "Could not build schema for this product."
 msgstr ""
 
