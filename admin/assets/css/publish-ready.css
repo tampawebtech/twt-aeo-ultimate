@@ -1,0 +1,230 @@
+/**
+ * "Finish this page" panel.
+ *
+ * Shared by the classic meta box and the block-editor sidebar, so sizes are set
+ * in relative units and nothing assumes the narrow meta-box column.
+ */
+
+.twtaeo-pr {
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/**
+ * The block-editor sidebar gives its contents no padding at all, so without
+ * this the labels and the state chips sit hard against both edges. The meta
+ * box needs none: WordPress pads .inside already.
+ */
+.twtaeo-pr--sidebar {
+	padding: 16px;
+}
+
+/* A little more room between rows where there is space for it. */
+.twtaeo-pr--sidebar .twtaeo-pr__row {
+	padding: 12px 0;
+}
+
+.twtaeo-pr__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 4px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid rgba( 0, 0, 0, 0.08 );
+}
+
+.twtaeo-pr__count {
+	font-weight: 600;
+	color: #b32d2e;
+}
+
+.twtaeo-pr__count.is-clear {
+	color: #1a6629;
+	font-weight: 500;
+}
+
+.twtaeo-pr__notice {
+	margin: 0 0 10px;
+	padding: 6px 8px;
+	background: #f0f6fc;
+	border-left: 3px solid #3858e9;
+	color: #1d2327;
+}
+
+.twtaeo-pr__row {
+	padding: 8px 0;
+	border-top: 1px solid rgba( 0, 0, 0, 0.08 );
+}
+
+.twtaeo-pr__row:first-of-type {
+	border-top: 0;
+}
+
+.twtaeo-pr__row-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.twtaeo-pr__label {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.twtaeo-pr__state {
+	flex: 0 0 auto;
+	font-size: 11px;
+	text-transform: lowercase;
+	padding: 1px 6px;
+	border-radius: 9px;
+	background: #f0f0f1;
+	color: #646970;
+}
+
+.twtaeo-pr__row.is-missing .twtaeo-pr__state {
+	background: #fcf0f1;
+	color: #b32d2e;
+}
+
+.twtaeo-pr__row.is-filled .twtaeo-pr__state {
+	background: #edfaef;
+	color: #1a6629;
+}
+
+.twtaeo-pr__row.is-inherited .twtaeo-pr__state,
+.twtaeo-pr__row.is-templated .twtaeo-pr__state,
+.twtaeo-pr__row.is-unknown .twtaeo-pr__state {
+	background: #fcf9e8;
+	color: #8a6116;
+}
+
+.twtaeo-pr__note,
+.twtaeo-pr__hint {
+	margin: 2px 0 0;
+	color: #646970;
+	font-size: 11px;
+}
+
+.twtaeo-pr__value {
+	margin: 4px 0 0;
+	color: #1d2327;
+	/* An author needs to recognise the value, not read all of it: the editor
+	   below shows the whole thing. */
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.twtaeo-pr__warn {
+	margin: 4px 0 6px;
+	padding: 5px 7px;
+	background: #fcf9e8;
+	border-left: 3px solid #dba617;
+	color: #1d2327;
+	font-size: 11px;
+}
+
+.twtaeo-pr__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 6px;
+}
+
+.twtaeo-pr__editor {
+	margin-top: 6px;
+}
+
+.twtaeo-pr__input {
+	width: 100%;
+	box-sizing: border-box;
+	font-size: 12px;
+}
+
+textarea.twtaeo-pr__input {
+	resize: vertical;
+	min-height: 60px;
+}
+
+.twtaeo-pr__counter {
+	margin-right: auto;
+	color: #646970;
+	font-variant-numeric: tabular-nums;
+}
+
+.twtaeo-pr__preview {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-top: 6px;
+	border: 1px solid rgba( 0, 0, 0, 0.1 );
+	border-radius: 2px;
+}
+
+/* The spend confirmation. Yellow, because it is the one thing here that
+   costs money, but inline so it never blocks the editor. */
+.twtaeo-pr__confirm {
+	margin-top: 6px;
+	padding: 8px;
+	background: #fcf9e8;
+	border-left: 3px solid #dba617;
+}
+
+.twtaeo-pr__confirm-text {
+	margin: 0 0 6px;
+	color: #1d2327;
+}
+
+.twtaeo-pr__remember {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: #646970;
+	font-size: 11px;
+}
+
+.twtaeo-pr__remember input {
+	margin: 0;
+}
+
+.twtaeo-pr__foot {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid rgba( 0, 0, 0, 0.08 );
+	color: #646970;
+	font-size: 11px;
+}
+
+/* A button that reads as a link: the action is a preference, not a command. */
+.twtaeo-pr__linkbtn {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #2271b1;
+	cursor: pointer;
+	font-size: 11px;
+	text-decoration: underline;
+}
+
+.twtaeo-pr__linkbtn:hover {
+	color: #135e96;
+}
+
+.twtaeo-pr__alt-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.twtaeo-pr__thumb {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	object-fit: cover;
+	border-radius: 2px;
+	border: 1px solid rgba( 0, 0, 0, 0.1 );
+}

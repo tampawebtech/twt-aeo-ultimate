@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: TWT AEO Ultimate 2.33.0\n"
+"Project-Id-Version: TWT AEO Ultimate 2.35.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/twt-aeo-ultimate\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-05T00:51:52+00:00\n"
+"POT-Creation-Date: 2026-11-10T00:41:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: twt-aeo-ultimate\n"
@@ -204,6 +204,7 @@ msgid "Building the list — reads your catalogue, spends nothing…"
 msgstr ""
 
 #: admin/class-admin-assets.php:301
+#: admin/class-publish-ready-metabox.php:74
 msgid "Loading…"
 msgstr ""
 
@@ -310,6 +311,7 @@ msgid "Not you — we will not ask again."
 msgstr ""
 
 #: admin/class-admin-assets.php:328
+#: admin/class-publish-ready-metabox.php:195
 #: admin/pages/class-page-ai-visibility.php:1109
 #: admin/pages/class-page-command-center.php:1734
 #: admin/pages/class-page-contact-detector.php:183
@@ -629,8 +631,31 @@ msgstr ""
 msgid "Setup Wizard"
 msgstr ""
 
-#: admin/class-admin-menu.php:500
-msgid "Module settings coming soon."
+#: admin/class-admin-menu.php:522
+#: admin/pages/class-page-author-box.php:18
+#: admin/pages/class-page-author-entity.php:19
+#: admin/pages/class-page-author-schema.php:31
+#: admin/pages/class-page-author.php:11
+#: admin/pages/class-page-contact-detector.php:18
+#: admin/pages/class-page-dashboard.php:19
+#: admin/pages/class-page-eeat.php:20
+#: admin/pages/class-page-faq-detector.php:18
+#: admin/pages/class-page-image-seo.php:22
+#: admin/pages/class-page-knowledge-graph.php:31
+#: admin/pages/class-page-not-indexed.php:8
+#: admin/pages/class-page-schema-detector.php:11
+#: admin/pages/class-page-service-detector.php:20
+#: admin/pages/class-page-social-graph.php:22
+#: admin/pages/class-page-woocommerce-detector.php:24
+msgid "You do not have permission."
+msgstr ""
+
+#: admin/class-admin-menu.php:531
+msgid "This module runs on its own and has no settings of its own."
+msgstr ""
+
+#: admin/class-admin-menu.php:533
+msgid "Manage modules"
 msgstr ""
 
 #: admin/class-hub-metabox.php:61
@@ -678,7 +703,6 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:2954
 #: admin/pages/class-page-not-indexed.php:350
 #: admin/pages/class-page-social-graph.php:1279
-#: includes/class-ai-description.php:134
 #: includes/class-author-meta.php:722
 msgid "Generating…"
 msgstr ""
@@ -979,6 +1003,187 @@ msgstr ""
 #: admin/class-pr-metabox.php:264
 #: admin/assets/js/pr-bridge.js:114
 msgid "Save as Press Release"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:43
+#: admin/class-publish-ready-metabox.php:179
+#: admin/class-publish-ready-metabox.php:218
+msgid "Finish this page"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:69
+msgid "Save a draft to see what this page still needs."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:78
+msgid "This panel needs JavaScript. The same fields are on the AEO Score, Social Graph and Image SEO screens."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:180
+msgid "Nothing outstanding on this page."
+msgstr ""
+
+#. translators: %d: number of fields still outstanding.
+#: admin/class-publish-ready-metabox.php:182
+#, php-format
+msgid "%d still to do"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:183
+msgid "done"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:184
+msgid "missing"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:185
+msgid "from a template"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:186
+msgid "inherited"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:187
+msgid "cannot tell"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:191
+#: admin/pages/class-page-command-center.php:2891
+#: admin/pages/class-page-not-indexed.php:389
+#: admin/pages/class-page-social-graph.php:747
+#: admin/pages/class-page-social-graph.php:819
+#: includes/class-author-meta.php:680
+#: includes/class-product-faq-generator.php:455
+msgid "Generate with AI"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:192
+msgid "Rewrite with AI"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:193
+msgid "AI images need an OpenAI key."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:194
+#: admin/pages/class-page-command-center.php:2898
+#: admin/pages/class-page-eeat.php:565
+#: admin/pages/class-page-google-reviews.php:395
+#: admin/pages/class-page-schema-conflicts.php:214
+#: admin/pages/class-page-social-graph.php:273
+#: admin/pages/class-page-social-graph.php:298
+#: admin/pages/class-page-social-graph.php:895
+#: admin/pages/class-page-social-graph.php:1193
+msgid "Save"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:196
+#: admin/pages/class-page-eeat.php:456
+#: admin/pages/class-page-eeat.php:570
+#: admin/pages/class-page-schema-detector.php:794
+#: admin/pages/class-page-schema-detector.php:1295
+#: admin/pages/class-page-service-detector.php:297
+#: admin/pages/class-page-smart-collections.php:644
+#: admin/pages/class-page-smart-collections.php:853
+#: admin/pages/class-page-social-graph.php:897
+msgid "Cancel"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:197
+msgid "Choose image"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:198
+msgid "Change"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:199
+#: admin/pages/class-page-ai-visibility.php:646
+#: admin/pages/class-page-knowledge-graph.php:334
+#: admin/pages/class-page-local-pack.php:325
+#: admin/pages/class-page-local-pack.php:351
+#: admin/pages/class-page-schema-detector.php:673
+#: admin/pages/class-page-schema-detector.php:1083
+#: admin/pages/class-page-service-detector.php:223
+#: admin/pages/class-page-smart-404.php:161
+#: admin/pages/class-page-social-graph.php:728
+#: includes/class-author-meta.php:774
+msgid "Remove"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:200
+msgid "Use first image in content"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:201
+msgid "Add alt text"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:202
+msgid "Save the page first. Alt text is written into the page content, so it cannot be changed while there are unsaved edits."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:203
+msgid "Describe this image"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:204
+msgid "Working…"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:205
+msgid "That did not go through. Try again."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:206
+msgid "Add an AI key under TWT AEO → Settings to generate this."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:207
+msgid "Choose an image"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:208
+#: admin/pages/class-page-image-seo.php:340
+#: admin/pages/class-page-social-graph.php:1068
+#: admin/assets/js/local-pack.js:326
+msgid "Use this image"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:209
+msgid "Your SEO plugin builds this from a pattern. Writing one here replaces the pattern for this page only."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:210
+msgid "This plugin cannot read where your SEO plugin keeps this field, so it may already be set."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:211
+msgid "Makes 1 AI call on your own API key."
+msgstr ""
+
+#. translators: %d: number of AI calls the action will make, each billed to the site owner's own API key.
+#: admin/class-publish-ready-metabox.php:213
+#, php-format
+msgid "Makes %d AI calls on your own API key."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:214
+msgid "Run it"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:215
+msgid "Do not ask me again"
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:216
+msgid "AI calls run without asking."
+msgstr ""
+
+#: admin/class-publish-ready-metabox.php:217
+msgid "Ask me again"
 msgstr ""
 
 #: admin/class-video-help.php:33
@@ -2246,6 +2451,7 @@ msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:628
 #: includes/class-abilities.php:61
+#: includes/class-publish-ready.php:518
 msgid "AEO Ultimate"
 msgstr ""
 
@@ -2267,19 +2473,6 @@ msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:644
 msgid "Track this brand"
-msgstr ""
-
-#: admin/pages/class-page-ai-visibility.php:646
-#: admin/pages/class-page-knowledge-graph.php:334
-#: admin/pages/class-page-local-pack.php:325
-#: admin/pages/class-page-local-pack.php:351
-#: admin/pages/class-page-schema-detector.php:673
-#: admin/pages/class-page-schema-detector.php:1083
-#: admin/pages/class-page-service-detector.php:223
-#: admin/pages/class-page-smart-404.php:161
-#: admin/pages/class-page-social-graph.php:728
-#: includes/class-author-meta.php:774
-msgid "Remove"
 msgstr ""
 
 #: admin/pages/class-page-ai-visibility.php:661
@@ -3467,23 +3660,6 @@ msgstr ""
 msgid "Trend"
 msgstr ""
 
-#: admin/pages/class-page-author-box.php:18
-#: admin/pages/class-page-author-entity.php:19
-#: admin/pages/class-page-author.php:11
-#: admin/pages/class-page-contact-detector.php:18
-#: admin/pages/class-page-dashboard.php:19
-#: admin/pages/class-page-eeat.php:20
-#: admin/pages/class-page-faq-detector.php:18
-#: admin/pages/class-page-image-seo.php:22
-#: admin/pages/class-page-knowledge-graph.php:31
-#: admin/pages/class-page-not-indexed.php:8
-#: admin/pages/class-page-schema-detector.php:11
-#: admin/pages/class-page-service-detector.php:20
-#: admin/pages/class-page-social-graph.php:22
-#: admin/pages/class-page-woocommerce-detector.php:24
-msgid "You do not have permission."
-msgstr ""
-
 #: admin/pages/class-page-author-box.php:37
 #: admin/pages/class-page-author-box.php:53
 #: admin/pages/class-page-author.php:43
@@ -3499,6 +3675,7 @@ msgstr ""
 
 #: admin/pages/class-page-author-box.php:60
 #: admin/pages/class-page-author-box.php:104
+#: admin/pages/class-page-author-schema.php:65
 #: admin/pages/class-page-author.php:88
 #: admin/pages/class-page-author.php:129
 msgid "Author Schema"
@@ -3559,6 +3736,7 @@ msgid "Primary Author"
 msgstr ""
 
 #: admin/pages/class-page-author-box.php:152
+#: admin/pages/class-page-author-schema.php:232
 #: admin/pages/class-page-author.php:175
 #: includes/class-woocommerce-detector.php:2776
 #: includes/class-woocommerce-detector.php:2830
@@ -3771,10 +3949,210 @@ msgstr ""
 msgid "A fully completed author profile strengthens E-E-A-T signals, improves AI retrieval confidence, and helps establish topical authority clusters."
 msgstr ""
 
+#: admin/pages/class-page-author-schema.php:68
+msgid "Person and ProfilePage schema for your posts and author archives"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:82
+#: admin/pages/class-page-smart-collections.php:601
+msgid "Publishing"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:83
+msgid "Standing down"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:90
+#: admin/pages/class-page-author-schema.php:195
+msgid "Authors"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:95
+msgid "Avg. completeness"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:100
+msgid "With credentials"
+msgstr ""
+
+#. translators: %s: SEO plugin name, e.g. Rank Math.
+#: admin/pages/class-page-author-schema.php:113
+#, php-format
+msgid "%s is already publishing Person schema"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:119
+msgid "Two Person nodes on one page compete, so this module stays quiet while that setting is on. Nothing here is lost: switch the person knowledge graph off in that plugin and AEO Ultimate takes over on the next page load, carrying the credentials and social profiles below."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:127
+msgid "What this module publishes"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:133
+#: admin/pages/class-page-claude.php:287
+msgid "Where"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:134
+#: admin/pages/class-page-funnel-audit.php:97
+#: admin/pages/class-page-news.php:253
+#: admin/pages/class-page-woocommerce-detector.php:569
+#: includes/class-owner-actions.php:1247
+msgid "Schema"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:135
+msgid "Built from"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:140
+msgid "Single posts"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:142
+msgid "The post author&#8217;s profile"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:145
+msgid "Author archives"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:147
+msgid "The archive owner, plus account and latest-post dates"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:150
+#: admin/pages/class-page-eeat.php:257
+#: admin/pages/class-page-setup-wizard.php:615
+#: includes/class-author-meta.php:205
+#: includes/class-author-meta.php:596
+msgid "Credentials"
+msgstr ""
+
+#. translators: 1: number of authors with credentials, 2: total authors.
+#: admin/pages/class-page-author-schema.php:156
+#, php-format
+msgid "%1$d of %2$d authors have certifications saved"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:164
+#: admin/pages/class-page-local-pack.php:734
+msgid "Social profiles"
+msgstr ""
+
+#. translators: 1: number of authors with social profiles, 2: total authors.
+#: admin/pages/class-page-author-schema.php:170
+#, php-format
+msgid "%1$d of %2$d authors have profile links saved"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:178
+#: admin/pages/class-page-eeat.php:258
+#: includes/class-author-meta.php:211
+msgid "Expertise"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:180
+msgid "The comma-separated expertise field on each profile"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:186
+msgid "On pages that already carry enough schema of their own, this Person node is folded into the single unified graph instead of printing a second block — same data, one script tag."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:198
+#: admin/pages/class-page-eeat.php:247
+msgid "No authors found."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:205
 #: admin/pages/class-page-author.php:33
 #: admin/pages/class-page-eeat.php:253
 #: admin/pages/class-page-setup-wizard.php:915
 msgid "Author"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:206
+msgid "Job title"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:207
+#: admin/pages/class-page-contact-detector.php:62
+#: admin/pages/class-page-schema-detector.php:903
+#: includes/class-woocommerce-detector.php:2803
+msgid "Complete"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:208
+msgid "Missing from the Person node"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:209
+#: admin/pages/class-page-contact-detector.php:117
+#: admin/pages/class-page-dashboard.php:418
+#: admin/pages/class-page-eeat.php:260
+#: admin/pages/class-page-faq-detector.php:141
+#: admin/pages/class-page-image-seo.php:123
+#: admin/pages/class-page-not-indexed.php:114
+#: admin/pages/class-page-not-indexed.php:235
+#: admin/pages/class-page-pr-bridge.php:102
+#: admin/pages/class-page-reviews.php:170
+#: admin/pages/class-page-schema-detector.php:208
+#: admin/pages/class-page-schema-detector.php:611
+#: admin/pages/class-page-schema-detector.php:1007
+#: admin/pages/class-page-service-detector.php:140
+#: admin/pages/class-page-social-graph.php:506
+#: admin/pages/class-page-woocommerce-detector.php:572
+msgid "Actions"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:225
+msgid "View archive"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:239
+msgid "Nothing"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:245
+msgid "Edit profile"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:247
+msgid "Author details"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:254
+msgid "Schema preview"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:270
+msgid "Edit author credentials, expertise and social profiles"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:272
+msgid "Turn this module off"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:294
+msgid "Visible author information"
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:298
+msgid "Author information was found on your recent posts."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:303
+msgid "No author box or byline was detected on your recent posts."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:309
+msgid "The Person schema and the visible byline agree, which is what search engines and AI assistants look for."
+msgstr ""
+
+#: admin/pages/class-page-author-schema.php:310
+msgid "Schema describes what a reader can see. Add a byline or author box in your theme — Appearance then Customize, or the single-post template — so the Person node matches the page."
 msgstr ""
 
 #: admin/pages/class-page-bot-view.php:50
@@ -4337,10 +4715,6 @@ msgstr ""
 msgid "What"
 msgstr ""
 
-#: admin/pages/class-page-claude.php:287
-msgid "Where"
-msgstr ""
-
 #: admin/pages/class-page-claude.php:288
 msgid "Before → after"
 msgstr ""
@@ -4418,7 +4792,7 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:861
 #: admin/pages/class-page-command-center.php:876
 #: admin/pages/class-page-command-center.php:1252
-#: admin/pages/class-page-settings.php:426
+#: admin/pages/class-page-settings.php:459
 #: admin/pages/class-page-woocommerce-detector.php:1681
 #: admin/pages/class-page-woocommerce-detector.php:2130
 msgid "Connected"
@@ -5140,7 +5514,7 @@ msgstr ""
 
 #: admin/pages/class-page-command-center.php:1273
 #: admin/pages/class-page-index-now.php:151
-#: admin/pages/class-page-settings.php:404
+#: admin/pages/class-page-settings.php:437
 msgid "API Key"
 msgstr ""
 
@@ -5706,33 +6080,12 @@ msgstr ""
 msgid "OG Description"
 msgstr ""
 
-#: admin/pages/class-page-command-center.php:2891
-#: admin/pages/class-page-not-indexed.php:389
-#: admin/pages/class-page-social-graph.php:747
-#: admin/pages/class-page-social-graph.php:819
-#: includes/class-ai-description.php:103
-#: includes/class-author-meta.php:680
-#: includes/class-product-faq-generator.php:455
-msgid "Generate with AI"
-msgstr ""
-
 #: admin/pages/class-page-command-center.php:2892
 msgid "OG Image"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2895
 msgid "Generate image with AI"
-msgstr ""
-
-#: admin/pages/class-page-command-center.php:2898
-#: admin/pages/class-page-eeat.php:565
-#: admin/pages/class-page-google-reviews.php:395
-#: admin/pages/class-page-schema-conflicts.php:214
-#: admin/pages/class-page-social-graph.php:273
-#: admin/pages/class-page-social-graph.php:298
-#: admin/pages/class-page-social-graph.php:895
-#: admin/pages/class-page-social-graph.php:1193
-msgid "Save"
 msgstr ""
 
 #: admin/pages/class-page-command-center.php:2915
@@ -5742,7 +6095,6 @@ msgstr ""
 #: admin/pages/class-page-command-center.php:2936
 #: admin/pages/class-page-not-indexed.php:421
 #: admin/pages/class-page-not-indexed.php:452
-#: includes/class-ai-description.php:135
 msgid "Saved ✓"
 msgstr ""
 
@@ -6259,12 +6611,6 @@ msgstr ""
 msgid "Need Attention"
 msgstr ""
 
-#: admin/pages/class-page-contact-detector.php:62
-#: admin/pages/class-page-schema-detector.php:903
-#: includes/class-woocommerce-detector.php:2803
-msgid "Complete"
-msgstr ""
-
 #: admin/pages/class-page-contact-detector.php:70
 #: admin/pages/class-page-schema-detector.php:976
 msgid "What This Checks"
@@ -6321,24 +6667,6 @@ msgstr ""
 #: admin/pages/class-page-contact-detector.php:115
 #: admin/pages/class-page-schema-detector.php:1005
 msgid "Entity"
-msgstr ""
-
-#: admin/pages/class-page-contact-detector.php:117
-#: admin/pages/class-page-dashboard.php:418
-#: admin/pages/class-page-eeat.php:260
-#: admin/pages/class-page-faq-detector.php:141
-#: admin/pages/class-page-image-seo.php:123
-#: admin/pages/class-page-not-indexed.php:114
-#: admin/pages/class-page-not-indexed.php:235
-#: admin/pages/class-page-pr-bridge.php:102
-#: admin/pages/class-page-reviews.php:170
-#: admin/pages/class-page-schema-detector.php:208
-#: admin/pages/class-page-schema-detector.php:611
-#: admin/pages/class-page-schema-detector.php:1007
-#: admin/pages/class-page-service-detector.php:140
-#: admin/pages/class-page-social-graph.php:506
-#: admin/pages/class-page-woocommerce-detector.php:572
-msgid "Actions"
 msgstr ""
 
 #: admin/pages/class-page-contact-detector.php:161
@@ -7336,10 +7664,6 @@ msgstr ""
 msgid "Author completeness directly impacts E-E-A-T signals. Fill in each author's credentials, expertise, and profile links."
 msgstr ""
 
-#: admin/pages/class-page-eeat.php:247
-msgid "No authors found."
-msgstr ""
-
 #: admin/pages/class-page-eeat.php:254
 #: admin/pages/class-page-promotions.php:419
 #: includes/class-roles.php:145
@@ -7351,18 +7675,6 @@ msgstr ""
 #: includes/class-author-meta.php:199
 #: includes/class-author-meta.php:586
 msgid "Job Title"
-msgstr ""
-
-#: admin/pages/class-page-eeat.php:257
-#: admin/pages/class-page-setup-wizard.php:615
-#: includes/class-author-meta.php:205
-#: includes/class-author-meta.php:596
-msgid "Credentials"
-msgstr ""
-
-#: admin/pages/class-page-eeat.php:258
-#: includes/class-author-meta.php:211
-msgid "Expertise"
 msgstr ""
 
 #: admin/pages/class-page-eeat.php:259
@@ -7470,17 +7782,6 @@ msgstr ""
 
 #: admin/pages/class-page-eeat.php:451
 msgid "Save Links"
-msgstr ""
-
-#: admin/pages/class-page-eeat.php:456
-#: admin/pages/class-page-eeat.php:570
-#: admin/pages/class-page-schema-detector.php:794
-#: admin/pages/class-page-schema-detector.php:1295
-#: admin/pages/class-page-service-detector.php:297
-#: admin/pages/class-page-smart-collections.php:644
-#: admin/pages/class-page-smart-collections.php:853
-#: admin/pages/class-page-social-graph.php:897
-msgid "Cancel"
 msgstr ""
 
 #: admin/pages/class-page-eeat.php:485
@@ -7721,13 +8022,6 @@ msgstr ""
 msgid "Inbound links"
 msgstr ""
 
-#: admin/pages/class-page-funnel-audit.php:97
-#: admin/pages/class-page-news.php:253
-#: admin/pages/class-page-woocommerce-detector.php:569
-#: includes/class-owner-actions.php:1247
-msgid "Schema"
-msgstr ""
-
 #: admin/pages/class-page-funnel-audit.php:98
 msgid "Action needed"
 msgstr ""
@@ -7782,7 +8076,7 @@ msgstr ""
 #: admin/pages/class-page-index-now.php:124
 #: admin/pages/class-page-lead-attribution.php:33
 #: admin/pages/class-page-local-pack.php:122
-#: admin/pages/class-page-settings.php:543
+#: admin/pages/class-page-settings.php:577
 #: admin/pages/class-page-smart-collections.php:277
 msgid "Settings saved."
 msgstr ""
@@ -8049,13 +8343,8 @@ msgstr ""
 msgid "Choose an image for this page"
 msgstr ""
 
-#: admin/pages/class-page-image-seo.php:340
-#: admin/pages/class-page-social-graph.php:1068
-#: admin/assets/js/local-pack.js:326
-msgid "Use this image"
-msgstr ""
-
 #: admin/pages/class-page-image-seo.php:364
+#: includes/class-publish-ready-rest.php:424
 msgid "Featured image set."
 msgstr ""
 
@@ -8130,7 +8419,7 @@ msgstr ""
 #: admin/pages/class-page-local-pack.php:669
 #: admin/pages/class-page-news.php:215
 #: admin/pages/class-page-reviews.php:446
-#: admin/pages/class-page-settings.php:464
+#: admin/pages/class-page-settings.php:497
 #: admin/pages/class-page-sitemap.php:326
 #: admin/pages/class-page-woocommerce-detector.php:1734
 #: admin/pages/class-page-woocommerce-detector.php:2192
@@ -8929,10 +9218,6 @@ msgstr ""
 
 #: admin/pages/class-page-local-pack.php:733
 msgid "Full description"
-msgstr ""
-
-#: admin/pages/class-page-local-pack.php:734
-msgid "Social profiles"
 msgstr ""
 
 #: admin/pages/class-page-local-pack.php:737
@@ -11669,12 +11954,12 @@ msgid "Used by the plugin's AI features — meta descriptions, PR Bridge, WooCom
 msgstr ""
 
 #: admin/pages/class-page-settings.php:115
-#: admin/pages/class-page-settings.php:410
+#: admin/pages/class-page-settings.php:443
 msgid "— protected via server constant —"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:134
-#: admin/pages/class-page-settings.php:254
+#: admin/pages/class-page-settings.php:281
 #: admin/pages/class-page-setup-wizard.php:768
 msgid "Claude (Anthropic)"
 msgstr ""
@@ -11684,7 +11969,7 @@ msgid "Descriptions & PR"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:142
-#: admin/pages/class-page-settings.php:255
+#: admin/pages/class-page-settings.php:282
 #: admin/pages/class-page-setup-wizard.php:777
 msgid "OpenAI (ChatGPT)"
 msgstr ""
@@ -11694,7 +11979,7 @@ msgid "Descriptions & images"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:150
-#: admin/pages/class-page-settings.php:256
+#: admin/pages/class-page-settings.php:283
 msgid "Gemini (Google)"
 msgstr ""
 
@@ -11703,7 +11988,7 @@ msgid "Summaries & meta"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:158
-#: admin/pages/class-page-settings.php:236
+#: admin/pages/class-page-settings.php:263
 msgid "Perplexity"
 msgstr ""
 
@@ -11712,230 +11997,259 @@ msgid "Brand & gap research"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:166
-msgid "Grok (xAI)"
+#: admin/pages/class-page-settings.php:284
+msgid "OpenRouter"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:168
+msgid "One key, many models"
+msgstr ""
+
 #: admin/pages/class-page-settings.php:176
-#: admin/pages/class-page-settings.php:184
-#: admin/pages/class-page-settings.php:192
+msgid "An OpenRouter key is saved."
+msgstr ""
+
+#: admin/pages/class-page-settings.php:177
+msgid "Reconnect"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:180
+msgid "Connect with OpenRouter"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:183
+msgid "Approve it at OpenRouter and the key is filled in for you. Nothing passes through us."
+msgstr ""
+
+#: admin/pages/class-page-settings.php:193
+msgid "Grok (xAI)"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:195
+#: admin/pages/class-page-settings.php:203
+#: admin/pages/class-page-settings.php:211
+#: admin/pages/class-page-settings.php:219
 msgid "AI Visibility checks"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:174
+#: admin/pages/class-page-settings.php:201
 msgid "Mistral (Le Chat)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:182
+#: admin/pages/class-page-settings.php:209
 msgid "DeepSeek"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:190
+#: admin/pages/class-page-settings.php:217
 msgid "Muse (Meta AI)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:205
+#: admin/pages/class-page-settings.php:232
 msgid "AI Enrichment"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:208
+#: admin/pages/class-page-settings.php:235
 msgid "Which providers power on-demand product enrichment (extract attributes from descriptions, resolve brand authority links). Uses the API keys above."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:213
+#: admin/pages/class-page-settings.php:240
 msgid "Attribute extraction"
 msgstr ""
 
 #. translators: %s: inherited provider name.
-#: admin/pages/class-page-settings.php:220
+#: admin/pages/class-page-settings.php:247
 #, php-format
 msgid "Inherit meta-description provider (%s)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:226
+#: admin/pages/class-page-settings.php:253
 msgid "Parses product text into structured attributes (color, material, dimensions, specs)."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:231
+#: admin/pages/class-page-settings.php:258
 msgid "Live retrieval"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:235
+#: admin/pages/class-page-settings.php:262
 msgid "Gemini (Google Search grounding)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:238
+#: admin/pages/class-page-settings.php:265
 msgid "Used for web-grounded lookups such as brand sameAs authority links."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:246
+#: admin/pages/class-page-settings.php:273
 msgid "AI Models"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:249
+#: admin/pages/class-page-settings.php:276
 msgid "Which model each provider uses for meta descriptions, enrichment and extraction. Stronger models write better but cost more per request. AI Visibility checks are not affected — they always use each app's own default model, so results match what your customers see."
 msgstr ""
 
 #. translators: %s: model ID.
-#: admin/pages/class-page-settings.php:276
+#: admin/pages/class-page-settings.php:304
 #, php-format
 msgid "%s (your current model)"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:282
-msgid "Or enter any model ID (for models released after this plugin version):"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:293
-msgid "Usage Telemetry"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:296
-msgid "Help us publish real-world AI cost estimates by sharing anonymous token counts from your content generations. This data is aggregated across all plugin users — no content, titles, URLs, or site information is ever collected."
-msgstr ""
-
-#: admin/pages/class-page-settings.php:301
-msgid "Share token usage"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:309
-msgid "Opt in to anonymous token telemetry"
+#: admin/pages/class-page-settings.php:311
+msgid "The free options cost nothing but OpenRouter rate limits them per account, so they suit one item at a time, a title or a description. A bulk run across many pages will hit the limit part way through. Everything else here is billed by OpenRouter at the rate that model charges."
 msgstr ""
 
 #: admin/pages/class-page-settings.php:315
-msgid "What we collect"
+msgid "Or enter any model ID (for models released after this plugin version):"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:317
-msgid "Provider (Claude / OpenAI / Perplexity)"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:318
-msgid "Model name"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:319
-msgid "Input and output token counts"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:320
-msgid "Cache hit / miss token counts (Claude)"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:321
-msgid "Plugin version"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:325
-msgid "What we never collect"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:327
-msgid "Page titles or content"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:328
-msgid "Site URL or name"
+#: admin/pages/class-page-settings.php:326
+msgid "Usage Telemetry"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:329
-msgid "API keys"
+msgid "Help us publish real-world AI cost estimates by sharing anonymous token counts from your content generations. This data is aggregated across all plugin users — no content, titles, URLs, or site information is ever collected."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:330
-msgid "User or account information"
+#: admin/pages/class-page-settings.php:334
+msgid "Share token usage"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:338
-msgid "Wire Service API Keys"
-msgstr ""
-
-#: admin/pages/class-page-settings.php:341
-msgid "Used by PR Bridge AI to distribute press releases. Add a key for each wire service you have an account with."
+#: admin/pages/class-page-settings.php:342
+msgid "Opt in to anonymous token telemetry"
 msgstr ""
 
 #: admin/pages/class-page-settings.php:348
+msgid "What we collect"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:350
+msgid "Provider (Claude / OpenAI / Perplexity)"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:351
+msgid "Model name"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:352
+msgid "Input and output token counts"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:353
+msgid "Cache hit / miss token counts (Claude)"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:354
+msgid "Plugin version"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:358
+msgid "What we never collect"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:360
+msgid "Page titles or content"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:361
+msgid "Site URL or name"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:362
+msgid "API keys"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:363
+msgid "User or account information"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:371
+msgid "Wire Service API Keys"
+msgstr ""
+
+#: admin/pages/class-page-settings.php:374
+msgid "Used by PR Bridge AI to distribute press releases. Add a key for each wire service you have an account with."
+msgstr ""
+
+#: admin/pages/class-page-settings.php:381
 msgid "EIN Presswire"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:350
+#: admin/pages/class-page-settings.php:383
 msgid "EIN Presswire Bearer token"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:350
+#: admin/pages/class-page-settings.php:383
 msgid "SMBs & agencies"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:356
+#: admin/pages/class-page-settings.php:389
 msgid "EasyPRWire"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:358
+#: admin/pages/class-page-settings.php:391
 msgid "EasyPRWire API key"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:358
+#: admin/pages/class-page-settings.php:391
 msgid "Niche & local"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:366
+#: admin/pages/class-page-settings.php:399
 msgid "TWT Agency"
 msgstr ""
 
 #. translators: %s: URL to learn more about TWT Agency.
-#: admin/pages/class-page-settings.php:373
+#: admin/pages/class-page-settings.php:406
 #, php-format
 msgid "Connect this site to <strong>TWT Agency</strong> so your SEO professional can monitor changes and generate monthly reports. Your professional will provide the Dashboard URL and API Key. <a href=\"%s\" target=\"_blank\">Learn more.</a>"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:383
+#: admin/pages/class-page-settings.php:416
 msgid "Enable Connection"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:391
+#: admin/pages/class-page-settings.php:424
 msgid "Send data to TWT Agency"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:395
+#: admin/pages/class-page-settings.php:428
 msgid "Dashboard URL"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:418
+#: admin/pages/class-page-settings.php:451
 msgid "Provided by your SEO professional"
 msgstr ""
 
 #. translators: %s: date and time of last sync.
-#: admin/pages/class-page-settings.php:429
+#: admin/pages/class-page-settings.php:462
 #, php-format
 msgid "Last sync: %s"
 msgstr ""
 
 #. translators: %s: date and time of last sync.
-#: admin/pages/class-page-settings.php:429
+#: admin/pages/class-page-settings.php:462
 msgid "Never"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:435
+#: admin/pages/class-page-settings.php:468
 msgid "Don't have a TWT Agency account yet?"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:436
+#: admin/pages/class-page-settings.php:469
 msgid "Learn more about TWT Agency &rarr;"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:444
+#: admin/pages/class-page-settings.php:477
 msgid "Agency Security: Protecting Client API Keys"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:447
+#: admin/pages/class-page-settings.php:480
 msgid "Keys entered in the form above are stored in the WordPress database. Anyone with database access (hosting panel, phpMyAdmin, staging sync, DB backup) can read them. For agency-managed client sites, define keys as PHP constants or server environment variables instead — they are never written to the database, never logged, and take priority over any database value."
 msgstr ""
 
-#: admin/pages/class-page-settings.php:449
+#: admin/pages/class-page-settings.php:482
 msgid "Add to wp-config.php (above \"That's all, stop editing\"):"
 msgstr ""
 
-#: admin/pages/class-page-settings.php:459
+#: admin/pages/class-page-settings.php:492
 msgid "Alternatively, set the same names as server environment variables (LSAPI_CHILDREN, Nginx fastcgi_param, or Docker ENV). On WordPress 7.0 you can instead leave the Claude and OpenAI fields blank and connect those providers at Settings → Connectors; the plugin then generates through the WordPress AI Client without ever handling the key."
 msgstr ""
 
@@ -12984,10 +13298,6 @@ msgstr ""
 
 #: admin/pages/class-page-smart-collections.php:596
 msgid "Leave blank and one is built from your catalogue automatically — product count, price range and stock, all read live. Anything you type here wins and is never overwritten."
-msgstr ""
-
-#: admin/pages/class-page-smart-collections.php:601
-msgid "Publishing"
 msgstr ""
 
 #: admin/pages/class-page-smart-collections.php:605
@@ -14986,6 +15296,7 @@ msgstr ""
 
 #: includes/class-aeo-score.php:405
 #: includes/class-output-control.php:135
+#: includes/class-publish-ready.php:332
 msgid "Meta description"
 msgstr ""
 
@@ -15096,95 +15407,119 @@ msgid "Connect a Merchant Center"
 msgstr ""
 
 #. translators: %s: provider name.
-#: includes/class-ai-client.php:68
+#: includes/class-ai-client.php:78
 #: includes/class-ai-description.php:368
 #, php-format
 msgid "No API key configured for %s. Add one under TWT AEO → Settings."
 msgstr ""
 
-#: includes/class-ai-client.php:83
-#: includes/class-ai-description.php:373
+#: includes/class-ai-client.php:95
+#: includes/class-ai-description.php:355
 msgid "Unknown AI provider."
 msgstr ""
 
-#: includes/class-ai-client.php:111
+#: includes/class-ai-client.php:123
 msgid "AI response was not valid JSON."
 msgstr ""
 
-#: includes/class-ai-client.php:214
+#: includes/class-ai-client.php:251
 msgid "Claude returned no content."
 msgstr ""
 
-#: includes/class-ai-client.php:284
+#: includes/class-ai-client.php:348
 msgid "OpenAI returned no content."
 msgstr ""
 
 #. translators: %s: Gemini finishReason, e.g. MAX_TOKENS.
-#: includes/class-ai-client.php:410
+#: includes/class-ai-client.php:476
 #, php-format
 msgid "Gemini returned no usable text (finishReason: %s)."
 msgstr ""
 
-#: includes/class-ai-client.php:411
+#: includes/class-ai-client.php:477
 msgid "Gemini returned no content."
 msgstr ""
 
-#: includes/class-ai-client.php:453
+#: includes/class-ai-client.php:587
+msgid "Your OpenRouter account is out of credit."
+msgstr ""
+
+#: includes/class-ai-client.php:593
+msgid "OpenRouter is rate limiting this model. Free models allow only a few requests at a time, so this is expected part way through a bulk run. Wait a moment, or pick a paid model under Settings - AI Models."
+msgstr ""
+
+#. translators: 1: HTTP status code, 2: error text from OpenRouter.
+#: includes/class-ai-client.php:596
+#, php-format
+msgid "OpenRouter error (HTTP %1$d). %2$s"
+msgstr ""
+
+#. translators: %s: the model id that was used.
+#: includes/class-ai-client.php:620
+#, php-format
+msgid "%s used its whole reply allowance before writing an answer, which usually means it is a reasoning model. Try a different model under Settings - AI Models."
+msgstr ""
+
+#: includes/class-ai-client.php:626
+msgid "OpenRouter returned no content."
+msgstr ""
+
+#: includes/class-ai-client.php:662
 msgid "Perplexity returned no content."
 msgstr ""
 
-#: includes/class-ai-client.php:501
+#: includes/class-ai-client.php:710
 msgid "Perplexity no longer accepts the request this version of TWT AEO Ultimate sends — Perplexity has retired that API. Update TWT AEO Ultimate under Dashboard → Updates to restore Perplexity features."
 msgstr ""
 
-#: includes/class-ai-client.php:503
+#: includes/class-ai-client.php:712
 msgid "Perplexity rejected the API key. Check the key under TWT AEO → Settings, and that it is active in your Perplexity account."
 msgstr ""
 
-#: includes/class-ai-client.php:505
+#: includes/class-ai-client.php:714
 msgid "Perplexity is rate-limiting this key. Wait a minute, then try again."
 msgstr ""
 
-#: includes/class-ai-client.php:507
+#: includes/class-ai-client.php:716
 msgid "Your Perplexity account is out of API credit. Add credit in your Perplexity account, then try again."
 msgstr ""
 
-#: includes/class-ai-client.php:509
+#: includes/class-ai-client.php:718
 msgid "Perplexity had a server error. This is usually temporary — try again shortly."
 msgstr ""
 
 #. translators: %d: HTTP status code.
-#: includes/class-ai-client.php:512
+#: includes/class-ai-client.php:721
 #, php-format
 msgid "Perplexity API error (HTTP %d)."
 msgstr ""
 
 #. translators: 1: plain-language explanation, 2: Perplexity's own error text.
-#: includes/class-ai-client.php:517
+#: includes/class-ai-client.php:726
 #, php-format
 msgid "%1$s (Perplexity said: %2$s)"
 msgstr ""
 
-#: includes/class-ai-client.php:529
-#: includes/class-ai-description.php:392
+#: includes/class-ai-client.php:738
+#: includes/class-ai-description.php:388
 msgid "The WordPress AI Client is not available."
 msgstr ""
 
-#: includes/class-ai-client.php:532
+#: includes/class-ai-client.php:741
 msgid "Image analysis requires a configured provider key."
 msgstr ""
 
-#: includes/class-ai-client.php:546
+#: includes/class-ai-client.php:755
 msgid "The WordPress AI Client did not return a prompt builder."
 msgstr ""
 
 #. translators: %s: the error reported by WordPress.
-#: includes/class-ai-client.php:585
+#: includes/class-ai-client.php:794
 #, php-format
 msgid "The WordPress AI Client could not generate text: %s Connect a provider under Settings → Connectors, or enter a key on this screen."
 msgstr ""
 
-#: includes/class-ai-client.php:592
+#: includes/class-ai-client.php:801
 msgid "The WordPress AI Client returned no content."
 msgstr ""
 
@@ -15198,218 +15533,252 @@ msgstr ""
 msgid "View AI Crawler Watch →"
 msgstr ""
 
-#: includes/class-ai-description.php:76
-msgid "AEO Meta Description"
-msgstr ""
-
-#: includes/class-ai-description.php:93
-msgid "Meta description…"
-msgstr ""
-
-#: includes/class-ai-description.php:97
-msgid "Add an AI key under TWT AEO → Settings to enable generation."
-msgstr ""
-
-#. translators: %s: AI provider name.
-#: includes/class-ai-description.php:111
-#, php-format
-msgid "Uses %s. Change the provider on the TWT AEO dashboard."
-msgstr ""
-
-#: includes/class-ai-description.php:136
-msgid "Error — see message"
-msgstr ""
-
-#: includes/class-ai-description.php:215
+#: includes/class-ai-description.php:142
 msgid "Fast and reliable. Haiku is tuned for short summaries — usually a second or two per post."
 msgstr ""
 
-#: includes/class-ai-description.php:220
+#: includes/class-ai-description.php:147
 msgid "Fast and low-cost. The Luna and mini models are quick for this task — comparable to Claude."
 msgstr ""
 
-#: includes/class-ai-description.php:225
-msgid "Slower than Claude or OpenAI, especially on the free tier — a large bulk run can take several minutes. It keeps working in the background, so you can leave this page and check back later."
+#: includes/class-ai-description.php:152
+msgid "One key and one bill for models from several vendors, picked by name under Settings - AI Models. Speed and cost follow whichever model you choose. Used for writing and image descriptions; AI Visibility still talks to each engine directly, because it needs their own web search and citations."
 msgstr ""
 
-#: includes/class-ai-description.php:295
-#: includes/class-ai-description.php:481
+#: includes/class-ai-description.php:159
+msgid "Built for grounded answers rather than prose, so titles and descriptions read more factual and less persuasive than Claude or OpenAI. Useful where accuracy matters more than polish."
+msgstr ""
+
+#: includes/class-ai-description.php:164
+msgid "Slower than Claude or OpenAI, especially on the free tier — a large bulk run can take several minutes. It keeps working in the background, so you can leave this page and check back later. Its short copy tends to need the most editing of the four."
+msgstr ""
+
+#: includes/class-ai-description.php:268
+#: includes/class-ai-description.php:477
 #: includes/class-image-optimizer.php:170
 #: includes/class-image-optimizer.php:239
 msgid "Post not found."
 msgstr ""
 
-#: includes/class-ai-description.php:312
+#: includes/class-ai-description.php:285
 msgid "This post has no content to summarise."
 msgstr ""
 
-#: includes/class-ai-description.php:319
+#: includes/class-ai-description.php:292
 msgid "Not enough page content to write a useful description."
 msgstr ""
 
-#: includes/class-ai-description.php:349
+#: includes/class-ai-description.php:339
+msgid "The AI returned an empty title."
+msgstr ""
+
+#: includes/class-ai-description.php:340
 #: includes/class-product-enricher.php:459
 msgid "The AI returned an empty description."
 msgstr ""
 
-#: includes/class-ai-description.php:400
+#: includes/class-ai-description.php:396
 msgid "The WordPress AI Client returned an unexpected response."
 msgstr ""
 
-#: includes/class-ai-description.php:450
+#: includes/class-ai-description.php:446
 msgid "Clean & professional"
 msgstr ""
 
-#: includes/class-ai-description.php:454
+#: includes/class-ai-description.php:450
 msgid "Bold & vibrant"
 msgstr ""
 
-#: includes/class-ai-description.php:458
+#: includes/class-ai-description.php:454
 msgid "Minimal & modern"
 msgstr ""
 
-#: includes/class-ai-description.php:462
+#: includes/class-ai-description.php:458
 msgid "Photographic / realistic"
 msgstr ""
 
-#: includes/class-ai-description.php:486
-#: includes/class-ai-description.php:545
-#: includes/class-ai-description.php:588
+#: includes/class-ai-description.php:482
+#: includes/class-ai-description.php:541
+#: includes/class-ai-description.php:584
 msgid "AI image generation needs an OpenAI API key. Add one under TWT AEO → Settings."
 msgstr ""
 
-#: includes/class-ai-description.php:502
-#: includes/class-ai-description.php:556
-#: includes/class-ai-description.php:666
+#: includes/class-ai-description.php:498
+#: includes/class-ai-description.php:552
+#: includes/class-ai-description.php:662
 msgid "The generated image could not be decoded."
 msgstr ""
 
-#: includes/class-ai-description.php:511
-#: includes/class-ai-description.php:566
-#: includes/class-ai-description.php:675
+#: includes/class-ai-description.php:507
+#: includes/class-ai-description.php:562
+#: includes/class-ai-description.php:671
 msgid "The generated image could not be downloaded."
 msgstr ""
 
 #. translators: %s: post title.
-#: includes/class-ai-description.php:518
+#: includes/class-ai-description.php:514
 #, php-format
 msgid "Social share image for %s"
 msgstr ""
 
-#: includes/class-ai-description.php:519
+#: includes/class-ai-description.php:515
 msgid "AI-generated social share image"
 msgstr ""
 
-#: includes/class-ai-description.php:649
+#: includes/class-ai-description.php:645
 msgid "No response from the image API."
 msgstr ""
 
-#: includes/class-ai-description.php:657
+#: includes/class-ai-description.php:653
 msgid "OpenAI rate limit reached."
 msgstr ""
 
-#: includes/class-ai-description.php:677
-#: includes/class-ai-description.php:761
+#: includes/class-ai-description.php:673
+#: includes/class-ai-description.php:757
 msgid "OpenAI returned no image."
 msgstr ""
 
-#: includes/class-ai-description.php:788
+#: includes/class-ai-description.php:784
 msgid "Could not add the image to the media library."
 msgstr ""
 
-#: includes/class-ai-description.php:1204
+#: includes/class-ai-description.php:1200
 msgid "AI social descriptions"
 msgstr ""
 
-#: includes/class-ai-description.php:1205
+#: includes/class-ai-description.php:1201
 msgid "AI meta descriptions"
 msgstr ""
 
 #. translators: 1: feature label, 2: number created, 3: error message.
-#: includes/class-ai-description.php:1210
+#: includes/class-ai-description.php:1206
 #, php-format
 msgid "%1$s stopped after creating %2$d — %3$s"
 msgstr ""
 
 #. translators: 1: feature label, 2: number created, 3: number skipped.
-#: includes/class-ai-description.php:1221
+#: includes/class-ai-description.php:1217
 #, php-format
 msgid "%1$s finished — %2$d created, %3$d skipped (not enough content to summarise)."
 msgstr ""
 
 #. translators: 1: feature label, 2: number of descriptions created.
-#: includes/class-ai-description.php:1229
+#: includes/class-ai-description.php:1225
 #, php-format
 msgid "%1$s finished — %2$d created."
 msgstr ""
 
-#: includes/class-ai-description.php:1244
+#: includes/class-ai-description.php:1240
 #: includes/class-background-scan.php:204
 msgid "Dismiss"
 msgstr ""
 
-#: includes/class-ai-models.php:73
+#: includes/class-ai-models.php:77
 msgid "Claude Haiku 4.5 — fastest, lowest cost (recommended)"
 msgstr ""
 
-#: includes/class-ai-models.php:74
+#: includes/class-ai-models.php:78
 msgid "Claude Sonnet 5 — stronger writing, about 2× the cost"
 msgstr ""
 
-#: includes/class-ai-models.php:75
+#: includes/class-ai-models.php:79
 msgid "Claude Sonnet 4.6 — previous Sonnet"
 msgstr ""
 
-#: includes/class-ai-models.php:76
+#: includes/class-ai-models.php:80
 msgid "Claude Opus 5 — most capable, highest cost"
 msgstr ""
 
-#: includes/class-ai-models.php:79
+#: includes/class-ai-models.php:83
 msgid "GPT-6 Luna — fastest, lowest cost (recommended)"
 msgstr ""
 
-#: includes/class-ai-models.php:80
+#: includes/class-ai-models.php:84
 msgid "GPT-6.1 Sol — near-Astra quality, higher cost"
 msgstr ""
 
-#: includes/class-ai-models.php:81
+#: includes/class-ai-models.php:85
 msgid "GPT-6 Sol — previous Sol"
 msgstr ""
 
-#: includes/class-ai-models.php:82
+#: includes/class-ai-models.php:86
 msgid "GPT-6 Astra — most capable, highest cost"
 msgstr ""
 
-#: includes/class-ai-models.php:83
+#: includes/class-ai-models.php:87
 msgid "GPT-5.6 Luna — previous generation"
 msgstr ""
 
-#: includes/class-ai-models.php:84
+#: includes/class-ai-models.php:88
 msgid "GPT-5.4 mini — used by this plugin through 2.23"
 msgstr ""
 
-#: includes/class-ai-models.php:87
+#: includes/class-ai-models.php:91
 msgid "Gemini 3.6 Flash — balanced (recommended)"
 msgstr ""
 
-#: includes/class-ai-models.php:88
+#: includes/class-ai-models.php:92
 msgid "Gemini 3.5 Flash-Lite — lowest cost"
 msgstr ""
 
-#: includes/class-ai-models.php:89
+#: includes/class-ai-models.php:93
 msgid "Gemini 3.8 Flash — newest, most capable Flash"
 msgstr ""
 
-#: includes/class-ai-models.php:90
+#: includes/class-ai-models.php:94
 msgid "Gemini 3.7 Flash"
 msgstr ""
 
-#: includes/class-ai-models.php:91
+#: includes/class-ai-models.php:95
 msgid "Gemini 3.5 Flash"
 msgstr ""
 
-#: includes/class-ai-models.php:92
+#: includes/class-ai-models.php:96
 msgid "Gemini 2.5 Flash — legacy; only for accounts already using it"
+msgstr ""
+
+#: includes/class-ai-models.php:113
+msgid "Claude Haiku 5.5 — reads images, about 1c per 100 items (recommended)"
+msgstr ""
+
+#: includes/class-ai-models.php:114
+msgid "GPT-5 Nano — reads images, about 0.7c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:115
+msgid "Gemma 3 12B — reads images, about 0.5c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:116
+msgid "DeepSeek V4.1 Flash — reads images, about 0.4c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:117
+msgid "Muse Ember (Meta) — reads images, about 1c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:118
+msgid "Mistral Nemo — text only, about 0.2c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:119
+msgid "Llama 3.1 8B — text only, the cheapest here"
+msgstr ""
+
+#: includes/class-ai-models.php:120
+msgid "Perplexity Sonar — reads images, about 8c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:121
+msgid "Grok 4.3 — reads images, about 11c per 100 items"
+msgstr ""
+
+#: includes/class-ai-models.php:122
+msgid "Free: whichever free model is free right now — reads images, rate limited"
+msgstr ""
+
+#: includes/class-ai-models.php:123
+msgid "Free: Nemotron 3.5 Lightning — text only, rate limited"
 msgstr ""
 
 #: includes/class-author-hover.php:79
@@ -17595,6 +17964,7 @@ msgstr ""
 
 #. translators: %d: number of images.
 #: includes/class-owner-actions.php:1030
+#: includes/class-publish-ready-rest.php:363
 #, php-format
 msgid "Alt text written for %d image."
 msgid_plural "Alt text written for %d images."
@@ -18234,6 +18604,169 @@ msgstr ""
 
 #: includes/class-promotions-feed.php:451
 msgid "Sent."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:128
+msgid "You cannot manage AEO settings."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:133
+msgid "You cannot edit this page."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:150
+#: includes/class-publish-ready-rest.php:165
+#: includes/class-publish-ready-rest.php:240
+msgid "Page not found."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:183
+msgid "Save a draft first, then generate."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:211
+msgid "That field cannot be generated."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:249
+msgid "SEO title saved."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:255
+msgid "Meta description saved."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:297
+msgid "You will be asked again before each AI call."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:298
+msgid "AI calls will run without asking."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:303
+msgid "That field cannot be saved."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:325
+msgid "SEO title written."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:335
+msgid "Meta description written."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:350
+msgid "Share image generated and set."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:378
+#: includes/class-publish-ready-rest.php:420
+msgid "That is not an image in the media library."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:385
+msgid "That share image address is not usable."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:397
+msgid "Share image cleared. The page falls back to the next image it has."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:398
+msgid "Share image set."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:408
+msgid "No image in the content belongs to this site's media library, so it cannot be the featured image."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:414
+msgid "Featured image set from the first image in the content."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:429
+msgid "Featured image removed."
+msgstr ""
+
+#: includes/class-publish-ready-rest.php:434
+msgid "No alt text was sent."
+msgstr ""
+
+#. translators: %d: number of images whose alt text was saved.
+#: includes/class-publish-ready-rest.php:456
+#, php-format
+msgid "Alt text saved for %d image."
+msgid_plural "Alt text saved for %d images."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-publish-ready-rest.php:509
+msgid "Save the page first. Alt text is written into the page content, and this page has changes that are not saved yet."
+msgstr ""
+
+#: includes/class-publish-ready.php:296
+msgid "SEO title"
+msgstr ""
+
+#: includes/class-publish-ready.php:327
+msgid "the excerpt"
+msgstr ""
+
+#: includes/class-publish-ready.php:360
+msgid "set for this page"
+msgstr ""
+
+#: includes/class-publish-ready.php:361
+msgid "from the featured image"
+msgstr ""
+
+#: includes/class-publish-ready.php:362
+msgid "from the first image in the content"
+msgstr ""
+
+#: includes/class-publish-ready.php:363
+msgid "from the product gallery"
+msgstr ""
+
+#: includes/class-publish-ready.php:381
+msgid "Share image"
+msgstr ""
+
+#: includes/class-publish-ready.php:414
+msgid "the first image in the content can be used"
+msgstr ""
+
+#: includes/class-publish-ready.php:420
+msgid "Featured image"
+msgstr ""
+
+#: includes/class-publish-ready.php:468
+msgid "The image on this page has no alt text"
+msgstr ""
+
+#. translators: 1: number of images with no alt text, 2: total images on the page, always 2 or more here.
+#: includes/class-publish-ready.php:472
+#, php-format
+msgid "No alt text on %1$d of %2$d images"
+msgstr ""
+
+#. translators: %d: number of images on the page.
+#: includes/class-publish-ready.php:479
+#, php-format
+msgid "%d image, described"
+msgid_plural "%d images, all described"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-publish-ready.php:486
+msgid "Image alt text"
+msgstr ""
+
+#. translators: 1: character count of the current value, 2: suggested character count.
+#: includes/class-publish-ready.php:574
+#, php-format
+msgid "%1$d characters, around %2$d reads well"
 msgstr ""
 
 #. translators: %s: error message.
@@ -19111,6 +19644,26 @@ msgstr ""
 #: includes/Integrations/class-google-pagespeed.php:76
 #, php-format
 msgid "PageSpeed API error (HTTP %d)."
+msgstr ""
+
+#. translators: %s: error text.
+#: includes/Integrations/class-openrouter-auth.php:198
+#, php-format
+msgid "Could not reach OpenRouter: %s"
+msgstr ""
+
+#: includes/Integrations/class-openrouter-auth.php:208
+msgid "OpenRouter refused the connection. Nothing has been changed."
+msgstr ""
+
+#. translators: %s: PHP constant name.
+#: includes/Integrations/class-openrouter-auth.php:219
+#, php-format
+msgid "This site sets its OpenRouter key with %s, so it cannot be changed here."
+msgstr ""
+
+#: includes/Integrations/class-openrouter-auth.php:234
+msgid "Connected to OpenRouter. The key is saved below and AI features can use it now."
 msgstr ""
 
 #: admin/assets/js/ai-ready.js:66

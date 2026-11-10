@@ -292,11 +292,22 @@ class TWTAEO_Author_Schema_Writer {
 	 * @return bool
 	 */
 	private static function seo_plugin_handles_person() {
+		return '' !== self::deferring_to();
+	}
+
+	/**
+	 * Which SEO plugin, if any, is already publishing Person schema for this
+	 * site. '' means nothing is, so this module publishes its own node. The
+	 * Author Schema screen shows this so the stand-down is never a mystery.
+	 *
+	 * @return string '', 'Rank Math' or 'Yoast SEO'.
+	 */
+	public static function deferring_to() {
 		// Rank Math: person knowledge graph.
 		if ( defined( 'RANK_MATH_VERSION' ) ) {
 			$rm = get_option( 'rank_math_titles', array() );
 			if ( isset( $rm['knowledgegraph_type'] ) && $rm['knowledgegraph_type'] === 'person' ) {
-				return true;
+				return 'Rank Math';
 			}
 		}
 
@@ -304,10 +315,10 @@ class TWTAEO_Author_Schema_Writer {
 		if ( defined( 'WPSEO_VERSION' ) ) {
 			$wpseo = get_option( 'wpseo_social', array() );
 			if ( ! empty( $wpseo['person_name'] ) ) {
-				return true;
+				return 'Yoast SEO';
 			}
 		}
 
-		return false;
+		return '';
 	}
 }

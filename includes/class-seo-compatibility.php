@@ -345,4 +345,78 @@ class TWTAEO_SEO_Compatibility {
 
 		return array_unique( $covered );
 	}
+
+	/**
+	 * Post meta keys each SEO plugin stores a page's SEO title and meta
+	 * description in. One list so reading, write-through and the editor panel
+	 * cannot drift apart; four separate copies of these keys is how the
+	 * SEOPress mistake below survived.
+	 *
+	 * SEOPress: the keys are `_seopress_titles_title` / `_seopress_titles_desc`.
+	 * The unprefixed `seopress_titles_*` names are SEOPress's filter hooks, not
+	 * meta keys, so reading those found nothing on every SEOPress site and the
+	 * description read as missing when the owner had written one.
+	 *
+	 * AIOSEO: these are the 3.x meta keys, the ones this plugin has always
+	 * used. AIOSEO 4 keeps per-post data in its own `aioseo_posts` table, so a
+	 * 4.x site may hold a title and description these keys cannot see. Not yet
+	 * verified against a live AIOSEO 4 install: until it is, treat an empty
+	 * read on AIOSEO as "unknown", never as "the owner left it blank".
+	 *
+	 * The SEO Framework and SASWP are absent on purpose. SASWP owns no titles,
+	 * and The SEO Framework's key has not been confirmed, so this plugin has
+	 * never written to either and this list does not start now.
+	 *
+	 * @var array<string, array{title: string, desc: string}>
+	 */
+	const META_FIELDS = array(
+		'yoast'     => array( 'title' => '_yoast_wpseo_title',     'desc' => '_yoast_wpseo_metadesc' ),
+		'rank-math' => array( 'title' => 'rank_math_title',        'desc' => 'rank_math_description' ),
+		'seopress'  => array( 'title' => '_seopress_titles_title', 'desc' => '_seopress_titles_desc' ),
+		'aioseo'    => array( 'title' => '_aioseop_title',         'desc' => '_aioseop_description' ),
+	);
+
+	/** Slugs whose stored value cannot be trusted to be complete. See META_FIELDS. */
+	const META_UNVERIFIED = array( 'aioseo' );
+
+	/**
+	 * META_FIELDS limited to the SEO plugins actually active on this site.
+	 *
+	 * @return array<string, array{title: string, desc: string, name: string, unverified: bool}>
+	 */
+	public static function active_meta_fields() {
+		$out = array();
+
+		foreach ( self::detect_active_plugins() as $slug => $plugin ) {
+			if ( ! isset( self::META_FIELDS[ $slug ] ) ) {
+				continue;
+			}
+			$out[ $slug ] = array(
+				'title'      => self::META_FIELDS[ $slug ]['title'],
+				'desc'       => self::META_FIELDS[ $slug ]['desc'],
+				'name'       => $plugin['name'],
+				'unverified' => in_array( $slug, self::META_UNVERIFIED, true ),
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Every known meta key for one field, this plugin's own key first so an
+	 * owner's AEO Ultimate value wins over an SEO plugin's.
+	 *
+	 * @param string $field 'title' or 'desc'.
+	 * @return string[]
+	 */
+	public static function meta_keys( $field ) {
+		$field = ( 'title' === $field ) ? 'title' : 'desc';
+		$keys  = array( 'title' === $field ? '_twtaeo_seo_title' : '_twtaeo_meta_description' );
+
+		foreach ( self::META_FIELDS as $fields ) {
+			$keys[] = $fields[ $field ];
+		}
+
+		return $keys;
+	}
 }

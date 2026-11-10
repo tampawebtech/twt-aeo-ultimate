@@ -3,7 +3,7 @@
  * Plugin Name:       TWT AEO Ultimate
  * Plugin URI:        https://tampawebtech.com/twt-aeo-ultimate
  * Description:       Schema markup, structured data & llms.txt for SEO and AI search — FAQ, Product, Local Business & Article JSON-LD, plus E-E-A-T author signals and AI crawler controls.
- * Version:           2.33.2
+ * Version:           2.35.0
  * Author:            Tampa Web Technologies
  * Author URI:        https://tampawebtech.com
  * License:           GPL-2.0+
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 // (`AEOWC_Free_Plugin_Bridge::HANDSHAKE_SINCE`), because a copy without
 // TWTAEO_Commerce_Handoff cannot stand down however the merchant answers. 2.13.0 is
 // the release that added it — do not lower this, and keep the two in step.
-define( 'TWTAEO_VERSION',    '2.33.2' );
+define( 'TWTAEO_VERSION',    '2.35.0' );
 define( 'TWTAEO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TWTAEO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -29,6 +29,7 @@ TWTAEO_Logger::init();
 
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-crypt.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-key-resolver.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/Integrations/class-openrouter-auth.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-activator.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-review-notice.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-roles.php';
@@ -94,6 +95,7 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/class-custom-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-author-meta.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-author-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-author-hover.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-author-schema.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-author-entity.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-company-profile.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-company-og-writer.php';
@@ -203,6 +205,12 @@ require_once TWTAEO_PLUGIN_DIR . 'includes/class-news-meta.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-news-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-article-schema-writer.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-ai-description.php';
+
+// Reads the OG writer, the image optimizer, the AI description generator and
+// the SEO plugin registry, so it loads after all four.
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-publish-ready.php';
+require_once TWTAEO_PLUGIN_DIR . 'includes/class-publish-ready-rest.php';
+require_once TWTAEO_PLUGIN_DIR . 'admin/class-publish-ready-metabox.php';
 require_once TWTAEO_PLUGIN_DIR . 'admin/pages/class-page-news.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-reviews-cpt.php';
 require_once TWTAEO_PLUGIN_DIR . 'includes/class-reviews-schema-writer.php';
@@ -238,6 +246,10 @@ function twtaeo_run() {
 	$GLOBALS['twtaeo_plugin'] = new TWTAEO_Plugin();
 	$GLOBALS['twtaeo_plugin']->run();
 	TWTAEO_Metabox::register_hooks();
+	TWTAEO_Publish_Ready::register_hooks();
+	TWTAEO_OpenRouter_Auth::register_hooks();
+	TWTAEO_Publish_Ready_REST::register_hooks();
+	TWTAEO_Publish_Ready_Metabox::register_hooks();
 	TWTAEO_OAuth_Server::init();
 	TWTAEO_Pro_Transmitter::init();
 	TWTAEO_Micro_Conversion_Tracker::init();

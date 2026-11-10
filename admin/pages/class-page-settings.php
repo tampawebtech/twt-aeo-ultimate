@@ -30,7 +30,7 @@ class TWTAEO_Page_Settings {
 		$settings = get_option( 'twtaeo_settings', array() );
 
 		// Decrypt secret fields for display (stored encrypted at rest).
-		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_xai', 'api_mistral', 'api_deepseek', 'api_meta', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
+		foreach ( array( 'api_claude', 'api_openai', 'api_gemini', 'api_perplexity', 'api_openrouter', 'api_xai', 'api_mistral', 'api_deepseek', 'api_meta', 'api_ein_presswire', 'api_easypwire' ) as $secret_field ) {
 			if ( ! empty( $settings[ $secret_field ] ) ) {
 				$settings[ $secret_field ] = TWTAEO_Crypt::decrypt( (string) $settings[ $secret_field ] );
 			}
@@ -162,6 +162,33 @@ class TWTAEO_Page_Settings {
 
 							<div class="twt-aeo-api-key-row">
 								<label class="twt-aeo-api-key-row__label">
+									<span class="twt-aeo-api-dot" style="background:#6467f2;"></span>
+									<?php esc_html_e( 'OpenRouter', 'twt-aeo-ultimate' ); ?>
+								</label>
+								<?php $render_key_field( 'openrouter', 'twtaeo_settings[api_openrouter]', $settings['api_openrouter'] ?? '', 'sk-or-v1-…', __( 'One key, many models', 'twt-aeo-ultimate' ) ); ?>
+							</div>
+
+							<?php // Same credential as the field above, fetched for them instead of copied by hand. ?>
+							<?php if ( ! TWTAEO_Key_Resolver::is_protected( 'openrouter' ) ) : ?>
+							<div class="twt-aeo-api-key-row" style="padding-left:22px;">
+								<p class="twt-aeo-card__note" style="margin:0;">
+									<?php if ( TWTAEO_OpenRouter_Auth::is_connected() ) : ?>
+										<?php esc_html_e( 'An OpenRouter key is saved.', 'twt-aeo-ultimate' ); ?>
+										<a href="<?php echo esc_url( TWTAEO_OpenRouter_Auth::connect_url() ); ?>"><?php esc_html_e( 'Reconnect', 'twt-aeo-ultimate' ); ?></a>
+									<?php else : ?>
+										<a class="button button-secondary" href="<?php echo esc_url( TWTAEO_OpenRouter_Auth::connect_url() ); ?>">
+											<?php esc_html_e( 'Connect with OpenRouter', 'twt-aeo-ultimate' ); ?>
+										</a>
+										<span class="twt-aeo-api-key-row__hint" style="margin-left:8px;">
+											<?php esc_html_e( 'Approve it at OpenRouter and the key is filled in for you. Nothing passes through us.', 'twt-aeo-ultimate' ); ?>
+										</span>
+									<?php endif; ?>
+								</p>
+							</div>
+							<?php endif; ?>
+
+							<div class="twt-aeo-api-key-row">
+								<label class="twt-aeo-api-key-row__label">
 									<span class="twt-aeo-api-dot" style="background:#000;"></span>
 									<?php esc_html_e( 'Grok (xAI)', 'twt-aeo-ultimate' ); ?>
 								</label>
@@ -254,6 +281,7 @@ class TWTAEO_Page_Settings {
 								'claude' => __( 'Claude (Anthropic)', 'twt-aeo-ultimate' ),
 								'openai' => __( 'OpenAI (ChatGPT)', 'twt-aeo-ultimate' ),
 								'gemini' => __( 'Gemini (Google)', 'twt-aeo-ultimate' ),
+								'openrouter' => __( 'OpenRouter', 'twt-aeo-ultimate' ),
 							);
 							foreach ( TWTAEO_AI_Models::choices() as $provider => $models ) :
 								$current = TWTAEO_AI_Models::get( $provider );
@@ -278,6 +306,11 @@ class TWTAEO_Page_Settings {
 												</option>
 											<?php endif; ?>
 										</select>
+										<?php if ( 'openrouter' === $provider ) : ?>
+											<p class="description">
+								<?php esc_html_e( 'The free options cost nothing but OpenRouter rate limits them per account, so they suit one item at a time, a title or a description. A bulk run across many pages will hit the limit part way through. Everything else here is billed by OpenRouter at the rate that model charges.', 'twt-aeo-ultimate' ); ?>
+											</p>
+										<?php endif; ?>
 										<p class="description">
 											<label for="<?php echo esc_attr( $field ); ?>_custom"><?php esc_html_e( 'Or enter any model ID (for models released after this plugin version):', 'twt-aeo-ultimate' ); ?></label><br />
 											<input type="text" id="<?php echo esc_attr( $field ); ?>_custom" name="twtaeo_settings[ai_model_<?php echo esc_attr( $provider ); ?>_custom]" value="" class="regular-text" autocomplete="off" spellcheck="false" placeholder="<?php echo esc_attr( TWTAEO_AI_Models::DEFAULTS[ $provider ] ); ?>" />
@@ -483,6 +516,7 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 			'openai'        => 'api_openai',
 			'gemini'        => 'api_gemini',
 			'perplexity'    => 'api_perplexity',
+			'openrouter'    => 'api_openrouter',
 			'xai'           => 'api_xai',
 			'mistral'       => 'api_mistral',
 			'deepseek'      => 'api_deepseek',
@@ -502,7 +536,7 @@ define( 'TWTAEO_PRO_KEY',          'your-pro-dashboard-key' );
 
 		// AI enrichment providers (allow-listed).
 		$enrich = $posted['ai_enrich_provider'] ?? '';
-		$existing['ai_enrich_provider'] = in_array( $enrich, array( 'claude', 'openai', 'gemini' ), true ) ? $enrich : '';
+		$existing['ai_enrich_provider'] = in_array( $enrich, array( 'claude', 'openai', 'gemini', 'openrouter' ), true ) ? $enrich : '';
 		$retrieval = $posted['ai_retrieval_provider'] ?? 'gemini';
 		$existing['ai_retrieval_provider'] = in_array( $retrieval, array( 'gemini', 'perplexity' ), true ) ? $retrieval : 'gemini';
 

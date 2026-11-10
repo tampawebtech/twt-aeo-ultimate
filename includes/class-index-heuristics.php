@@ -182,7 +182,7 @@ class TWTAEO_Index_Heuristics {
 			?: get_post_meta( $post->ID, '_yoast_wpseo_metadesc', true )
 			?: get_post_meta( $post->ID, 'rank_math_description', true )
 			?: get_post_meta( $post->ID, '_aioseop_description', true )
-			?: get_post_meta( $post->ID, 'seopress_titles_desc', true )
+			?: get_post_meta( $post->ID, '_seopress_titles_desc', true )
 			?: '';
 
 		if ( empty( $meta ) ) {
@@ -328,7 +328,7 @@ class TWTAEO_Index_Heuristics {
 			'_yoast_wpseo_metadesc',
 			'rank_math_description',
 			'_aioseop_description',
-			'seopress_titles_desc',
+			'_seopress_titles_desc',
 		);
 
 		$placeholders = implode( ',', array_fill( 0, count( $keys ), '%s' ) );

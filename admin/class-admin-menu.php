@@ -489,19 +489,52 @@ class TWTAEO_Admin_Menu {
 
 			$page_slug = 'twt-aeo-module-' . $slug;
 
+			// A module may ship its own screen, found by convention:
+			// author-schema -> TWTAEO_Page_Author_Schema. One that does not
+			// gets the fallback below rather than a dead end.
+			$class    = 'TWTAEO_Page_' . str_replace( ' ', '_', ucwords( str_replace( '-', ' ', $slug ) ) );
+			$callback = class_exists( $class ) && method_exists( $class, 'render' )
+				? array( $class, 'render' )
+				: function() use ( $module, $title ) {
+					self::render_module_fallback( $module, $title );
+				};
+
 			add_submenu_page(
 				$parent_slug,
 				esc_html( $title ),
 				esc_html( $title ),
 				$cap,
 				$page_slug,
-				function() use ( $slug, $title ) {
-					echo '<div class="wrap"><h1>' . esc_html( $title ) . '</h1>';
-					echo '<p>' . esc_html__( 'Module settings coming soon.', 'twt-aeo-ultimate' ) . '</p>';
-					echo '</div>';
-				}
+				$callback
 			);
 		}
+	}
+
+	/**
+	 * Screen for a contextual module page with no screen of its own: what the
+	 * module does, and where to switch it off.
+	 *
+	 * @param array  $module Module definition from the registry.
+	 * @param string $title  Menu title.
+	 */
+	private static function render_module_fallback( $module, $title ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission.', 'twt-aeo-ultimate' ) );
+		}
+		?>
+		<div class="wrap twt-aeo-wrap">
+			<h1><?php echo esc_html( $title ); ?></h1>
+			<?php if ( ! empty( $module['description'] ) ) : ?>
+				<p><?php echo esc_html( $module['description'] ); ?></p>
+			<?php endif; ?>
+			<p>
+				<?php esc_html_e( 'This module runs on its own and has no settings of its own.', 'twt-aeo-ultimate' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=twt-aeo-modules' ) ); ?>">
+					<?php esc_html_e( 'Manage modules', 'twt-aeo-ultimate' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**

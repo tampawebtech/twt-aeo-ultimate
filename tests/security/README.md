@@ -15,6 +15,7 @@ landing in a release. If you move or rename this directory, update that list.
 |---|---|---|
 | `okf-protected-posts.php` | Password-protected posts served in full through `/okf/` and `llms-full.txt` | 2.33.1 |
 | `mcp-content-access.php` | MCP `get_page_content` serving drafts, private and password-protected posts, enumerable via `?p=<id>` | 2.33.2 |
+| `publish-ready-content-loss.php` | The editor panel writing alt text against the saved body while the author was looking at an unsaved one, which discarded every unsaved change including the image being described | unreleased |
 
 Both exit non-zero on failure, so they can be chained:
 

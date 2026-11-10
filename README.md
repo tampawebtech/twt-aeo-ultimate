@@ -13,7 +13,7 @@ AEO Ultimate makes a WordPress site readable, trustworthy and citable for AI ans
 ## Built for SEO professionals
 
 * **Free**: no license, no paid tier, no feature locked away.
-* **Bring your own key**: AI features run on your own Anthropic, OpenAI, Google, Perplexity, xAI, Mistral, Meta or DeepSeek key. You pay the provider directly and choose the model.
+* **Bring your own key**: AI features run on your own Anthropic, OpenAI, Google, Perplexity, xAI, Mistral, Meta or DeepSeek key. You pay the provider directly and choose the model. Prefer one key and one bill? Connect OpenRouter (new in 2.35) by pasting a key or with one click, and pick any model it carries, including free ones.
 * **Bulk**: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, and generate product schema for a whole catalogue.
 * **Semi-automated**: the plugin detects what each page is, adds schema only where it is missing, and suggests the missing E-E-A-T details for you to apply. AI-powered bulk actions show the number of billed calls and ask first.
 * **Modular**: 29 modules, each switched on or off on its own.
@@ -84,7 +84,7 @@ Product and ProductGroup schema with per-variant offers, identifiers, shipping a
 
 ### And more
 
-AEO Score (your site graded 0 to 100), a Setup Wizard with one-click Autopilot, E-E-A-T scorecards, author boxes and hover cards, Open Graph and Twitter/X cards, Local SEO with a NAP audit, sitemaps and IndexNow, a Not Indexed report that also warns when Google stops crawling an indexed page (new in 2.29), Command Center (Search Console, GA4, Bing Webmaster, PageSpeed), Smart 404 Rescue, Funnel Audit, customer reviews, PR Bridge AI, and a Diagnostics screen that catches fatal errors.
+A "Finish this page" panel in the editor for the SEO title, meta description, share image, featured image and alt text (new in 2.34), AEO Score (your site graded 0 to 100), a Setup Wizard with one-click Autopilot, E-E-A-T scorecards, author boxes and hover cards, Open Graph and Twitter/X cards, Local SEO with a NAP audit, sitemaps and IndexNow, a Not Indexed report that also warns when Google stops crawling an indexed page (new in 2.29), Command Center (Search Console, GA4, Bing Webmaster, PageSpeed), Smart 404 Rescue, Funnel Audit, customer reviews, PR Bridge AI, and a Diagnostics screen that catches fatal errors.
 
 ## Requirements
 

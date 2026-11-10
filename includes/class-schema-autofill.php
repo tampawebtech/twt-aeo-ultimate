@@ -348,7 +348,7 @@ class TWTAEO_Schema_Autofill {
 			?: get_post_meta( $post->ID, '_yoast_wpseo_metadesc', true )
 			?: get_post_meta( $post->ID, 'rank_math_description', true )
 			?: get_post_meta( $post->ID, '_aioseop_description', true )
-			?: get_post_meta( $post->ID, 'seopress_titles_desc', true )
+			?: get_post_meta( $post->ID, '_seopress_titles_desc', true )
 			?: '';
 		if ( $meta ) {
 			return $meta;

@@ -173,23 +173,43 @@ class TWTAEO_OG_Writer {
 
 	/**
 	 * The image this page will actually share, walking the whole fallback
-	 * chain: saved og:image → featured image → first WooCommerce gallery
-	 * image. One chain, used by the OG output, the Twitter Card downgrade
-	 * decision, and the Social Graph screen — three surfaces disagreeing
-	 * about "has an image" is how a merchant stops trusting all of them.
+	 * chain: saved og:image → featured image → first image in the content →
+	 * first WooCommerce gallery image. One chain, used by the OG output, the
+	 * Twitter Card downgrade decision, and the Social Graph screen — three
+	 * surfaces disagreeing about "has an image" is how a merchant stops
+	 * trusting all of them.
 	 *
-	 * @param int $post_id
-	 * @return array|null { url: string, id: int } — id is 0 for a saved URL
+	 * The content step is there for the draft written somewhere else and
+	 * pasted in: images in the body, no featured image, nothing saved here.
+	 * Sharing that page with no image at all is worse than sharing the picture
+	 * it already leads with. It only parses the body once both earlier steps
+	 * have come up empty, and parse_content_images() returns immediately when
+	 * the content holds no <img> at all, so the common path costs nothing.
+	 *
+	 * @param int         $post_id
+	 * @param string|null $content Body to read the content step from. Defaults
+	 *                             to the saved post. Pass the editor's current
+	 *                             content to answer for an unsaved draft.
+	 * @return array|null { url: string, id: int, source: string } — source is
+	 *                    one of og|featured|content|gallery. id is 0 for a URL
 	 *                    with no known attachment. Null when no image exists.
 	 */
-	public static function effective_image( $post_id ) {
+	public static function effective_image( $post_id, $content = null ) {
 		$saved = get_post_meta( $post_id, self::META_IMAGE, true );
 		if ( ! empty( $saved ) ) {
-			return array( 'url' => $saved, 'id' => 0 );
+			return array( 'url' => $saved, 'id' => 0, 'source' => 'og' );
 		}
 		$thumb = get_the_post_thumbnail_url( $post_id, 'large' );
 		if ( $thumb ) {
-			return array( 'url' => $thumb, 'id' => (int) get_post_thumbnail_id( $post_id ) );
+			return array(
+				'url'    => $thumb,
+				'id'     => (int) get_post_thumbnail_id( $post_id ),
+				'source' => 'featured',
+			);
+		}
+		$from_content = self::first_content_image( $post_id, $content );
+		if ( $from_content ) {
+			return $from_content;
 		}
 		if ( 'product' === get_post_type( $post_id ) && function_exists( 'wc_get_product' ) ) {
 			$product = wc_get_product( $post_id );
@@ -197,9 +217,38 @@ class TWTAEO_OG_Writer {
 			if ( ! empty( $gallery ) ) {
 				$url = wp_get_attachment_image_url( $gallery[0], 'large' );
 				if ( $url ) {
-					return array( 'url' => $url, 'id' => (int) $gallery[0] );
+					return array( 'url' => $url, 'id' => (int) $gallery[0], 'source' => 'gallery' );
 				}
 			}
+		}
+		return null;
+	}
+
+	/**
+	 * The first usable <img> in a post's body.
+	 *
+	 * Only absolute http(s) sources count: a relative src renders fine in the
+	 * page but is not a shareable og:image, and emitting one is worse than
+	 * emitting none because the scraper resolves it against its own host.
+	 *
+	 * @param int         $post_id
+	 * @param string|null $content Defaults to the saved post's content.
+	 * @return array|null { url: string, id: int, source: 'content' }
+	 */
+	public static function first_content_image( $post_id, $content = null ) {
+		if ( ! class_exists( 'TWTAEO_Image_Optimizer' ) ) {
+			return null;
+		}
+		if ( null === $content ) {
+			$post    = get_post( $post_id );
+			$content = $post ? $post->post_content : '';
+		}
+		foreach ( TWTAEO_Image_Optimizer::parse_content_images( (string) $content ) as $img ) {
+			$src = isset( $img['src'] ) ? trim( (string) $img['src'] ) : '';
+			if ( '' === $src || 0 !== strpos( $src, 'http' ) ) {
+				continue;
+			}
+			return array( 'url' => $src, 'id' => (int) $img['id'], 'source' => 'content' );
 		}
 		return null;
 	}

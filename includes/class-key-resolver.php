@@ -45,6 +45,7 @@ class TWTAEO_Key_Resolver {
 		'openai'        => array( 'TWTAEO_OPENAI_KEY',     'TWTAEO_OPENAI_KEY',     'api_openai' ),
 		'gemini'        => array( 'TWTAEO_GEMINI_KEY',     'TWTAEO_GEMINI_KEY',     'api_gemini' ),
 		'perplexity'    => array( 'TWTAEO_PERPLEXITY_KEY', 'TWTAEO_PERPLEXITY_KEY', 'api_perplexity' ),
+		'openrouter'    => array( 'TWTAEO_OPENROUTER_KEY', 'TWTAEO_OPENROUTER_KEY', 'api_openrouter' ),
 		'xai'           => array( 'TWTAEO_XAI_KEY',        'TWTAEO_XAI_KEY',        'api_xai' ),
 		'mistral'       => array( 'TWTAEO_MISTRAL_KEY',    'TWTAEO_MISTRAL_KEY',    'api_mistral' ),
 		'deepseek'      => array( 'TWTAEO_DEEPSEEK_KEY',   'TWTAEO_DEEPSEEK_KEY',   'api_deepseek' ),

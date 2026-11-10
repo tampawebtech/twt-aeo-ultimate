@@ -26,6 +26,15 @@ class TWTAEO_AI_Client {
 	// Perplexity's Agent API preset. "fast" is Perplexity's documented stand-in
 	// for the Sonar model, retired with the Sonar API on 2026-09-27.
 	const PERPLEXITY_PRESET   = 'fast';
+
+	/** OpenRouter speaks OpenAI's chat API, so one key reaches many vendors. */
+	const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+
+	/**
+	 * Largest raw image sent inline. Base64 grows it by about a third, which
+	 * keeps the encoded payload inside the providers' per-image limits.
+	 */
+	const MAX_INLINE_IMAGE_BYTES = 3500000;
 	const PERPLEXITY_ENDPOINT = 'https://api.perplexity.ai/v1/agent';
 
 	// Set when a grounded Gemini 3 call fails for tier/entitlement reasons —
@@ -38,7 +47,8 @@ class TWTAEO_AI_Client {
 	/**
 	 * Run a completion against the chosen provider.
 	 *
-	 * @param string $provider claude | openai | gemini | perplexity. Empty → enrich default.
+	 * @param string $provider claude | openai | gemini | perplexity | openrouter.
+	 *                         Empty → enrich default.
 	 * @param string $prompt
 	 * @param array  $opts {
 	 *     @type string $model       Override the default model.
@@ -78,6 +88,8 @@ class TWTAEO_AI_Client {
 				return self::call_gemini( $key, $prompt, $opts );
 			case 'perplexity':
 				return self::call_perplexity( $key, $prompt, $opts );
+			case 'openrouter':
+				return self::call_openrouter( $key, $prompt, $opts );
 		}
 
 		return new WP_Error( 'unknown_provider', __( 'Unknown AI provider.', 'twt-aeo-ultimate' ) );
@@ -122,11 +134,26 @@ class TWTAEO_AI_Client {
 	 */
 	public static function enrich_provider() {
 		$s = get_option( 'twtaeo_settings', array() );
-		$p = $s['ai_enrich_provider'] ?? '';
-		if ( '' === $p ) {
-			$p = $s['ai_desc_provider'] ?? 'claude';
+		$p = (string) ( $s['ai_enrich_provider'] ?? '' );
+
+		// OpenRouter counts here: enrichment is a writing and extraction job,
+		// which is exactly what it is for. Perplexity still does not, because
+		// its grounded-answer endpoint is a different shape from the chat
+		// completion this expects.
+		if ( in_array( $p, array( 'claude', 'openai', 'gemini', 'openrouter' ), true ) ) {
+			return $p;
 		}
-		return in_array( $p, array( 'claude', 'openai', 'gemini' ), true ) ? $p : 'claude';
+
+		// Nothing chosen for enrichment: inherit the meta-description provider,
+		// which now resolves to one that actually holds a key rather than
+		// defaulting to Claude on a site that has no Claude key. Perplexity is
+		// left out here on purpose: enrichment pulls structured facts out of
+		// page text, which is not what its grounded-answer endpoint is for.
+		$inherited = class_exists( 'TWTAEO_AI_Description' )
+			? TWTAEO_AI_Description::get_provider()
+			: 'claude';
+
+		return in_array( $inherited, array( 'claude', 'openai', 'gemini', 'openrouter' ), true ) ? $inherited : 'claude';
 	}
 
 	/**
@@ -167,7 +194,17 @@ class TWTAEO_AI_Client {
 		// Build a single user turn, adding image blocks before the text.
 		$content = array();
 		foreach ( (array) ( $opts['images'] ?? array() ) as $url ) {
-			$content[] = array( 'type' => 'image', 'source' => array( 'type' => 'url', 'url' => $url ) );
+			$source = self::image_source( $url );
+			$content[] = array(
+				'type'   => 'image',
+				'source' => isset( $source['inline'] )
+					? array(
+						'type'       => 'base64',
+						'media_type' => $source['inline']['mime_type'],
+						'data'       => $source['inline']['data'],
+					)
+					: array( 'type' => 'url', 'url' => $source['url'] ),
+			);
 		}
 		$content[] = array( 'type' => 'text', 'text' => $prompt );
 
@@ -214,12 +251,32 @@ class TWTAEO_AI_Client {
 		return new WP_Error( 'claude_empty', __( 'Claude returned no content.', 'twt-aeo-ultimate' ) );
 	}
 
-	private static function call_openai( $api_key, $prompt, $opts ) {
-		$model = self::model( 'openai', $opts );
-
+	/**
+	 * The messages array for an OpenAI-shaped chat API.
+	 *
+	 * Shared by OpenAI and OpenRouter, which speaks the same wire format. The
+	 * image handling in particular belongs in one place: a second copy is how
+	 * one caller quietly keeps sending unreachable URLs after the other is
+	 * fixed.
+	 *
+	 * @param string $prompt
+	 * @param array  $opts
+	 * @return array
+	 */
+	private static function openai_style_messages( $prompt, $opts ) {
 		$content = array( array( 'type' => 'text', 'text' => $prompt ) );
+
 		foreach ( (array) ( $opts['images'] ?? array() ) as $url ) {
-			$content[] = array( 'type' => 'image_url', 'image_url' => array( 'url' => $url ) );
+			$source = self::image_source( $url );
+			// Both take a data: URI in the same field as a real one.
+			$content[] = array(
+				'type'      => 'image_url',
+				'image_url' => array(
+					'url' => isset( $source['inline'] )
+						? 'data:' . $source['inline']['mime_type'] . ';base64,' . $source['inline']['data']
+						: $source['url'],
+				),
+			);
 		}
 
 		$messages = array();
@@ -227,6 +284,13 @@ class TWTAEO_AI_Client {
 			$messages[] = array( 'role' => 'system', 'content' => $opts['system'] );
 		}
 		$messages[] = array( 'role' => 'user', 'content' => $content );
+
+		return $messages;
+	}
+
+	private static function call_openai( $api_key, $prompt, $opts ) {
+		$model    = self::model( 'openai', $opts );
+		$messages = self::openai_style_messages( $prompt, $opts );
 
 		$payload = array(
 			'model'    => $model,
@@ -302,9 +366,11 @@ class TWTAEO_AI_Client {
 
 		$parts = array( array( 'text' => $prompt ) );
 		foreach ( (array) ( $opts['images'] ?? array() ) as $url ) {
-			$inline = self::fetch_inline_image( $url );
-			if ( $inline ) {
-				$parts[] = array( 'inline_data' => $inline );
+			// Gemini has no "go and fetch this URL" form here, so an image it
+			// cannot read inline is left out rather than named and missing.
+			$source = self::image_source( $url );
+			if ( isset( $source['inline'] ) ) {
+				$parts[] = array( 'inline_data' => $source['inline'] );
 			}
 		}
 
@@ -417,6 +483,149 @@ class TWTAEO_AI_Client {
 	 * search on; a caller may pass a preset name, or a full provider/model ID
 	 * such as "openai/gpt-6-luna", as $opts['model'].
 	 */
+	/**
+	 * OpenRouter: one key, many vendors' models.
+	 *
+	 * Its chat API is OpenAI's, so this sends the same messages the OpenAI
+	 * caller builds. What it deliberately does not carry over is the
+	 * reasoning-model branch: those rules are keyed to OpenAI's own model
+	 * names, and an id here is "vendor/model" chosen by the site owner from a
+	 * catalogue that changes weekly. Guessing which of those take
+	 * max_completion_tokens would be wrong more often than right, so this
+	 * sends the plain, universally accepted fields and lets the model decide.
+	 *
+	 * @param string $api_key
+	 * @param string $prompt
+	 * @param array  $opts
+	 * @return string|WP_Error
+	 */
+	/**
+	 * Headers that identify the calling application to OpenRouter.
+	 *
+	 * These name THIS PLUGIN, not the site running it, and that is deliberate.
+	 * OpenRouter treats HTTP-Referer as an application's unique identity: it
+	 * is what creates the app's page and what its public rankings are keyed
+	 * on. Sending each site's own address would publish a separate entry for
+	 * every install, on a page anyone can read, and would scatter the plugin
+	 * across thousands of one-request apps instead of showing it as one. The
+	 * application here is AEO Ultimate; the site is its user.
+	 *
+	 * Nothing about the site, the page or the visitor goes in these headers.
+	 *
+	 * An agency that would rather its own requests were attributed to itself
+	 * can say so with the twtaeo_openrouter_app filter.
+	 *
+	 * @param string $api_key
+	 * @return array
+	 */
+	private static function openrouter_headers( $api_key ) {
+		$app = apply_filters(
+			'twtaeo_openrouter_app',
+			array(
+				'url'        => 'https://aeoultimate.com/',
+				'title'      => 'AEO Ultimate',
+				'categories' => 'writing-assistant',
+			)
+		);
+
+		$headers = array(
+			'Authorization' => 'Bearer ' . $api_key,
+			'Content-Type'  => 'application/json',
+			'HTTP-Referer'  => esc_url_raw( (string) ( $app['url'] ?? '' ) ),
+			// The current name for the display title, with the older one kept
+			// beside it: OpenRouter still honours X-Title for compatibility
+			// and some proxies in front of it may only know that one.
+			'X-OpenRouter-Title' => sanitize_text_field( (string) ( $app['title'] ?? '' ) ),
+			'X-Title'            => sanitize_text_field( (string) ( $app['title'] ?? '' ) ),
+		);
+
+		if ( ! empty( $app['categories'] ) ) {
+			$headers['X-OpenRouter-Categories'] = sanitize_text_field( (string) $app['categories'] );
+		}
+
+		return $headers;
+	}
+
+	private static function call_openrouter( $api_key, $prompt, $opts ) {
+		$model = self::model( 'openrouter', $opts );
+
+		$payload = array(
+			'model'    => $model,
+			'messages' => self::openai_style_messages( $prompt, $opts ),
+			// A reasoning model spends this budget thinking before it writes,
+			// and the thinking comes out of the same allowance. Asked for 200
+			// tokens, nemotron-3.5-lightning spent all 200 reasoning and
+			// returned content: null with finish_reason "length". The floor is
+			// the same guard the Gemini caller already needs.
+			'max_tokens'  => max( self::max_tokens( $opts ), 1024 ),
+			'temperature' => self::temperature( $opts ),
+			// None of the work this client does wants chain-of-thought: these
+			// are short, factual writing tasks. OpenRouter normalises this
+			// across vendors and ignores it for models that cannot reason.
+			'reasoning'   => array( 'enabled' => false ),
+		);
+		if ( ! empty( $opts['json'] ) ) {
+			$payload['response_format'] = array( 'type' => 'json_object' );
+		}
+
+		$response = wp_remote_post( self::OPENROUTER_ENDPOINT, array(
+			'timeout' => self::timeout( $opts ),
+			'headers' => self::openrouter_headers( $api_key ),
+			'body'    => wp_json_encode( $payload ),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 !== $code ) {
+			$detail = $body['error']['message'] ?? '';
+			if ( 402 === (int) $code ) {
+				$detail = $detail ? $detail : __( 'Your OpenRouter account is out of credit.', 'twt-aeo-ultimate' );
+			}
+			if ( 429 === (int) $code ) {
+				// The usual way a free model fails, and the message from the
+				// provider rarely says which limit was hit or that a paid
+				// model would not have stopped.
+				$detail = __( 'OpenRouter is rate limiting this model. Free models allow only a few requests at a time, so this is expected part way through a bulk run. Wait a moment, or pick a paid model under Settings - AI Models.', 'twt-aeo-ultimate' );
+			}
+			/* translators: 1: HTTP status code, 2: error text from OpenRouter. */
+			return new WP_Error( 'openrouter_error', trim( sprintf( __( 'OpenRouter error (HTTP %1$d). %2$s', 'twt-aeo-ultimate' ), (int) $code, $detail ) ) );
+		}
+
+		// OpenRouter reports the model it actually served, which can differ
+		// from the one asked for when a fallback route is used. Record that
+		// one, so token telemetry describes what was really billed.
+		self::telemetry( 'openrouter', (string) ( $body['model'] ?? $model ), $body['usage'] ?? array() );
+
+		$choice  = $body['choices'][0] ?? array();
+		$content = $choice['message']['content'] ?? null;
+
+		if ( is_string( $content ) && '' !== trim( $content ) ) {
+			return $content;
+		}
+
+		// Empty content with finish_reason "length" means the model ran out of
+		// room, and on a reasoning model that usually means it thought until
+		// the budget was gone. Say which it was: "no content" on its own sends
+		// people looking at their key.
+		if ( 'length' === ( $choice['finish_reason'] ?? '' ) ) {
+			return new WP_Error(
+				'openrouter_truncated',
+				sprintf(
+					/* translators: %s: the model id that was used. */
+					__( '%s used its whole reply allowance before writing an answer, which usually means it is a reasoning model. Try a different model under Settings - AI Models.', 'twt-aeo-ultimate' ),
+					$model
+				)
+			);
+		}
+
+		return new WP_Error( 'openrouter_empty', __( 'OpenRouter returned no content.', 'twt-aeo-ultimate' ) );
+	}
+
 	private static function call_perplexity( $api_key, $prompt, $opts ) {
 		$choice = ! empty( $opts['model'] ) ? (string) $opts['model'] : self::PERPLEXITY_PRESET;
 
@@ -602,7 +811,16 @@ class TWTAEO_AI_Client {
 	 * @return array|null { mime_type, data }
 	 */
 	private static function fetch_inline_image( $url ) {
-		$response = wp_remote_get( $url, array( 'timeout' => 30 ) );
+		// wp_safe_remote_get, not wp_remote_get. This URL comes out of an
+		// <img src> in post content, so anyone who can edit a post chooses it,
+		// and the unsafe call would happily fetch http://localhost:9200 or a
+		// cloud metadata endpoint on the server's behalf. The safe variant
+		// applies WordPress's own blocklist for private and loopback hosts.
+		//
+		// This site's own media never reaches here: read_local_image() takes
+		// attachments off disk first, which is both faster and immune to the
+		// blocklist.
+		$response = wp_safe_remote_get( $url, array( 'timeout' => 30 ) );
 		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
 			return null;
 		}
@@ -610,14 +828,186 @@ class TWTAEO_AI_Client {
 		if ( '' === $binary ) {
 			return null;
 		}
-		$mime = wp_remote_retrieve_header( $response, 'content-type' );
-		if ( ! $mime ) {
-			$mime = 'image/jpeg';
+
+		// Too large to send inline. Every provider caps the encoded size, and
+		// base64 adds about a third, so this refuses rather than building a
+		// payload that will be rejected after the upload.
+		if ( strlen( $binary ) > self::MAX_INLINE_IMAGE_BYTES ) {
+			return null;
 		}
+
+		// A URL that needs a login answers 200 with an HTML page, and sending
+		// that as an image wastes a billed call on nothing.
+		//
+		// The header is not always there: some servers, Local's among them,
+		// serve an image with no Content-Type at all. An empty header is
+		// therefore "unknown", not "not an image", and the extension decides.
+		$mime = trim( strtok( (string) wp_remote_retrieve_header( $response, 'content-type' ), ';' ) );
+		if ( '' === $mime ) {
+			$guess = wp_check_filetype( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+			$mime  = ! empty( $guess['type'] ) ? $guess['type'] : '';
+		}
+		if ( 0 !== strpos( $mime, 'image/' ) ) {
+			return null;
+		}
+
 		return array(
 			'mime_type' => $mime,
 			'data'      => base64_encode( $binary ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		);
+	}
+
+	/**
+	 * How an image should reach the model.
+	 *
+	 * Inline bytes where this site can read the image itself, the bare URL
+	 * otherwise.
+	 *
+	 * Passing a URL asks the provider's own servers to go and fetch it, which
+	 * only works for an image the public internet can reach. On a Local site,
+	 * a staging host behind HTTP auth, an intranet or any site not yet
+	 * launched, that fetch fails and the model is asked to describe an image
+	 * it never saw. Fetching it here instead uses the site's own loopback
+	 * request, which reaches its own files whatever the outside world can see.
+	 *
+	 * @param string $url
+	 * @return array { inline?: array{mime_type,data}, url?: string }
+	 */
+	private static function image_source( $url ) {
+		// Disk first. For this site's own media there is no reason to go
+		// through HTTP at all, and doing so is what fails on the hosts that
+		// need this most: a loopback request can be blocked, redirected to a
+		// login, or answered without a Content-Type.
+		$inline = self::read_local_image( $url );
+
+		if ( ! $inline ) {
+			$inline = self::fetch_inline_image( self::scaled_image_url( $url ) );
+		}
+
+		return $inline ? array( 'inline' => $inline ) : array( 'url' => $url );
+	}
+
+	/**
+	 * Read one of this site's own attachments straight off disk.
+	 *
+	 * @param string $url
+	 * @return array|null { mime_type, data }
+	 */
+	private static function read_local_image( $url ) {
+		if ( ! function_exists( 'attachment_url_to_postid' ) ) {
+			return null;
+		}
+
+		$attachment_id = attachment_url_to_postid( $url );
+		if ( ! $attachment_id ) {
+			return null;
+		}
+
+		$path = self::attachment_path( $attachment_id );
+		if ( ! $path ) {
+			return null;
+		}
+
+		$type = wp_check_filetype( $path );
+		$mime = ! empty( $type['type'] ) ? $type['type'] : '';
+		if ( 0 !== strpos( $mime, 'image/' ) ) {
+			return null;
+		}
+
+		$filesystem = self::filesystem();
+		if ( ! $filesystem ) {
+			return null;
+		}
+
+		$binary = $filesystem->get_contents( $path );
+		if ( ! is_string( $binary ) || '' === $binary ) {
+			return null;
+		}
+
+		return array(
+			'mime_type' => $mime,
+			'data'      => base64_encode( $binary ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Encoding image bytes for a multimodal API request, not obfuscation.
+		);
+	}
+
+	/**
+	 * The file to send for an attachment: a registered size where one exists
+	 * and is small enough, otherwise the original.
+	 *
+	 * Alt text does not need a camera original, and the original is what
+	 * usually pushes a request past the inline limit.
+	 *
+	 * @param int $attachment_id
+	 * @return string|null Absolute path, or null when nothing usable is there.
+	 */
+	private static function attachment_path( $attachment_id ) {
+		$original = get_attached_file( $attachment_id );
+		if ( ! $original ) {
+			return null;
+		}
+
+		$meta = wp_get_attachment_metadata( $attachment_id );
+		foreach ( array( 'large', 'medium_large', 'medium' ) as $size ) {
+			if ( empty( $meta['sizes'][ $size ]['file'] ) ) {
+				continue;
+			}
+			$candidate = dirname( $original ) . DIRECTORY_SEPARATOR . $meta['sizes'][ $size ]['file'];
+			if ( file_exists( $candidate ) && filesize( $candidate ) <= self::MAX_INLINE_IMAGE_BYTES ) {
+				return $candidate;
+			}
+		}
+
+		if ( file_exists( $original ) && filesize( $original ) <= self::MAX_INLINE_IMAGE_BYTES ) {
+			return $original;
+		}
+
+		return null;
+	}
+
+	/**
+	 * WP_Filesystem, or null when it cannot be set up.
+	 *
+	 * @return WP_Filesystem_Base|null
+	 */
+	private static function filesystem() {
+		global $wp_filesystem;
+
+		if ( $wp_filesystem instanceof WP_Filesystem_Base ) {
+			return $wp_filesystem;
+		}
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		if ( ! WP_Filesystem() || ! ( $wp_filesystem instanceof WP_Filesystem_Base ) ) {
+			return null;
+		}
+
+		return $wp_filesystem;
+	}
+
+	/**
+	 * A registered size in place of the original, where the URL is one of this
+	 * site's own attachments.
+	 *
+	 * Alt text does not need a 6000px camera original, and the original is
+	 * what usually pushes a request over the inline limit.
+	 *
+	 * @param string $url
+	 * @return string
+	 */
+	private static function scaled_image_url( $url ) {
+		if ( ! function_exists( 'attachment_url_to_postid' ) ) {
+			return $url;
+		}
+
+		$attachment_id = attachment_url_to_postid( $url );
+		if ( ! $attachment_id ) {
+			return $url;
+		}
+
+		$scaled = wp_get_attachment_image_url( $attachment_id, 'large' );
+
+		return $scaled ? $scaled : $url;
 	}
 
 	/**

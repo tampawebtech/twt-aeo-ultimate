@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.33.2
+Stable tag: 2.35.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Get cited by ChatGPT, Gemini, Perplexity and Google AI Overviews: connected sche
 
 **AEO Ultimate** makes your WordPress site readable, trustworthy and citable for AI answer engines (ChatGPT, Gemini, Claude, Perplexity and Google AI Overviews) and measures whether they actually cite you. It publishes connected @graph JSON-LD schema, clear publisher and author identity (E-E-A-T) and AI-agent discovery files such as llms.txt, and runs alongside your existing SEO plugin without duplicating what it already outputs.
 
-**Built for SEO professionals.** Everything is free: no license, no paid tier, no feature locked away. AI features run on your own API keys (Anthropic, OpenAI, Google, Perplexity, xAI or Mistral), so you pay the provider directly and choose the model. The work is bulk and semi-automated: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, generate product schema for a whole catalogue, and let the plugin suggest the missing E-E-A-T details and apply them for you. AI-powered bulk actions show the number of billed calls and ask before running, so there are no surprise bills. Access & Roles lets an SEO manager or a client's marketing team use the tools without being a full administrator.
+**Built for SEO professionals.** Everything is free: no license, no paid tier, no feature locked away. AI features run on your own API keys (Anthropic, OpenAI, Google, Perplexity, xAI or Mistral), so you pay the provider directly and choose the model. Prefer one key and one bill? Connect OpenRouter instead, by pasting a key or with one click, and pick any model it offers. The work is bulk and semi-automated: fill every missing alt text, social description and FAQ, Service or Contact schema across a site in one pass, generate product schema for a whole catalogue, and let the plugin suggest the missing E-E-A-T details and apply them for you. AI-powered bulk actions show the number of billed calls and ask before running, so there are no surprise bills. Access & Roles lets an SEO manager or a client's marketing team use the tools without being a full administrator.
 
 Fully modular: 29 features, each switched on or off on its own, so your site runs only what it needs.
 
@@ -178,6 +178,7 @@ Only the ones you configure, and only when you trigger them:
 * **Anthropic Claude**: AI writing and enrichment; RAG Engine document labels when you switch them on. [Terms](https://www.anthropic.com/legal/aup) | [Privacy](https://www.anthropic.com/legal/privacy)
 * **OpenAI**: descriptions, OG images, image analysis; RAG Engine document labels when you switch them on. [Terms](https://openai.com/policies/terms-of-use) | [Privacy](https://openai.com/policies/privacy-policy)
 * **Google Gemini**: descriptions, vision, grounded lookups, RAG Engine document labels and law check. [Terms](https://policies.google.com/terms) | [Privacy](https://policies.google.com/privacy)
+* **OpenRouter**: one key for models from several vendors, used for writing and image descriptions when you choose it as the provider. Requests identify the plugin rather than your site, so your own address and name are not sent, and OpenRouter forwards your prompt to the model's own vendor. Not used for AI Visibility, which needs each engine's own web search and citations. [Terms](https://openrouter.ai/terms) | [Privacy](https://openrouter.ai/privacy)
 * **Perplexity**: brand authority and gap research, AI Visibility checks, RAG Engine law check. [Terms](https://www.perplexity.ai/hub/legal/terms-of-service) | [Privacy](https://www.perplexity.ai/hub/legal/privacy-policy)
 * **xAI Grok**: AI Visibility checks. [Terms](https://x.ai/legal/terms-of-service-enterprise) | [Privacy](https://x.ai/legal/privacy-policy)
 * **Mistral (Le Chat)**: AI Visibility checks. [Terms](https://legal.mistral.ai/terms/commercial-terms-of-service) | [Privacy](https://legal.mistral.ai/terms/privacy-policy)
@@ -212,6 +213,22 @@ Each request sends only the data needed for that action, using your own API key.
 13. **RAG Engine**: Setup status for your documents, your pages, Search Console, Bing and AI citation checks, and where each tab takes you: Documents, Chunk View, Search Placement and AI Citations.
 
 == Changelog ==
+
+= 2.35.0 =
+* New: OpenRouter. One key, one bill, and your pick of models from Anthropic, OpenAI, Google, DeepSeek, Meta, Mistral, xAI and Perplexity. Paste the key into Settings, or press "Connect with OpenRouter", approve it there, and the key is filled in for you.
+* Settings lists a short set of OpenRouter models with roughly what each one costs to write 100 titles or descriptions, from about a fifth of a cent, and says which ones can read images. Any other model OpenRouter carries can still be typed in by ID.
+* Two of those options are free. They cost nothing, but OpenRouter limits free models per account, so they suit one page at a time rather than a bulk run across a site.
+* OpenRouter writes SEO titles, meta descriptions, image alt text and the plugin's other AI copy. AI Visibility still talks to each engine directly, because a citation check needs that engine's own web search and sources.
+* A direct key still wins. On a site holding both an Anthropic, OpenAI, Google or Perplexity key and an OpenRouter key, the direct one is used. OpenRouter requests identify the plugin rather than your site, so your own address and site name are not sent.
+
+= 2.34.0 =
+* New: "Finish this page" in the editor. One panel for everything a page needs before it goes out: the SEO title, the meta description, the share image, the featured image, and alt text on the images in the body. Each row says whether it is set and where the value comes from, and fills it by hand or with AI. It opens as a panel in the block editor, from the three-dot menu, and as a box in the classic editor.
+* New: AI writes your SEO title. It is saved both to AEO Ultimate and to your SEO plugin's own title field, so you find it where you already look. On a site with no SEO plugin, AEO Ultimate publishes the title itself.
+* The share image now falls back to the first image in the page content, after a share image you set and the featured image. A page with pictures in the body and no featured image used to share nothing at all.
+* AI image descriptions now work on sites the public internet cannot reach, such as a local or staging site. The picture itself is sent to the AI provider instead of its web address, so the model can see it.
+* Every AI action says what it will cost before it runs, and you can tell it to stop asking.
+* Fixed: titles and descriptions written in SEOPress were never read, so a page that had both could be reported as missing them, and the AEO Score marked down for it.
+* Fixed: AI features assumed Claude whether or not a Claude key was saved. On a site holding a different provider's key, every AI action failed with a message about models rather than about the missing key. Perplexity can now write titles and descriptions as well.
 
 = 2.33.2 =
 * Security fix: the MCP endpoint's get_page_content tool returned any post it could resolve from a URL, without checking whether that post was public. Draft, private and password-protected posts were all served in full, and because a post can be addressed as ?p=<id>, they could be found by walking through ID numbers. The tool now serves only published, non-password-protected content, and answers for anything else exactly as it does for a URL that matches nothing. Found during a review of the whole plugin after the 2.33.1 report.
@@ -368,23 +385,13 @@ Each request sends only the data needed for that action, using your own API key.
 * Changed: the Search Console setting is now a dropdown of your Google account's own properties. Fixed: domain properties ("sc-domain:") could not be saved, and an address that did not exactly match a property failed with "User does not have sufficient permission".
 * Changed: AI Visibility stops asking an engine for the rest of a run once it rejects its API key.
 
-= 2.24.0 =
-* Changed: Perplexity now runs on its Agent API. Perplexity retires the Sonar API on September 27, 2026; earlier versions of this plugin lose Perplexity answers in AI Visibility and Perplexity lookups after that date. Perplexity errors now say what went wrong in plain words: a rejected key, no credit, rate limiting, or an API Perplexity has retired.
-* New: choose the model for each AI provider under Settings → AI Models, or type in any model ID. Adds GPT-6 (Luna, Sol, Astra), Gemini 3.5–3.8 Flash, Claude Sonnet 5 and Opus 5. Sites that already had a key keep the model they were using; new setups start on Claude Haiku 4.5, GPT-6 Luna and Gemini 3.6 Flash.
-* Fixed: newer models reject settings older ones needed (temperature on Claude 5, "minimal" reasoning on GPT-6, "minimal" thinking on Gemini 3.7/3.8). Requests now adapt to the model chosen.
-* Fixed: Gemini 2.5 Flash is now limited to Google accounts that already used it, so new Gemini keys could fail. New setups use Gemini 3.6 Flash; web-grounded lookups on a free-tier key fall back to 2.5 where the account allows it.
-* Fixed: IndexNow no longer submits URLs from local, development or staging copies of a site (or from .local, .test, localhost and private-network addresses). The log shows these as "Skipped" with the reason.
-* Fixed: Chunk View labelled sibling sections as nested ("Features › Pricing") on pages whose headings start at H2, which is most WordPress content. Each passage now shows the heading it actually sits under.
-
-= 2.23.0 =
-* New: Chunk View (off by default; switch it on under Modules). Shows a page the way a retrieval index holds it: fetched like a no-JavaScript AI crawler, split into passages, and each passage scored on whether it still makes sense on its own. Works on any URL, including competitor pages, with no API key.
-* New: host governor. Heavy work measures what your host can handle and pauses instead of timing out on smaller hosting plans.
-* Fixed: AI Visibility ignored allocation changes once a question list had been saved, and brand questions were never asked.
-* Fixed: the AI Visibility question counts ignored "Per brand" and overcounted categories, posts and products.
-
-Older releases (2.9.0 to 2.22.0), and the complete, detailed changelog for every release, are in the changelog.txt file bundled with the plugin.
-
 == Upgrade Notice ==
+
+= 2.35.0 =
+New: OpenRouter. One key and one bill for models from Anthropic, OpenAI, Google, DeepSeek, Meta, Mistral, xAI and Perplexity, including free options. Connect it in one click or paste a key.
+
+= 2.34.0 =
+A new "Finish this page" panel in the editor for the SEO title, meta description, share image, featured image and image alt text. Also fixes AI features failing on sites whose saved key was not Claude, and SEOPress titles and descriptions never being read.
 
 = 2.33.2 =
 Security fix for the MCP endpoint, which could return draft, private and password-protected posts. Update now if you turned the MCP integration on.

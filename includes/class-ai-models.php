@@ -35,13 +35,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class TWTAEO_AI_Models {
 
 	/** Providers with a selectable model. */
-	const PROVIDERS = array( 'claude', 'openai', 'gemini' );
+	const PROVIDERS = array( 'claude', 'openai', 'gemini', 'openrouter' );
 
 	/** Defaults for new installs. Researched 2026-09-24; cheap, fast tiers. */
 	const DEFAULTS = array(
 		'claude' => 'claude-haiku-4-5',
 		'openai' => 'gpt-6-luna',
 		'gemini' => 'gemini-3.6-flash',
+		// OpenRouter ids are "vendor/model" and the catalogue changes
+		// constantly, so this is a sane starting point rather than a
+		// recommendation: the owner picks whatever they want in Settings.
+		'openrouter' => 'anthropic/claude-haiku-5.5',
 	);
 
 	/** What every install ran through 2.23.0 — the pin for existing sites. */
@@ -91,6 +95,33 @@ final class TWTAEO_AI_Models {
 				'gemini-3.5-flash'      => __( 'Gemini 3.5 Flash', 'twt-aeo-ultimate' ),
 				'gemini-2.5-flash'      => __( 'Gemini 2.5 Flash — legacy; only for accounts already using it', 'twt-aeo-ultimate' ),
 			),
+			/*
+			 * OpenRouter carries hundreds of models, so this is a short list
+			 * rather than a catalogue: the free tier, and the same vendors
+			 * named everywhere else in this plugin, so the names are familiar.
+			 * Anything not here still works through the "any model ID" box.
+			 *
+			 * Costs are for roughly 100 titles or descriptions and were checked
+			 * on 2026-11-09; they move, so they are described as approximate.
+			 *
+			 * Two exclusions are deliberate. Models ending ":batch" are cheaper
+			 * but promise a slower turnaround, which is wrong behind a button
+			 * somebody just clicked. Meta's "-contributor" models are left out
+			 * because Meta trains on what is sent to them.
+			 */
+			'openrouter' => array(
+				'anthropic/claude-haiku-5.5'        => __( 'Claude Haiku 5.5 — reads images, about 1c per 100 items (recommended)', 'twt-aeo-ultimate' ),
+				'openai/gpt-5-nano'                 => __( 'GPT-5 Nano — reads images, about 0.7c per 100 items', 'twt-aeo-ultimate' ),
+				'google/gemma-3-12b-it'             => __( 'Gemma 3 12B — reads images, about 0.5c per 100 items', 'twt-aeo-ultimate' ),
+				'deepseek/deepseek-v4.1-flash-1017' => __( 'DeepSeek V4.1 Flash — reads images, about 0.4c per 100 items', 'twt-aeo-ultimate' ),
+				'meta/muse-ember'                   => __( 'Muse Ember (Meta) — reads images, about 1c per 100 items', 'twt-aeo-ultimate' ),
+				'mistralai/mistral-nemo'            => __( 'Mistral Nemo — text only, about 0.2c per 100 items', 'twt-aeo-ultimate' ),
+				'meta-llama/llama-3.1-8b-instruct'  => __( 'Llama 3.1 8B — text only, the cheapest here', 'twt-aeo-ultimate' ),
+				'perplexity/sonar'                  => __( 'Perplexity Sonar — reads images, about 8c per 100 items', 'twt-aeo-ultimate' ),
+				'x-ai/grok-4.3'                     => __( 'Grok 4.3 — reads images, about 11c per 100 items', 'twt-aeo-ultimate' ),
+				'openrouter/free'                   => __( 'Free: whichever free model is free right now — reads images, rate limited', 'twt-aeo-ultimate' ),
+				'nvidia/nemotron-3.5-lightning:free' => __( 'Free: Nemotron 3.5 Lightning — text only, rate limited', 'twt-aeo-ultimate' ),
+			),
 		);
 	}
 
@@ -133,7 +164,12 @@ final class TWTAEO_AI_Models {
 	private static function is_valid_id( $id ) {
 		return '' !== $id
 			&& strlen( $id ) <= self::MAX_ID_LENGTH
-			&& (bool) preg_match( '/^[a-z0-9][a-z0-9._@\/-]*$/i', $id );
+			// The colon is here for OpenRouter, whose free tier is addressed by
+			// suffix: "nvidia/nemotron-3.5-lightning:free". Without it every
+			// free model failed validation and fell back to the paid default,
+			// which on an account with no credit means a 402 instead of the
+			// model the owner actually asked for.
+			&& (bool) preg_match( '/^[a-z0-9][a-z0-9._@:\/-]*$/i', $id );
 	}
 
 	/**

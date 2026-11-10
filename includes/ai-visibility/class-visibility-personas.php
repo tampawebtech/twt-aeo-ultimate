@@ -64,10 +64,10 @@ final class TWTAEO_Visibility_Personas {
 	);
 
 	/** Meta-description keys, in priority order (same list as TWTAEO_Index_Heuristics). */
-	const DESC_KEYS = array( '_twtaeo_meta_description', '_yoast_wpseo_metadesc', 'rank_math_description', '_aioseop_description', 'seopress_titles_desc' );
+	const DESC_KEYS = array( '_twtaeo_meta_description', '_yoast_wpseo_metadesc', 'rank_math_description', '_aioseop_description', '_seopress_titles_desc' );
 
 	/** Meta-title keys. Templated values ("%%title%%", "{title}") are skipped. */
-	const TITLE_KEYS = array( '_yoast_wpseo_title', 'rank_math_title', '_aioseop_title', 'seopress_titles_title' );
+	const TITLE_KEYS = array( '_yoast_wpseo_title', 'rank_math_title', '_aioseop_title', '_seopress_titles_title' );
 
 	private function __construct() {}
 

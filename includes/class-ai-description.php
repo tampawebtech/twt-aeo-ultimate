@@ -30,6 +30,27 @@ class TWTAEO_AI_Description {
 
 	const MAX_LENGTH = 160;
 
+	/**
+	 * A hard ceiling for a generated title, not a target. The target (around 60)
+	 * is guidance shown to the author; this only stops a model's runaway answer
+	 * being written to postmeta.
+	 */
+	const TITLE_MAX = 120;
+
+	/**
+	 * Providers that can write a title or description, best writer first.
+	 *
+	 * This order is only the fallback order, used when the owner has not picked
+	 * a provider in Settings. An explicit choice always wins, even over a
+	 * provider that would write better copy: it is their key and their call.
+	 *
+	 * Claude and ChatGPT write the cleanest short copy. Perplexity is built for
+	 * grounded answers rather than prose. Gemini is last because its prose is
+	 * the weakest of the four for this job, not because it fails; a site whose
+	 * only key is Gemini still generates, it just sits at the end of the queue.
+	 */
+	const PROVIDERS = array( 'claude', 'openai', 'perplexity', 'gemini', 'openrouter' );
+
 	/** Minimum body words for a page to be worth summarising — thinner pages
 	 *  only yield generic, low-value descriptions, so we skip them. */
 	const MIN_CONTENT_WORDS = 20;
@@ -53,13 +74,10 @@ class TWTAEO_AI_Description {
 	const NONCE = 'twtaeo_ai_desc';
 
 	public static function register_hooks() {
-		add_action( 'save_post', array( __CLASS__, 'save_metabox' ), 10, 1 );
 		add_action( 'save_post', array( __CLASS__, 'maybe_auto_generate' ), 20, 3 );
 		add_action( 'wp_head', array( __CLASS__, 'output_meta_tag' ), 1 );
 		add_filter( 'wpseo_metadesc', array( __CLASS__, 'fill_seo_plugin_description' ) );
 		add_filter( 'rank_math/frontend/description', array( __CLASS__, 'fill_seo_plugin_description' ) );
-		add_action( 'add_meta_boxes', array( __CLASS__, 'add_metabox' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_editor_assets' ) );
 
 		// Background bulk job.
 		add_action( self::JOB_HOOK, array( __CLASS__, 'run_job_batch' ) );
@@ -68,124 +86,12 @@ class TWTAEO_AI_Description {
 	}
 
 	// ── Editor metabox ──────────────────────────────────────────────────────────
-
-	public static function add_metabox() {
-		foreach ( array( 'post', 'page' ) as $type ) {
-			add_meta_box(
-				'twtaeo_ai_description',
-				__( 'AEO Meta Description', 'twt-aeo-ultimate' ),
-				array( __CLASS__, 'render_metabox' ),
-				$type,
-				'side',
-				'default'
-			);
-		}
-	}
-
-	public static function render_metabox( $post ) {
-		wp_nonce_field( 'twtaeo_ai_desc_meta', 'twtaeo_ai_desc_meta_nonce' );
-		$desc      = self::get_existing_description( $post->ID );
-		$providers = self::available_providers();
-		?>
-		<p style="margin:0 0 6px;">
-			<textarea id="twtaeo-ai-desc-text" name="twtaeo_meta_description" rows="4"
-				style="width:100%;" maxlength="160"
-				placeholder="<?php esc_attr_e( 'Meta description…', 'twt-aeo-ultimate' ); ?>"><?php echo esc_textarea( $desc ); ?></textarea>
-		</p>
-		<?php if ( empty( $providers ) ) : ?>
-			<p style="font-size:11px;color:#b32d2e;margin:0;">
-				<?php esc_html_e( 'Add an AI key under TWT AEO → Settings to enable generation.', 'twt-aeo-ultimate' ); ?>
-			</p>
-		<?php else : ?>
-			<p style="margin:0;display:flex;align-items:center;gap:8px;">
-				<button type="button" class="button" id="twtaeo-ai-desc-btn"
-					data-post="<?php echo esc_attr( $post->ID ); ?>">
-					<?php esc_html_e( 'Generate with AI', 'twt-aeo-ultimate' ); ?>
-				</button>
-				<span id="twtaeo-ai-desc-status" style="font-size:11px;color:#646970;"></span>
-			</p>
-			<p style="font-size:11px;color:#646970;margin:6px 0 0;">
-				<?php
-				printf(
-					/* translators: %s: AI provider name. */
-					esc_html__( 'Uses %s. Change the provider on the TWT AEO dashboard.', 'twt-aeo-ultimate' ),
-					esc_html( ucfirst( self::get_provider() ) )
-				);
-				?>
-			</p>
-		<?php endif; ?>
-		<?php
-	}
-
-	public static function enqueue_editor_assets( $hook ) {
-		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
-			return;
-		}
-		$screen = get_current_screen();
-		if ( ! $screen || ! in_array( $screen->post_type, array( 'post', 'page' ), true ) ) {
-			return;
-		}
-
-		wp_enqueue_script( 'jquery' );
-
-		$data = array(
-			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-			'nonce'      => wp_create_nonce( self::NONCE ),
-			'working'    => __( 'Generating…', 'twt-aeo-ultimate' ),
-			'savedText'  => __( 'Saved ✓', 'twt-aeo-ultimate' ),
-			'errText'    => __( 'Error — see message', 'twt-aeo-ultimate' ),
-		);
-
-		$js = '(function(){document.addEventListener("DOMContentLoaded",function(){'
-			. 'var cfg=' . wp_json_encode( $data ) . ';'
-			. 'var btn=document.getElementById("twtaeo-ai-desc-btn");'
-			. 'var ta=document.getElementById("twtaeo-ai-desc-text");'
-			. 'var st=document.getElementById("twtaeo-ai-desc-status");'
-			. 'if(!btn||!ta){return;}'
-			. 'btn.addEventListener("click",function(){'
-			. 'btn.disabled=true;st.style.color="#646970";st.textContent=cfg.working;'
-			. 'var fd=new FormData();fd.append("action","twtaeo_ai_desc_generate");'
-			. 'fd.append("nonce",cfg.nonce);fd.append("post_id",btn.getAttribute("data-post"));'
-			. 'fetch(cfg.ajaxUrl,{method:"POST",body:fd,credentials:"same-origin"})'
-			. '.then(function(r){return r.json();}).then(function(res){'
-			. 'if(res.success){ta.value=res.data.description;st.style.color="#1a6629";st.textContent=cfg.savedText;}'
-			. 'else{st.style.color="#b32d2e";st.textContent=(res.data||cfg.errText);}btn.disabled=false;'
-			. '}).catch(function(){st.style.color="#b32d2e";st.textContent=cfg.errText;btn.disabled=false;});'
-			. '});});})();';
-
-		wp_add_inline_script( 'jquery', $js );
-	}
-
-	/**
-	 * Persist a manually-edited description from the editor metabox.
-	 *
-	 * @param int $post_id
-	 */
-	public static function save_metabox( $post_id ) {
-		if ( ! isset( $_POST['twtaeo_ai_desc_meta_nonce'] ) ) {
-			return;
-		}
-		if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['twtaeo_ai_desc_meta_nonce'] ) ), 'twtaeo_ai_desc_meta' ) ) {
-			return;
-		}
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
-		}
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
-			return;
-		}
-
-		$desc = isset( $_POST['twtaeo_meta_description'] )
-			? sanitize_textarea_field( wp_unslash( $_POST['twtaeo_meta_description'] ) )
-			: '';
-
-		if ( '' === trim( $desc ) ) {
-			delete_post_meta( $post_id, self::META_KEY );
-			return;
-		}
-
-		self::save_description( $post_id, $desc );
-	}
+	//
+	// There is no longer one here. The description is edited in the "Finish this
+	// page" panel (TWTAEO_Publish_Ready_Metabox) alongside the SEO title, the
+	// share image and alt text, because two boxes offering the same field is two
+	// boxes that can disagree about whether it is set. The AJAX generate action
+	// stays registered: the Not Indexed screen's fix modal still calls it.
 
 	// ── Settings access ─────────────────────────────────────────────────────────
 
@@ -196,8 +102,29 @@ class TWTAEO_AI_Description {
 
 	public static function get_provider() {
 		$settings = get_option( 'twtaeo_settings', array() );
-		$provider = $settings[ self::SETTING_PROVIDER ] ?? 'claude';
-		return in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ? $provider : 'claude';
+		$chosen   = (string) ( $settings[ self::SETTING_PROVIDER ] ?? '' );
+
+		// The owner's own choice, whatever state its key is in. If they picked a
+		// provider and the key is missing, the error should say so rather than
+		// this quietly billing a different provider.
+		if ( in_array( $chosen, self::PROVIDERS, true ) ) {
+			return $chosen;
+		}
+
+		// Nothing picked. Use a provider that can actually answer.
+		//
+		// This used to return 'claude' flat. On a site whose only key was for
+		// another provider, every description, title and bulk run failed with
+		// the WordPress AI Client's "no models found" error, which reads like a
+		// model problem and is really a missing key.
+		$available = self::available_providers();
+		if ( $available ) {
+			return $available[0];
+		}
+
+		// No key anywhere. Claude so the WP AI Client fallback in dispatch()
+		// still gets its chance on a site that has configured one.
+		return 'claude';
 	}
 
 	/**
@@ -219,25 +146,70 @@ class TWTAEO_AI_Description {
 				'model' => TWTAEO_AI_Models::get( 'openai' ),
 				'note'  => __( 'Fast and low-cost. The Luna and mini models are quick for this task — comparable to Claude.', 'twt-aeo-ultimate' ),
 			),
+			'openrouter' => array(
+				'label' => 'OpenRouter',
+				'model' => TWTAEO_AI_Models::get( 'openrouter' ),
+				'note'  => __( 'One key and one bill for models from several vendors, picked by name under Settings - AI Models. Speed and cost follow whichever model you choose. Used for writing and image descriptions; AI Visibility still talks to each engine directly, because it needs their own web search and citations.', 'twt-aeo-ultimate' ),
+			),
+			'perplexity' => array(
+				'label' => 'Perplexity',
+				// Perplexity takes a preset rather than a model id, so there is
+				// nothing in TWTAEO_AI_Models to look up.
+				'model' => class_exists( 'TWTAEO_AI_Client' ) ? TWTAEO_AI_Client::PERPLEXITY_PRESET : '',
+				'note'  => __( 'Built for grounded answers rather than prose, so titles and descriptions read more factual and less persuasive than Claude or OpenAI. Useful where accuracy matters more than polish.', 'twt-aeo-ultimate' ),
+			),
 			'gemini' => array(
 				'label' => 'Gemini',
 				'model' => TWTAEO_AI_Models::get( 'gemini' ),
-				'note'  => __( 'Slower than Claude or OpenAI, especially on the free tier — a large bulk run can take several minutes. It keeps working in the background, so you can leave this page and check back later.', 'twt-aeo-ultimate' ),
+				'note'  => __( 'Slower than Claude or OpenAI, especially on the free tier — a large bulk run can take several minutes. It keeps working in the background, so you can leave this page and check back later. Its short copy tends to need the most editing of the four.', 'twt-aeo-ultimate' ),
 			),
 		);
 	}
 
-	/** Provider slugs that have a usable credential (or the WP AI Client). */
+	/**
+	 * Providers holding a key on this site, best writer first.
+	 *
+	 * Stored keys only. The WordPress AI Client used to be counted here for
+	 * Claude and OpenAI, but ai_client_available() only tests that a function
+	 * exists: it cannot tell a configured client from an unconfigured one, so
+	 * counting it reported providers that could not complete a single request.
+	 * The client is still tried in dispatch(); it just no longer claims to be
+	 * a credential. ai_client_fallback() is the honest question to ask about it.
+	 *
+	 * @return string[]
+	 */
 	public static function available_providers() {
 		$available = array();
-		foreach ( array( 'claude', 'openai', 'gemini' ) as $provider ) {
+
+		foreach ( self::PROVIDERS as $provider ) {
 			if ( '' !== TWTAEO_Key_Resolver::get( $provider ) ) {
-				$available[] = $provider;
-			} elseif ( in_array( $provider, array( 'claude', 'openai' ), true ) && TWTAEO_Key_Resolver::ai_client_available() ) {
 				$available[] = $provider;
 			}
 		}
+
 		return $available;
+	}
+
+	/**
+	 * Whether the WordPress AI Client could stand in when no key is stored.
+	 *
+	 * True only means the client exists. Whether WordPress has a model behind
+	 * it is not knowable without making a request, so treat this as "worth
+	 * trying", never as "this will work".
+	 *
+	 * @return bool
+	 */
+	public static function ai_client_fallback() {
+		return TWTAEO_Key_Resolver::ai_client_available();
+	}
+
+	/**
+	 * Whether anything at all might answer: a stored key, or the AI Client.
+	 *
+	 * @return bool
+	 */
+	public static function can_generate() {
+		return ! empty( self::available_providers() ) || self::ai_client_fallback();
 	}
 
 	// ── Auto-generate on save ─────────────────────────────────────────────────
@@ -286,7 +258,8 @@ class TWTAEO_AI_Description {
 	 *
 	 * @param int         $post_id
 	 * @param string|null $provider Override provider; null uses the configured one.
-	 * @param string      $style    'meta' (search snippet) or 'social' (OG/share copy).
+	 * @param string      $style    'meta' (search snippet), 'social' (OG/share copy)
+	 *                              or 'title' (the SEO title tag).
 	 * @return string|WP_Error
 	 */
 	public static function generate_for_post( $post_id, $provider = null, $style = 'meta' ) {
@@ -322,7 +295,21 @@ class TWTAEO_AI_Description {
 		// Cap the content we send to keep token use (and cost) low.
 		$content = self::truncate_words( $content, 600 );
 
-		if ( 'social' === $style ) {
+		if ( 'title' === $style ) {
+			// Titles are a different job from descriptions: the words that win a
+			// click in a search result are not the words that summarise a page,
+			// and an answer engine quoting the page reads this first. Front-load
+			// the subject, because the tail is what gets cut.
+			$prompt = "Write a single SEO title tag for the web page below.\n"
+				. "Requirements: plain text only, no quotation marks, no line breaks, "
+				. "no site name and no separator characters at the end, "
+				. "between 45 and 60 characters. Lead with the specific subject of the page "
+				. "rather than a generic phrase, since the end of a long title is cut off. "
+				. "It may differ from the page's heading where that reads better in a result. "
+				. "Return the title and nothing else.\n\n"
+				. "Page heading: {$title}\n\n"
+				. "Content:\n{$content}";
+		} elseif ( 'social' === $style ) {
 			$prompt = "Write a single social share description (for Open Graph / og:description) for the web page below.\n"
 				. "Requirements: plain text only, no quotation marks, no line breaks, "
 				. "between 120 and 155 characters. Make it engaging and shareable — conversational and benefit-driven, "
@@ -344,9 +331,14 @@ class TWTAEO_AI_Description {
 			return $text;
 		}
 
-		$clean = self::clean_description( $text );
+		$clean = ( 'title' === $style ) ? self::clean_title( $text ) : self::clean_description( $text );
 		if ( '' === $clean ) {
-			return new WP_Error( 'empty_result', __( 'The AI returned an empty description.', 'twt-aeo-ultimate' ) );
+			return new WP_Error(
+				'empty_result',
+				( 'title' === $style )
+					? __( 'The AI returned an empty title.', 'twt-aeo-ultimate' )
+					: __( 'The AI returned an empty description.', 'twt-aeo-ultimate' )
+			);
 		}
 
 		return $clean;
@@ -355,6 +347,14 @@ class TWTAEO_AI_Description {
 	// ── Provider dispatch ─────────────────────────────────────────────────────
 
 	private static function dispatch( $provider, $prompt ) {
+		// Allowlist first. Checking the key first meant an unknown provider with
+		// no key reported "no API key configured for Grok" rather than saying it
+		// is not a provider this does, and the guard below could only ever be
+		// reached by a slug that happened to have a key stored.
+		if ( ! in_array( $provider, self::PROVIDERS, true ) ) {
+			return new WP_Error( 'unknown_provider', __( 'Unknown AI provider.', 'twt-aeo-ultimate' ) );
+		}
+
 		$key = TWTAEO_Key_Resolver::get( $provider );
 
 		if ( '' === $key ) {
@@ -367,10 +367,6 @@ class TWTAEO_AI_Description {
 				/* translators: %s: provider name. */
 				sprintf( __( 'No API key configured for %s. Add one under TWT AEO → Settings.', 'twt-aeo-ultimate' ), ucfirst( $provider ) )
 			);
-		}
-
-		if ( ! in_array( $provider, array( 'claude', 'openai', 'gemini' ), true ) ) {
-			return new WP_Error( 'unknown_provider', __( 'Unknown AI provider.', 'twt-aeo-ultimate' ) );
 		}
 
 		// The shared client knows each model family's request rules (temperature,
@@ -1264,6 +1260,36 @@ class TWTAEO_AI_Description {
 	/** The description exactly as save_description() would store it (for previews). */
 	public static function prepare_description( $text ) {
 		return self::clean_description( $text );
+	}
+
+	/**
+	 * Tidy a generated title.
+	 *
+	 * Deliberately not clean_description(): that one caps at 160 characters and
+	 * marks a cut with an ellipsis, both of which are wrong here. A title is
+	 * short and whole, an ellipsis in a search result looks broken, and a title
+	 * a little over the mark is the author's to trim rather than ours to chop.
+	 * The generous cap only stops a runaway reply being stored.
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	private static function clean_title( $text ) {
+		$text = wp_strip_all_tags( (string) $text );
+		$text = trim( preg_replace( '/\s+/', ' ', $text ) );
+		// Models like to answer with a label, and to quote themselves.
+		$text = (string) preg_replace( '/^(?:seo\s+)?title\s*(?:tag)?\s*:\s*/i', '', $text );
+		$text = trim( $text, " \"'" );
+		// A title tag does not end in a full stop; a question mark may be the point.
+		$text = rtrim( $text, " ." );
+
+		if ( mb_strlen( $text ) > self::TITLE_MAX ) {
+			$cut  = rtrim( mb_substr( $text, 0, self::TITLE_MAX ) );
+			$cut  = (string) preg_replace( '/\s+\S*$/u', '', $cut );
+			$text = rtrim( $cut, " ,;:-–—" );
+		}
+
+		return $text;
 	}
 
 	private static function clean_description( $text ) {
