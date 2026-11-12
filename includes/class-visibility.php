@@ -667,6 +667,24 @@ final class TWTAEO_Visibility {
 			$next['daily_cap'] = max( 0, (int) $cap );
 		}
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST['market'] ) ) {
+			$next['market'] = TWTAEO_Visibility_Tier::clean_market( self::post_text( 'market' ) );
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST['tier_mix'] ) && is_array( $_POST['tier_mix'] ) ) {
+			$mix = array();
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- guard() ran check_ajax_referer; every value is cast in TWTAEO_Visibility_Tier::clean_mix().
+			$raw = wp_unslash( $_POST['tier_mix'] );
+			foreach ( array_keys( TWTAEO_Visibility_Types::MARKETS ) as $mid ) {
+				if ( isset( $raw[ $mid ] ) && is_array( $raw[ $mid ] ) ) {
+					$mix[ $mid ] = $raw[ $mid ];
+				}
+			}
+			if ( ! empty( $mix ) ) {
+				$next['tier_mix'] = $mix;
+			}
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['x_handle'] ) ) {
 			$next['x_handle'] = ltrim( self::post_text( 'x_handle' ), '@' );
 		}

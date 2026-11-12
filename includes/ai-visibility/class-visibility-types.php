@@ -62,8 +62,25 @@ final class TWTAEO_Visibility_Types {
 	 */
 	const MODELS = array(
 		'claude'     => 'claude-sonnet-5',      // Claude.ai Free+Pro default since 2026-06-30
-		'chatgpt'    => 'gpt-5.6-luna',         // ChatGPT Free/Go default since 2026-08-06 (bare gpt-5.6 = Sol, NOT Luna)
-		'gemini'     => 'gemini-3.6-flash',     // Gemini app default since 2026-07-21
+		// ChatGPT Free and Go default, since OpenAI retired GPT-5.5 from the
+		// consumer app around 2026-10-07. Was gpt-5.6-luna before 2026-11-11.
+		// (A bare `gpt-6` is Sol, NOT Luna -- name the model exactly.)
+		'chatgpt'    => 'gpt-6-luna',
+		/*
+		 * Gemini app default for FREE accounts. On 2026-10-09 Google took Flash
+		 * and Pro away from unpaid personal accounts and left Flash-Lite as the
+		 * only model in the app. That is a standing RESTRICTION, not a fallback
+		 * after a limit: a free account starts here. Paying accounts get Flash
+		 * (see MODELS_PAID). Was gemini-3.6-flash before 2026-11-11, which
+		 * described the pre-October app and overstated what free users get.
+		 *
+		 * The version gap against the 3.8 Flash on the paid rung is deliberate
+		 * and is the product's own: Google serves free accounts an older, smaller
+		 * model, and reporting names it 3.5 Flash-Lite. So free-vs-paid on Gemini
+		 * is a two-generation gap, which is what a free user actually meets --
+		 * not a measurement artefact to be normalised away.
+		 */
+		'gemini'     => 'gemini-3.5-flash-lite',
 		'perplexity' => 'fast',                 // Agent API preset: Perplexity's documented stand-in for 'sonar' (web search on). Sonar API retired 2026-09-27.
 		'grok'       => 'grok-4.6',             // live-verified 2026-08-20: answers + url_citation annotations came back on a real xAI key
 		'mistral'    => 'mistral-medium-latest',
@@ -78,8 +95,227 @@ final class TWTAEO_Visibility_Types {
 		'meta'       => 'muse-spark-1.3',
 	);
 
-	/** Claude's web-search server tool variant for Sonnet 5 / 4.6+. Haiku would need web_search_20250305. */
+	/**
+	 * MARKET -- whose AI experience a run stands in for -- and TIER, which rung
+	 * of that experience answered.
+	 *
+	 * Three things decide what a person's AI actually runs, and only one of them
+	 * is the subscription:
+	 *
+	 *   paid      -- a paid plan's default. Mostly the SAME model as free, with
+	 *                the thinking rationed less. Depth is what moves citations: a
+	 *                published minimal-vs-high comparison on one engine found
+	 *                roughly 5x the web searches, about twice the sources per
+	 *                answer, and only about a quarter of cited domains in common.
+	 *   free      -- a free plan's default, inside quota. What every run before
+	 *                this asked, so it stays the baseline.
+	 *   throttled -- a free plan PAST its quota. The apps do not refuse; they
+	 *                quietly drop you to a smaller model, often after only a
+	 *                handful of questions in one day. This rung is a different
+	 *                MODEL, not less thinking, so it applies to every engine and
+	 *                not only the ones with a reasoning dial.
+	 *
+	 * A market says which rungs are worth asking. DTC is free plus throttled --
+	 * essentially no consumer is paying, but plenty of them are over quota. B2B
+	 * adds paid, because a large minority of business buyers are on a plan.
+	 *
+	 * Rungs are reported as separate lines and never blended: a blended figure
+	 * would bake in a survey percentage this plugin cannot show a source for.
+	 *
+	 * The market is ASKED, never inferred: a wrong guess skews a site's whole
+	 * dataset, and the owner knows the answer in one click.
+	 */
+	const MARKETS = array(
+		'dtc' => array(
+			'label' => 'Consumers (DTC)',
+			'note'  => 'Almost no consumer is paying, but many are over their daily quota and answered by a smaller model.',
+		),
+		'b2b' => array(
+			'label' => 'Businesses (B2B)',
+			'note'  => 'A large minority of business buyers are on a paid plan; the rest are on free, in and out of quota.',
+		),
+	);
+
+	/**
+	 * THE AUDIENCE MIX -- what share of each market's questions reaches the AI
+	 * at each plan tier. Starting values only: the owner edits them on the AI
+	 * Visibility page, and they want revisiting about monthly.
+	 *
+	 * Deliberately derived from as few invented numbers as possible, because a
+	 * table of six precise-looking percentages reads as researched when it is
+	 * not. There are exactly two inputs:
+	 *
+	 *   MARKET_PAID_SHARE      -- how much of a market is on a paid plan.
+	 *   THROTTLED_SHARE_OF_FREE -- how much of what is left is answered AFTER
+	 *                              a free plan's quota ran out.
+	 *
+	 * Everything else follows by subtraction, so there is one number to argue
+	 * with per row rather than three.
+	 *
+	 * A caution worth keeping: these are AUDIENCE-level shares -- what fraction
+	 * of the PEOPLE asking are on each plan. They are NOT a given engine's own
+	 * plan mix ("57% of ChatGPT users are on Free"), which has a different
+	 * denominator. Multiplying the two together is meaningful; treating them as
+	 * the same axis double-counts. Nothing here records a per-engine mix,
+	 * because no engine publishes one.
+	 */
+	const MARKET_PAID_SHARE = array(
+		// Survey-level reading, Nov 2026: paid consumer plans are rare.
+		'dtc' => 1,
+		// Survey-level reading, Nov 2026: a large minority of businesses have
+		// upgraded somebody's plan.
+		'b2b' => 47,
+	);
+
+	/**
+	 * Of the questions asked on a free plan, how many land after the quota ran
+	 * out and were answered by the smaller model.
+	 *
+	 * THIS NUMBER IS NOT MEASURED. No app publishes its quota, its downgrade
+	 * threshold or what it downgrades to; free quotas are small enough that a
+	 * normal session crosses them, which is why the figure is not simply low.
+	 * It is one honest guess in one place, and it is the first thing to correct
+	 * once there is any real evidence.
+	 */
+	const THROTTLED_SHARE_OF_FREE = 40;
+
+	/**
+	 * When the shipped shares above were last researched. Shown beside them,
+	 * so a figure six months stale cannot pass for a current one. Move it when
+	 * MARKET_PAID_SHARE or THROTTLED_SHARE_OF_FREE changes, not otherwise.
+	 */
+	const MARKET_MIX_RESEARCHED = '2026-11-11';
+
+	const DEFAULT_MARKET = 'dtc';
+
+	/**
+	 * Share of an audience a tier needs before it is asked BY DEFAULT. Below
+	 * this a check would be spent on a slice too small to move any figure --
+	 * paid consumer plans, at roughly 1%, are the case this exists for. The
+	 * owner can still tick it on.
+	 */
+	const TIER_WEIGHT_FLOOR = 5;
+
+	/** Rungs of the AI experience, strongest first. `free` is what every run before this asked. */
+	const TIERS = array( 'paid', 'free', 'throttled' );
+
+	const DEFAULT_TIER = 'free';
+
+	const TIER_LABEL = array(
+		'paid'      => 'Paid plan',
+		'free'      => 'Free plan',
+		'throttled' => 'Free plan, over quota',
+	);
+
+	/**
+	 * What each rung asks for: `effort` is the provider's reasoning dial,
+	 * `searches` the web-search cap where the provider takes one.
+	 *
+	 * `free` repeats exactly what this module sent before tiers existed, so
+	 * every existing trend line stays comparable. `throttled` asks the same way
+	 * and differs only in the model, which is what being downgraded means.
+	 */
+	const TIER_PROFILE = array(
+		'paid'      => array( 'effort' => 'high', 'searches' => 10 ),
+		'free'      => array( 'effort' => 'low',  'searches' => 3 ),
+		'throttled' => array( 'effort' => 'low',  'searches' => 3 ),
+	);
+
+	/**
+	 * Engines with a DOCUMENTED reasoning dial. That dial is what makes `paid`
+	 * different from `free` on an engine whose model does not change by plan:
+	 *
+	 *   chatgpt -- Responses `reasoning.effort`
+	 *   claude  -- `output_config.effort` plus the search tool's `max_uses`
+	 *   gemini  -- `generationConfig.thinkingConfig.thinkingLevel`
+	 *
+	 * Grok and Mistral expose no such field. DeepSeek honours `effort`, but its
+	 * own app's defaults are the thing being measured. Perplexity's deeper mode
+	 * is a different Agent preset whose name is not confirmed. Verify each
+	 * against a live key before adding it here.
+	 */
+	const EFFORT_DIAL = array( 'chatgpt', 'claude', 'gemini' );
+
+	/**
+	 * The smaller model a free account is dropped to once it is over quota.
+	 *
+	 * Haiku is the cheap rung of Claude's own family and is already carried in
+	 * TWTAEO_AI_Models::choices(), so the ID is known good. What is NOT
+	 * confirmed is that it is the model Claude actually falls back to -- no app
+	 * documents its downgrade, and the November 2026 round of plan research
+	 * turned up nothing on over-quota behaviour for any engine. Treat it as the
+	 * best available stand-in and correct it once a fallback is observed.
+	 *
+	 * An engine absent here is asked once for `free` and `throttled` together:
+	 * with no known lower model a second identical call would only spend one of
+	 * the owner's checks.
+	 */
+	const MODELS_THROTTLED = array(
+		'claude' => 'claude-haiku-4-5',
+		/*
+		 * Gemini is deliberately absent, and the reason is worth keeping: since
+		 * 2026-10-09 Flash-Lite is the FLOOR EVERYONE lands on. A free account
+		 * starts there, and a paying subscriber who exhausts an allowance drops
+		 * there too (observed on AI Pro, 2026-11-11). So Gemini's throttled
+		 * state and its free state are the same model, and the free row already
+		 * describes both -- a second rung would send an identical request and
+		 * bill the owner for it.
+		 *
+		 * Note what this model therefore does NOT cover: a PAID Gemini user who
+		 * has run out and is on Flash-Lite. `paid` is one rung, so those
+		 * questions are not separately counted -- but the answer they get is the
+		 * free row, so nothing about it goes unmeasured. A fourth rung for
+		 * "paid, exhausted" would only re-label questions, not reveal anything.
+		 */
+	);
+
+	/**
+	 * Paid-plan default model, for engines where the paid default is genuinely a
+	 * DIFFERENT model rather than the same one thinking longer.
+	 *
+	 * Researched 2026-11-11, and both IDs were already carried in
+	 * TWTAEO_AI_Models::choices(), so they are known to exist rather than
+	 * guessed from a name in an article:
+	 *
+	 *   chatgpt -- ChatGPT Plus ($20) defaults to GPT-6.1 Sol in ordinary chat,
+	 *              against Luna on Free and Go. Pro ($100+) goes further still,
+	 *              to Astra, but Pro is a small enough slice of any audience
+	 *              that Plus is the paid rung worth measuring.
+	 *   gemini  -- the Gemini app serves Flash-Lite to free accounts and Flash
+	 *              to paying ones, so Flash is the paid default.
+	 *
+	 * On NOT probing the top models (Argon, Carbon, GPT-6 Astra): they are
+	 * picker choices, not defaults, and they are self-limiting in a way that
+	 * matters here. Argon on AI Pro ($20) runs for a couple of chats and then
+	 * drops the conversation back to Flash or Flash-Lite (observed 2026-11-11);
+	 * Argon is also labelled "Code & analysis" and Carbon "Most complex work",
+	 * which is not where an ordinary buying question goes. Between a default
+	 * nobody has to choose and a model that has to be chosen, is reached for
+	 * only when the default disappoints, and degrades within a few turns, the
+	 * default is what almost every real question meets. Probing the top rung
+	 * would spend checks describing a sliver of anybody's traffic.
+	 *
+	 * Everything else is absent on purpose. Claude Pro runs the same Sonnet 5
+	 * as Claude Free -- what it buys is more thinking, which is the dial, not a
+	 * model. Perplexity Pro unlocks a model PICKER rather than changing the
+	 * default routing, so it has no single paid model to name. Grok, Mistral,
+	 * DeepSeek and Muse publish nothing usable.
+	 */
+	const MODELS_PAID = array(
+		'chatgpt' => 'gpt-6.1-sol',
+		'gemini'  => 'gemini-3.8-flash',
+	);
+
+	/**
+	 * Claude's web-search server tool variant for Sonnet 5 / 4.6+.
+	 *
+	 * Haiku does not know this one, and the `throttled` tier probes Haiku, so
+	 * the variant is chosen per model -- see CLAUDE_SEARCH_TOOL_LEGACY.
+	 */
 	const CLAUDE_SEARCH_TOOL = 'web_search_20260209';
+
+	/** The variant the smaller/older Claude models take, Haiku among them. */
+	const CLAUDE_SEARCH_TOOL_LEGACY = 'web_search_20250305';
 
 	/**
 	 * The Anthropic web-search tool type sent to DeepSeek. DeepSeek documents
@@ -191,7 +427,7 @@ final class TWTAEO_Visibility_Types {
 	const OPTION_QUESTIONS  = 'twtaeo_visibility_questions';  // merchant-edited question set (enabled flags)
 	const OPTION_SPEND      = 'twtaeo_visibility_spend';      // [ 'YYYY-MM-DD' => n ]
 	const OPTION_DB_VERSION = 'twtaeo_visibility_db_version';
-	const DB_VERSION        = '6';   // 2: checks carry owned_domains / citation_surface / brand_hits; 3: + mentions (where the answer said the name); 4: + follow_ups on checks, persona on runs; 5: + the full answer text (for the CSV export); 6: + turn / asked (journey mode)
+	const DB_VERSION        = '7';   // 2: checks carry owned_domains / citation_surface / brand_hits; 3: + mentions (where the answer said the name); 4: + follow_ups on checks, persona on runs; 5: + the full answer text (for the CSV export); 6: + turn / asked (journey mode); 7: + tier (paid | free | throttled)
 
 	/**
 	 * Journey mode: how many follow-up turns a run may take past the first

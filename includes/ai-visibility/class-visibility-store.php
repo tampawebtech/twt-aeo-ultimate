@@ -111,6 +111,7 @@ final class TWTAEO_Visibility_Store {
 			follow_ups_error text NULL,
 			turn tinyint(3) unsigned NOT NULL DEFAULT 1,
 			asked text NULL,
+			tier varchar(12) NOT NULL DEFAULT 'free',
 			PRIMARY KEY  (id),
 			KEY run_id (run_id),
 			KEY run_engine (run_id, engine)
@@ -161,10 +162,20 @@ final class TWTAEO_Visibility_Store {
 			'brand_items'     => array(),
 			'personas'        => array(),
 			'personas_on'     => true,
+			// Whose AI experience this site is measured as. See
+			// TWTAEO_Visibility_Tier: DTC is asked the way a free plan
+			// answers, B2B both ways. Asked in Settings, never inferred.
+			'market'          => (string) TWTAEO_Visibility_Types::DEFAULT_MARKET,
+			// Per-market: which plan tiers to ask, and the share of that
+			// audience each one stands for. Empty = use the derived defaults.
+			'tier_mix'        => array(),
+			// When the owner last saved their own shares. 0 = never, so the
+			// shipped estimates and their research date are what is shown.
+			'tier_mix_saved'  => 0,
 		);
 	}
 
-	/** @return array { allocation, daily_cap, x_handle, alternate_hosts[], company_urls[], brand_items[], personas[], personas_on } */
+	/** @return array { allocation, daily_cap, x_handle, alternate_hosts[], company_urls[], brand_items[], personas[], personas_on, market } */
 	public static function get_settings() {
 		$stored = get_option( TWTAEO_Visibility_Types::OPTION_SETTINGS, array() );
 		if ( ! is_array( $stored ) ) {
@@ -176,6 +187,17 @@ final class TWTAEO_Visibility_Store {
 		}
 		if ( isset( $stored['daily_cap'] ) && (int) $stored['daily_cap'] > 0 ) {
 			$s['daily_cap'] = (int) $stored['daily_cap'];
+		}
+		if ( isset( $stored['market'] ) ) {
+			$s['market'] = TWTAEO_Visibility_Tier::clean_market( $stored['market'] );
+		}
+		if ( isset( $stored['tier_mix_saved'] ) ) {
+			$s['tier_mix_saved'] = max( 0, (int) $stored['tier_mix_saved'] );
+		}
+		if ( isset( $stored['tier_mix'] ) && is_array( $stored['tier_mix'] ) ) {
+			// Kept raw here: TWTAEO_Visibility_Tier::mix() is what shapes it, and
+			// calling that from inside get_settings() would recurse.
+			$s['tier_mix'] = $stored['tier_mix'];
 		}
 		if ( isset( $stored['x_handle'] ) ) {
 			$s['x_handle'] = ltrim( sanitize_text_field( (string) $stored['x_handle'] ), '@' );
@@ -272,6 +294,22 @@ final class TWTAEO_Visibility_Store {
 		if ( isset( $settings['daily_cap'] ) ) {
 			$cap = (int) $settings['daily_cap'];
 			$current['daily_cap'] = $cap > 0 ? min( 100000, $cap ) : (int) TWTAEO_Visibility_Types::DEFAULT_DAILY_CAP;
+		}
+		if ( array_key_exists( 'market', $settings ) ) {
+			$current['market'] = TWTAEO_Visibility_Tier::clean_market( $settings['market'] );
+		}
+		if ( array_key_exists( 'tier_mix', $settings ) ) {
+			$mix = array();
+			foreach ( array_keys( TWTAEO_Visibility_Types::MARKETS ) as $mid ) {
+				$raw = isset( $settings['tier_mix'][ $mid ] ) ? $settings['tier_mix'][ $mid ] : null;
+				if ( is_array( $raw ) ) {
+					$mix[ $mid ] = TWTAEO_Visibility_Tier::clean_mix( $raw, $mid );
+				}
+			}
+			$current['tier_mix'] = $mix;
+			// Dated on save, so the page can say whose numbers these are and
+			// when they were last thought about.
+			$current['tier_mix_saved'] = time();
 		}
 		if ( array_key_exists( 'x_handle', $settings ) ) {
 			$current['x_handle'] = ltrim( sanitize_text_field( (string) $settings['x_handle'] ), '@' );
@@ -544,10 +582,34 @@ final class TWTAEO_Visibility_Store {
 		$engines   = $plan['engines'];
 		$questions = $plan['questions'];
 
+		/*
+		 * Tier is the third axis, after question and engine. A DTC site asks
+		 * `free` and `throttled`; a B2B site adds `paid` -- but each only of
+		 * the engines where that rung genuinely changes the request, so nobody
+		 * is billed twice for two identical answers. `free` is left off the
+		 * step, exactly as turn 1 is, so a site whose engines have no other
+		 * rung queues byte-for-byte what it queued before.
+		 */
+		/*
+		 * Who this run is asked as decides which market it is asked in: a
+		 * persona names its own side of the consumer/business line, and the
+		 * site setting covers the baseline run, asked as nobody in particular.
+		 * Resolved once, here, so the queue and the stored allocation cannot
+		 * disagree about what the run measured.
+		 */
+		$run_persona = self::run_persona( isset( $opts['persona'] ) ? $opts['persona'] : null );
+		$run_market  = TWTAEO_Visibility_Tier::market_for_persona( $run_persona );
+
 		$queue = array();
 		foreach ( $questions as $q ) {
 			foreach ( $engines as $engine ) {
-				$queue[] = array( 'question_id' => (string) $q['id'], 'engine' => (string) $engine );
+				foreach ( TWTAEO_Visibility_Tier::tiers_for_engine( $engine, $run_market ) as $tier ) {
+					$step = array( 'question_id' => (string) $q['id'], 'engine' => (string) $engine );
+					if ( (string) TWTAEO_Visibility_Types::DEFAULT_TIER !== $tier ) {
+						$step['tier'] = $tier;
+					}
+					$queue[] = $step;
+				}
 			}
 		}
 
@@ -562,6 +624,12 @@ final class TWTAEO_Visibility_Store {
 		if ( $location ) {
 			$alloc_with_engine['location'] = $location;
 		}
+		// Copied like the persona and the location: switching the site from
+		// DTC to B2B mid-run must not change what the rest of the run asks.
+		$alloc_with_engine['market'] = $run_market;
+		// And the audience mix behind it, so the weighted figure on this run
+		// stays reproducible after the owner edits the percentages.
+		$alloc_with_engine['tier_mix'] = TWTAEO_Visibility_Tier::mix( $run_market );
 		$run = array(
 			'id'          => wp_generate_uuid4(),
 			'started_at'  => $now,
@@ -578,7 +646,7 @@ final class TWTAEO_Visibility_Store {
 			// Copied, not referenced: the run is stepped by cron with nobody
 			// logged in, and a persona renamed or removed mid-run must not
 			// change what the rest of the run is asked as.
-			'persona'     => self::run_persona( isset( $opts['persona'] ) ? $opts['persona'] : null ),
+			'persona'     => $run_persona,
 		);
 		if ( empty( $queue ) ) {
 			$run['finished_at'] = $now;
@@ -709,7 +777,7 @@ final class TWTAEO_Visibility_Store {
 			$run['allocation']['pending'] = array_values( $run['allocation']['pending'] );
 
 			$question = self::find_question( $run, $p['question_id'] );
-			$check    = self::new_check( $p['engine'], $p['question_id'], (int) $p['turn'], (int) $p['turn'] > 1 ? (string) $p['asked'] : '' );
+			$check    = self::new_check( $p['engine'], $p['question_id'], (int) $p['turn'], (int) $p['turn'] > 1 ? (string) $p['asked'] : '', isset( $p['tier'] ) ? $p['tier'] : '' );
 			return self::record_answer( $run, $check, $question, (string) $p['asked'], $answer, $key, self::ask_opts( $run ), false );
 		}
 
@@ -762,8 +830,12 @@ final class TWTAEO_Visibility_Store {
 
 		$question = self::find_question( $run, $step['question_id'] );
 		$turn     = isset( $step['turn'] ) ? max( 1, (int) $step['turn'] ) : 1;
-		$check    = self::new_check( $engine, (string) $step['question_id'], $turn, '' );
+		$tier    = TWTAEO_Visibility_Tier::clean_tier( isset( $step['tier'] ) ? $step['tier'] : '' );
+		$check    = self::new_check( $engine, (string) $step['question_id'], $turn, '', $tier );
 		$ask_opts = self::ask_opts( $run );
+		// How hard to ask this engine to work. Reaches the provider as a
+		// reasoning dial and a search cap, never as a different model.
+		$ask_opts['tier'] = $tier;
 
 		// Journey mode: a later turn asks the engine's own top follow-up from
 		// the turn before, with the conversation so far as history.
@@ -794,6 +866,7 @@ final class TWTAEO_Visibility_Store {
 					'question_id' => (string) $step['question_id'],
 					'engine'      => $engine,
 					'turn'        => $turn,
+					'tier'       => $tier,
 					'asked'       => $asked,
 					'id'          => $sub['id'],
 					'tools'       => $sub['tools'],
@@ -896,8 +969,8 @@ final class TWTAEO_Visibility_Store {
 		// so each question's whole conversation finishes before the next
 		// question starts. A run stopped halfway (or paused at the daily cap)
 		// still holds complete conversations for everything it asked.
-		$depth = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
-		if ( $turn <= $depth && null === $check['error'] && ! empty( $check['follow_ups'] ) ) {
+		$tier = isset( $run['allocation']['journey'] ) ? (int) $run['allocation']['journey'] : 0;
+		if ( $turn <= $tier && null === $check['error'] && ! empty( $check['follow_ups'] ) ) {
 			$queue = array_values( (array) $run['queue'] );
 			array_splice(
 				$queue,
@@ -961,7 +1034,7 @@ final class TWTAEO_Visibility_Store {
 		$out = array();
 		foreach ( (array) ( $run['allocation']['pending'] ?? array() ) as $p ) {
 			if ( is_array( $p ) && ! empty( $p['id'] ) && ! empty( $p['engine'] ) ) {
-				$out[] = $p + array( 'turn' => 1, 'asked' => '', 'tools' => array(), 'submitted' => 0, 'polled' => 0, 'question_id' => '' );
+				$out[] = $p + array( 'turn' => 1, 'tier' => (string) TWTAEO_Visibility_Types::DEFAULT_TIER, 'asked' => '', 'tools' => array(), 'submitted' => 0, 'polled' => 0, 'question_id' => '' );
 			}
 		}
 		return $out;
@@ -976,7 +1049,7 @@ final class TWTAEO_Visibility_Store {
 			'searched_urls' => array(),
 			'error'         => null,
 			'latency_ms'    => 0,
-			'model'         => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
+			'model'         => TWTAEO_Visibility_Tier::model_for( $engine, isset( $p['tier'] ) ? $p['tier'] : '' ),
 			'tools'         => isset( $p['tools'] ) ? (array) $p['tools'] : array(),
 		);
 	}
@@ -1000,7 +1073,8 @@ final class TWTAEO_Visibility_Store {
 	}
 
 	/** A check with nothing recorded yet. */
-	private static function new_check( $engine, $question_id, $turn, $asked ) {
+	private static function new_check( $engine, $question_id, $turn, $asked, $tier = null ) {
+		$tier = TWTAEO_Visibility_Tier::clean_tier( $tier );
 		return array(
 			'question_id'      => (string) $question_id,
 			'engine'           => (string) $engine,
@@ -1018,12 +1092,13 @@ final class TWTAEO_Visibility_Store {
 			'answer'           => '',
 			'latency_ms'       => 0,
 			'error'            => null,
-			'model'            => isset( TWTAEO_Visibility_Types::MODELS[ $engine ] ) ? TWTAEO_Visibility_Types::MODELS[ $engine ] : '',
+			'model'            => TWTAEO_Visibility_Tier::model_for( $engine, $tier ),
 			'tools'            => '',
 			'follow_ups'       => array(),
 			'follow_ups_error' => null,
 			'turn'             => max( 1, (int) $turn ),
 			'asked'            => (string) $asked,
+			'tier'            => $tier,
 		);
 	}
 
@@ -1255,7 +1330,7 @@ final class TWTAEO_Visibility_Store {
 		return $out;
 	}
 
-	/** Accept { question_id, engine, turn? } or [ question_id, engine ]. Turn is kept only past 1. */
+	/** Accept { question_id, engine, turn?, tier? } or [ question_id, engine ]. Turn is kept only past 1, tier only when it is not the default. */
 	private static function queue_pair( $item ) {
 		if ( ! is_array( $item ) ) {
 			return null;
@@ -1264,6 +1339,12 @@ final class TWTAEO_Visibility_Store {
 			$pair = array( 'question_id' => (string) $item['question_id'], 'engine' => (string) $item['engine'] );
 			if ( isset( $item['turn'] ) && (int) $item['turn'] > 1 ) {
 				$pair['turn'] = (int) $item['turn'];
+			}
+			if ( isset( $item['tier'] ) ) {
+				$tier = TWTAEO_Visibility_Tier::clean_tier( $item['tier'] );
+				if ( (string) TWTAEO_Visibility_Types::DEFAULT_TIER !== $tier ) {
+					$pair['tier'] = $tier;
+				}
 			}
 			return $pair;
 		}
@@ -1301,6 +1382,7 @@ final class TWTAEO_Visibility_Store {
 			'follow_ups_error' => isset( $c['follow_ups_error'] ) && '' !== (string) $c['follow_ups_error'] ? (string) $c['follow_ups_error'] : null,
 			'turn'             => isset( $c['turn'] ) ? max( 1, (int) $c['turn'] ) : 1,
 			'asked'            => isset( $c['asked'] ) ? (string) $c['asked'] : '',
+			'tier'            => TWTAEO_Visibility_Tier::clean_tier( isset( $c['tier'] ) ? $c['tier'] : '' ),
 		);
 	}
 
@@ -1360,8 +1442,9 @@ final class TWTAEO_Visibility_Store {
 			'follow_ups_error' => $c['follow_ups_error'],
 			'turn'             => (int) $c['turn'],
 			'asked'            => $c['asked'],
+			'tier'            => $c['tier'],
 		);
-		$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s' );
+		$format = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table.
 		if ( false !== $wpdb->insert( self::checks_table(), $data, $format ) ) {
 			return;
@@ -1412,6 +1495,9 @@ final class TWTAEO_Visibility_Store {
 				// Guarded: rows written before DB_VERSION 6 are all first turns.
 				'turn'             => isset( $r['turn'] ) ? max( 1, (int) $r['turn'] ) : 1,
 				'asked'            => isset( $r['asked'] ) ? (string) $r['asked'] : '',
+				// Guarded: rows written before DB_VERSION 7 were all asked the
+				// one way there was, which is what `free` now means.
+				'tier'            => isset( $r['tier'] ) ? TWTAEO_Visibility_Tier::clean_tier( $r['tier'] ) : (string) TWTAEO_Visibility_Types::DEFAULT_TIER,
 			);
 		}
 		return $out;
@@ -1458,8 +1544,13 @@ final class TWTAEO_Visibility_Store {
 			return null;
 		}
 		return array(
-			'id'    => isset( $p['id'] ) && '' !== (string) $p['id'] ? sanitize_title( (string) $p['id'] ) : sanitize_title( $label ),
-			'label' => $label,
+			'id'     => isset( $p['id'] ) && '' !== (string) $p['id'] ? sanitize_title( (string) $p['id'] ) : sanitize_title( $label ),
+			'label'  => $label,
+			// Which side of the consumer/business line this buyer is on. Kept
+			// because it decides the run's plan tiers; '' inherits the site.
+			'market' => class_exists( 'TWTAEO_Visibility_Personas' )
+				? TWTAEO_Visibility_Personas::clean_market( isset( $p['market'] ) ? $p['market'] : '' )
+				: '',
 		);
 	}
 

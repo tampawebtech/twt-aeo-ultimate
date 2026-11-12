@@ -73,7 +73,7 @@ final class TWTAEO_Visibility_Export {
 	/* ─────────────────────────── rows ─────────────────────────── */
 
 	/** Column order. Question-only columns are blank on follow-up rows. */
-	const COLUMNS = array( 'site_host', 'site_name', 'business_type', 'plugin_version', 'run_id', 'run_started', 'run_status', 'persona', 'search_country', 'search_region', 'search_city', 'search_location', 'turn', 'row_type', 'question_id', 'question_level', 'question_about', 'question_family', 'engine', 'model', 'checked_at', 'text', 'source', 'follow_up_rank', 'follow_up_of', 'verdict', 'cited_you', 'citation_surface', 'accuracy', 'your_urls_cited', 'cited_domains', 'other_domains', 'sources_given', 'follow_up_count', 'answer_text', 'answer_is_excerpt', 'error', 'word_count', 'intent', 'mentions_subject', 'subject_word_position', 'mentions_brand', 'brand_word_position', 'mentions_your_business', 'model_numbers', 'mentions_place' );
+	const COLUMNS = array( 'site_host', 'site_name', 'business_type', 'plugin_version', 'run_id', 'run_started', 'run_status', 'persona', 'market', 'search_country', 'search_region', 'search_city', 'search_location', 'turn', 'row_type', 'question_id', 'question_level', 'question_about', 'question_family', 'engine', 'tier', 'model', 'checked_at', 'text', 'source', 'follow_up_rank', 'follow_up_of', 'verdict', 'cited_you', 'citation_surface', 'accuracy', 'your_urls_cited', 'cited_domains', 'other_domains', 'sources_given', 'follow_up_count', 'answer_text', 'answer_is_excerpt', 'error', 'word_count', 'intent', 'mentions_subject', 'subject_word_position', 'mentions_brand', 'brand_word_position', 'mentions_your_business', 'model_numbers', 'mentions_place' );
 
 	/**
 	 * Every row, header first: each check as a question row, followed by its
@@ -98,6 +98,9 @@ final class TWTAEO_Visibility_Export {
 				'run_started'    => (string) $run['started_at'],
 				'run_status'     => (string) $run['status'],
 				'persona'        => self::persona( $run ),
+				// The market the RUN was opened under, copied onto its allocation
+				// so an owner who switches DTC/B2B later cannot rewrite history.
+				'market'         => self::market( $run ),
 				// Where the run searched from (blank: no location).
 				'search_country' => isset( $run['allocation']['location']['country'] ) ? (string) $run['allocation']['location']['country'] : '',
 				'search_region'  => isset( $run['allocation']['location']['region'] ) ? (string) $run['allocation']['location']['region'] : '',
@@ -153,6 +156,9 @@ final class TWTAEO_Visibility_Export {
 			'question_about'  => $about,
 			'question_family' => isset( $q['family'] ) ? (string) $q['family'] : '',
 			'engine'          => self::engine_label( $c['engine'] ),
+			// Which rung of the AI experience answered. Rows written before
+			// tiers existed were all asked the one way there was: `free`.
+			'tier'            => TWTAEO_Visibility_Tier::label( isset( $c['tier'] ) ? $c['tier'] : '' ),
 			'model'           => (string) $c['model'],
 			'checked_at'      => (string) $c['at'],
 			// search = the engine's search was given the location; told = only the
@@ -453,6 +459,25 @@ final class TWTAEO_Visibility_Export {
 
 	private static function persona( array $run ) {
 		return isset( $run['persona']['label'] ) ? (string) $run['persona']['label'] : '';
+	}
+
+	/**
+	 * The market a run was opened under. Runs recorded before markets
+	 * existed carry none, and were all asked the one way there was.
+	 *
+	 * @param array $run
+	 * @return string
+	 */
+	private static function market( array $run ) {
+		$market = isset( $run['allocation']['market'] ) ? (string) $run['allocation']['market'] : '';
+		if ( '' === $market ) {
+			return '';
+		}
+		$market = TWTAEO_Visibility_Tier::clean_market( $market );
+
+		return isset( TWTAEO_Visibility_Types::MARKETS[ $market ]['label'] )
+			? (string) TWTAEO_Visibility_Types::MARKETS[ $market ]['label']
+			: $market;
 	}
 
 	private static function level_label( $level ) {

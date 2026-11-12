@@ -4,7 +4,7 @@ Tags: woocommerce, answer engine optimization, llms.txt, schema, ai citation
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.35.1
+Stable tag: 2.36.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,7 @@ Asks eight AI engines (ChatGPT, Gemini, Claude, Perplexity, Grok, Le Chat, Muse 
 
 DeepSeek support is new: it works, and is still being tested. Most of DeepSeek's use is outside the US, led by Asia, with Russia and India near the top, and much of India searches in English. If your buyers are mostly in the US you can leave it off; if you sell internationally, especially into India, it is worth tracking.
 
+* **The plan your buyers are on**: a citation check usually asks one model and treats that as the answer, but the plan decides the model. A free ChatGPT account gets GPT-6 Luna where Plus gets Sol, a free Google account has had Flash-Lite and nothing else since October, and an account past its daily allowance drops smaller again. Those answers cite different sources. Choose consumers or businesses, and each plan level is asked and reported on its own line rather than averaged into one number, with the model behind every level listed on screen.
 * **Search location**: each run searches from a place: automatically your business address (Local Pack) or store country, or any country, state and city you choose, so a Tampa shop is measured the way Tampa buyers see the answers. Engines whose APIs take a search location use it; the others are told where the user is.
 * **Buyer personas**: ask as one of your buyers ("machine shop owner", "manufacturing engineer"). The persona reaches the engine as background about the user, the way the consumer apps personalise, and the question is sent exactly as written. Type your own, or have them suggested from your main pages. Switch personas off to ask as nobody in particular.
 * **Follow-up questions**: every answer comes back with the questions that engine expects the buyer to ask next.
@@ -214,6 +215,14 @@ Each request sends only the data needed for that action, using your own API key.
 
 == Changelog ==
 
+= 2.36.0 =
+* New: AI Visibility asks at the plan your buyers are actually on. A free ChatGPT account is answered by a different model from a Plus one, and a free account past its daily allowance drops to a smaller model again — and those answers cite different sources. Choose Consumers or Businesses under "Who are you answering for?" and each plan level is asked and reported on its own line.
+* New: the share of your audience on each plan is yours to set, with a tick box to leave a level out altogether. One combined figure sits beside the per-plan lines, worked out from the percentages shown on screen so you can check the arithmetic yourself. It never replaces them.
+* New: buyer personas carry their own audience. A homeowner and a distributor sit on different sides of that line, so each persona can be marked Consumer or Business and a run asked as that persona follows it.
+* New: "Exactly what each plan asks for" lists the model and the reasoning setting behind every level, for all eight engines, so nothing about how a figure was measured is hidden.
+* Changed: the models AI Visibility asks for ChatGPT and Gemini were out of date. ChatGPT now asks GPT-6 Luna, what free and Go accounts get; Gemini asks Flash-Lite, which is all an unpaid Google account has had since 9 October. Both engines' figures will step at this release. Every stored check records the model that answered it, so the change is visible in your CSV export.
+* Changed: a plan level is only asked of an engine where it genuinely changes the request, so your daily check cap is not spent on two identical answers.
+
 = 2.35.1 =
 * Fixed: on a site whose only AI key was OpenRouter or Perplexity, switching "Auto-generate on save" on or off saved Claude as the AI provider, and every AI action then failed asking for a Claude key. The AI provider menu now saves whichever provider you pick.
 * Fixed: "Generate all missing" ran with Claude on those sites and failed on every page. Bulk runs now use the provider you chose, or the one that holds a key.
@@ -329,68 +338,12 @@ Each request sends only the data needed for that action, using your own API key.
 * Security: the connector refuses requests from other websites, is limited to 600 calls an hour per user, never shares API keys, settings, visitor IP addresses or the full text of AI answers, and treats questions and answers written by other AI models as data, never as instructions.
 * Changed: the external-services inventory is now external-services.txt (previously EXTERNAL-SERVICES.md) and lists the Claude connector.
 
-= 2.29.0 =
-* New: crawl age on Index Status and the Not Indexed page. Every scanned page shows how many days ago Google last crawled it, amber from 90 days and red from 130, where pages become much more likely to drop out of Google's index.
-* New: "Indexed, But Google Hasn't Been Back" on the Not Indexed page lists indexed pages Google is crawling less and less, oldest first, with what to do about them. Index Status gets a Crawl Going Stale count.
-* Improved: the daily index check now works through your whole site, 100 pages a day, pages never checked first and then the ones checked longest ago. It used to check only the 50 most recently edited pages, so old pages were never re-checked.
-* Fixed: pages Google reports as "URL is unknown to Google" counted as indexed. They are now reported as not indexed.
-
-= 2.28.1 =
-* New: add your own questions to AI Visibility, one per line. They are asked on every run on top of the allocation and kept when you rebuild the list from templates.
-* New: reword any question with Edit, and put a single question back to its original wording without resetting the list.
-* New: "Is this you?" on AI Visibility results. Cited listings on platforms such as Shopify, Clutch, GitHub, LinkedIn and wordpress.org that carry your name in their address are offered for confirmation. Yes counts the page as you and re-scores your kept runs without asking the engines again; No is remembered and never asked again.
-* New: pages about you. Reviews, comparisons and other pages that other sites wrote about you, and listings waiting for your answer, get their own "pages about you" slice and list instead of counting as competitors.
-* Improved: saving "What counts as you" now re-scores your kept runs, so registering a page you own corrects past results for free.
-* Improved: your plugin page's language copies on wordpress.org (en-gb., de. and so on) and your company's LinkedIn posts now count as you once the page is registered.
-* Improved: a company can register up to 25 owned pages (was 12).
-* Changed: app store addresses (apps.shopify.com, Wix, the Chrome Web Store) need the full listing address, so a bare store address can no longer claim every app cited there.
-* Fixed: AI engines you added a key for after saving your allocation stayed unticked, so runs skipped them (Grok, DeepSeek and Muse on existing sites). They are now ticked; an engine you untick yourself stays off.
-
-= 2.28.0 =
-* New: Muse (Meta AI) joins AI Visibility, through the Meta Model API with web search. Muse answers slowly, so its questions are sent in the background and collected as they finish: the rest of the run never waits for it.
-* New: DeepSeek joins AI Visibility, through DeepSeek's API with web search, for sites that sell outside the US. Working, and still being tested. AI Visibility now covers eight AI engines.
-* New: search location for AI Visibility runs ("Search from"). Automatic from your Local Pack address or store country, or any country, state and city; English-speaking markets listed first. Runs are only compared with runs from the same place, and the CSV export has the location columns.
-* New: "Gave no sources" in AI Visibility. An answer that did not cite you and cited no one else is marked as such, per engine and per answer, and in the CSV, so "not cited" is no longer read as a competitor winning.
-* New: Markdown versions of your pages at `/page.md`, with discovery links and YAML frontmatter, and an llms.txt option to link each page to its Markdown version. The crawler log records whether HTML or Markdown was served. New AI bots recognised: Claude-User, Claude-SearchBot and Perplexity-User.
-* New: FAQ schema drift detection. When a page's visible FAQ and its FAQPage schema no longer match, the Schema Detector's FAQ tab and the editor say so, and schema this plugin writes resyncs on save.
-* New: RAG Engine Next questions group follow-ups about your business (turnaround, warranty, shipping, rush service, reviews, pricing) by topic, with your page for each topic or a note that none exists yet.
-* New: RAG Engine Search Placement flags searches you still rank for whose page is in the Trash or unpublished, with a restore link.
-* New: GPT-6.1 Sol in the OpenAI model list.
-* Improved: RAG Engine matching. Passages must contain a question's most distinctive word, follow-ups that say "it" keep the model they refer to, and office address lists and tables of contents are no longer offered as answers.
-* Improved: AI Visibility questions built from headings written in your own voice ("Models We Service") are rephrased the way a buyer asks, or skipped.
-* Improved: runs with follow-up turns show them beside the check count ("375 checks + 345 follow-up turns"), and the progress line says how the growing total splits.
-* Changed: the banner on the plugin's screens now offers help in the support forum instead of asking for a review.
-* Changed: a bold "don't close this page" warning while documents upload.
-* Fixed: approving, unapproving or deleting a review on the Reviews page could stop at "The link you followed has expired".
-* Fixed: AI-written meta descriptions could stop mid-sentence. They now end at a full sentence, and the Social Graph screen flags existing descriptions that are cut off.
-* Fixed: GPT-6.1 models were sent a reasoning setting they refuse.
-
-= 2.27.0 =
-* New: WordPress Abilities (WordPress 6.9 and later). Five read-only abilities let an AI assistant you connect to your site read your AI Visibility results, AI crawler activity, pages no AI crawler has visited, a page's AEO report and your RAG Engine content gaps. Administrators only. Answers are summaries: no visitor data, raw crawler requests, full AI answers, settings or keys are ever returned.
-* Changed: llms.txt now leaves out pages set to noindex in Yoast, Rank Math, SEOPress or All in One SEO (v3 settings), password-protected pages, and WooCommerce cart, checkout and account pages.
-* Changed: the llms.txt card on AI Ready explains when to leave llms.txt on and when to switch it off.
-
-= 2.26.0 =
-* New: buyer personas in AI Visibility. Ask a run as one of your buyers; the persona is sent to the engine as background about the user, and the question itself is never changed. Edit personas on the AI Visibility page or under Local Pack → Business Profile, or have them suggested from your main pages (meta title and description, or the first paragraph). Switch personas off to ask every run as nobody in particular.
-* New: follow-up questions. Each AI Visibility answer comes back with the follow-up questions that engine expects the buyer to ask next, from a second, short call to the same engine with no web search. Shown under every answer.
-* New: Follow the conversation (optional, per run). Asks the engine its own top follow-up in the same conversation, one or two turns deep, and records whether you are cited at each step. Each question's conversation finishes before the next question starts, so a stopped run keeps complete conversations. Follow-up turns appear as their own labelled rows and are kept out of the headline numbers, trends and comparisons.
-* New: CSV export of AI Visibility runs (this run or every kept run). One row per question asked, followed by its follow-up questions, with the persona, the verdict, the full answer and pattern columns for analysis. Each row names the site and business type so exports from several sites combine into one sheet.
-* New: Next questions in the RAG Engine's AI Citations tab. The follow-ups the engines predicted, checked against your pages and documents: passages to publish where your documents answer them, and a list of what nothing on your site answers yet.
-* Fixed: Gemini answers in AI Visibility were cut off after a sentence or two. Gemini 3.x spends part of its output limit thinking, which left little room for the answer and could drop citations. Gemini and ChatGPT answers now have room to finish, so their cited and named rates may rise compared with earlier runs.
-* Fixed: an AI Visibility check could fail to save without any message if the database table was missing a column. The table is now repaired and the save retried.
-
-= 2.25.0 =
-* New: RAG Engine (switch it on under Modules; it replaces the Chunk View screen). One screen for how AI retrieval sees your site: Chunk View, Documents, Search Placement and AI Citations.
-* New: Documents. Upload PDFs, Word files and text: spec sheets, manuals, FAQs. They are read on your own server and the uploaded file is deleted once read; only the searchable passages are kept. Large files upload in pieces and resume after a dropped connection.
-* New: tables in PDFs are rebuilt as real tables. Standard/option charts read "Standard", "Option" or "N/A" under the right model, and spec tables keep each value beside its label. Copy pastes a table straight into the editor.
-* New: document labels. Each document is marked as a law, code, safety data sheet, contract, manual, spec sheet or other, with its place, edition and what to cite it as. Laws, codes and safety data are copied word for word with their citation. An optional switch lets AI read the first few pages to label them; you can correct any label.
-* New: law check. For a law or code, an online search (Gemini or Perplexity) looks for changes after your copy's date and links to the official source. Only the citation is sent, never your document's text.
-* New: Search Placement lists the Google and Bing searches you rank 4th to 15th for that your documents answer and the ranking page does not. Searches for a business to hire ("near me", "services", a town) are left out, with a note saying how many.
-* New: AI Citations lists AI Visibility questions where an engine left you out, with the passages that answer them. It reads your existing runs, including paused or unfinished ones, and never runs new checks.
-* Changed: the Search Console setting is now a dropdown of your Google account's own properties. Fixed: domain properties ("sc-domain:") could not be saved, and an address that did not exactly match a property failed with "User does not have sufficient permission".
-* Changed: AI Visibility stops asking an engine for the rest of a run once it rejects its API key.
+Older releases (2.29.0 and earlier) are listed in full in changelog.txt, bundled with the plugin and readable at [the plugin's developer page](https://wordpress.org/plugins/twt-aeo-ultimate/#developers).
 
 == Upgrade Notice ==
+
+= 2.36.0 =
+AI Visibility now asks at free, paid and out-of-quota plan levels and reports each on its own line. The ChatGPT and Gemini probe models are brought up to date, so those two engines' figures will step at this release.
 
 = 2.35.1 =
 Fixes AI features failing on sites whose only key is OpenRouter or Perplexity, and lets you choose OpenRouter in the AI provider menu. Update if you use OpenRouter.

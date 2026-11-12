@@ -468,3 +468,93 @@
 .twt-aeo-vis__dirs-ok { color: #1f8f6f; font-size: 12px; font-weight: 600; }
 .twt-aeo-vis__dirs-q { margin: 4px 0 0 16px; padding: 0; list-style: disc; font-size: 12px; color: #50575e; }
 .twt-aeo-vis__dirs-q li { margin: 2px 0; overflow-wrap: anywhere; }
+
+/* Which plan tiers a market is asked at, and the share each stands for. */
+.twt-aeo-vis__mix {
+	display: block;
+	margin: 0.35rem 0 0;
+}
+.twt-aeo-vis__mix-row {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	margin: 0 0.9rem 0.25rem 0;
+	font-size: 12px;
+	white-space: nowrap;
+}
+.twt-aeo-vis__mix-row input[type="number"] {
+	width: 4.2rem;
+}
+.twt-aeo-vis__mix-note {
+	display: block;
+}
+
+/* By plan tier: one line per rung, kept apart from the headline. */
+.twt-aeo-vis__tiers {
+	margin: 0.75rem 0 0;
+	padding: 0.75rem 0.9rem;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+.twt-aeo-vis__tiers-head {
+	margin: 0 0 0.5rem;
+}
+.twt-aeo-vis__tiers-head .twt-aeo-vis__muted {
+	display: block;
+	font-weight: 400;
+}
+.twt-aeo-vis__tiers-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+.twt-aeo-vis__tiers-table th,
+.twt-aeo-vis__tiers-table td {
+	padding: 0.3rem 0.5rem 0.3rem 0;
+	text-align: left;
+	border-bottom: 1px solid #f0f0f1;
+}
+.twt-aeo-vis__tiers-table thead th {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+/* The row headers default to bold, which made the baseline -- the one row
+   worth picking out -- the only one that looked de-emphasised. Quieten the
+   rest instead. */
+.twt-aeo-vis__tiers-table tbody th {
+	font-weight: 400;
+}
+.twt-aeo-vis__tiers-table tbody tr.is-baseline th {
+	font-weight: 700;
+}
+.twt-aeo-vis__tiers-table tbody tr:last-child th,
+.twt-aeo-vis__tiers-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+.twt-aeo-vis__tiers-weighted {
+	margin: 0.6rem 0 0;
+	padding-top: 0.5rem;
+	border-top: 1px solid #dcdcde;
+}
+
+/* What each plan actually calls, per engine. */
+.twt-aeo-vis__mapping {
+	margin: 0.6rem 0 0;
+	padding-top: 0.5rem;
+	border-top: 1px solid #dcdcde;
+}
+.twt-aeo-vis__mapping > summary {
+	cursor: pointer;
+	font-size: 12px;
+}
+.twt-aeo-vis__mapping code {
+	font-size: 11px;
+	padding: 1px 4px;
+}
+.twt-aeo-vis__mapping .twt-aeo-vis__tiers-table td {
+	vertical-align: top;
+	padding-right: 1rem;
+}

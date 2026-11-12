@@ -72,7 +72,7 @@ final class TWTAEO_Visibility_Questions {
 	 *
 	 * @param array $alloc  [ company, per_collection, per_type, per_product, per_post, engines[] ].
 	 * @param array $counts [ collections, types, products, posts ].
-	 * @return array [ questions => int, checks => int, by_level => [ company, collection, type, product, post ] ].
+	 * @return array [ questions => int, engines => int, checks => int, by_level => [ company, collection, type, product, post ] ].
 	 */
 	public static function allocation_totals( array $alloc, array $counts ) {
 		$by_level = array(
@@ -87,11 +87,19 @@ final class TWTAEO_Visibility_Questions {
 		foreach ( $by_level as $n ) {
 			$questions += $n;
 		}
-		$engines = self::get( $alloc, 'engines' );
-		$engines = is_array( $engines ) ? count( $engines ) : 0;
+		$engine_ids = self::get( $alloc, 'engines' );
+		$engine_ids = is_array( $engine_ids ) ? array_values( array_map( 'strval', $engine_ids ) ) : array();
+		/*
+		 * One question no longer costs one check per engine: a market may want
+		 * several plan tiers, and each tier that really changes the request is
+		 * its own check. TWTAEO_Visibility_Tier counts it the same way the run
+		 * queue builds it, so the estimate cannot drift from the run.
+		 */
+		$steps = TWTAEO_Visibility_Tier::steps_per_question( $engine_ids );
 		return array(
 			'questions' => $questions,
-			'checks'    => $questions * $engines,
+			'engines'   => count( $engine_ids ),
+			'checks'    => $questions * $steps,
 			'by_level'  => $by_level,
 		);
 	}

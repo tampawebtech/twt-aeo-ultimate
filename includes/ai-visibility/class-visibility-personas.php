@@ -8,6 +8,12 @@
  * beside the shopper prompt — the question itself is never touched. See
  * TWTAEO_Visibility_Engines::system_prompt().
  *
+ * Each persona may also name the MARKET it belongs to. A manufacturer
+ * selling to both homeowners and distributors has personas on both sides of
+ * that line, and the line decides which plan tiers a run asks at -- see
+ * TWTAEO_Visibility_Tier. Empty means "use the site's own market setting",
+ * which is what every persona saved before this field existed means.
+ *
  * One list per site, kept in the AI Visibility settings. The Local Pack page
  * (when that module is on) and the AI Visibility page both edit this same
  * list, so switching Local Pack off moves the field, never the data.
@@ -63,6 +69,21 @@ final class TWTAEO_Visibility_Personas {
 		'pet_services'    => array( 'pet owner' ),
 	);
 
+	/**
+	 * Which market each GROUP_DEFAULTS persona buys in. Anything in that list
+	 * and absent here is a consumer; this names only the ones who are buying
+	 * for a business, because those are the ones a reader would get wrong.
+	 */
+	const DEFAULT_MARKETS = array(
+		'property manager'     => 'b2b',
+		'landlord'             => 'b2b',
+		'event planner'        => 'b2b',
+		'fleet manager'        => 'b2b',
+		'small business owner' => 'b2b',
+		'business traveler'    => 'b2b',
+		'property investor'    => 'b2b',
+	);
+
 	/** Meta-description keys, in priority order (same list as TWTAEO_Index_Heuristics). */
 	const DESC_KEYS = array( '_twtaeo_meta_description', '_yoast_wpseo_metadesc', 'rank_math_description', '_aioseop_description', '_seopress_titles_desc' );
 
@@ -79,7 +100,7 @@ final class TWTAEO_Visibility_Personas {
 	 * "engineer" still matches the persona after a page reload.
 	 *
 	 * @param mixed $raw
-	 * @return array Persona[] [ id, label, source ].
+	 * @return array Persona[] [ id, label, source, market ].
 	 */
 	public static function clean( $raw ) {
 		if ( is_string( $raw ) ) {
@@ -90,9 +111,11 @@ final class TWTAEO_Visibility_Personas {
 		$seen = array();
 		foreach ( (array) $raw as $row ) {
 			$source = 'owner';
+			$market = '';
 			if ( is_array( $row ) ) {
 				$label  = isset( $row['label'] ) ? $row['label'] : '';
 				$source = isset( $row['source'] ) && 'site' === $row['source'] ? 'site' : 'owner';
+				$market = self::clean_market( isset( $row['market'] ) ? $row['market'] : '' );
 			} else {
 				$label = $row;
 			}
@@ -105,12 +128,50 @@ final class TWTAEO_Visibility_Personas {
 				continue;
 			}
 			$seen[ $id ] = true;
-			$out[]       = array( 'id' => $id, 'label' => $label, 'source' => $source );
+			if ( '' === $market ) {
+				// Nothing chosen: fall back to what this label looks like among
+				// the built-in suggestions, and to the site setting past that.
+				$market = self::suggested_market( $label );
+			}
+			$out[]       = array( 'id' => $id, 'label' => $label, 'source' => $source, 'market' => $market );
 			if ( count( $out ) >= TWTAEO_Visibility_Types::PERSONAS_MAX ) {
 				break;
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * A persona's market, or '' for "use the site's setting". Never guesses
+	 * from free text: an unrecognised value becomes '' rather than a market
+	 * the owner did not pick.
+	 *
+	 * @param string $market
+	 * @return string dtc | b2b | ''
+	 */
+	public static function clean_market( $market ) {
+		$market = strtolower( trim( (string) $market ) );
+
+		return isset( TWTAEO_Visibility_Types::MARKETS[ $market ] ) ? $market : '';
+	}
+
+	/**
+	 * The market one of the BUILT-IN suggestions belongs to, so the personas
+	 * this plugin proposes arrive already on the right side of the line.
+	 *
+	 * Only exact matches against GROUP_DEFAULTS count. A persona the owner
+	 * typed, or one the AI suggested from the site's pages, gets '' and
+	 * inherits the site setting until the owner says otherwise -- guessing a
+	 * market from somebody's own words is how a dataset ends up quietly
+	 * measuring the wrong audience.
+	 *
+	 * @param string $label
+	 * @return string dtc | b2b | ''
+	 */
+	public static function suggested_market( $label ) {
+		$label = strtolower( trim( (string) $label ) );
+
+		return isset( self::DEFAULT_MARKETS[ $label ] ) ? self::DEFAULT_MARKETS[ $label ] : '';
 	}
 
 	/** One label: plain text, single-spaced, no trailing punctuation, capped. */

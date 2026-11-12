@@ -1,10 +1,13 @@
-# OS / editor
-.DS_Store
-Thumbs.db
-*.swp
-.idea/
-.vscode/
+# Stale duplicate tree (Aug 27 snapshot) — not the working copy
+twt-aeo-ultimate/
 
-# Dev
-node_modules/
-*.log
+# OS / editor noise
+Thumbs.db
+.DS_Store
+*.swp
+
+# Session handoff notes (never shipped)
+HANDOFF.md
+
+# Built skill bundles for the Agensi marketplace (regenerated, never shipped)
+tools/agensi-skills/dist/

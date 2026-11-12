@@ -711,11 +711,18 @@ final class TWTAEO_Page_AI_Visibility {
 					if ( ! is_array( $p ) || empty( $p['label'] ) ) {
 						continue;
 					}
-					$site = isset( $p['source'] ) && 'site' === $p['source'];
+					$site   = isset( $p['source'] ) && 'site' === $p['source'];
+					$pmkt   = isset( $p['market'] ) ? (string) $p['market'] : '';
 					?>
-					<span class="twt-aeo-personas__tag<?php echo $site ? ' is-site' : ''; ?>" data-persona-tag data-label="<?php echo esc_attr( (string) $p['label'] ); ?>" data-source="<?php echo $site ? 'site' : 'owner'; ?>">
+					<span class="twt-aeo-personas__tag<?php echo $site ? ' is-site' : ''; ?>" data-persona-tag data-label="<?php echo esc_attr( (string) $p['label'] ); ?>" data-source="<?php echo $site ? 'site' : 'owner'; ?>" data-market="<?php echo esc_attr( $pmkt ); ?>">
 						<button type="button" class="twt-aeo-personas__text" data-persona-edit title="<?php esc_attr_e( 'Click to edit', 'twt-aeo-ultimate' ); ?>"><?php echo esc_html( (string) $p['label'] ); ?></button>
 						<?php if ( $site ) : ?><span class="twt-aeo-personas__src"><?php esc_html_e( 'suggested from your site', 'twt-aeo-ultimate' ); ?></span><?php endif; ?>
+						<?php /* Which AI plan tiers a run as this buyer asks at. */ ?>
+						<select class="twt-aeo-personas__market" data-persona-market aria-label="<?php esc_attr_e( 'Who this buyer is', 'twt-aeo-ultimate' ); ?>">
+							<option value="" <?php selected( $pmkt, '' ); ?>><?php esc_html_e( 'Site default', 'twt-aeo-ultimate' ); ?></option>
+							<option value="dtc" <?php selected( $pmkt, 'dtc' ); ?>><?php esc_html_e( 'Consumer', 'twt-aeo-ultimate' ); ?></option>
+							<option value="b2b" <?php selected( $pmkt, 'b2b' ); ?>><?php esc_html_e( 'Business', 'twt-aeo-ultimate' ); ?></option>
+						</select>
 						<?php /* translators: %s: persona label. */ ?>
 						<button type="button" class="twt-aeo-personas__remove" data-persona-remove aria-label="<?php echo esc_attr( sprintf( __( 'Remove %s', 'twt-aeo-ultimate' ), (string) $p['label'] ) ); ?>">&times;</button>
 					</span>
@@ -724,6 +731,7 @@ final class TWTAEO_Page_AI_Visibility {
 			</div>
 			<input type="hidden" name="twtaeo_personas" data-persona-json value="<?php echo esc_attr( wp_json_encode( array_values( $personas ) ) ); ?>">
 			<p class="description"><?php esc_html_e( 'Enter or a comma adds one; paste a comma-separated list to add several. Click a persona to edit it. Up to 10 — each run is asked as one of them.', 'twt-aeo-ultimate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Consumers and business buyers pay for AI at very different rates, so each persona is weighted with its own spread of plans. That is an estimate about a group, never a claim about one person’s subscription. “Site default” follows the choice on the AI Visibility page.', 'twt-aeo-ultimate' ); ?></p>
 			<div class="twt-aeo-personas__actions">
 				<?php if ( $own_save ) : ?>
 					<button type="button" class="button button-primary" data-persona-save><?php esc_html_e( 'Save personas', 'twt-aeo-ultimate' ); ?></button>
@@ -841,6 +849,28 @@ final class TWTAEO_Page_AI_Visibility {
 		$cap    = (int) $d['cap'];
 		$checks = isset( $totals['checks'] ) ? (int) $totals['checks'] : 0;
 		$days   = $cap > 0 ? max( 1, (int) ceil( $checks / $cap ) ) : 0;
+		// Which plan tiers this site is measured at, and -- for the live
+		// estimate in JS -- how many checks each engine costs under either
+		// market, so switching the radio re-totals without a round trip.
+		$market    = TWTAEO_Visibility_Tier::market();
+		$run_tiers = TWTAEO_Visibility_Tier::tiers_for_market( $market );
+		$mixes     = array();
+		foreach ( array_keys( TWTAEO_Visibility_Types::MARKETS ) as $mid ) {
+			$mixes[ $mid ] = TWTAEO_Visibility_Tier::mix( $mid );
+		}
+		// Which tiers genuinely change an engine's request. This does not
+		// depend on the market, so the script can re-total from the tickboxes
+		// alone, the same way TWTAEO_Visibility_Tier::tiers_for_engine() does.
+		$tier_differs = array();
+		foreach ( array_keys( TWTAEO_Visibility_Types::ENGINES ) as $eid ) {
+			$list = array();
+			foreach ( TWTAEO_Visibility_Types::TIERS as $t ) {
+				if ( TWTAEO_Visibility_Tier::differs( $eid, $t ) ) {
+					$list[] = $t;
+				}
+			}
+			$tier_differs[ $eid ] = $list;
+		}
 		$fields = array(
 			'company'        => array( __( 'Company', 'twt-aeo-ultimate' ), '' ),
 			'per_brand'      => array( __( 'Per brand', 'twt-aeo-ultimate' ), (string) ( isset( $counts['brands'] ) ? $counts['brands'] : 0 ) ),
@@ -909,8 +939,14 @@ final class TWTAEO_Page_AI_Visibility {
 					<strong>
 						<?php
 						printf(
-							/* translators: 1: questions, 2: engines, 3: checks */
-							esc_html__( '%1$s questions × %2$s engines = %3$s checks', 'twt-aeo-ultimate' ),
+							// With more than one plan tier this stops being a product
+							// of two numbers, so say so rather than printing
+							// arithmetic that does not multiply out.
+							count( $run_tiers ) > 1
+								/* translators: 1: questions, 2: engines, 3: checks */
+								? esc_html__( '%1$s questions × %2$s engines, across your plan tiers = %3$s checks', 'twt-aeo-ultimate' )
+								/* translators: 1: questions, 2: engines, 3: checks */
+								: esc_html__( '%1$s questions × %2$s engines = %3$s checks', 'twt-aeo-ultimate' ),
 							'<span data-q>' . esc_html( number_format_i18n( (int) $totals['questions'] ) ) . '</span>',
 							'<span data-e>' . esc_html( count( $alloc['engines'] ) ) . '</span>',
 							'<span data-c>' . esc_html( number_format_i18n( $checks ) ) . '</span>'
@@ -923,6 +959,125 @@ final class TWTAEO_Page_AI_Visibility {
 					<?php /* translators: %d: number of days this run needs at the current daily cap. */ ?>
 					<?php echo $days ? esc_html( sprintf( _n( '%d day', '%d days', $days, 'twt-aeo-ultimate' ), $days ) ) : esc_html__( '— (cap is 0)', 'twt-aeo-ultimate' ); ?></span>
 				</p>
+
+				<fieldset class="twt-aeo-vis__market"
+					data-tier-differs="<?php echo esc_attr( (string) wp_json_encode( $tier_differs ) ); ?>"
+					data-baseline-tier="<?php echo esc_attr( (string) TWTAEO_Visibility_Types::DEFAULT_TIER ); ?>">
+					<legend><strong><?php esc_html_e( 'Are you measuring the AI your customers actually use?', 'twt-aeo-ultimate' ); ?></strong></legend>
+					<p class="twt-aeo-card__note">
+						<?php esc_html_e( 'Free, paid and out-of-quota accounts can be answered by different models — or by the same model allowed to think longer — and that changes which sources get cited. Pick how your audience is likely to be using AI, and each configuration is asked separately so you can see how often each one cites you.', 'twt-aeo-ultimate' ); ?>
+					</p>
+					<p class="twt-aeo-card__note">
+						<?php esc_html_e( 'This decides which configurations are tested and how the combined figure is weighted. It cannot tell which plan any individual customer is on — no API can.', 'twt-aeo-ultimate' ); ?>
+					</p>
+					<?php foreach ( TWTAEO_Visibility_Types::MARKETS as $mid => $mrow ) : ?>
+						<p class="twt-aeo-vis__market-row">
+							<label>
+								<input type="radio" name="market" value="<?php echo esc_attr( $mid ); ?>" <?php checked( $market, $mid ); ?>>
+								<strong><?php echo esc_html( $mrow['label'] ); ?></strong>
+							</label>
+							<br>
+							<span class="description"><?php echo esc_html( $mrow['note'] ); ?></span>
+							<br>
+							<span class="twt-aeo-vis__mix" data-tier-mix-market="<?php echo esc_attr( $mid ); ?>">
+								<?php foreach ( TWTAEO_Visibility_Types::TIERS as $t ) :
+									$row      = isset( $mixes[ $mid ][ $t ] ) ? $mixes[ $mid ][ $t ] : array( 'on' => false, 'weight' => 0 );
+									$is_base  = (string) TWTAEO_Visibility_Types::DEFAULT_TIER === $t;
+									?>
+									<span class="twt-aeo-vis__mix-row" data-tier-mix data-market="<?php echo esc_attr( $mid ); ?>" data-tier="<?php echo esc_attr( $t ); ?>">
+										<label>
+											<input type="checkbox" data-tier-on <?php checked( ! empty( $row['on'] ) ); ?> <?php disabled( $is_base ); ?>>
+											<?php echo esc_html( TWTAEO_Visibility_Tier::label( $t ) ); ?>
+										</label>
+										<input type="number" data-tier-weight min="0" max="100" step="1" value="<?php echo esc_attr( (int) $row['weight'] ); ?>" class="small-text" aria-label="<?php echo esc_attr( sprintf( /* translators: %s: plan tier name */ __( 'Share of this audience on %s', 'twt-aeo-ultimate' ), TWTAEO_Visibility_Tier::label( $t ) ) ); ?>">%
+									</span>
+								<?php endforeach; ?>
+								<span class="description twt-aeo-vis__mix-note" data-tier-mix-total></span>
+							</span>
+						</p>
+					<?php endforeach; ?>
+					<p class="twt-aeo-card__note">
+						<?php esc_html_e( 'A tier is only asked of an engine where it genuinely changes the request — a known smaller model, or a reasoning dial we can set. Everywhere else the engine is asked once, so your daily cap is never spent on a duplicate answer.', 'twt-aeo-ultimate' ); ?>
+					</p>
+					<p class="twt-aeo-card__note">
+						<?php esc_html_e( 'The percentages are an estimate of how your buyers split across plans — nothing here can see anybody’s subscription. Each plan is still reported on its own line; the shares only add one combined figure beside them.', 'twt-aeo-ultimate' ); ?>
+						<br>
+						<strong>
+							<?php
+							$mix_saved = isset( $settings['tier_mix_saved'] ) ? (int) $settings['tier_mix_saved'] : 0;
+							if ( $mix_saved > 0 ) {
+								printf(
+									/* translators: %s: date the owner last saved their audience shares. */
+									esc_html__( 'Source: your own estimate, saved %s.', 'twt-aeo-ultimate' ),
+									esc_html( date_i18n( get_option( 'date_format' ), $mix_saved ) )
+								);
+							} else {
+								printf(
+									/* translators: %s: date the shipped estimates were researched. */
+									esc_html__( 'Source: starting estimates shipped with the plugin, researched %s — not measured from your own buyers.', 'twt-aeo-ultimate' ),
+									esc_html( date_i18n( get_option( 'date_format' ), strtotime( TWTAEO_Visibility_Types::MARKET_MIX_RESEARCHED ) ) )
+								);
+							}
+							?>
+						</strong>
+						<?php esc_html_e( 'Worth revisiting monthly: the plans and their default models move.', 'twt-aeo-ultimate' ); ?>
+					</p>
+					<?php /* The baseline tier cannot be unticked: it is the row every engine has. */ ?>
+					<p class="twt-aeo-card__note">
+						<?php
+						printf(
+							/* translators: %s: the baseline plan tier's name */
+							esc_html__( '%s is always asked — it is the one row every engine has, and what every figure recorded before plan tiers existed describes.', 'twt-aeo-ultimate' ),
+							'<strong>' . esc_html( TWTAEO_Visibility_Tier::label( (string) TWTAEO_Visibility_Types::DEFAULT_TIER ) ) . '</strong>'
+						);
+						?>
+					</p>
+					<details class="twt-aeo-vis__mapping">
+						<summary><?php esc_html_e( 'Exactly what each plan asks for', 'twt-aeo-ultimate' ); ?></summary>
+						<p class="description">
+							<?php esc_html_e( 'These are API calls chosen to resemble what each kind of account meets in the consumer app — an approximation of it, not the app itself. Where a plan changes nothing we can set, the engine is asked once and that answer stands for every plan.', 'twt-aeo-ultimate' ); ?>
+						</p>
+						<table class="twt-aeo-vis__tiers-table">
+							<thead>
+								<tr>
+									<th scope="col"><?php esc_html_e( 'Engine', 'twt-aeo-ultimate' ); ?></th>
+									<?php foreach ( TWTAEO_Visibility_Types::TIERS as $t ) : ?>
+										<th scope="col"><?php echo esc_html( TWTAEO_Visibility_Tier::label( $t ) ); ?></th>
+									<?php endforeach; ?>
+								</tr>
+							</thead>
+							<tbody>
+							<?php foreach ( TWTAEO_Visibility_Types::ENGINES as $eid => $erow ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html( $erow['label'] ); ?></th>
+									<?php foreach ( TWTAEO_Visibility_Types::TIERS as $t ) :
+										$spec = TWTAEO_Visibility_Tier::describe( $eid, $t );
+										?>
+										<td>
+											<?php if ( null === $spec ) : ?>
+												<span class="twt-aeo-vis__muted">
+													<?php
+													printf(
+														/* translators: %s: the baseline plan tier's name. */
+														esc_html__( 'same as %s', 'twt-aeo-ultimate' ),
+														esc_html( TWTAEO_Visibility_Tier::label( (string) TWTAEO_Visibility_Types::DEFAULT_TIER ) )
+													);
+													?>
+												</span>
+											<?php else : ?>
+												<code><?php echo esc_html( $spec['model'] ); ?></code>
+												<?php if ( ! empty( $spec['notes'] ) ) : ?>
+													<br><span class="twt-aeo-vis__muted"><?php echo esc_html( implode( ' · ', $spec['notes'] ) ); ?></span>
+												<?php endif; ?>
+											<?php endif; ?>
+										</td>
+									<?php endforeach; ?>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					</details>
+				</fieldset>
 
 				<details class="twt-aeo-vis__more">
 					<summary><?php esc_html_e( 'Cap, X handle and alternate hosts', 'twt-aeo-ultimate' ); ?></summary>
@@ -1173,7 +1328,7 @@ final class TWTAEO_Page_AI_Visibility {
 					<select id="twt-aeo-vis-persona">
 						<option value=""><?php esc_html_e( 'Nobody in particular (baseline)', 'twt-aeo-ultimate' ); ?></option>
 						<?php foreach ( (array) ( isset( $d['personas'] ) ? $d['personas'] : array() ) as $p ) : ?>
-							<option value="<?php echo esc_attr( (string) $p['id'] ); ?>"><?php echo esc_html( (string) $p['label'] ); ?></option>
+							<option value="<?php echo esc_attr( (string) $p['id'] ); ?>" data-market="<?php echo esc_attr( isset( $p['market'] ) ? (string) $p['market'] : '' ); ?>"><?php echo esc_html( (string) $p['label'] ); ?></option>
 						<?php endforeach; ?>
 					</select>
 					<span class="twt-aeo-vis__muted"><?php esc_html_e( 'One persona per run, so its numbers compare like with like. To see each buyer, run once per persona — each run costs the same number of checks.', 'twt-aeo-ultimate' ); ?></span>
@@ -1251,7 +1406,15 @@ final class TWTAEO_Page_AI_Visibility {
 		$is_demo   = ! empty( $selected['demo'] );
 		$summary   = TWTAEO_Visibility_Verdict::summarize_run( $selected );
 		$summary   = is_array( $summary ) ? $summary : array();
-		$checks    = isset( $selected['checks'] ) && is_array( $selected['checks'] ) ? $selected['checks'] : array();
+		/*
+		 * A run may hold several plan tiers. Everything below -- the headline,
+		 * the per-engine chips, share of voice, the question table -- reads the
+		 * BASELINE rung only, because pooling a free answer with a paid one
+		 * describes nobody. The other rungs get their own lines in
+		 * render_tier_lines(), and the summary's one weighted figure.
+		 */
+		$checks_all = isset( $selected['checks'] ) && is_array( $selected['checks'] ) ? $selected['checks'] : array();
+		$checks     = self::baseline_checks( $checks_all );
 		$questions = isset( $selected['questions'] ) && is_array( $selected['questions'] ) ? $selected['questions'] : array();
 		$queue     = isset( $selected['queue'] ) && is_array( $selected['queue'] ) ? $selected['queue'] : array();
 
@@ -1261,7 +1424,7 @@ final class TWTAEO_Page_AI_Visibility {
 			$run_engines = array_values( array_filter( $selected['allocation']['engines'], 'is_string' ) );
 		}
 		if ( empty( $run_engines ) ) {
-			foreach ( $checks as $c ) {
+			foreach ( $checks_all as $c ) {
 				if ( is_array( $c ) && isset( $c['engine'] ) && ! in_array( $c['engine'], $run_engines, true ) ) {
 					$run_engines[] = (string) $c['engine'];
 				}
@@ -1298,7 +1461,10 @@ final class TWTAEO_Page_AI_Visibility {
 		$cited_pct  = isset( $summary['cited_pct'] ) ? (int) $summary['cited_pct'] : 0;
 		$named_pct  = isset( $summary['named_pct'] ) ? (int) $summary['named_pct'] : 0;
 		$wrong      = isset( $summary['wrong'] ) ? (int) $summary['wrong'] : 0;
-		$n_checks   = isset( $summary['checks'] ) ? (int) $summary['checks'] : count( $checks );
+		// The headline percentage is the baseline rung, so its denominator is
+		// too. The run's full workload, every rung counted, is shown by
+		// render_tier_lines() instead of being divided into here.
+		$n_checks   = count( $checks );
 		$status     = isset( $selected['status'] ) ? (string) $selected['status'] : '';
 
 		// Trend: real runs only, oldest first.
@@ -1471,6 +1637,7 @@ final class TWTAEO_Page_AI_Visibility {
 				</span>
 			</div>
 		</div>
+		<?php self::render_tier_lines( $summary, $checks_all ); ?>
 		<div class="twt-aeo-vis__chips">
 			<?php foreach ( $per_engine as $s ) :
 				$tone = 0 === $s['answered'] ? 'none' : ( $s['cited_pct'] > 0 ? 'ok' : 'warn' );
@@ -2412,6 +2579,122 @@ final class TWTAEO_Page_AI_Visibility {
 			return false;
 		}
 		return empty( $c['domains'] ) && empty( $c['cited_urls'] );
+	}
+
+	/**
+	 * The checks asked at the BASELINE plan tier -- the one rung every engine
+	 * is asked at, and the one every figure recorded before plan tiers existed
+	 * describes. Rows written before the tier column, and rows carrying a tier
+	 * this build does not know, count as baseline rather than vanishing.
+	 *
+	 * @param array $checks Every rung.
+	 * @return array
+	 */
+	private static function baseline_checks( array $checks ) {
+		$baseline = (string) TWTAEO_Visibility_Types::DEFAULT_TIER;
+		$out      = array();
+		foreach ( $checks as $c ) {
+			if ( ! is_array( $c ) ) {
+				continue;
+			}
+			$tier = isset( $c['tier'] ) ? (string) $c['tier'] : $baseline;
+			if ( $baseline === $tier || ! in_array( $tier, TWTAEO_Visibility_Types::TIERS, true ) ) {
+				$out[] = $c;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * One line per plan tier the run asked, plus the single weighted estimate.
+	 *
+	 * Nothing is rendered for a run that asked one rung only, which is every
+	 * run recorded before plan tiers and every site whose engines expose no
+	 * second rung -- there is no comparison to draw and no reason to add a
+	 * panel saying so.
+	 *
+	 * @param array $summary    RunSummary; may predate `by_tier`.
+	 * @param array $checks_all Every rung's checks, for the per-rung counts.
+	 */
+	private static function render_tier_lines( array $summary, array $checks_all ) {
+		$by_tier = isset( $summary['by_tier'] ) && is_array( $summary['by_tier'] ) ? $summary['by_tier'] : array();
+		if ( count( $by_tier ) < 2 ) {
+			return;
+		}
+		$weighted = isset( $summary['weighted'], $summary['weighted']['cited_pct'], $summary['weighted']['named_pct'] )
+			&& is_array( $summary['weighted'] )
+				? $summary['weighted']
+				: null;
+		$shares   = ( $weighted && isset( $weighted['weights'] ) && is_array( $weighted['weights'] ) ) ? $weighted['weights'] : array();
+		?>
+		<div class="twt-aeo-vis__tiers">
+			<p class="twt-aeo-vis__tiers-head">
+				<strong><?php esc_html_e( 'By plan tier', 'twt-aeo-ultimate' ); ?></strong>
+				<span class="twt-aeo-vis__muted">
+					<?php esc_html_e( 'The same questions, asked the way each kind of account is answered — kept apart, because a free answer and a paid one are not the same measurement. Each line covers every engine you asked: where paying changes nothing on an engine, that engine’s single answer stands for all three plans.', 'twt-aeo-ultimate' ); ?>
+				</span>
+			</p>
+			<table class="twt-aeo-vis__tiers-table">
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( 'Plan', 'twt-aeo-ultimate' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Cited', 'twt-aeo-ultimate' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Named', 'twt-aeo-ultimate' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Engines', 'twt-aeo-ultimate' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Your audience', 'twt-aeo-ultimate' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php foreach ( $by_tier as $tier => $row ) :
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+					$is_base  = (string) TWTAEO_Visibility_Types::DEFAULT_TIER === (string) $tier;
+					$share    = isset( $shares[ $tier ] ) ? (int) $shares[ $tier ] : null;
+					// A summary stored by an older build carries none of these.
+					$cited   = isset( $row['cited_pct'] ) ? $row['cited_pct'] : null;
+					$named   = isset( $row['named_pct'] ) ? $row['named_pct'] : null;
+					$covered = isset( $row['engines'] ) ? (int) $row['engines'] : 0;
+					$asked   = isset( $row['asked'] ) ? (int) $row['asked'] : 0;
+					?>
+					<tr<?php echo $is_base ? ' class="is-baseline"' : ''; ?>>
+						<th scope="row">
+							<?php echo esc_html( isset( $row['label'] ) ? (string) $row['label'] : (string) $tier ); ?>
+							<?php if ( $is_base ) : ?>
+								<span class="twt-aeo-vis__muted"><?php esc_html_e( '— the headline above', 'twt-aeo-ultimate' ); ?></span>
+							<?php endif; ?>
+						</th>
+						<td><?php echo null === $cited ? '—' : esc_html( (int) $cited . '%' ); ?></td>
+						<td><?php echo null === $named ? '—' : esc_html( (int) $named . '%' ); ?></td>
+						<td class="twt-aeo-vis__muted" title="<?php echo esc_attr( sprintf( /* translators: %d: checks spent on this plan. */ _n( '%d check was spent on this plan; the other engines reuse their one answer, because paying changes nothing there.', '%d checks were spent on this plan; the other engines reuse their one answer, because paying changes nothing there.', $asked, 'twt-aeo-ultimate' ), $asked ) ); ?>">
+							<?php echo esc_html( number_format_i18n( $covered ) ); ?>
+						</td>
+						<td class="twt-aeo-vis__muted"><?php echo null === $share ? '—' : esc_html( $share . '%' ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			<?php if ( $weighted ) : ?>
+				<p class="twt-aeo-vis__tiers-weighted">
+					<strong>
+						<?php
+						printf(
+							/* translators: 1: cited percentage, 2: named percentage. */
+							esc_html__( 'Across your whole audience: cited %1$d%% · named %2$d%%', 'twt-aeo-ultimate' ),
+							(int) $weighted['cited_pct'],
+							(int) $weighted['named_pct']
+						);
+						?>
+					</strong>
+					<br>
+					<span class="twt-aeo-vis__muted">
+						<?php esc_html_e( 'Each plan’s percentage above, multiplied by the share beside it — the arithmetic is on screen, so you can check it. Those shares are your own estimate of how your buyers split across plans; nothing here can see anybody’s subscription. The per-plan lines are the measurements, this is one way of adding them up.', 'twt-aeo-ultimate' ); ?>
+					</span>
+				</p>
+			<?php endif; ?>
+		</div>
+		<?php
 	}
 
 	private static function engine_stats( array $checks, array $engines ) {

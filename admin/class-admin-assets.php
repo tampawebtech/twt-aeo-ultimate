@@ -316,6 +316,10 @@ class TWTAEO_Admin_Assets {
 					'day'        => __( 'day', 'twt-aeo-ultimate' ),
 					'days'       => __( 'days', 'twt-aeo-ultimate' ),
 					'capZero'    => __( '— (cap is 0)', 'twt-aeo-ultimate' ),
+					/* translators: %d: total of the ticked plan-tier shares, as a percentage. */
+					'mixOk'      => __( 'Ticked shares total %d%.', 'twt-aeo-ultimate' ),
+					/* translators: %d: total of the ticked plan-tier shares, as a percentage. */
+					'mixOff'     => __( 'Ticked shares total %d% — scaled to 100% when the combined figure is worked out.', 'twt-aeo-ultimate' ),
 					'fitsIn'     => __( 'fits in', 'twt-aeo-ultimate' ),
 					/* translators: 1: enabled question count, 2: total question count. */
 					'enabledOf'  => __( '%1$s of %2$s questions enabled.', 'twt-aeo-ultimate' ),
@@ -355,7 +359,16 @@ class TWTAEO_Admin_Assets {
 					'save'    => TWTAEO_Visibility_Types::AJAX_PERSONAS_SAVE,
 					'suggest' => TWTAEO_Visibility_Types::AJAX_PERSONAS_SUGGEST,
 				),
+				// Which side of the consumer/business line a buyer is on. It
+				// decides which AI plan tiers a run asks at, so the chip editor
+				// needs the options to rebuild a persona after an edit.
+				'markets' => array(
+					array( 'value' => '',    'label' => __( 'Site default', 'twt-aeo-ultimate' ) ),
+					array( 'value' => 'dtc', 'label' => __( 'Consumer', 'twt-aeo-ultimate' ) ),
+					array( 'value' => 'b2b', 'label' => __( 'Business', 'twt-aeo-ultimate' ) ),
+				),
 				'strings' => array(
+					'market'   => __( 'Who this buyer is', 'twt-aeo-ultimate' ),
 					'saving'   => __( 'Saving…', 'twt-aeo-ultimate' ),
 					'reading'  => __( 'Reading your main pages and asking your AI provider…', 'twt-aeo-ultimate' ),
 					'fromSite' => __( 'suggested from your site', 'twt-aeo-ultimate' ),

@@ -74,6 +74,12 @@ class TWTAEO_Video_Help {
 				'title' => __( 'Command Center', 'twt-aeo-ultimate' ),
 				'about' => __( 'Google Analytics, Search Console and Bing in one place, with AI crawler access, page speed and index status.', 'twt-aeo-ultimate' ),
 			),
+			'agent-skill'     => array(
+				'id'    => '23duzQC-hOk',
+				'guide' => 'https://aeoultimate.com/ask-your-ai-agent-if-ai-engines-cite-your-site/',
+				'title' => __( 'Ask your AI agent', 'twt-aeo-ultimate' ),
+				'about' => __( 'Connecting the MCP connector to Claude Code, Cursor or any other agent, and asking it which AI engines cite you.', 'twt-aeo-ultimate' ),
+			),
 		);
 	}
 
@@ -92,6 +98,7 @@ class TWTAEO_Video_Help {
 			'twt-aeo-ai-ready'        => array( 'ai-ready' ),
 			'twt-aeo-rag'             => array( 'rag-engine' ),
 			'twt-aeo-command-center'  => array( 'command-center' ),
+			'twt-aeo-settings'        => array( 'agent-skill' ),
 		);
 		/**
 		 * Filter the screen => tutorial map. Return an empty array to remove every "?".
@@ -121,7 +128,9 @@ class TWTAEO_Video_Help {
 					'id'    => $v['id'],
 					'title' => $v['title'],
 					'about' => $v['about'],
-					'guide' => self::DOCS . $v['guide'] . '/',
+					// A bare slug sits under the docs section; a full URL is used as
+					// given, for tutorials whose written guide is an article instead.
+					'guide' => 0 === strpos( $v['guide'], 'http' ) ? $v['guide'] : self::DOCS . $v['guide'] . '/',
 					'watch' => 'https://www.youtube.com/watch?v=' . rawurlencode( $v['id'] ),
 				);
 			}

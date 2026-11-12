@@ -85,8 +85,93 @@
 	}
 
 	/**
+	 * Which plan tiers genuinely change each engine's request, printed by PHP.
+	 * Shape: { chatgpt: ['paid','free'], claude: ['paid','free','throttled'], … }.
+	 * Market-independent, so the tickboxes alone decide the total.
+	 */
+	function tierDiffers() {
+		try {
+			return JSON.parse( $( '.twt-aeo-vis__market' ).attr( 'data-tier-differs' ) || '{}' );
+		} catch ( e ) {
+			return {};
+		}
+	}
+
+	function baselineTier() {
+		return $( '.twt-aeo-vis__market' ).attr( 'data-baseline-tier' ) || 'free';
+	}
+
+	/** The site's own market: the radio, ignoring any persona override. */
+	function siteMarket() {
+		return $( 'input[name="market"]:checked' ).val() || '';
+	}
+
+	/** Tiers ticked for a market, in the order they appear. */
+	function checkedTiers( market ) {
+		var out = [];
+		$( '[data-tier-mix][data-market="' + market + '"]' ).each( function () {
+			if ( $( this ).find( '[data-tier-on]' ).prop( 'checked' ) ) {
+				out.push( $( this ).attr( 'data-tier' ) );
+			}
+		} );
+
+		return out;
+	}
+
+	/** The whole mix, as the save action posts it. */
+	function tierMixData() {
+		var out = {};
+		$( '[data-tier-mix]' ).each( function () {
+			var $row = $( this );
+			var m = $row.attr( 'data-market' );
+			var t = $row.attr( 'data-tier' );
+			if ( ! m || ! t ) {
+				return;
+			}
+			out[ m ] = out[ m ] || {};
+			out[ m ][ t ] = {
+				on: $row.find( '[data-tier-on]' ).prop( 'checked' ) ? 1 : 0,
+				weight: parseInt( $row.find( '[data-tier-weight]' ).val(), 10 ) || 0
+			};
+		} );
+
+		return out;
+	}
+
+	/** Say what the ticked shares add up to; 100 is not enforced, only shown. */
+	function refreshMixTotals() {
+		$( '[data-tier-mix-market]' ).each( function () {
+			var $wrap = $( this );
+			var total = 0;
+			$wrap.find( '[data-tier-mix]' ).each( function () {
+				if ( $( this ).find( '[data-tier-on]' ).prop( 'checked' ) ) {
+					total += parseInt( $( this ).find( '[data-tier-weight]' ).val(), 10 ) || 0;
+				}
+			} );
+			var tpl = 100 === total
+				? ( strings.mixOk || 'Ticked shares total %d%.' )
+				: ( strings.mixOff || 'Ticked shares total %d% — scaled to 100% when used.' );
+			$wrap.find( '[data-tier-mix-total]' ).text( tpl.replace( '%d', total ) );
+		} );
+	}
+
+	/**
+	 * The market this run will be asked in. A run is asked AS one persona,
+	 * and a persona can sit on the other side of the consumer/business line
+	 * from the site's own setting, so the persona wins. The baseline run --
+	 * nobody in particular -- falls back to the site setting.
+	 */
+	function selectedMarket() {
+		var $opt = $( '#twt-aeo-vis-persona option:selected' );
+		var fromPersona = $opt.length ? ( $opt.attr( 'data-market' ) || '' ) : '';
+
+		return fromPersona || $( 'input[name="market"]:checked' ).val() || '';
+	}
+
+	/**
 	 * Mirror of TWTAEO_Visibility_Questions::allocation_totals — questions per
-	 * level from the counts printed as data-attributes, times engines = checks.
+	 * level from the counts printed as data-attributes, times the checks each
+	 * engine costs at this market's plan tiers.
 	 */
 	function computeTotals() {
 		var counts = {
@@ -107,12 +192,31 @@
 		};
 		var questions = 0;
 		$.each( byLevel, function ( k, v ) { questions += v; } );
-		var nEngines = checkedEngines().length;
+		var engines = checkedEngines();
+		/*
+		 * An engine costs one check per DISTINCT row the ticked tiers resolve
+		 * to, so this is a sum, not a multiplication. A tier that changes
+		 * nothing for an engine folds onto that engine's baseline row, which
+		 * mirrors TWTAEO_Visibility_Tier::tiers_for_engine() exactly.
+		 */
+		var differs  = tierDiffers();
+		var baseline = baselineTier();
+		var ticked   = checkedTiers( selectedMarket() );
+		var perQuestion = 0;
+		$.each( engines, function ( i, e ) {
+			var list = differs[ e ] || [ baseline ];
+			var rows = {};
+			rows[ baseline ] = true;
+			$.each( ticked, function ( j, t ) {
+				rows[ -1 !== $.inArray( t, list ) ? t : baseline ] = true;
+			} );
+			perQuestion += Object.keys( rows ).length;
+		} );
 		return {
 			byLevel:   byLevel,
 			questions: questions,
-			engines:   nEngines,
-			checks:    questions * nEngines
+			engines:   engines.length,
+			checks:    questions * perQuestion
 		};
 	}
 
@@ -186,7 +290,18 @@
 		redrawBar( t.byLevel );
 	}
 
-	$allocForm.on( 'input change', '.twt-aeo-vis__alloc-input, input[name="engine[]"]', refreshTotals );
+	$allocForm.on( 'input change', '.twt-aeo-vis__alloc-input, input[name="engine[]"], input[name="market"]', refreshTotals );
+	// The persona picker sits outside the allocation form but changes the
+	// market, and so the number of checks a run costs.
+	$( document ).on( 'change', '#twt-aeo-vis-persona', refreshTotals );
+	// Ticking a tier changes what a run costs; changing a share changes only
+	// the combined figure, but both totals are shown together.
+	$( document ).on( 'input change', '[data-tier-on], [data-tier-weight]', function () {
+		refreshMixTotals();
+		refreshTotals();
+	} );
+	$( document ).on( 'change', 'input[name="market"]', refreshMixTotals );
+	refreshMixTotals();
 
 	$allocForm.on( 'click', '.twt-aeo-vis__preset', function () {
 		var preset;
@@ -221,6 +336,10 @@
 		data.daily_cap       = $allocForm.find( '[name="daily_cap"]' ).val();
 		data.x_handle        = $allocForm.find( '[name="x_handle"]' ).val();
 		data.alternate_hosts = $allocForm.find( '[name="alternate_hosts"]' ).val();
+		// The site's own market, not any persona override: a persona is a
+		// property of the run, the market radio is a property of the site.
+		data.market   = siteMarket();
+		data.tier_mix = tierMixData();
 		setStatus( $status, strings.saving || 'Saving…' );
 		post( actions.save, data ).done( function ( resp ) {
 			if ( resp && resp.success ) {

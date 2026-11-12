@@ -1,6 +1,16 @@
 TWT AEO Ultimate — Full Changelog
 =================================
 
+= 2.36.0 =
+
+* **New: AI Visibility measures at the plan tier a buyer is on** (`includes/ai-visibility/class-visibility-tier.php`). Three rungs: `paid` (a paid plan's default), `free` (a free plan inside its quota, and byte-for-byte what every earlier run sent) and `throttled` (a free plan past its quota, dropped to a smaller model). A site's MARKET -- `dtc` or `b2b` -- decides which rungs are asked, and a buyer persona may carry its own market, which outranks the site's. Markets are asked for, never inferred.
+* A rung is only asked of an engine where it changes the request: a different model (`MODELS_PAID`, `MODELS_THROTTLED`) or a reasoning dial (`EFFORT_DIAL`). Elsewhere the engine is asked once and its baseline row stands for every rung, so a B2B run costs 12 checks per question across 8 engines rather than 24.
+* Where a paid plan swaps model, the reasoning dial is deliberately left alone: the model is the difference, and dialling it too would describe somebody who raised reasoning by hand rather than somebody who pays. Claude is the one engine still dialled, because Claude Pro runs the same Sonnet 5 as Claude Free.
+* **Reporting keeps the rungs apart.** The headline, the per-engine chips, share of voice and the question table all read the baseline rung only (`baseline_checks()`), because averaging a free answer with a paid one describes nobody. `by_tier` carries one line per rung, each covering EVERY engine -- an engine with no row at that rung contributes the row such a person would really get -- and `weighted` is a single audience-weighted estimate computed from those published percentages, so a reader can reproduce it from the table.
+* Schema: `checks.tier varchar(12)`, DB_VERSION 7. Rows written earlier read as `free`. CSV export gains `tier` and `market` columns.
+* **Changed: stale probe models.** `chatgpt` moves `gpt-5.6-luna` -> `gpt-6-luna` and `gemini` moves `gemini-3.6-flash` -> `gemini-3.5-flash-lite`, matching what free accounts were actually served after OpenAI's October consumer-app change and Google's 2026-10-09 restriction. Both step those engines' trend lines; the `model` column on every check row makes the discontinuity traceable.
+* **Fixed: Claude's web-search tool is chosen per model.** `CLAUDE_SEARCH_TOOL` (`web_search_20260209`) is Sonnet/Opus only, and the throttled rung probes Haiku, which answers 400 for it. `CLAUDE_SEARCH_TOOL_LEGACY` (`web_search_20250305`) is used when the model is a Haiku.
+
 = 2.35.1 =
 
 * **Fixed: the dashboard provider picker and the bulk job rewrote OpenRouter and Perplexity to Claude.** `ajax_ai_desc_settings()` and `TWTAEO_AI_Description::start_job()` each held a hard-coded `claude, openai, gemini` allow-list and substituted `claude` for anything else. The picker lists every provider in `available_providers()`, and `get_provider()` honours a saved choice whatever state its key is in, so on a site keyed only for OpenRouter or Perplexity one touch of the auto-generate toggle saved `claude` and broke every AI action, and every bulk run failed on each page. Both now check `TWTAEO_AI_Description::PROVIDERS`; an unknown value clears the saved choice (settings handler) or falls back to `get_provider()` (job) instead of naming Claude. The picker gains Perplexity and OpenRouter labels.

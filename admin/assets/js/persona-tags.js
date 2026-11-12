@@ -3,7 +3,7 @@
  *
  * Markup comes from TWTAEO_Page_AI_Visibility::render_persona_editor(). The
  * hidden `twtaeo_personas` field always holds the list as JSON rows
- * `{label, source}`: on Local Pack it rides the page's own form, on AI
+ * `{label, source, market}`: on Local Pack it rides the page's own form, on AI
  * Visibility the Save button posts it. "Suggest" asks the server to read the
  * site's main pages and saves what comes back, so both pages see it.
  *
@@ -35,6 +35,12 @@
 		return strings.error || 'Something went wrong.';
 	}
 
+	var MARKETS = ( window.twtAeoPersonas && window.twtAeoPersonas.markets ) || [
+		{ value: '', label: 'Site default' },
+		{ value: 'dtc', label: 'Consumer' },
+		{ value: 'b2b', label: 'Business' }
+	];
+
 	function clean( label ) {
 		return String( label || '' ).replace( /\s+/g, ' ' ).replace( /^[\s"'.,;:]+|[\s"'.,;:]+$/g, '' ).slice( 0, 80 );
 	}
@@ -55,7 +61,15 @@
 
 		function rows() {
 			return $box.find( '[data-persona-tag]' ).map( function () {
-				return { label: $( this ).attr( 'data-label' ), source: $( this ).attr( 'data-source' ) || 'owner' };
+				var $t = $( this );
+				// Read the live <select> rather than the data attribute, so a
+				// market the owner just changed is saved without a re-render.
+				var $m = $t.find( '[data-persona-market]' );
+				return {
+					label:  $t.attr( 'data-label' ),
+					source: $t.attr( 'data-source' ) || 'owner',
+					market: ( $m.length ? $m.val() : $t.attr( 'data-market' ) ) || ''
+				};
 			} ).get();
 		}
 
@@ -72,10 +86,11 @@
 				.attr( 'placeholder', rows().length >= MAX ? ( strings.full || 'That’s the maximum.' ) : $input.data( 'placeholder' ) );
 		}
 
-		function tag( label, source ) {
+		function tag( label, source, market ) {
 			var $t = $( '<span class="twt-aeo-personas__tag" data-persona-tag></span>' )
 				.attr( 'data-label', label )
-				.attr( 'data-source', source );
+				.attr( 'data-source', source )
+				.attr( 'data-market', market || '' );
 			$( '<button type="button" class="twt-aeo-personas__text" data-persona-edit></button>' )
 				.attr( 'title', strings.edit || 'Click to edit' )
 				.text( label )
@@ -84,6 +99,14 @@
 				$t.addClass( 'is-site' );
 				$( '<span class="twt-aeo-personas__src"></span>' ).text( strings.fromSite || 'suggested from your site' ).appendTo( $t );
 			}
+			// Which side of the consumer/business line this buyer is on, which
+			// is what decides the AI plan tiers a run as them asks at.
+			var $sel = $( '<select class="twt-aeo-personas__market" data-persona-market></select>' )
+				.attr( 'aria-label', strings.market || 'Who this buyer is' );
+			MARKETS.forEach( function ( m ) {
+				$( '<option></option>' ).attr( 'value', m.value ).text( m.label ).appendTo( $sel );
+			} );
+			$sel.val( market || '' ).appendTo( $t );
 			$( '<button type="button" class="twt-aeo-personas__remove" data-persona-remove>&times;</button>' )
 				.attr( 'aria-label', ( strings.remove || 'Remove %s' ).replace( '%s', label ) )
 				.appendTo( $t );
@@ -97,7 +120,10 @@
 				if ( ! label || has( label ) || rows().length >= MAX ) {
 					return;
 				}
-				tag( label, source || 'owner' ).insertBefore( $input );
+				// A persona typed by hand starts on the site default: guessing a
+				// market from somebody's own words would quietly measure the
+				// wrong audience.
+				tag( label, source || 'owner', '' ).insertBefore( $input );
 				added++;
 			} );
 			sync();
@@ -108,7 +134,7 @@
 			$box.find( '[data-persona-tag]' ).remove();
 			( list || [] ).forEach( function ( p ) {
 				if ( p && p.label ) {
-					tag( p.label, 'site' === p.source ? 'site' : 'owner' ).insertBefore( $input );
+					tag( p.label, 'site' === p.source ? 'site' : 'owner', p.market || '' ).insertBefore( $input );
 				}
 			} );
 			sync();
@@ -150,6 +176,19 @@
 			if ( e.target === $box[ 0 ] ) {
 				$input.trigger( 'focus' );
 			}
+		} );
+
+		// Changing a market is an edit like any other: keep the chip's data
+		// attribute in step and re-serialize the hidden field.
+		$box.on( 'change', '[data-persona-market]', function () {
+			$( this ).closest( '[data-persona-tag]' ).attr( 'data-market', $( this ).val() || '' );
+			sync();
+		} );
+
+		// A click on the control must not reach the box handler that opens the
+		// label editor, or picking a market would start renaming the persona.
+		$box.on( 'click', '[data-persona-market]', function ( e ) {
+			e.stopPropagation();
 		} );
 
 		$box.on( 'click', '[data-persona-remove]', function () {

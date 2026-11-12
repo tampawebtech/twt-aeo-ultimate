@@ -18,6 +18,14 @@
  * app changes its default. The accuracy judge is different work and stays on
  * the cheap tier via TWTAEO_AI_Client.
  *
+ * Tier: `$opts['tier']` is which rung of the AI experience to imitate --
+ * `free` (a free plan inside its quota, and byte-for-byte what this file
+ * sent before tiers existed), `throttled` (that same plan past its quota,
+ * dropped to a smaller MODEL) or `paid` (the Think / Pro-Search depth a paid
+ * plan hands out freely, usually on the same model). So a tier changes
+ * either the model or the reasoning dial, and only the engines in
+ * EFFORT_DIAL have a dial to change. See TWTAEO_Visibility_Tier.
+ *
  * Gemini's citations are redirect URLs: Google Search grounding returns
  * `groundingChunks[].web.uri` as a `vertexaisearch.cloud.google.com/
  * grounding-api-redirect/…` link, so the cited DOMAIN has to come from
@@ -160,8 +168,9 @@ final class TWTAEO_Visibility_Engines {
 	 * @param string $engine   chatgpt|gemini|claude|perplexity|grok|mistral
 	 * @param string $key      The merchant's key for that engine.
 	 * @param string $question
-	 * @param array  $opts     { persona?: string, history?: [ [ q, a ], … ] } The persona's label;
-	 *                          earlier turns of the same conversation (journey mode), oldest first.
+	 * @param array  $opts     { persona?: string, history?: [ [ q, a ], … ], tier?: throttled|free|paid }
+	 *                          The persona's label; earlier turns of the same conversation
+	 *                          (journey mode), oldest first; how hard to ask the engine to work.
 	 * @return array { text, cited_urls[], searched_urls[], error|null, latency_ms, model, tools[] }
 	 */
 	public static function ask_with_citations( $engine, $key, $question, array $opts = array() ) {
@@ -169,8 +178,8 @@ final class TWTAEO_Visibility_Engines {
 		$engine   = (string) $engine;
 		$key      = (string) $key;
 		$question = (string) $question;
-		$models   = TWTAEO_Visibility_Types::MODELS;
-		$model    = isset( $models[ $engine ] ) ? $models[ $engine ] : '';
+		$tier    = TWTAEO_Visibility_Tier::clean_tier( isset( $opts['tier'] ) ? $opts['tier'] : '' );
+		$model    = TWTAEO_Visibility_Tier::model_for( $engine, $tier );
 		$system   = self::system_prompt( self::SHOPPER_PROMPT, $opts );
 		$history  = self::history( $opts );
 		$loc      = self::location( $opts );
@@ -184,13 +193,13 @@ final class TWTAEO_Visibility_Engines {
 			} else {
 				switch ( $engine ) {
 					case 'claude':
-						$result = self::ask_claude( $key, $question, $model, $system, $history, $loc );
+						$result = self::ask_claude( $key, $question, $model, $system, $history, $loc, $tier );
 						break;
 					case 'chatgpt':
-						$result = self::ask_chatgpt( $key, $question, $model, $system, $history, $loc );
+						$result = self::ask_chatgpt( $key, $question, $model, $system, $history, $loc, $tier );
 						break;
 					case 'gemini':
-						$result = self::ask_gemini( $key, $question, $model, $system, $history );
+						$result = self::ask_gemini( $key, $question, $model, $system, $history, $tier );
 						break;
 					case 'perplexity':
 						$result = self::ask_perplexity( $key, $question, $model, $system, $history, $loc );
@@ -241,17 +250,27 @@ final class TWTAEO_Visibility_Engines {
 
 	/* ─────────────────────────── Claude ───────────────────────────── */
 
-	private static function ask_claude( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+	private static function ask_claude( $key, $question, $model, $system, array $history = array(), $loc = null, $tier = null ) {
+		/*
+		 * The newer web-search tool is Sonnet/Opus only. The `throttled` tier
+		 * probes Haiku -- the model a free account over its quota is dropped
+		 * to -- and Haiku answers 400 for that variant, so pick by model.
+		 */
+		$search_tool = ( false !== strpos( (string) $model, 'haiku' ) )
+			? TWTAEO_Visibility_Types::CLAUDE_SEARCH_TOOL_LEGACY
+			: TWTAEO_Visibility_Types::CLAUDE_SEARCH_TOOL;
+
 		return self::anthropic_messages(
 			'https://api.anthropic.com/v1/messages',
-			TWTAEO_Visibility_Types::CLAUDE_SEARCH_TOOL,
-			array( 'output_config' => array( 'effort' => 'low' ) ),
+			$search_tool,
+			array( 'output_config' => array( 'effort' => TWTAEO_Visibility_Tier::anthropic_effort( $tier, 'claude' ) ) ),
 			$key,
 			$question,
 			$model,
 			$system,
 			$history,
-			$loc
+			$loc,
+			$tier
 		);
 	}
 
@@ -326,9 +345,10 @@ final class TWTAEO_Visibility_Engines {
 	 * @param array      $extra Extra body fields for this provider.
 	 * @param array|null $loc   Where the search runs from (TWTAEO_Visibility_Location).
 	 */
-	private static function anthropic_messages( $url, $tool, array $extra, $key, $question, $model, $system, array $history, $loc = null ) {
-		$request = function ( $with_location ) use ( $url, $tool, $extra, $key, $question, $model, $system, $history, $loc ) {
-			$search = array( 'type' => $tool, 'name' => 'web_search', 'max_uses' => 3 );
+	private static function anthropic_messages( $url, $tool, array $extra, $key, $question, $model, $system, array $history, $loc = null, $tier = null ) {
+		$uses    = TWTAEO_Visibility_Tier::searches( $tier );
+		$request = function ( $with_location ) use ( $url, $tool, $extra, $key, $question, $model, $system, $history, $loc, $uses ) {
+			$search = array( 'type' => $tool, 'name' => 'web_search', 'max_uses' => $uses );
 			if ( $with_location ) {
 				$search['user_location'] = TWTAEO_Visibility_Location::for_api( $loc, 'anthropic' );
 			}
@@ -411,18 +431,18 @@ final class TWTAEO_Visibility_Engines {
 
 	/* ─────────────────────────── ChatGPT ──────────────────────────── */
 
-	private static function ask_chatgpt( $key, $question, $model, $system, array $history = array(), $loc = null ) {
+	private static function ask_chatgpt( $key, $question, $model, $system, array $history = array(), $loc = null, $tier = null ) {
 		$tool = 'web_search';
-		$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc );
+		$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc, $tier );
 		// Some accounts/models still only know the preview tool name; one retry.
 		if ( ! $res['ok'] && 400 === (int) $res['status'] && false !== stripos( (string) $res['error'], 'web_search' ) ) {
 			$tool = 'web_search_preview';
-			$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc );
+			$res  = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, $loc, $tier );
 		}
 		// Location refused: ask once more without it (the context line keeps it).
 		if ( is_array( $loc ) && ! $res['ok'] && 400 === (int) $res['status'] ) {
 			$loc = null;
-			$res = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, null );
+			$res = self::chatgpt_request( $key, $question, $model, $tool, $system, $history, null, $tier );
 		}
 		$out = self::blank( $model, is_array( $loc ) ? array( $tool, 'user_location' ) : array( $tool ) );
 		if ( ! $res['ok'] ) {
@@ -458,11 +478,30 @@ final class TWTAEO_Visibility_Engines {
 		return $out;
 	}
 
-	private static function chatgpt_request( $key, $question, $model, $tool_type, $system, array $history = array(), $loc = null ) {
+	private static function chatgpt_request( $key, $question, $model, $tool_type, $system, array $history = array(), $loc = null, $tier = null ) {
 		$search = array( 'type' => $tool_type );
 		if ( is_array( $loc ) ) {
 			$search['user_location'] = TWTAEO_Visibility_Location::for_api( $loc, 'openai' );
 		}
+		$body = array(
+			'model'             => $model,
+			'tools'             => array( $search ),
+			'instructions'      => $system,
+			'input'             => empty( $history ) ? $question : self::turns( $history, $question ),
+			'max_output_tokens' => self::THINKING_MAX_TOKENS,
+		);
+		/*
+		 * Only `paid` sets this. `free` and `throttled` send no `reasoning`
+		 * field at all -- exactly what every run before tiers existed sent --
+		 * so the free-plan line stays comparable with the history behind it.
+		 * If a model refuses the effort we ask for, the check records the
+		 * error rather than quietly retrying lower and labelling it `paid`.
+		 */
+		$effort = TWTAEO_Visibility_Tier::openai_effort( $tier );
+		if ( null !== $effort ) {
+			$body['reasoning'] = array( 'effort' => $effort );
+		}
+
 		return TWTAEO_Visibility_Http::post(
 			'https://api.openai.com/v1/responses',
 			array(
@@ -470,13 +509,7 @@ final class TWTAEO_Visibility_Engines {
 					'Authorization' => 'Bearer ' . $key,
 					'content-type'  => 'application/json',
 				),
-				'body'    => array(
-					'model'             => $model,
-					'tools'             => array( $search ),
-					'instructions'      => $system,
-					'input'             => empty( $history ) ? $question : self::turns( $history, $question ),
-					'max_output_tokens' => self::THINKING_MAX_TOKENS,
-				),
+				'body'    => $body,
 			),
 			$key
 		);
@@ -793,8 +826,18 @@ final class TWTAEO_Visibility_Engines {
 	 * Otherwise the redirect URI is kept as-is and its host will read as
 	 * "other" rather than be guessed. Known limitation; the page states it.
 	 */
-	private static function ask_gemini( $key, $question, $model, $system, array $history = array() ) {
-		$out = self::blank( $model, array( 'google_search' ) );
+	private static function ask_gemini( $key, $question, $model, $system, array $history = array(), $tier = null ) {
+		$out    = self::blank( $model, array( 'google_search' ) );
+		$config = array( 'maxOutputTokens' => self::THINKING_MAX_TOKENS );
+		/*
+		 * Only `paid` sets thinkingLevel. The free rungs leave the model's own
+		 * default alone, which is both what the Gemini app does and what this
+		 * module has always sent, so existing Gemini trends do not move.
+		 */
+		$level = TWTAEO_Visibility_Tier::gemini_thinking_level( $tier );
+		if ( null !== $level ) {
+			$config['thinkingConfig'] = array( 'thinkingLevel' => $level );
+		}
 		$res = TWTAEO_Visibility_Http::post(
 			'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent?key=' . rawurlencode( $key ),
 			array(
@@ -803,7 +846,7 @@ final class TWTAEO_Visibility_Engines {
 					'systemInstruction' => array( 'parts' => array( array( 'text' => $system ) ) ),
 					'contents'          => self::gemini_turns( $history, $question ),
 					'tools'             => array( array( 'google_search' => (object) array() ) ),
-					'generationConfig'  => array( 'maxOutputTokens' => self::THINKING_MAX_TOKENS ),
+					'generationConfig'  => $config,
 				),
 			),
 			$key

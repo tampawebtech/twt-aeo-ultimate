@@ -642,15 +642,44 @@ final class TWTAEO_Visibility_Verdict {
 	 * surfaced, so the headline reads "Cited in 23% · Named in 41%" with named ≥
 	 * cited, never the other way round.
 	 *
+	 * The headline describes the BASELINE plan tier only, so it never blends a
+	 * free answer with a paid one; `by_tier` carries one entry per rung the run
+	 * actually asked. Every engine is always asked at the baseline, so a run
+	 * recorded before tiers existed summarizes exactly as it always did.
+	 *
+	 * `weighted` is the one deliberate blend: an estimate of what the whole
+	 * audience sees, carrying the tier shares it used so the assumption is
+	 * visible rather than baked in. It is an addition to the per-tier lines,
+	 * never a replacement for them, and it is null when nothing was answered.
+	 *
 	 * @param array $run Run.
 	 * @return array RunSummary.
 	 */
 	public static function summarize_run( array $run ) {
-		$all      = isset( $run['checks'] ) && is_array( $run['checks'] ) ? $run['checks'] : array();
-		$answered = array();
-		$wrong    = 0;
+		$all       = isset( $run['checks'] ) && is_array( $run['checks'] ) ? $run['checks'] : array();
+		$baseline  = (string) TWTAEO_Visibility_Types::DEFAULT_TIER;
+		$answered  = array();
+		$wrong     = 0;
+		$tier_rows = array();
 		foreach ( $all as $c ) {
 			if ( ! is_array( $c ) ) {
+				continue;
+			}
+			$tier = isset( $c['tier'] ) && in_array( (string) $c['tier'], TWTAEO_Visibility_Types::TIERS, true )
+				? (string) $c['tier']
+				: $baseline;
+			$tier_rows[ $tier ][] = $c;
+			/*
+			 * The headline is the BASELINE tier alone. A B2B run also holds
+			 * paid and throttled rows, and averaging the rungs together would
+			 * give a number nobody actually experiences -- the blend this
+			 * module refuses to show. Every engine is always asked at the
+			 * baseline (TWTAEO_Visibility_Tier::tiers_for_engine guarantees
+			 * it), so this denominator is exactly the dataset runs had before
+			 * tiers existed and the trend line does not step. The other rungs
+			 * are reported beside it in `by_tier`.
+			 */
+			if ( $baseline !== $tier ) {
 				continue;
 			}
 			if ( isset( $c['accuracy'] ) && 'wrong' === $c['accuracy'] ) {
@@ -731,6 +760,113 @@ final class TWTAEO_Visibility_Verdict {
 			$by_brand[ $label ] = $seen > 0 ? (int) round( ( $brand_cited[ $label ] / $seen ) * 100 ) : 0;
 		}
 
+		/*
+		 * Per-engine tallies first: every rung's answer, kept apart.
+		 */
+		$cell = array();
+		foreach ( $tier_rows as $tier => $rows ) {
+			foreach ( (array) $rows as $c ) {
+				if ( isset( $c['verdict'] ) && 'unavailable' === $c['verdict'] ) {
+					continue;
+				}
+				$e = isset( $c['engine'] ) ? (string) $c['engine'] : '';
+				if ( ! isset( $cell[ $e ][ $tier ] ) ) {
+					$cell[ $e ][ $tier ] = array( 'seen' => 0, 'cited' => 0, 'named' => 0 );
+				}
+				$cell[ $e ][ $tier ]['seen']++;
+				$v = isset( $c['verdict'] ) ? $c['verdict'] : '';
+				if ( 'cited' === $v ) {
+					$cell[ $e ][ $tier ]['cited']++;
+					$cell[ $e ][ $tier ]['named']++;
+				} elseif ( 'named' === $v ) {
+					$cell[ $e ][ $tier ]['named']++;
+				}
+			}
+		}
+		$engines_seen = array_keys( $cell );
+
+		/*
+		 * One line per plan tier, and each line is what somebody ON that plan
+		 * actually meets ACROSS EVERY ENGINE -- not merely the rows that happened
+		 * to be asked at that rung.
+		 *
+		 * The difference matters. Grok has no paid rung, because paying changes
+		 * nothing there. Counting only the rows stored as `paid` would quietly
+		 * describe a paid subscriber as somebody who never opens Grok. So an
+		 * engine with no row of its own at this rung contributes the row a person
+		 * on that plan would really get (row_tier_for), which is its baseline.
+		 *
+		 * Each engine counts once and averages its own questions first, so an
+		 * engine asked more questions than another does not outvote it.
+		 */
+		$by_tier = array();
+		foreach ( TWTAEO_Visibility_Types::TIERS as $tier ) {
+			if ( empty( $tier_rows[ $tier ] ) ) {
+				continue;
+			}
+			$covered = 0;
+			$t_cited = 0.0;
+			$t_named = 0.0;
+			foreach ( $engines_seen as $engine ) {
+				$row = class_exists( 'TWTAEO_Visibility_Tier' )
+					? TWTAEO_Visibility_Tier::row_tier_for( $engine, $tier )
+					: $tier;
+				if ( empty( $cell[ $engine ][ $row ]['seen'] ) ) {
+					continue;
+				}
+				$c        = $cell[ $engine ][ $row ];
+				$covered++;
+				$t_cited += $c['cited'] / $c['seen'];
+				$t_named += $c['named'] / $c['seen'];
+			}
+			$by_tier[ $tier ] = array(
+				'label'     => isset( TWTAEO_Visibility_Types::TIER_LABEL[ $tier ] ) ? TWTAEO_Visibility_Types::TIER_LABEL[ $tier ] : $tier,
+				// Engines this rung's figure covers, and how many checks were
+				// actually spent on it -- the rest reuse an engine's one answer.
+				'engines'   => $covered,
+				'asked'     => count( (array) $tier_rows[ $tier ] ),
+				'cited_pct' => $covered > 0 ? (int) round( ( $t_cited / $covered ) * 100 ) : null,
+				'named_pct' => $covered > 0 ? (int) round( ( $t_named / $covered ) * 100 ) : null,
+			);
+		}
+
+		/*
+		 * ONE estimate of what the whole audience sees, weighted by the share of
+		 * them on each plan. It sits BESIDE the per-plan lines, never instead of
+		 * them, and carries the shares that produced it.
+		 *
+		 * Worked out from the PUBLISHED per-plan percentages above, not from
+		 * fuller-precision figures behind them. That costs a fraction of a point
+		 * and buys something worth more: a reader can multiply the numbers on
+		 * screen by the shares beside them and get this number back. A figure
+		 * nobody can reproduce is a figure nobody should trust.
+		 */
+		$weighted = null;
+		if ( class_exists( 'TWTAEO_Visibility_Tier' ) && ! empty( $by_tier ) ) {
+			$weights = TWTAEO_Visibility_Tier::weights_for_market(
+				TWTAEO_Visibility_Tier::market_of_run( $run ),
+				isset( $alloc['tier_mix'] ) && is_array( $alloc['tier_mix'] ) ? $alloc['tier_mix'] : null
+			);
+			$w_cited = 0.0;
+			$w_named = 0.0;
+			$w_total = 0.0;
+			foreach ( $weights as $tier => $share ) {
+				if ( ! isset( $by_tier[ $tier ] ) || null === $by_tier[ $tier ]['cited_pct'] ) {
+					continue;
+				}
+				$w_cited += $share * (int) $by_tier[ $tier ]['cited_pct'];
+				$w_named += $share * (int) $by_tier[ $tier ]['named_pct'];
+				$w_total += $share;
+			}
+			if ( $w_total > 0 ) {
+				$weighted = array(
+					'cited_pct' => (int) round( $w_cited / $w_total ),
+					'named_pct' => (int) round( $w_named / $w_total ),
+					'weights'   => $weights,
+				);
+			}
+		}
+
 		return array(
 			'id'          => isset( $run['id'] ) ? $run['id'] : '',
 			'started_at'  => isset( $run['started_at'] ) ? $run['started_at'] : '',
@@ -743,6 +879,8 @@ final class TWTAEO_Visibility_Verdict {
 			'wrong'       => $wrong,
 			'by_engine'   => $by_engine,
 			'by_brand'    => $by_brand,
+			'by_tier'     => $by_tier,
+			'weighted'    => $weighted,
 		);
 	}
 
